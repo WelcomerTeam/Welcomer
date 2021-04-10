@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	_ "image/jpeg"
+
 	"github.com/WelcomerTeam/WelcomerImages/pkg/multiface"
 
 	"golang.org/x/image/font/opentype"
@@ -23,7 +25,7 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
-var text = "🎀 Pink-_-Panda-008 🎀\ngenji🐲\n🕙\nᶜʰⁱˡˡPizza steve®\n🤔Rock\n𝓞𝓷𝓼𝓻𝓪#0133\nA ‘ s\nдруг#1513\n👑┇𝐑𝐢𝐧𝐢 💔 𝐅𝐨𝐱™#2117\n𝑇𝑀𝑮\n!  ꧁卄卂ㄩ爪꧂ !\n-Māthîās-#1297\n𝓚𝓪𝔃𝓮꧁✞ Isa ✞꧂#5897\n[AFK] ᴇᴄʜᴏ#9098"
+var text = "Test Image\nQWERTYUIOPLKJHGFDSAZXCVBNM\nqwertyuioplkjhgfdsazxcvbnm\n🎀🐲🕙ʰⁱˡˡ🤔𝓞𝓷𝓼𝓻𝓪#0133A ‘ s\nдруг👑┇𝐑𝐢𝐧𝐅𝐨𝐱™#𝑇𝑀𝑮\n꧁卄卂ㄩ爪꧂Māthîn\n✞ ᴇᴄʜᴏ"
 
 var fontCache = map[string]*sfnt.Font{}
 
@@ -181,7 +183,8 @@ func loadFont(size float64) font.Face {
 	opts := &truetype.Options{Size: size, DPI: 72}
 
 	// Gives Roboto Priority
-	addFaceFont(face, "Roboto-Medium.ttf", opts.Size, opts.DPI)
+	addFaceFont(face, "SF-Pro-Text-Bold.otf", opts.Size, opts.DPI)
+	// addFaceFont(face, "Inter-Medium.ttf", opts.Size, opts.DPI)
 
 	files, _ := ioutil.ReadDir("Fonts")
 	for _, file := range files {
@@ -200,11 +203,22 @@ func main() {
 	d.Dst = rgba
 	d.Src = fg
 
+	imgFile1, err := os.Open("test1.jpg")
+	if err != nil {
+		fmt.Println(err)
+	}
+	img1, _, err := image.Decode(imgFile1)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	draw.Draw(rgba, rgba.Bounds(), img1, image.Point{}, draw.Src)
+
 	a := time.Now()
 	drawMultiline(
-		40, d, loadFont, rgba.Rect, 0, 0, rgba.Rect.Dx(), rgba.Rect.Dy(), Xalignment(Right), Yalignment(Bottom),
+		28, d, loadFont, rgba.Rect, 0, 0, rgba.Rect.Dx(), rgba.Rect.Dy(), Xalignment(Center), Yalignment(Middle),
 		text,
-		image.NewUniform(color.Black), 4, image.NewUniform(color.White))
+		image.NewUniform(color.Black), 0, image.NewUniform(color.NRGBA{188, 178, 175, 255}))
 	println("DML", time.Since(a).Round(time.Microsecond).Milliseconds())
 
 	outFile, err := os.Create("out.png")

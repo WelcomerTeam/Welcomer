@@ -1,0 +1,28 @@
+logging:
+  level: info
+  console_logging: true
+  file_logging: true
+  encode_as_json: false
+  directory: logs
+  filename: welcomerimages
+  max_size: 1024
+  max_backups: 16
+  max_age: 14
+  minimal_webhooks: false
+http:
+  host: 0.0.0.0:4200
+  bookmarkable_url: https://cdn.welcomer.gg
+store:
+  static_path: cdn
+  store_path: store
+  static_backgrounds_path: backgrounds
+  backgrounds_path: custombackgrounds
+  background_fallback: default
+  default_image_location: ./default.png
+  index_location: ./index.html
+  allow_anonymous_access: false
+  bolt_db_location: metadata.db
+prometheus:
+  enabled: true
+  host: localhost:4201
+api_keys:

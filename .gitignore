@@ -13,4 +13,9 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+logs/*
 fonts/*
+*.fasthttp.gz
+*.fasthttp.br
+welcomerimages.yaml
