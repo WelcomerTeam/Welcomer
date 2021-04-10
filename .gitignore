@@ -19,3 +19,5 @@ fonts/*
 *.fasthttp.gz
 *.fasthttp.br
 welcomerimages.yaml
+*.db
+*.db.lock

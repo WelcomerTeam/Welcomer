@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"image"
 	"image/color"
-	"image/draw"
 	"image/gif"
 	"image/png"
-	"sync"
 	"time"
 
 	"github.com/savsgio/gotils"
@@ -59,14 +57,14 @@ type ImageOpts struct {
 var attr, _ = imagequant.NewAttributes()
 
 func init() {
-	attr.SetSpeed(5)
+	attr.SetSpeed(4)
 }
 
 // quantizeImage converts an image.Image to image.Paletted via imagequant
-func quantizeImage(im image.Image) *image.Paletted {
-	b := im.Bounds()
+func quantizeImage(src image.Image) *image.Paletted {
+	b := src.Bounds()
 
-	qimg, err := imagequant.NewImage(attr, gotils.B2S(imagequant.ImageToRgba32(im)), b.Dx(), b.Dy(), 1)
+	qimg, err := imagequant.NewImage(attr, gotils.B2S(imagequant.ImageToRgba32(src)), b.Dx(), b.Dy(), 1)
 	if err != nil {
 		panic(err)
 	}
@@ -76,14 +74,18 @@ func quantizeImage(im image.Image) *image.Paletted {
 		panic(err)
 	}
 
-	np := image.NewPaletted(im.Bounds(), pm.GetPalette())
-	draw.Draw(np, np.Rect, im, im.Bounds().Min, draw.Over)
-	// TODO: Figure out how to speed this Draw up
+	dst := image.NewPaletted(src.Bounds(), pm.GetPalette())
+
+	// WriteRemappedImage returns a list of bytes pointing to direct
+	// palette indexes so we can just copy it over and it will be
+	// using the optimimal indexes.
+	rmap, err := pm.WriteRemappedImage()
+	copy(dst.Pix, rmap)
 
 	pm.Release()
 	qimg.Release()
 
-	return np
+	return dst
 }
 
 // GenerateImage generates an Image
@@ -108,16 +110,10 @@ func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOp
 
 	start := time.Now()
 	if len(a.Frames) > 1 && imageOpts.AllowGIF {
-		wg := sync.WaitGroup{}
 		_frames := make([]*image.Paletted, len(a.Frames), len(a.Frames))
-		for c, frame := range a.Frames {
-			wg.Add(1)
-			go func(im image.Image, jobnum int) {
-				_frames[jobnum] = quantizeImage(im)
-				wg.Done()
-			}(frame, c)
+		for framenum, frame := range a.Frames {
+			_frames[framenum] = quantizeImage(frame)
 		}
-		wg.Wait()
 
 		gif.EncodeAll(b, &gif.GIF{
 			Image:           _frames,
