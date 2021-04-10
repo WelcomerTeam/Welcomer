@@ -25,4 +25,9 @@ store:
 prometheus:
   enabled: true
   host: localhost:4201
+internal:
+  concurrent_quantizers: 0
+  quantizer_speed: 5
+  quantizer_quality_min: 80
+  quantizer_quality_max: 80
 api_keys:

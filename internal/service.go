@@ -28,6 +28,7 @@ import (
 	"github.com/rs/zerolog/log"
 	gotils "github.com/savsgio/gotils/strconv"
 	"github.com/tevino/abool"
+	"github.com/ultimate-guitar/go-imagequant"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/sfnt"
@@ -37,7 +38,7 @@ import (
 )
 
 // VERSION respects semantic versioning.
-const VERSION = "0.1.1+100420210247"
+const VERSION = "0.1.2+100420210318"
 
 const (
 	ConfigurationPath         = "welcomerimages.yaml"
@@ -56,7 +57,10 @@ const (
 )
 
 var (
+	attr, _    = imagequant.NewAttributes()
 	bucketName = []byte("images")
+
+	quantizationLimiter *limiter.ConcurrencyLimiter
 
 	fontCacheSize = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "welcomerimages_font_cache_total",
@@ -210,6 +214,14 @@ type WelcomerImageConfiguration struct {
 		Enabled bool   `json:"enabled" yaml:"enabled"`
 		Host    string `json:"host" yaml:"host"`
 	} `json:"prometheus" yaml:"prometheus"`
+
+	Internal struct {
+		ConcurrentQuantizers int `json:"concurrent_quantizers" yaml:"concurrent_quantizers"`
+
+		QuantizerSpeed      int `json:"quantizer_speed" yaml:"quantizer_speed"`
+		QuantizerQualityMin int `json:"quantizer_quality_min" yaml:"quantizer_quality_min"`
+		QuantizerQualityMax int `json:"quantizer_quality_max" yaml:"quantizer_quality_max"`
+	}
 
 	APIKeys []string `json:"api_keys" yaml:"api_keys"`
 }
@@ -486,6 +498,24 @@ func (wi *WelcomerImageService) Open() (err error) {
 	if wi.Configuration.Store.AllowAnonymousAccess {
 		wi.Logger.Warn().Msg("Anonymous access is enabled")
 	}
+
+	// Pseudo allow an infinite number of concurrency
+	if wi.Configuration.Internal.ConcurrentQuantizers == 0 {
+		wi.Configuration.Internal.ConcurrentQuantizers = 1024
+		wi.Logger.Info().Msg("ConcurrentQuantizers was set to 0. Limiter has been set to 1024")
+	}
+
+	quantizationLimiter = limiter.NewConcurrencyLimiter(
+		"",
+		wi.Configuration.Internal.ConcurrentQuantizers,
+	)
+	attr.SetQuality(
+		wi.Configuration.Internal.QuantizerQualityMin,
+		wi.Configuration.Internal.QuantizerQualityMax,
+	)
+	attr.SetSpeed(
+		wi.Configuration.Internal.QuantizerSpeed,
+	)
 
 	wi.Logger.Info().
 		Msg("Releasing Bolt lock")

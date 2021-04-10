@@ -157,6 +157,11 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 // ImagesCreate handles creating images
 func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		// Ensures we finish any active ImagesCreate requests
+		// before closing down.
+		wi.PoolWaiter.Add(1)
+		defer wi.PoolWaiter.Done()
+
 		var rd ImageCreateArguments
 
 		err := json.NewDecoder(r.Body).Decode(&rd)

@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/gif"
 	"image/png"
+	"sync"
 	"time"
 
 	"github.com/savsgio/gotils"
@@ -54,12 +55,6 @@ type ImageOpts struct {
 	TextColour color.Color `json:"text_colour"`
 }
 
-var attr, _ = imagequant.NewAttributes()
-
-func init() {
-	attr.SetSpeed(4)
-}
-
 // quantizeImage converts an image.Image to image.Paletted via imagequant
 func quantizeImage(src image.Image) *image.Paletted {
 	b := src.Bounds()
@@ -90,7 +85,6 @@ func quantizeImage(src image.Image) *image.Paletted {
 
 // GenerateImage generates an Image
 func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOpts) (string, error) {
-
 	// a, err := wi.FetchAvatar(imageOpts.UserId, imageOpts.Avatar)
 	// if err != nil {
 	// 	wi.Logger.Error().Err(err).Msg("Failed to fetch avatar")
@@ -108,12 +102,23 @@ func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOp
 		return "", err
 	}
 
-	start := time.Now()
+	start := time.Now().UTC()
 	if len(a.Frames) > 1 && imageOpts.AllowGIF {
 		_frames := make([]*image.Paletted, len(a.Frames), len(a.Frames))
+
+		wg := sync.WaitGroup{}
 		for framenum, frame := range a.Frames {
-			_frames[framenum] = quantizeImage(frame)
+			wg.Add(1)
+			go func(framenum int, frame image.Image) {
+				t := quantizationLimiter.Wait()
+				_frames[framenum] = quantizeImage(frame)
+				quantizationLimiter.FreeTicket(t)
+				wg.Done()
+			}(framenum, frame)
 		}
+		wg.Wait()
+
+		quant_end := time.Now().UTC()
 
 		gif.EncodeAll(b, &gif.GIF{
 			Image:           _frames,
@@ -126,15 +131,18 @@ func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOp
 
 		wi.Logger.Debug().
 			Int("frames", len(a.Frames)).
+			Int64("qms", quant_end.Sub(start).Round(time.Millisecond).Milliseconds()).
 			Int64("ms", time.Now().Sub(start).Round(time.Millisecond).Milliseconds()).
 			Msg("Generated GIF")
-	} else {
-		png.Encode(b, a.Frames[0])
 
-		wi.Logger.Debug().
-			Int64("ms", time.Now().Sub(start).Round(time.Millisecond).Milliseconds()).
-			Msg("Generated PNG")
+		return ".gif", nil
 	}
+
+	png.Encode(b, a.Frames[0])
+
+	wi.Logger.Debug().
+		Int64("ms", time.Now().Sub(start).Round(time.Millisecond).Milliseconds()).
+		Msg("Generated PNG")
 
 	return ".png", nil
 }
