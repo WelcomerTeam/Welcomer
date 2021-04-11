@@ -58,7 +58,7 @@ func (wi *WelcomerImageService) HandleRequest(ctx *fasthttp.RequestCtx) {
 			gotils.B2S(ctx.Request.Header.Method()),
 			strconv.Itoa(statusCode),
 		).Add(1)
-		cdnResponseTimes.Observe(float64(processingMS) / 1000)
+		cdnResponseTimes.Observe(float64(processingMS) / msTos)
 	}()
 
 	fasthttp.CompressHandlerBrotliLevel(func(ctx *fasthttp.RequestCtx) {
@@ -66,6 +66,7 @@ func (wi *WelcomerImageService) HandleRequest(ctx *fasthttp.RequestCtx) {
 		if path == "/" {
 			ctx.Response.Header.Set("Content-Type", "text/html")
 			ctx.SendFile(wi.Configuration.Store.IndexLocation)
+
 			return
 		}
 
@@ -88,7 +89,7 @@ func (wi *WelcomerImageService) HandleRequest(ctx *fasthttp.RequestCtx) {
 // Input headers:
 // Output headers:
 
-// ImagesGet handles retrieving images
+// ImagesGet handles retrieving images.
 func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		var err error
@@ -98,10 +99,12 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 		guid, ok := vars["guid"]
 		if !ok {
 			http.Error(rw, "{'message': 'Missing \"guid\" argument'}", http.StatusBadRequest)
+
 			return
 		}
 
 		var d ImageData
+
 		var v []byte
 
 		// removes .png, .gif etc.
@@ -109,6 +112,7 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 
 		wi.Database.View(func(tx *bolt.Tx) error {
 			v = tx.Bucket(bucketName).Get(gotils.S2B(guid))
+
 			return nil
 		})
 
@@ -128,7 +132,7 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 			f, err := ioutil.ReadFile(d.Path)
 			if err == nil {
 				rw.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(d.Path)))
-				rw.WriteHeader(200)
+				rw.WriteHeader(http.StatusOK)
 				rw.Write(f)
 
 				return
@@ -138,7 +142,7 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 		}
 
 		rw.Header().Set("Content-Type", "image/png")
-		rw.WriteHeader(200)
+		rw.WriteHeader(http.StatusOK)
 		rw.Write(wi.DefaultImageContent)
 	}
 }
@@ -154,7 +158,7 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 // Output headers:
 //      X-Gen-Elapsed: Time taken to generate image
 
-// ImagesCreate handles creating images
+// ImagesCreate handles creating images.
 func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		// Ensures we finish any active ImagesCreate requests
@@ -167,6 +171,7 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&rd)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
+
 			return
 		}
 
@@ -180,6 +185,7 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 			}
 
 			rw.WriteHeader(http.StatusUnauthorized)
+
 			return
 		}
 
@@ -210,19 +216,13 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 
 			rw.WriteHeader(http.StatusInternalServerError)
 			rw.Write(res)
+
 			return
 		}
 
 		imagesProcessed.Inc()
-		imagesProcessTime.Observe(float64(ms) / 1000)
+		imagesProcessTime.Observe(float64(ms) / msTos)
 		imagesTotalSize.Add(float64(b.Len()))
-
-		// u := md5.New()
-		// k := strings.ReplaceAll(base64.URLEncoding.EncodeToString(u.Sum(gotils.S2B(
-		// 	strconv.FormatInt(rd.Options.GuildId, 10) +
-		// 		strconv.FormatInt(rd.Options.UserId, 10) +
-		// 		strconv.FormatInt(time.Now().Unix(), 10),
-		// ))[:]), "=", "")
 
 		u := imohash.New()
 		by := u.Sum(b.Bytes())
@@ -240,6 +240,7 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 
 		if !storeImage {
 			rw.WriteHeader(http.StatusOK)
+
 			_, err = b.WriteTo(rw)
 			if err != nil {
 				wi.Logger.Error().Err(err).Msg("Failed to write image to body")
@@ -248,19 +249,20 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 			return
 		}
 
-		err = ioutil.WriteFile(storePath, b.Bytes(), 0644)
+		err = ioutil.WriteFile(storePath, b.Bytes(), 0o644)
 		if err != nil {
 			wi.Logger.Error().Err(err).
 				Str("path", storePath).
 				Msg("Failed to write file")
 
 			rw.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
 
 		wi.Logger.Debug().
 			Str("path", storePath).
-			Msg("Successfuly written file")
+			Msg("Successfully written file")
 
 		d := ImageData{
 			ID:        k,

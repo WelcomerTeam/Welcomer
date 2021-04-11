@@ -7,8 +7,6 @@ import (
 	"image/draw"
 	"image/gif"
 	"image/png"
-	"math"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -16,112 +14,23 @@ import (
 	"github.com/WelcomerTeam/WelcomerImages/pkg/multiface"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
-	"github.com/google/uuid"
-	"github.com/rs/zerolog"
-	gotils "github.com/savsgio/gotils/strconv"
-	"github.com/ultimate-guitar/go-imagequant"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 	"golang.org/x/xerrors"
 )
 
-type Xalignment uint8
-type Yalignment uint8
-
 const (
-	Left Xalignment = iota
-	Middle
-	Right
+	fontResize      = 0.9
+	defaultFontSize = 96
+	transAnchor     = 32
+	avatarSize      = 256
 )
-
-const (
-	Top Yalignment = iota
-	Center
-	Bottom
-)
-
-type ImageOpts struct {
-	// Newline split message
-	Text string `json:"text"`
-
-	GuildId int64 `json:"guild_id"`
-
-	UserId int64  `json:"user_id"`
-	Avatar string `json:"avatar"`
-
-	AllowGIF bool `json:"allow_gif"`
-
-	// Which layout to use when generating images
-	Layout int `json:"layout"` // todo: type
-
-	// Identifier for background
-	Background string `json:"background"`
-
-	// Identifier for font to use (along with Noto)
-	Font string `json:"font"`
-
-	// Border applied to entire image. If transparent, there is no border.
-	BorderColour color.Color `json:"border_colour"`
-	BorderWidth  int         `json:"border_width"`
-
-	// Alignment of left or right (assuming not vertical layout)
-	ProfileAlignment int `json:"profile_alignment"` // todo: type
-
-	// Include a border arround profile pictures. This also fills
-	// under the profile.
-	ProfileBorderColour color.Color `json:"profile_border_colour"`
-	// Padding applied to profile pictures inside profile border
-	ProfileBorderWidth int `json:"profile_border_width"`
-	// Type of curving on the profile border (square, circle, rounded)
-	ProfileBorderCurve int `json:"profile_border_curve"` // todo: type
-
-	// Text stroke. If 0, there is no stroke
-	TextStroke       int         `json:"text_stroke"`
-	TextStrokeColour color.Color `json:"text_stroke_colour"`
-
-	TextColour color.Color `json:"text_colour"`
-}
-
-// quantizeImage converts an image.Image to image.Paletted via imagequant
-func quantizeImage(l zerolog.Logger, src image.Image) (*image.Paletted, error) {
-	b := src.Bounds()
-
-	qimg, err := imagequant.NewImage(attr, gotils.B2S(imagequant.ImageToRgba32(src)), b.Dx(), b.Dy(), 1)
-	if err != nil {
-		l.Panic().Err(err).Msg("Failed to create new imagequant image")
-	}
-
-	pm, err := qimg.Quantize(attr)
-	if err != nil {
-		f, _ := os.Create(uuid.New().String() + ".png")
-		png.Encode(f, src)
-		f.Close()
-		l.Panic().Err(err).Msg("Failed to quantize image")
-	}
-
-	dst := image.NewPaletted(src.Bounds(), pm.GetPalette())
-
-	// WriteRemappedImage returns a list of bytes pointing to direct
-	// palette indexes so we can just copy it over and it will be
-	// using the optimimal indexes.
-	rmap, err := pm.WriteRemappedImage()
-	if err != nil {
-		return dst, err
-	}
-
-	dst.Pix = rmap
-	// copy(dst.Pix, rmap)
-
-	pm.Release()
-	qimg.Release()
-
-	return dst, nil
-}
 
 // EncodeImages encodes a list of []image.Image and takes an input of AllowGifs.
-// Outputs the file extention.
+// Outputs the file extension.
 func (wi *WelcomerImageService) EncodeImages(b *bytes.Buffer, frames []image.Image, im *ImageCache, allowGIF bool) (string, error) {
 	var err error
+
 	start := time.Now().UTC()
 
 	if frames == nil {
@@ -138,18 +47,23 @@ func (wi *WelcomerImageService) EncodeImages(b *bytes.Buffer, frames []image.Ima
 		wg := sync.WaitGroup{}
 		for framenum, frame := range frames {
 			wg.Add(1)
+
 			go func(framenum int, frame image.Image) {
 				t := quantizationLimiter.Wait()
+
 				p, err := quantizeImage(wi.Logger, frame)
 				if err != nil {
 					wi.Logger.Error().Err(err).Msg("Failed to quantize frame")
 				}
 
 				_frames[framenum] = p
+
 				quantizationLimiter.FreeTicket(t)
+
 				wg.Done()
 			}(framenum, frame)
 		}
+
 		wg.Wait()
 
 		quant_end := time.Since(start)
@@ -196,7 +110,7 @@ func (wi *WelcomerImageService) EncodeImages(b *bytes.Buffer, frames []image.Ima
 	return "png", err
 }
 
-// CreateFontPack creates a pack of fonts with fallback and the one passed
+// CreateFontPack creates a pack of fonts with fallback and the one passed.
 func (wi *WelcomerImageService) CreateFontPack(font string, size float64) *multiface.Face {
 	face := new(multiface.Face)
 
@@ -219,34 +133,14 @@ func (wi *WelcomerImageService) CreateFontPack(font string, size float64) *multi
 	return face
 }
 
-// MultilineArguments is a list of arguments for the DrawMultiline function
-type MultilineArguments struct {
-	DefaultFontSize float64 // default font size to start with
-
-	X int
-	Y int
-
-	Width  int
-	Height int
-
-	HorizontalAlignment Xalignment
-	VerticalAlignment   Yalignment
-
-	StrokeWeight int
-	StrokeColour color.Color
-	TextColour   color.Color
-
-	Text string
-}
-
-// CreateFontPackHook returns a newFace function with an argument
+// CreateFontPackHook returns a newFace function with an argument.
 func (wi *WelcomerImageService) CreateFontPackHook(f string) func(float64) font.Face {
 	return func(i float64) font.Face {
 		return wi.CreateFontPack(f, i)
 	}
 }
 
-// DrawMultiline draws text using multilines and adds stroke
+// DrawMultiline draws text using multilines and adds stroke.
 func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args MultilineArguments) error {
 	lines := strings.Split(args.Text, "\n")
 	if len(lines) == 0 {
@@ -260,6 +154,7 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 	args.Height -= args.StrokeWeight * 2
 
 	var ls string
+
 	var ll int
 
 	d.Face = newFace(args.DefaultFontSize)
@@ -289,11 +184,12 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 			// It may not fit but its likely the text will never fit after that point.
 			if ((adv.Ceil() <= args.Width) && ((face.Metrics().Height.Ceil() * len(lines)) <= args.Height)) || s <= 1 {
 				d.Face = face
+
 				break
 			}
 
 			// TODO: Scale aware resizing so we do less operations
-			s = float64(s) * 0.90
+			s = float64(s) * fontResize
 		}
 	}
 
@@ -308,6 +204,7 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 		_, adv := d.BoundString(l)
 
 		var Dx int
+
 		var Dy int
 
 		switch args.HorizontalAlignment {
@@ -333,6 +230,7 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 
 		if args.StrokeWeight > 0 {
 			p := args.StrokeWeight * args.StrokeWeight
+
 			for dy := -args.StrokeWeight; dy <= args.StrokeWeight; dy++ {
 				for dx := -args.StrokeWeight; dx <= args.StrokeWeight; dx++ {
 					// Round out stroke
@@ -356,40 +254,30 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 	return nil
 }
 
-// roundImage cuts out a rounded segment from an image
-func roundImage(im image.Image, r float64) image.Image {
-	b := im.Bounds()
-	r = math.Max(0, math.Min(r, float64(b.Dy())/2))
-	context := gg.NewContext(b.Dx(), b.Dy())
-	context.DrawRoundedRectangle(0, 0, float64(b.Dx()), float64(b.Dy()), r)
-	context.Clip()
-	context.DrawImage(im, 0, 0)
-
-	return context.Image()
-}
-
-// GenerateImage generates an Image
+// GenerateImage generates an Image.
 func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOpts) (string, error) {
-	// defer func() {
-	// 	recover()
-	// }()
+	bench := NewBench()
 
-	a := time.Now().UTC()
+	bench.Add("start", time.Now().UTC())
+
 	// Create profile
 	bg, err := wi.FetchBackground(imageOpts.Background, imageOpts.AllowGIF)
 	if err != nil {
 		wi.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+
 		return "", err
 	}
 
-	println("FETCH BG", time.Since(a).Round(time.Millisecond).Milliseconds())
-	a = time.Now().UTC()
+	bench.Add("fetch background", time.Now().UTC())
 
 	avatar, err := wi.FetchAvatar(imageOpts.UserId, imageOpts.Avatar)
 	if err != nil {
 		wi.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+
 		return "", err
 	}
+
+	bench.Add("fetch avatar", time.Now().UTC())
 
 	borderWidth := 16
 
@@ -405,24 +293,36 @@ func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOp
 	// Prepare border
 	hasBorder := (targetWidth != canvasWidth) || (targetHeight != canvasHeight)
 	borderColour := color.NRGBA{255, 255, 255, 255}
-
-	println("FETCH AVA", time.Since(a).Round(time.Millisecond).Milliseconds())
 	canvas := image.NewRGBA(image.Rect(0, 0, canvasWidth, canvasHeight))
 	drawer := font.Drawer{Dst: canvas}
-
 	context := gg.NewContextForRGBA(canvas)
+
+	bench.Add("init", time.Now().UTC())
 
 	if hasBorder {
 		context.SetColor(borderColour)
-		context.DrawRectangle(0, 0, float64(canvasWidth), float64(borderWidth))
-		context.DrawRectangle(0, float64(canvasHeight-borderWidth), float64(canvasWidth), float64(canvasHeight))
-		context.DrawRectangle(0, float64(borderWidth), float64(borderWidth), float64(canvasHeight-borderWidth))
-		context.DrawRectangle(float64(canvasWidth-borderWidth), float64(borderWidth), float64(canvasWidth), float64(canvasHeight-borderWidth))
+		context.DrawRectangle(
+			0, 0,
+			float64(canvasWidth), float64(borderWidth),
+		)
+		context.DrawRectangle(
+			0, float64(canvasHeight-borderWidth),
+			float64(canvasWidth), float64(canvasHeight),
+		)
+		context.DrawRectangle(
+			0, float64(borderWidth),
+			float64(borderWidth), float64(canvasHeight-borderWidth),
+		)
+		context.DrawRectangle(
+			float64(canvasWidth-borderWidth), float64(borderWidth),
+			float64(canvasWidth), float64(canvasHeight-borderWidth),
+		)
 	}
 
-	a = time.Now().UTC()
+	bench.Add("border", time.Now().UTC())
+
 	DrawMultiline(drawer, wi.CreateFontPackHook(imageOpts.Font), MultilineArguments{
-		DefaultFontSize: 96,
+		DefaultFontSize: defaultFontSize,
 
 		X: 268 + 32 + borderWidth,
 		Y: 0 + 32 + borderWidth,
@@ -440,12 +340,19 @@ func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOp
 		Text: "Welcome ImRock\nto the Welcomer Support Guild\nyou are the 5588th member!",
 	})
 
+	bench.Add("draw text", time.Now().UTC())
+
 	bounds := avatar.Image.Bounds()
 
 	// If appropriate, add extra padding to profile pictures that like will have corners cut off a little.
-	if avatar.Image.At(32, 32) == image.Transparent && avatar.Image.At(bounds.Dx()-32, bounds.Dy()-32) == image.Transparent {
+	if avatar.Image.At(transAnchor, transAnchor) == image.Transparent &&
+		avatar.Image.At(bounds.Dx()-transAnchor, bounds.Dy()-transAnchor) == image.Transparent {
 		avatar.Image = imaging.PasteCenter(
-			imaging.New(256+32, 256+32, color.Transparent),
+			imaging.New(
+				avatarSize+transAnchor,
+				avatarSize+transAnchor,
+				color.Transparent,
+			),
 			avatar.Image,
 		)
 	}
@@ -468,43 +375,47 @@ func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOp
 		(118-(avatarr.Rect.Dy()/2))+32+borderWidth,
 	)
 
+	bench.Add("avatar", time.Now().UTC())
+
 	backgroundPt := image.Pt(borderWidth, borderWidth)
-
-	a = time.Now().UTC()
-
-	fi, _ := os.Create("overlay.png")
-	png.Encode(fi, canvas)
-	fi.Close()
 
 	frames := bg.GetFrames()
 	wg := sync.WaitGroup{}
+
+	bench.Add("get frames", time.Now().UTC())
+
 	for i, frame := range frames {
 		wg.Add(1)
+
 		go func(i int, frame image.Image) {
 			rframe := image.NewNRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
 
-			a := time.Now()
 			draw.Draw(
 				rframe, rframe.Bounds().Add(backgroundPt),
 				imaging.Fill(frame, targetWidth, targetHeight, imaging.Center, imaging.NearestNeighbor),
 				image.Point{}, draw.Src)
 
-			b := time.Now()
-
 			draw.Draw(rframe, rframe.Bounds(), canvas, image.Point{}, draw.Over)
 
-			println(time.Since(a).Milliseconds(), time.Since(b).Milliseconds())
 			frames[i] = rframe
+
 			wg.Done()
 		}(i, frame)
 	}
-	wg.Wait()
 
-	println("FIT", time.Since(a).Round(time.Millisecond).Milliseconds())
+	bench.Add("overlay", time.Now().UTC())
+
+	wg.Wait()
 
 	bg.Config.Width = canvasWidth
 	bg.Config.Height = canvasHeight
 	bg.Disposal = nil
 	bg.Config.ColorModel = nil
+
+	defer func() {
+		bench.Add("encode", time.Now().UTC())
+		bench.Print()
+	}()
+
 	return wi.EncodeImages(b, frames, bg, imageOpts.AllowGIF)
 }

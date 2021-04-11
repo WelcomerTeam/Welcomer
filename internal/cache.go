@@ -4,12 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"image"
-	"image/gif"
-	"io"
-	"os"
 	"path"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -18,49 +14,13 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// fsExists checks if a file or folder exists and returns if it does
-func fsExists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
-}
+const (
+	fontDPI   = 72
+	gifFormat = "gif"
+	msTos     = 1000
+)
 
-// openImage returns an image, format and error
-func openImage(path string) (image.Image, *gif.GIF, image.Config, string, error) {
-	fi, err := os.Open(path)
-	if err != nil {
-		return nil, nil, image.Config{}, "", err
-	}
-
-	if strings.HasSuffix(path, ".gif") {
-		g, err := gif.DecodeAll(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, "", err
-		}
-
-		fi.Seek(0, io.SeekStart)
-		cf, err := gif.DecodeConfig(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, "", err
-		}
-
-		return nil, g, cf, "gif", nil
-	} else {
-		i, f, err := image.Decode(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, f, err
-		}
-
-		fi.Seek(0, io.SeekStart)
-		cf, _, err := image.DecodeConfig(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, f, err
-		}
-
-		return i, nil, cf, f, nil
-	}
-}
-
-// FetchFont fetches a font face with the specified size
+// FetchFont fetches a font face with the specified size.
 func (wi *WelcomerImageService) FetchFont(f string, size float64) (*FaceCache, *FontCache, error) {
 	wi.FontCacheMu.RLock()
 	font, ok := wi.FontCache[f]
@@ -102,11 +62,11 @@ func (wi *WelcomerImageService) FetchFont(f string, size float64) (*FaceCache, *
 
 	fc, err := opentype.NewFace(font.Font, &opentype.FaceOptions{
 		Size: size,
-		DPI:  72,
+		DPI:  fontDPI,
 	})
-
 	if err != nil {
 		wi.Logger.Error().Err(err).Msg("Failed to create font face")
+
 		return nil, nil, err
 	}
 
@@ -122,7 +82,7 @@ func (wi *WelcomerImageService) FetchFont(f string, size float64) (*FaceCache, *
 	return fca, font, nil
 }
 
-// FetchBackground fetches a background from its id. Returns the image and boolean indicating GIF
+// FetchBackground fetches a background from its id. Returns the image and boolean indicating GIF.
 func (wi *WelcomerImageService) FetchBackground(b string, allowGifs bool) (*ImageCache, error) {
 	if b == "" {
 		b = "default"
@@ -166,6 +126,7 @@ func (wi *WelcomerImageService) FetchBackground(b string, allowGifs bool) (*Imag
 
 	if !fsExists(lp) {
 		wi.Logger.Debug().Str("path", lp).Msg("Could not find background, serving fallback")
+
 		return wi.StaticBackgroundCache[wi.Configuration.Store.BackgroundFallback], nil
 	}
 
@@ -188,8 +149,8 @@ func (wi *WelcomerImageService) FetchBackground(b string, allowGifs bool) (*Imag
 	}
 
 	// We store as frames reguardless of image format however
-	// we should copy over the other GIF data when neccessary.
-	if format == "gif" {
+	// we should copy over the other GIF data when necessary.
+	if format == gifFormat {
 		c.BackgroundIndex = gi.BackgroundIndex
 		c.Delay = gi.Delay
 		c.Disposal = gi.Disposal
@@ -211,7 +172,7 @@ func (wi *WelcomerImageService) FetchBackground(b string, allowGifs bool) (*Imag
 	return c, nil
 }
 
-// FetchAvatar fetches an avatar from a user id and avatar hash
+// FetchAvatar fetches an avatar from a user id and avatar hash.
 func (wi *WelcomerImageService) FetchAvatar(u int64, a string) (*StaticImageCache, error) {
 	wi.Logger.Trace().
 		Int64("user", u).
@@ -259,7 +220,7 @@ func (wi *WelcomerImageService) FetchAvatar(u int64, a string) (*StaticImageCach
 		}
 	}
 
-	imageProfileResponseTimes.Observe(float64(ms) / 1000)
+	imageProfileResponseTimes.Observe(float64(ms) / msTos)
 	imageProfileResponseCodes.WithLabelValues(strconv.Itoa(s)).Inc()
 
 	if err != nil {

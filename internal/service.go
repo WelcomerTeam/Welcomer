@@ -2,7 +2,6 @@ package welcomerimages
 
 import (
 	"encoding/json"
-	"fmt"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -27,9 +26,7 @@ import (
 	"github.com/tevino/abool"
 	"github.com/ultimate-guitar/go-imagequant"
 	"github.com/valyala/fasthttp"
-	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
-	"golang.org/x/image/font/sfnt"
 	"golang.org/x/xerrors"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/yaml.v2"
@@ -42,10 +39,10 @@ const (
 	ConfigurationPath         = "welcomerimages.yaml"
 	ErrOnConfigurationFailure = true
 
-	// Default time to keep images in store
+	// Default time to keep images in store.
 	imageTTL = time.Hour * 24 * 7
 
-	// Default time to cache static files
+	// Default time to cache static files.
 	distCacheDuration = time.Hour
 
 	faceCacheTTL       = time.Minute * 15
@@ -54,20 +51,6 @@ const (
 
 	avatarRoot = "https://cdn.discordapp.com/avatars/%[1]d/%[2]s.png?size=256"
 )
-
-// - Microservice to generate welcome images and serve them
-
-// When generating image:
-//     Bookmarkable URL: {Bookmarkable}/get/{image UUID}
-//     Images are stored for {DefaultImageTTL}
-//     Image path and GUID sent to a DB
-
-// When getting image:
-//     Lookup DB for data.
-//     If AllowAccessOverride
-//         If accessed, their TTL is increased if lower than access override internal
-//     If image does not exist
-//         Sends {default image path}
 
 var (
 	attr, _    = imagequant.NewAttributes()
@@ -247,7 +230,7 @@ type WelcomerImageConfiguration struct {
 	FallbackFonts []string `json:"fallback_fonts" yaml:"fallback_fonts"`
 }
 
-// WelcomerImageService stores caches and any analytical data
+// WelcomerImageService stores caches and any analytical data.
 type WelcomerImageService struct {
 	Logger zerolog.Logger `json:"-"`
 
@@ -285,102 +268,6 @@ type WelcomerImageService struct {
 
 	ProfileCacheMu sync.RWMutex
 	ProfileCache   map[int64]*StaticImageCache
-}
-
-type ImageData struct {
-	ID        string    `json:"id" msgpack:"i"`
-	GuildID   int64     `json:"guild_id" msgpack:"g"`
-	Size      int       `json:"size" msgpack:"s"`
-	Path      string    `json:"path" msgpack:"p"`
-	ExpiresAt time.Time `json:"expires_at" msgpack:"e"`
-	CreatedAt time.Time `json:"created_at" msgpack:"c"`
-
-	isDefault bool
-}
-
-// FontCache stores the Font, last accessed and Faces for different sizes.
-type FontCache struct {
-	LastAccessedMu sync.RWMutex
-	LastAccessed   time.Time
-
-	Font        *sfnt.Font
-	FaceCacheMu sync.RWMutex
-	FaceCache   map[float64]*FaceCache
-}
-
-// LastAccess stores the last access of the structure
-type LastAccess struct {
-	sync.RWMutex   // Used to stop deletion whilst being used
-	LastAccessed   time.Time
-	LastAccessedMu sync.RWMutex
-}
-
-// FaceCache stores the Face and when it was last accessed.
-type FaceCache struct {
-	LastAccess
-
-	Face *font.Face
-}
-
-// FileCache stores the file body and when it was last accessed.
-type FileCache struct {
-	LastAccess
-
-	Filename string
-	Ext      string
-	Path     string
-	Body     []byte
-}
-
-// StaticImageCache stores just an image
-type StaticImageCache struct {
-	LastAccess
-
-	Format string
-	Image  image.Image
-}
-
-// ImageCache stores the image and the extention for it.
-type ImageCache struct {
-	LastAccess
-
-	// The image format that is represented
-	Format string
-
-	Frames []image.Image
-
-	// Config is the global color table (palette), width and height. A nil or
-	// empty-color.Palette Config.ColorModel means that each frame has its own
-	// color table and there is no global color table.
-	Config image.Config
-
-	// The successive delay times, one per frame, in 100ths of a second.
-	Delay []int
-
-	// LoopCount controls the number of times an animation will be
-	// restarted during display.
-	LoopCount int
-
-	// Disposal is the successive disposal methods, one per frame.
-	Disposal []byte
-
-	// BackgroundIndex is the background index in the global color table, for
-	// use with the DisposalBackground disposal method.
-	BackgroundIndex byte
-}
-
-func (ic *ImageCache) GetFrames() []image.Image {
-	im := make([]image.Image, len(ic.Frames))
-	copy(im, ic.Frames)
-	return im
-}
-
-// RequestCache stores the request body and when it was last accessed.
-type RequestCache struct {
-	LastAccess
-
-	URL  string
-	Body []byte
 }
 
 // NewService creates the Welcomer Image service and intializes it.
@@ -526,7 +413,7 @@ func (wi *WelcomerImageService) LoadConfiguration(path string) (configuration *W
 	return configuration, err
 }
 
-// Opens starts up the services and loads the configuration and starts up the HTTP server
+// Opens starts up the services and loads the configuration and starts up the HTTP server.
 func (wi *WelcomerImageService) Open() (err error) {
 	wi.Start = time.Now().UTC()
 	wi.Logger.Info().Msgf("Starting Welcomer Image Service")
@@ -567,17 +454,20 @@ func (wi *WelcomerImageService) Open() (err error) {
 		"",
 		wi.Configuration.Internal.ConcurrentQuantizers,
 	)
+
 	attr.SetQuality(
 		wi.Configuration.Internal.QuantizerQualityMin,
 		wi.Configuration.Internal.QuantizerQualityMax,
 	)
+
 	attr.SetSpeed(
 		wi.Configuration.Internal.QuantizerSpeed,
 	)
 
 	wi.Logger.Debug().
 		Msg("Releasing Bolt lock")
-	db, err := bolt.Open(wi.Configuration.Store.BoltDBLocation, 0600, nil)
+
+	db, err := bolt.Open(wi.Configuration.Store.BoltDBLocation, 0o600, nil)
 	if err != nil {
 		return xerrors.Errorf("open service: %w", err)
 	}
@@ -600,6 +490,7 @@ func (wi *WelcomerImageService) Open() (err error) {
 	}
 
 	wi.Logger.Debug().Msg("Loading fonts")
+
 	for _, folder := range wi.Configuration.Store.FontPath {
 		files, err := ioutil.ReadDir(folder)
 		if err != nil {
@@ -650,7 +541,6 @@ func (wi *WelcomerImageService) Open() (err error) {
 				FaceCacheMu: sync.RWMutex{},
 				FaceCache:   make(map[float64]*FaceCache),
 			}
-
 		}
 	}
 
@@ -716,6 +606,7 @@ func (wi *WelcomerImageService) Open() (err error) {
 		}
 
 		fimg.Seek(0, io.SeekStart)
+
 		config, _, err := image.DecodeConfig(fimg)
 		if err != nil {
 			wi.Logger.Error().Err(err).
@@ -744,7 +635,9 @@ func (wi *WelcomerImageService) Open() (err error) {
 		go func() {
 			http.Handle("/metrics", promhttp.Handler())
 
-			fmt.Printf("Serving prom at %s (Press CTRL+C to quit)\n", wi.Configuration.Prometheus.Host)
+			wi.Logger.Info().
+				Str("host", wi.Configuration.Prometheus.Host).
+				Msg("Serving prom")
 
 			err := http.ListenAndServe(wi.Configuration.Prometheus.Host, nil)
 			if err != nil {
@@ -765,7 +658,11 @@ func (wi *WelcomerImageService) Open() (err error) {
 			CompressBrotli:  true,
 			AcceptByteRange: true,
 			CacheDuration:   distCacheDuration,
-			PathNotFound:    fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) { ctx.WriteString("There is nothing here") }),
+			PathNotFound: fasthttp.RequestHandler(
+				func(ctx *fasthttp.RequestCtx) {
+					ctx.WriteString("There is nothing here")
+				},
+			),
 		}
 
 		wi.distHandler = wi.fs.NewRequestHandler()
@@ -775,7 +672,9 @@ func (wi *WelcomerImageService) Open() (err error) {
 	wi.Router = createEndpoints(wi)
 
 	go func() {
-		fmt.Printf("Serving at %s (Press CTRL+C to quit)\n", wi.Configuration.HTTP.Host)
+		wi.Logger.Info().
+			Str("host", wi.Configuration.HTTP.Host).
+			Msg("Serving HTTP")
 
 		err = fasthttp.ListenAndServe(wi.Configuration.HTTP.Host, wi.HandleRequest)
 		if err != nil {
@@ -785,12 +684,15 @@ func (wi *WelcomerImageService) Open() (err error) {
 
 	go wi.PrometheusFetcher()
 
+	println("Service running (Press CTRL+C to quit)")
+
 	return nil
 }
 
-// PrometheusFetcher fetches extra information such as store usage
+// PrometheusFetcher fetches extra information such as store usage.
 func (wi *WelcomerImageService) PrometheusFetcher() {
 	var err error
+
 	var d ImageData
 
 	wi.Logger.Info().Msg("Started PrometheusFetcher")
@@ -808,7 +710,7 @@ func (wi *WelcomerImageService) PrometheusFetcher() {
 		start := time.Now()
 
 		err = wi.Database.View(func(tx *bolt.Tx) error {
-			err = tx.Bucket(bucketName).ForEach(func(k []byte, v []byte) error {
+			err = tx.Bucket(bucketName).ForEach(func(k, v []byte) error {
 				err = json.Unmarshal(v, &d)
 				if err != nil {
 					wi.Logger.Error().Err(err).
@@ -941,13 +843,12 @@ func (wi *WelcomerImageService) PrometheusFetcher() {
 		freedFaces := 0
 
 		wi.FontCacheMu.Lock()
-		for fn, v := range wi.FontCache {
+		for _, v := range wi.FontCache {
 			fcr := make([]float64, 0)
 
 			v.FaceCacheMu.Lock()
 			for fk, fv := range v.FaceCache {
 				if start.After(fv.LastAccessed.Add(faceCacheTTL)) {
-					println("remove", fn, fk)
 					fcr = append(fcr, fk)
 				}
 			}
@@ -985,10 +886,9 @@ func (wi *WelcomerImageService) PrometheusFetcher() {
 
 		time.Sleep(time.Minute)
 	}
-
 }
 
-// Close will gracefully close the application and wait for any images being generated
+// Close will gracefully close the application and wait for any images being generated.
 func (wi *WelcomerImageService) Close() (err error) {
 	wi.Logger.Info().Msg("Closing Welcomer Image Service. Waiting for any active tasks")
 

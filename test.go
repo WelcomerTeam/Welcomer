@@ -1,3 +1,4 @@
+// nolint
 package main
 
 import (
@@ -29,7 +30,7 @@ var text = "Test Image\nQWERTYUIOPLKJHGFDSAZXCVBNM\nqwertyuioplkjhgfdsazxcvbnm\n
 
 var fontCache = map[string]*sfnt.Font{}
 
-func addFaceFont(face *multiface.Face, filename string, size float64, dpi float64) {
+func addFaceFont(face *multiface.Face, filename string, size, dpi float64) {
 	fnt := ReadFont(filename)
 	fc, _ := opentype.NewFace(fnt, &opentype.FaceOptions{Size: size, DPI: dpi})
 	// if strings.HasSuffix(filename, ".ttf") {
@@ -55,8 +56,10 @@ func ReadFont(filename string) (fnt *sfnt.Font) {
 	}
 }
 
-type Xalignment uint8
-type Yalignment uint8
+type (
+	Xalignment uint8
+	Yalignment uint8
+)
 
 const (
 	Left Xalignment = iota
@@ -78,7 +81,7 @@ func checkErr(err error) {
 
 func drawMultiline(
 	initialSize float64, d font.Drawer, new func(float64) font.Face, bounds image.Rectangle,
-	x int, y int, width int, height int,
+	x, y, width, height int,
 	horizontalAlignment Xalignment, verticalAlignment Yalignment, text string,
 	strokeColour *image.Uniform, strokeWeight int, textColour *image.Uniform) error {
 

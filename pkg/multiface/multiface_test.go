@@ -18,13 +18,14 @@ import (
 )
 
 func TestMultiface(t *testing.T) {
-
 	face := new(multiface.Face)
 
 	opts := &opentype.FaceOptions{Size: 20, DPI: 96}
 
 	var fnt *sfnt.Font
+
 	var fc font.Face
+
 	var err error
 
 	// Add ArchitectsDaughter font, which does not include a glyph for ก, but has a handwriting-style glyph for a
@@ -67,14 +68,16 @@ func TestMultiface(t *testing.T) {
 }
 
 func TestBdf(t *testing.T) {
-
 	face := new(multiface.Face)
 
 	opts := &opentype.FaceOptions{Size: 20, DPI: 96}
 
 	var fnt *sfnt.Font
+
 	var bdffnt *bdf.Font
+
 	var fc font.Face
+
 	var err error
 
 	// Add Terminus font
@@ -118,16 +121,20 @@ func TestBdf(t *testing.T) {
 func readFont(t *testing.T, filename string) *sfnt.Font {
 	data, err := ioutil.ReadFile(filename)
 	checkErr(t, err)
+
 	fnt, err := sfnt.Parse(data)
 	checkErr(t, err)
+
 	return fnt
 }
 
 func readBdfFont(t *testing.T, filename string) *bdf.Font {
 	data, err := ioutil.ReadFile(filename)
 	checkErr(t, err)
+
 	fnt, err := bdf.Parse(data)
 	checkErr(t, err)
+
 	return fnt
 }
 
