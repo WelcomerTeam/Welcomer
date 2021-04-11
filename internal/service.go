@@ -36,7 +36,7 @@ import (
 )
 
 // VERSION respects semantic versioning.
-const VERSION = "0.1.2+100420210318"
+const VERSION = "0.2+110420210201"
 
 const (
 	ConfigurationPath         = "welcomerimages.yaml"
