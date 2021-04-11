@@ -98,7 +98,18 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 
 		guid, ok := vars["guid"]
 		if !ok {
-			http.Error(rw, "{'message': 'Missing \"guid\" argument'}", http.StatusBadRequest)
+			resp := ImageCreateResponse{
+				Success: false,
+				Message: "Missing 'guid' argument",
+			}
+
+			res, err := json.Marshal(resp)
+			if err != nil {
+				wi.Logger.Error().Err(err).Msg("Caught exception marshalling response")
+			}
+
+			rw.WriteHeader(http.StatusBadRequest)
+			rw.Write(res)
 
 			return
 		}
@@ -141,7 +152,7 @@ func ImagesGet(wi *WelcomerImageService) http.HandlerFunc {
 			}
 		}
 
-		rw.Header().Set("Content-Type", "image/png")
+		rw.Header().Set("Content-Type", "image/png") // TODO: FIX
 		rw.WriteHeader(http.StatusOK)
 		rw.Write(wi.DefaultImageContent)
 	}
@@ -170,10 +181,30 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&rd)
 		if err != nil {
+			wi.Logger.Error().Err(err).
+				Msg("Failed to parse json request")
+
+			resp := ImageCreateResponse{
+				Success: false,
+				Message: err.Error(),
+			}
+
+			res, err := json.Marshal(resp)
+			if err != nil {
+				wi.Logger.Error().Err(err).Msg("Caught exception marshalling response")
+			}
+
 			rw.WriteHeader(http.StatusBadRequest)
+			rw.Write(res)
 
 			return
 		}
+
+		// Images are sent in ARGB format and have to be parsed manually
+		rd.Options.BorderColour = convertARGB(rd.Options.BorderColourHex, colorWhite)
+		rd.Options.ProfileBorderColour = convertARGB(rd.Options.ProfileBorderColourHex, colorWhite)
+		rd.Options.TextColour = convertARGB(rd.Options.TextColourHex, colorWhite)
+		rd.Options.TextStrokeColour = convertARGB(rd.Options.TextStrokeColourHex, colorBlack)
 
 		apiKey := r.Header.Get("Authorization")
 
