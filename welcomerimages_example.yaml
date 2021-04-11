@@ -13,12 +13,17 @@ http:
   host: 0.0.0.0:4200
   bookmarkable_url: https://cdn.welcomer.gg
 store:
+  font_path:
+  - fonts
+  - fallback
   static_path: cdn
   store_path: store
   static_backgrounds_path: backgrounds
   backgrounds_path: custombackgrounds
   background_fallback: default
+  default_font: NotoSans-Regular
   default_image_location: ./default.png
+  fallback_profile_location: ./broken_image.png
   index_location: ./index.html
   allow_anonymous_access: false
   bolt_db_location: metadata.db
@@ -31,3 +36,5 @@ internal:
   quantizer_quality_min: 80
   quantizer_quality_max: 80
 api_keys:
+fallback_fonts:
+- NotoSans-Regular

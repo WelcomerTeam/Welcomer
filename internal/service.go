@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
@@ -13,8 +12,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -31,6 +28,7 @@ import (
 	"github.com/ultimate-guitar/go-imagequant"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
 	"golang.org/x/xerrors"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -44,17 +42,32 @@ const (
 	ConfigurationPath         = "welcomerimages.yaml"
 	ErrOnConfigurationFailure = true
 
-	// Default TTL for images in store
+	// Default time to keep images in store
 	imageTTL = time.Hour * 24 * 7
 
-	distCacheDuration = 1
+	// Default time to cache static files
+	distCacheDuration = time.Hour
 
-	fontCacheTTL       = time.Minute * 30
-	profileCacheTTL    = time.Minute * 2
+	faceCacheTTL       = time.Minute * 15
+	profileCacheTTL    = time.Minute * 5
 	backgroundCacheTTL = time.Minute * 5
 
 	avatarRoot = "https://cdn.discordapp.com/avatars/%[1]d/%[2]s.png?size=256"
 )
+
+// - Microservice to generate welcome images and serve them
+
+// When generating image:
+//     Bookmarkable URL: {Bookmarkable}/get/{image UUID}
+//     Images are stored for {DefaultImageTTL}
+//     Image path and GUID sent to a DB
+
+// When getting image:
+//     Lookup DB for data.
+//     If AllowAccessOverride
+//         If accessed, their TTL is increased if lower than access override internal
+//     If image does not exist
+//         Sends {default image path}
 
 var (
 	attr, _    = imagequant.NewAttributes()
@@ -171,9 +184,6 @@ type WelcomerImageConfiguration struct {
 		MaxSize    int    `json:"max_size" yaml:"max_size"`       // Size in MB before a new file.
 		MaxBackups int    `json:"max_backups" yaml:"max_backups"` // Number of files to keep.
 		MaxAge     int    `json:"max_age" yaml:"max_age"`         // Number of days to keep a logfile.
-
-		MinimalWebhooks bool `json:"minimal_webhooks" yaml:"minimal_webhooks"`
-		// If enabled, webhooks for status changes will use one liners instead of an embed.
 	} `json:"logging" yaml:"logging"`
 
 	HTTP struct {
@@ -182,6 +192,12 @@ type WelcomerImageConfiguration struct {
 	} `json:"http" yaml:"http"`
 
 	Store struct {
+		// List of paths for fonts to be stored in
+		FontPath []string `json:"font_path" yaml:"font_path"`
+
+		// Path for custom backgrounds to be stored in
+		BackgroundsPath string `json:"backgrounds_path" yaml:"backgrounds_path"`
+
 		// Path that serves static files
 		StaticPath string `json:"static_path" yaml:"static_path"`
 
@@ -191,14 +207,17 @@ type WelcomerImageConfiguration struct {
 		// Path of backgrounds that persist throughout the lifespan of the service
 		StaticBackgroundsPath string `json:"static_backgrounds_path" yaml:"static_backgrounds_path"`
 
-		// Path for custom backgrounds to be stored in
-		BackgroundsPath string `json:"backgrounds_path" yaml:"backgrounds_path"`
-
 		// Name of StaticBackground to serve if failed to load custom one
 		BackgroundFallback string `json:"background_fallback" yaml:"background_fallback"`
 
+		// Font to serve if the one specified was not found
+		DefaultFont string `json:"default_font" yaml:"default_font"`
+
 		// Image to serve if no image was found
 		DefaultImageLocation string `json:"default_image_location" yaml:"default_image_location"`
+
+		// Image to serve when backgrounds fail. If empty will return a 500 rather than continue on
+		FallbackProfileLocation string `json:"fallback_profile_location" yaml:"fallback_profile_location"`
 
 		// Location of index folder to show on home page
 		IndexLocation string `json:"index_location" yaml:"index_location"`
@@ -224,6 +243,8 @@ type WelcomerImageConfiguration struct {
 	}
 
 	APIKeys []string `json:"api_keys" yaml:"api_keys"`
+
+	FallbackFonts []string `json:"fallback_fonts" yaml:"fallback_fonts"`
 }
 
 // WelcomerImageService stores caches and any analytical data
@@ -249,6 +270,11 @@ type WelcomerImageService struct {
 	DefaultImage        ImageData
 	DefaultImageContent []byte
 
+	UseFallbackProfile bool
+	FallbackProfile    *StaticImageCache
+
+	FallbackFonts []string
+
 	FontCacheMu sync.RWMutex
 	FontCache   map[string]*FontCache
 
@@ -256,10 +282,9 @@ type WelcomerImageService struct {
 	BackgroundCache   map[string]*ImageCache
 
 	StaticBackgroundCache map[string]*ImageCache
-	// TODO: Add StaticFontCache. Loaded from autoload-fonts (configurable) + Add fonts folder (for non autoload)
 
 	ProfileCacheMu sync.RWMutex
-	ProfileCache   map[int64]*RequestCache
+	ProfileCache   map[int64]*StaticImageCache
 }
 
 type ImageData struct {
@@ -278,14 +303,14 @@ type FontCache struct {
 	LastAccessedMu sync.RWMutex
 	LastAccessed   time.Time
 
-	Font *sfnt.Font
-
+	Font        *sfnt.Font
 	FaceCacheMu sync.RWMutex
 	FaceCache   map[float64]*FaceCache
 }
 
 // LastAccess stores the last access of the structure
 type LastAccess struct {
+	sync.RWMutex   // Used to stop deletion whilst being used
 	LastAccessed   time.Time
 	LastAccessedMu sync.RWMutex
 }
@@ -307,10 +332,16 @@ type FileCache struct {
 	Body     []byte
 }
 
+// StaticImageCache stores just an image
+type StaticImageCache struct {
+	LastAccess
+
+	Format string
+	Image  image.Image
+}
+
 // ImageCache stores the image and the extention for it.
 type ImageCache struct {
-	sync.RWMutex
-
 	LastAccess
 
 	// The image format that is represented
@@ -338,6 +369,12 @@ type ImageCache struct {
 	BackgroundIndex byte
 }
 
+func (ic *ImageCache) GetFrames() []image.Image {
+	im := make([]image.Image, len(ic.Frames))
+	copy(im, ic.Frames)
+	return im
+}
+
 // RequestCache stores the request body and when it was last accessed.
 type RequestCache struct {
 	LastAccess
@@ -358,13 +395,15 @@ func NewService(logger io.Writer) (wi *WelcomerImageService, err error) {
 		FontCacheMu: sync.RWMutex{},
 		FontCache:   make(map[string]*FontCache),
 
+		FallbackFonts: make([]string, 0),
+
 		BackgroundCacheMu: sync.RWMutex{},
 		BackgroundCache:   make(map[string]*ImageCache),
 
 		StaticBackgroundCache: make(map[string]*ImageCache),
 
 		ProfileCacheMu: sync.RWMutex{},
-		ProfileCache:   make(map[int64]*RequestCache),
+		ProfileCache:   make(map[int64]*StaticImageCache),
 	}
 
 	configuration, err := wi.LoadConfiguration(ConfigurationPath)
@@ -382,9 +421,28 @@ func NewService(logger io.Writer) (wi *WelcomerImageService, err error) {
 		isDefault: true,
 	}
 
+	if wi.Configuration.Store.FallbackProfileLocation != "" {
+		f, err := os.Open(wi.Configuration.Store.FallbackProfileLocation)
+		if err != nil {
+			return nil, xerrors.Errorf("new service read fallback: %w", err)
+		}
+
+		im, format, err := image.Decode(f)
+		if err != nil {
+			return nil, xerrors.Errorf("new service decode fallback avatar: %w", err)
+		}
+
+		wi.FallbackProfile = &StaticImageCache{
+			Format: format,
+			Image:  im,
+		}
+
+		wi.UseFallbackProfile = true
+	}
+
 	wi.DefaultImageContent, err = ioutil.ReadFile(wi.DefaultImage.Path)
 	if err != nil {
-		return nil, xerrors.Errorf("new service read default: %w", err)
+		return nil, xerrors.Errorf("new service read default bg: %w", err)
 	}
 
 	var writers []io.Writer
@@ -502,7 +560,7 @@ func (wi *WelcomerImageService) Open() (err error) {
 	// Pseudo allow an infinite number of concurrency
 	if wi.Configuration.Internal.ConcurrentQuantizers == 0 {
 		wi.Configuration.Internal.ConcurrentQuantizers = 1024
-		wi.Logger.Info().Msg("ConcurrentQuantizers was set to 0. Limiter has been set to 1024")
+		wi.Logger.Debug().Msg("ConcurrentQuantizers was set to 0. Limiter has been set to 1024")
 	}
 
 	quantizationLimiter = limiter.NewConcurrencyLimiter(
@@ -517,14 +575,14 @@ func (wi *WelcomerImageService) Open() (err error) {
 		wi.Configuration.Internal.QuantizerSpeed,
 	)
 
-	wi.Logger.Info().
+	wi.Logger.Debug().
 		Msg("Releasing Bolt lock")
 	db, err := bolt.Open(wi.Configuration.Store.BoltDBLocation, 0600, nil)
 	if err != nil {
 		return xerrors.Errorf("open service: %w", err)
 	}
 
-	wi.Logger.Info().
+	wi.Logger.Debug().
 		Msg("Bolt unlocked")
 
 	wi.Database = db
@@ -540,6 +598,143 @@ func (wi *WelcomerImageService) Open() (err error) {
 	if err != nil {
 		return xerrors.Errorf("open service commit: %w", err)
 	}
+
+	wi.Logger.Debug().Msg("Loading fonts")
+	for _, folder := range wi.Configuration.Store.FontPath {
+		files, err := ioutil.ReadDir(folder)
+		if err != nil {
+			wi.Logger.Error().Err(err).
+				Str("path", folder).
+				Msg("Failed to list files in fonts folder")
+
+			continue
+		}
+
+		for _, f := range files {
+			name := f.Name()
+			path := path.Join(folder, name)
+			nametrim := name[0 : len(name)-len(filepath.Ext(name))]
+
+			wi.Logger.Trace().
+				Str("path", path).
+				Msg("Loading font")
+
+			if _, ok := wi.FontCache[nametrim]; ok {
+				wi.Logger.Error().Err(err).
+					Str("name", nametrim).
+					Msg("Font with name already exists")
+
+				continue
+			}
+
+			fb, err := ioutil.ReadFile(path)
+			if err != nil {
+				wi.Logger.Error().Err(err).
+					Str("path", path).
+					Msg("Failed to open font")
+
+				continue
+			}
+
+			fnt, err := opentype.Parse(fb)
+			if err != nil {
+				wi.Logger.Error().Err(err).
+					Str("path", path).
+					Msg("Failed to parse font")
+
+				continue
+			}
+
+			wi.FontCache[nametrim] = &FontCache{
+				Font:        fnt,
+				FaceCacheMu: sync.RWMutex{},
+				FaceCache:   make(map[float64]*FaceCache),
+			}
+
+		}
+	}
+
+	wi.Logger.Info().Msgf("Loaded %d fonts", len(wi.FontCache))
+
+	for _, fallback := range wi.Configuration.FallbackFonts {
+		if _, ok := wi.FontCache[fallback]; ok {
+			wi.FallbackFonts = append(wi.FallbackFonts, fallback)
+		} else {
+			wi.Logger.Warn().Str("font", fallback).Msg("Referenced invalid fallback font")
+		}
+	}
+
+	wi.Logger.Info().
+		Msgf(
+			"Discovered %d/%d fallback fonts",
+			len(wi.FallbackFonts),
+			len(wi.Configuration.FallbackFonts),
+		)
+
+	wi.Logger.Debug().Msg("Loading static backgrounds")
+
+	files, err := ioutil.ReadDir(wi.Configuration.Store.StaticBackgroundsPath)
+	if err != nil {
+		wi.Logger.Error().Err(err).
+			Str("path", wi.Configuration.Store.StaticBackgroundsPath).
+			Msg("Failed to list files in static backgrounds folder")
+	}
+
+	for _, f := range files {
+		name := f.Name()
+		path := path.Join(wi.Configuration.Store.StaticBackgroundsPath, name)
+		nametrim := name[0 : len(name)-len(filepath.Ext(name))]
+
+		wi.Logger.Trace().
+			Str("path", path).
+			Msg("Loading static image")
+
+		if _, ok := wi.StaticBackgroundCache[nametrim]; ok {
+			wi.Logger.Error().Err(err).
+				Str("name", nametrim).
+				Msg("Static background with name already exists")
+
+			continue
+		}
+
+		fimg, err := os.Open(path)
+		if err != nil {
+			wi.Logger.Error().Err(err).
+				Str("path", path).
+				Msg("Failed to open static image")
+
+			continue
+		}
+
+		img, format, err := image.Decode(fimg)
+		if err != nil {
+			wi.Logger.Error().Err(err).
+				Str("path", path).
+				Msg("Failed to decode static image")
+
+			continue
+		}
+
+		fimg.Seek(0, io.SeekStart)
+		config, _, err := image.DecodeConfig(fimg)
+		if err != nil {
+			wi.Logger.Error().Err(err).
+				Str("path", path).
+				Msg("Failed to decode static image config")
+
+			continue
+		}
+
+		wi.StaticBackgroundCache[nametrim] = &ImageCache{
+			Format: format,
+			Frames: []image.Image{img},
+			Config: config,
+		}
+	}
+
+	wi.Logger.Info().Msgf(
+		"Loaded %d/%d static backgrounds",
+		len(wi.StaticBackgroundCache), len(files))
 
 	if wi.Configuration.Prometheus.Enabled {
 		wi.Logger.Info().
@@ -559,61 +754,6 @@ func (wi *WelcomerImageService) Open() (err error) {
 			}
 		}()
 	}
-
-	wi.Logger.Info().Msg("Loading static backgrounds")
-
-	files, err := ioutil.ReadDir(wi.Configuration.Store.StaticBackgroundsPath)
-	if err != nil {
-		wi.Logger.Error().Err(err).
-			Str("path", wi.Configuration.Store.StaticBackgroundsPath).
-			Msg("Failed to list files in static backgrounds folder")
-	}
-
-	for _, f := range files {
-		wi.Logger.Debug().
-			Str("path", path.Join(wi.Configuration.Store.StaticBackgroundsPath, f.Name())).
-			Msg("Loading static image")
-		fimg, err := os.Open(path.Join(wi.Configuration.Store.StaticBackgroundsPath, f.Name()))
-		if err != nil {
-			wi.Logger.Error().Err(err).
-				Str("file", f.Name()).
-				Msg("Failed to open static image")
-
-			continue
-		}
-
-		img, format, err := image.Decode(fimg)
-		if err != nil {
-			wi.Logger.Error().Err(err).
-				Str("file", f.Name()).
-				Msg("Failed to decode static image")
-
-			continue
-		}
-
-		fimg.Seek(0, io.SeekStart)
-		config, _, err := image.DecodeConfig(fimg)
-		if err != nil {
-			wi.Logger.Error().Err(err).
-				Str("file", f.Name()).
-				Msg("Failed to decode static image config")
-
-			continue
-		}
-
-		name := f.Name()
-		name = name[0 : len(name)-len(filepath.Ext(name))]
-
-		wi.StaticBackgroundCache[name] = &ImageCache{
-			Format: format,
-			Frames: []image.Image{img},
-			Config: config,
-		}
-	}
-
-	wi.Logger.Info().Msgf(
-		"Loaded %d/%d static backgrounds",
-		len(wi.StaticBackgroundCache), len(files))
 
 	wi.Logger.Info().Msg("Starting up HTTP server")
 
@@ -749,23 +889,7 @@ func (wi *WelcomerImageService) PrometheusFetcher() {
 			wi.Logger.Error().Err(err).Msg("Failed to commit database changes")
 		}
 
-		// free profile cache
-		// free font cache
-
-		fd := time.Since(start).Round(time.Millisecond).Milliseconds()
-		wi.Logger.Debug().Int64("dur", fd).Int("freed", fi).Msg("Finished freeing images")
-
-		freedImages.Set(float64(fi))
-		freedDuration.Set(float64(fd))
-
-		imagesStoreCount.Set(float64(storeCount))
-		imagesStoreSize.Set(float64(storeSize))
-
-		imagesFolderCount.Set(float64(folderCount))
-		imagesFolderSize.Set(float64(folderSize))
-
 		pcr := make([]int64, 0)
-		fcr := make([]string, 0)
 		bcr := make([]string, 0)
 
 		// Remove expired Profile entries and count length
@@ -781,6 +905,10 @@ func (wi *WelcomerImageService) PrometheusFetcher() {
 		}
 
 		for _, k := range pcr {
+			// We attempt to lock as a last resort to ensure nobody is still using it.
+			// Problem is long running tasks may block this for a long time causing
+			// other things to slow down.
+			wi.ProfileCache[k].Lock()
 			delete(wi.ProfileCache, k)
 		}
 
@@ -800,30 +928,60 @@ func (wi *WelcomerImageService) PrometheusFetcher() {
 		}
 
 		for _, k := range bcr {
+			wi.BackgroundCache[k].Lock()
 			delete(wi.BackgroundCache, k)
 		}
 
 		backgroundCacheSize.Set(float64(len(wi.BackgroundCache)))
 		wi.BackgroundCacheMu.Unlock()
 
-		// Remove expired Font entries and count length
+		// We do not want to remove actual fonts,
+		// only faces.
+		totalFaces := 0
+		freedFaces := 0
+
 		wi.FontCacheMu.Lock()
-		for k, v := range wi.FontCache {
-			v.LastAccessedMu.RLock()
-			la := v.LastAccessed
-			v.LastAccessedMu.RUnlock()
+		for fn, v := range wi.FontCache {
+			fcr := make([]float64, 0)
 
-			if start.After(la.Add(profileCacheTTL)) {
-				fcr = append(fcr, k)
+			v.FaceCacheMu.Lock()
+			for fk, fv := range v.FaceCache {
+				if start.After(fv.LastAccessed.Add(faceCacheTTL)) {
+					println("remove", fn, fk)
+					fcr = append(fcr, fk)
+				}
 			}
+
+			for _, k := range fcr {
+				v.FaceCache[k].Lock()
+				delete(v.FaceCache, k)
+			}
+
+			totalFaces += len(v.FaceCache)
+			freedFaces += len(fcr)
+			v.FaceCacheMu.Unlock()
 		}
 
-		for _, k := range fcr {
-			delete(wi.FontCache, k)
-		}
-
-		fontCacheSize.Set(float64(len(wi.FontCache)))
+		fontCacheSize.Set(float64(totalFaces))
 		wi.FontCacheMu.Unlock()
+
+		fd := time.Since(start).Round(time.Millisecond).Milliseconds()
+		wi.Logger.Debug().
+			Int64("dur", fd).
+			Int("freed_images", fi).
+			Int("freed_faces", freedFaces).
+			Int("freed_profiles", len(pcr)).
+			Int("freed_backgrounds", len(bcr)).
+			Msg("Finished freeing")
+
+		freedImages.Set(float64(fi))
+		freedDuration.Set(float64(fd))
+
+		imagesStoreCount.Set(float64(storeCount))
+		imagesStoreSize.Set(float64(storeSize))
+
+		imagesFolderCount.Set(float64(folderCount))
+		imagesFolderSize.Set(float64(folderSize))
 
 		time.Sleep(time.Minute)
 	}
@@ -838,192 +996,4 @@ func (wi *WelcomerImageService) Close() (err error) {
 	wi.PoolWaiter.Wait()
 
 	return
-}
-
-// fsExists checks if a file or folder exists and returns if it does
-func fsExists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
-}
-
-// openImage returns an image, format and error
-func openImage(path string) (image.Image, *gif.GIF, image.Config, string, error) {
-	fi, err := os.Open(path)
-	if err != nil {
-		return nil, nil, image.Config{}, "", err
-	}
-
-	if strings.HasSuffix(path, ".gif") {
-		g, err := gif.DecodeAll(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, "", err
-		}
-
-		fi.Seek(0, io.SeekStart)
-		cf, err := gif.DecodeConfig(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, "", err
-		}
-
-		return nil, g, cf, "gif", nil
-	} else {
-		i, f, err := image.Decode(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, f, err
-		}
-
-		fi.Seek(0, io.SeekStart)
-		cf, _, err := image.DecodeConfig(fi)
-		if err != nil {
-			return nil, nil, image.Config{}, f, err
-		}
-
-		return i, nil, cf, f, nil
-	}
-}
-
-// TODO: FetchFont
-
-// FetchBackground fetches a background from its id. Returns the image and boolean indicating GIF
-func (wi *WelcomerImageService) FetchBackground(b string, allowGifs bool) (*ImageCache, error) {
-	if b == "" {
-		b = "default"
-	}
-
-	wi.Logger.Debug().
-		Str("name", b).
-		Bool("allowGifs", allowGifs).
-		Msg("Fetching background")
-
-	c, ok := wi.StaticBackgroundCache[b]
-	if ok {
-		return c, nil
-	}
-
-	wi.BackgroundCacheMu.RLock()
-	c, ok = wi.BackgroundCache[b]
-	wi.BackgroundCacheMu.RUnlock()
-
-	if ok {
-		c.LastAccessedMu.Lock()
-		c.LastAccessed = time.Now().UTC()
-		c.LastAccessedMu.Unlock()
-
-		return c, nil
-	}
-
-	p := path.Join(wi.Configuration.Store.BackgroundsPath, b)
-
-	var lp string
-	if allowGifs && fsExists(p+".gif") {
-		lp = p + ".gif"
-	} else {
-		lp = p + ".png"
-	}
-
-	if !fsExists(lp) {
-		wi.Logger.Debug().Str("path", lp).Msg("Could not find background, serving fallback")
-		return wi.StaticBackgroundCache[wi.Configuration.Store.BackgroundFallback], nil
-	}
-
-	im, gi, config, format, err := openImage(lp)
-	if err != nil {
-		wi.Logger.Error().Err(err).
-			Str("bg", b).
-			Str("path", lp).
-			Msg("Failed to open file")
-
-		// TODO: Figure out how i want to handle errors in FetchBackground. At the moment
-		// we use fallback and treat like there is no error.
-		return wi.StaticBackgroundCache[wi.Configuration.Store.BackgroundFallback], nil
-	}
-
-	ic := &ImageCache{
-		Format: format,
-		Config: config,
-	}
-
-	// We store as frames reguardless of image format however
-	// we should copy over the other GIF data when neccessary.
-	if format == "gif" {
-		ic.BackgroundIndex = gi.BackgroundIndex
-		ic.Delay = gi.Delay
-		ic.Disposal = gi.Disposal
-		ic.LoopCount = gi.LoopCount
-
-		ic.Frames = make([]image.Image, 0, len(gi.Image))
-		for _, frame := range gi.Image {
-			ic.Frames = append(ic.Frames, image.Image(frame))
-		}
-	} else {
-		ic.Frames = make([]image.Image, 0, 1)
-		ic.Frames = append(ic.Frames, im)
-	}
-
-	wi.BackgroundCacheMu.Lock()
-	wi.BackgroundCache[b] = ic
-	wi.BackgroundCacheMu.Unlock()
-
-	return ic, nil
-}
-
-// FetchAvatar fetches an avatar from a user id and avatar hash
-func (wi *WelcomerImageService) FetchAvatar(u int64, a string) ([]byte, error) {
-	wi.Logger.Debug().
-		Int64("user", u).
-		Str("hash", a).
-		Msg("Fetching avatar")
-
-	wi.ProfileCacheMu.RLock()
-	c, ok := wi.ProfileCache[u]
-	wi.ProfileCacheMu.RUnlock()
-
-	if ok {
-		c.LastAccessedMu.Lock()
-		c.LastAccessed = time.Now().UTC()
-		c.LastAccessedMu.Unlock()
-
-		return c.Body, nil
-	}
-
-	url := fmt.Sprintf(avatarRoot, u, a)
-
-	start := time.Now().UTC()
-	s, b, err := fasthttp.Get(
-		nil,
-		url,
-	)
-
-	ms := time.Since(start).Round(time.Millisecond).Milliseconds()
-	wi.Logger.Debug().
-		Str("url", url).
-		Int("code", s).
-		Int64("ms", ms).
-		Err(err).
-		Msg("Fetched avatar")
-
-	if s < 200 || s >= 400 {
-		return nil, xerrors.New(fmt.Sprintf("fetchavatar response: %d", s))
-	}
-
-	imageProfileResponseTimes.Observe(float64(ms) / 1000)
-	imageProfileResponseCodes.WithLabelValues(strconv.Itoa(s)).Inc()
-
-	if err != nil {
-		wi.Logger.Error().Err(err).Msg("Failed to retrieve profile picture of user")
-		return b, err
-	}
-
-	wi.ProfileCacheMu.Lock()
-	wi.ProfileCache[u] = &RequestCache{
-		LastAccess: LastAccess{
-			LastAccessed:   time.Now().UTC(),
-			LastAccessedMu: sync.RWMutex{},
-		},
-		URL:  url,
-		Body: b,
-	}
-	wi.ProfileCacheMu.Unlock()
-
-	return b, nil
 }

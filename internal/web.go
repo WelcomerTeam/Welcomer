@@ -228,7 +228,7 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 		by := u.Sum(b.Bytes())
 		k := strings.TrimRight(base64.URLEncoding.EncodeToString(by[:]), "=")
 
-		storeName := k + ext
+		storeName := k + "." + ext
 		storePath := path.Join(wi.Configuration.Store.StorePath, storeName)
 		storeImage := rd.ForceCache || b.Len() >= rd.FilesizeLimit
 
@@ -285,7 +285,7 @@ func ImagesCreate(wi *WelcomerImageService) http.HandlerFunc {
 
 		resp := ImageCreateResponse{
 			Success:      true,
-			Bookmarkable: wi.Configuration.HTTP.BookmarkableURL + "/images/" + d.ID + ext,
+			Bookmarkable: wi.Configuration.HTTP.BookmarkableURL + "/images/" + d.ID + "." + ext,
 			ImageData:    &d,
 		}
 

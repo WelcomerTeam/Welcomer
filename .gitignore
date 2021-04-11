@@ -16,6 +16,7 @@
 
 logs/*
 fonts/*
+fallback/*
 *.fasthttp.gz
 *.fasthttp.br
 welcomerimages.yaml
