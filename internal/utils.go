@@ -132,8 +132,6 @@ func (b *Bench) Add(l string, t time.Time) {
 	bn := len(b.benches)
 	b.benches[bn] = t
 	b.labels[bn] = l
-
-	println(l)
 }
 
 func (b *Bench) Print() {

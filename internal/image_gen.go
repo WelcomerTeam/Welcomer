@@ -3,6 +3,7 @@ package welcomerimages
 import (
 	"bytes"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/gif"
 	"image/png"
@@ -29,6 +30,8 @@ const (
 var (
 	themesMu = sync.RWMutex{}
 	themes   = make(map[Theme]func(*WelcomerImageService, *bytes.Buffer, GenerateImageArgs) (GenerateThemeResp, error))
+
+	transparent = color.NRGBA{0, 0, 0, 0}
 )
 
 func RegisterFormat(theme Theme, f func(*WelcomerImageService, *bytes.Buffer, GenerateImageArgs) (GenerateThemeResp, error)) {
@@ -294,22 +297,28 @@ func (wi *WelcomerImageService) GenerateAvatar(avatar *StaticImageCache, imageOp
 		canCrop := (avatar.Image.At(
 			cropPix,
 			cropPix,
-		) == image.Transparent &&
+		) == transparent &&
 			avatar.Image.At(
 				avatar.Image.Bounds().Dx()-cropPix,
 				avatar.Image.Bounds().Dy()-cropPix,
-			) == image.Transparent)
+			) == transparent)
 
 		if canCrop {
-			avatarImage = roundImage(
+			avatarMinimimze := image.NewRGBA(avatar.Image.Bounds())
+			avatarContext := gg.NewContextForRGBA(avatarMinimimze)
+
+			avatarContext.DrawImage(
 				imaging.Resize(
 					avatar.Image,
-					(context.Width()-(avatar.Image.Bounds().Dx()-(cropPix*2)))/2,
-					(context.Width()-(avatar.Image.Bounds().Dx()-(cropPix*2)))/2,
+					(avatar.Image.Bounds().Dx()-(cropPix*2)),
+					(avatar.Image.Bounds().Dx()-(cropPix*2)),
 					imaging.Lanczos,
 				),
-				1000,
+				cropPix,
+				cropPix,
 			)
+
+			avatarImage = roundImage(avatarMinimimze, 1000)
 		} else {
 			avatarImage = roundImage(avatar.Image, 1000)
 		}
