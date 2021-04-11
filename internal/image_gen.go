@@ -3,10 +3,10 @@ package welcomerimages
 import (
 	"bytes"
 	"image"
-	"image/color"
 	"image/draw"
 	"image/gif"
 	"image/png"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -26,9 +26,22 @@ const (
 	avatarSize      = 256
 )
 
+var (
+	themesMu = sync.RWMutex{}
+	themes   = make(map[Theme]func(*WelcomerImageService, *bytes.Buffer, GenerateImageArgs) (GenerateThemeResp, error))
+)
+
+func RegisterFormat(theme Theme, f func(*WelcomerImageService, *bytes.Buffer, GenerateImageArgs) (GenerateThemeResp, error)) {
+	themesMu.Lock()
+	themes[theme] = f
+	themesMu.Unlock()
+
+	println("Registered", theme)
+}
+
 // EncodeImages encodes a list of []image.Image and takes an input of AllowGifs.
 // Outputs the file extension.
-func (wi *WelcomerImageService) EncodeImages(b *bytes.Buffer, frames []image.Image, im *ImageCache, allowGIF bool) (string, error) {
+func (wi *WelcomerImageService) EncodeImages(b *bytes.Buffer, frames []image.Image, im *ImageCache) (string, error) {
 	var err error
 
 	start := time.Now().UTC()
@@ -41,7 +54,7 @@ func (wi *WelcomerImageService) EncodeImages(b *bytes.Buffer, frames []image.Ima
 		return "", xerrors.New("empty frame list")
 	}
 
-	if len(frames) > 1 && allowGIF {
+	if len(frames) > 1 {
 		_frames := make([]*image.Paletted, len(frames))
 
 		wg := sync.WaitGroup{}
@@ -208,20 +221,20 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 		var Dy int
 
 		switch args.HorizontalAlignment {
-		case Left:
+		case AlignLeft:
 			Dx = 0
-		case Middle:
+		case AlignMiddle:
 			Dx = int((args.Width - adv.Ceil()) / 2)
-		case Right:
+		case AlignRight:
 			Dx = args.Width - adv.Ceil()
 		}
 
 		switch args.VerticalAlignment {
-		case Top:
+		case AlignTop:
 			Dy = lineNo * fh
-		case Center:
+		case AlignCenter:
 			Dy = (lineNo * fh) + (args.Height / 2) - (th / 2)
-		case Bottom:
+		case AlignBottom:
 			Dy = args.Height - th + (lineNo * fh)
 		}
 
@@ -254,168 +267,268 @@ func DrawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 	return nil
 }
 
+// GenerateAvatar applies masking and resizing to the avatar.
+// Outputs an image.Image with same dimension as src image.
+func (wi *WelcomerImageService) GenerateAvatar(avatar *StaticImageCache, imageOpts ImageOpts) (image.Image, error) {
+	cropPix := int(math.Floor(float64(avatar.Image.Bounds().Dx()) / 8))
+
+	atlas := image.NewRGBA(image.Rect(
+		0, 0,
+		avatar.Image.Bounds().Dx()+(imageOpts.ProfileBorderWidth*2),
+		avatar.Image.Bounds().Dy()+(imageOpts.ProfileBorderWidth*2),
+	))
+
+	context := gg.NewContextForRGBA(atlas)
+
+	context.SetColor(imageOpts.ProfileBorderColour)
+	context.Clear()
+
+	rounding := float64(0)
+
+	var avatarImage image.Image
+
+	switch imageOpts.ProfileBorderCurve {
+	case CurveCircle:
+		rounding = 1000
+
+		canCrop := (avatar.Image.At(
+			cropPix,
+			cropPix,
+		) == image.Transparent &&
+			avatar.Image.At(
+				avatar.Image.Bounds().Dx()-cropPix,
+				avatar.Image.Bounds().Dy()-cropPix,
+			) == image.Transparent)
+
+		if canCrop {
+			avatarImage = roundImage(
+				imaging.Resize(
+					avatar.Image,
+					(context.Width()-(avatar.Image.Bounds().Dx()-(cropPix*2)))/2,
+					(context.Width()-(avatar.Image.Bounds().Dx()-(cropPix*2)))/2,
+					imaging.Lanczos,
+				),
+				1000,
+			)
+		} else {
+			avatarImage = roundImage(avatar.Image, 1000)
+		}
+	case CurveSoft:
+		rounding = 16
+		avatarImage = roundImage(avatar.Image, 8)
+	case CurveSquare:
+		avatarImage = avatar.Image
+	}
+
+	context.DrawImageAnchored(
+		avatarImage,
+		context.Width()/2,
+		context.Height()/2,
+		0.5,
+		0.5,
+	)
+
+	return roundImage(atlas, rounding), nil
+}
+
 // GenerateImage generates an Image.
 func (wi *WelcomerImageService) GenerateImage(b *bytes.Buffer, imageOpts ImageOpts) (string, error) {
 	bench := NewBench()
 
-	bench.Add("start", time.Now().UTC())
+	bench.Add("init", time.Now().UTC())
 
-	// Create profile
-	bg, err := wi.FetchBackground(imageOpts.Background, imageOpts.AllowGIF)
+	// Fetch Theme
+
+	themesMu.RLock()
+	theme, ok := themes[imageOpts.Theme]
+	themesMu.RUnlock()
+
+	if !ok {
+		theme = themes[ThemeRegular]
+	}
+
+	bench.Add("fetch theme", time.Now().UTC())
+
+	// Fetch Background
+	background, err := wi.FetchBackground(
+		imageOpts.Background,
+		imageOpts.AllowGIF,
+	)
 	if err != nil {
-		wi.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+		wi.Logger.Error().Err(err).
+			Str("background", imageOpts.Background).
+			Bool("allow_gif", imageOpts.AllowGIF).
+			Msg("Failed to fetch background")
 
 		return "", err
 	}
 
 	bench.Add("fetch background", time.Now().UTC())
 
-	avatar, err := wi.FetchAvatar(imageOpts.UserId, imageOpts.Avatar)
+	// Fetch Avatar
+	avatar, err := wi.FetchAvatar(
+		imageOpts.UserId,
+		imageOpts.Avatar,
+	)
 	if err != nil {
-		wi.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+		wi.Logger.Warn().Err(err).
+			Int64("user", imageOpts.UserId).
+			Str("avatar", imageOpts.Avatar).
+			Msg("Failed to fetch avatar")
 
 		return "", err
 	}
 
 	bench.Add("fetch avatar", time.Now().UTC())
 
-	borderWidth := 16
-
-	// Target canvas size for image and background.
-	// Difference with canvas means there is a border
-	targetWidth := 1000
-	targetHeight := 300
-
-	// Total width and height of image
-	canvasWidth := 1000 + (borderWidth * 2) // 1064
-	canvasHeight := 300 + (borderWidth * 2) // 364
-
-	// Prepare border
-	hasBorder := (targetWidth != canvasWidth) || (targetHeight != canvasHeight)
-	borderColour := color.NRGBA{255, 255, 255, 255}
-	canvas := image.NewRGBA(image.Rect(0, 0, canvasWidth, canvasHeight))
-	drawer := font.Drawer{Dst: canvas}
-	context := gg.NewContextForRGBA(canvas)
-
-	bench.Add("init", time.Now().UTC())
-
-	if hasBorder {
-		context.SetColor(borderColour)
-		context.DrawRectangle(
-			0, 0,
-			float64(canvasWidth), float64(borderWidth),
-		)
-		context.DrawRectangle(
-			0, float64(canvasHeight-borderWidth),
-			float64(canvasWidth), float64(canvasHeight),
-		)
-		context.DrawRectangle(
-			0, float64(borderWidth),
-			float64(borderWidth), float64(canvasHeight-borderWidth),
-		)
-		context.DrawRectangle(
-			float64(canvasWidth-borderWidth), float64(borderWidth),
-			float64(canvasWidth), float64(canvasHeight-borderWidth),
-		)
-	}
-
-	bench.Add("border", time.Now().UTC())
-
-	DrawMultiline(drawer, wi.CreateFontPackHook(imageOpts.Font), MultilineArguments{
-		DefaultFontSize: defaultFontSize,
-
-		X: 268 + 32 + borderWidth,
-		Y: 0 + 32 + borderWidth,
-
-		Width:  668,
-		Height: 236,
-
-		HorizontalAlignment: Left,
-		VerticalAlignment:   Center,
-
-		StrokeWeight: 3,
-		StrokeColour: color.Black,
-		TextColour:   color.White,
-
-		Text: "Welcome ImRock\nto the Welcomer Support Guild\nyou are the 5588th member!",
-	})
-
-	bench.Add("draw text", time.Now().UTC())
-
-	bounds := avatar.Image.Bounds()
-
-	// If appropriate, add extra padding to profile pictures that like will have corners cut off a little.
-	if avatar.Image.At(transAnchor, transAnchor) == image.Transparent &&
-		avatar.Image.At(bounds.Dx()-transAnchor, bounds.Dy()-transAnchor) == image.Transparent {
-		avatar.Image = imaging.PasteCenter(
-			imaging.New(
-				avatarSize+transAnchor,
-				avatarSize+transAnchor,
-				color.Transparent,
-			),
-			avatar.Image,
-		)
-	}
-
-	// Resize image, round it, add background behind image then overlay
-	avatarr := imaging.Resize(
-		roundImage(
-			avatar.Image,
-			1000,
-		),
-		204, 204, imaging.Lanczos)
-
-	context.SetColor(image.NewUniform(color.NRGBA{255, 255, 255, 255}))
-	context.DrawCircle(float64(118+32+borderWidth), float64(118+32+borderWidth), 118)
-	context.Fill()
-
-	context.DrawImage(
-		avatarr,
-		(118-(avatarr.Rect.Dx()/2))+32+borderWidth,
-		(118-(avatarr.Rect.Dy()/2))+32+borderWidth,
+	// Convert Avatar to Proper Shape
+	avatarOverlay, err := wi.GenerateAvatar(
+		avatar,
+		imageOpts,
 	)
+	if err != nil {
+		wi.Logger.Error().Err(err).
+			Msg("Failed to generate avatar")
 
-	bench.Add("avatar", time.Now().UTC())
+		return "", err
+	}
 
-	backgroundPt := image.Pt(borderWidth, borderWidth)
+	bench.Add("avatar convert", time.Now().UTC())
 
-	frames := bg.GetFrames()
+	// Create overlay image
+	themeArgs := GenerateImageArgs{
+		ImageOpts: imageOpts,
+		Avatar:    avatarOverlay,
+	}
+
+	themeResp, err := theme(wi, b, themeArgs)
+	if err != nil {
+		wi.Logger.Error().Err(err).
+			Msg("Failed to generate overlay")
+	}
+
+	bench.Add("generate overlay", time.Now().UTC())
+
+	// Create border if required
+	if imageOpts.BorderWidth > 0 {
+		border := image.Point{imageOpts.BorderWidth, imageOpts.BorderWidth}
+		d := border.Add(border)
+
+		// Increases size and adds offset to TargetImageSize
+		themeResp.TargetImageW += d.X
+		themeResp.TargetImageH += d.Y
+		themeResp.TargetImageSize.Max = themeResp.TargetImageSize.Max.Add(d)
+
+		borderOverlay := image.NewRGBA(themeResp.TargetImageSize)
+
+		context := gg.NewContextForRGBA(borderOverlay)
+
+		context.SetColor(imageOpts.BorderColour)
+
+		// top
+		context.DrawRectangle(
+			0,
+			0,
+			float64(themeResp.TargetImageW),
+			float64(border.X),
+		)
+
+		// right
+		context.DrawRectangle(
+			float64(themeResp.TargetImageW-border.X),
+			float64(border.Y),
+			float64(border.X),
+			float64(themeResp.TargetBackgroundW-(border.Y*2)),
+		)
+
+		// bottom
+		context.DrawRectangle(
+			0,
+			float64(themeResp.TargetImageH-border.Y),
+			float64(themeResp.TargetImageW),
+			float64(border.Y),
+		)
+
+		// left
+		context.DrawRectangle(
+			0,
+			float64(border.Y),
+			float64(border.X),
+			float64(themeResp.TargetImageH-(border.Y*2)),
+		)
+
+		context.Fill()
+
+		context.DrawImage(
+			themeResp.Overlay,
+			border.X+themeResp.OverlayAnchor.X,
+			border.Y+themeResp.OverlayAnchor.Y,
+		)
+
+		themeResp.Overlay = borderOverlay
+
+		themeResp.OverlayAnchor = image.Point{}
+		themeResp.BackgroundAnchor = themeResp.BackgroundAnchor.Add(border)
+
+		bench.Add("generate border", time.Now().UTC())
+	}
+
+	// Resize frames and overlay with overlay
+	frames := background.GetFrames()
 	wg := sync.WaitGroup{}
 
-	bench.Add("get frames", time.Now().UTC())
-
-	for i, frame := range frames {
+	for frameNumber, frame := range frames {
 		wg.Add(1)
 
-		go func(i int, frame image.Image) {
-			rframe := image.NewNRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
+		go func(frameNumber int, frame image.Image) {
+			resizedFrame := image.NewRGBA(themeResp.TargetImageSize)
 
+			// Draw resized background frame
 			draw.Draw(
-				rframe, rframe.Bounds().Add(backgroundPt),
-				imaging.Fill(frame, targetWidth, targetHeight, imaging.Center, imaging.NearestNeighbor),
-				image.Point{}, draw.Src)
+				resizedFrame, resizedFrame.Rect.Add(themeResp.BackgroundAnchor),
+				imaging.Fill(
+					frame,
+					themeResp.TargetBackgroundW, themeResp.TargetBackgroundH,
+					imaging.Center, imaging.Lanczos,
+				),
+				image.Point{}, draw.Src,
+			)
 
-			draw.Draw(rframe, rframe.Bounds(), canvas, image.Point{}, draw.Over)
+			// Draw overlay ontop
+			draw.Draw(
+				resizedFrame, resizedFrame.Rect.Add(themeResp.OverlayAnchor),
+				themeResp.Overlay,
+				image.Point{}, draw.Over,
+			)
 
-			frames[i] = rframe
+			frames[frameNumber] = resizedFrame
 
 			wg.Done()
-		}(i, frame)
+		}(frameNumber, frame)
 	}
-
-	bench.Add("overlay", time.Now().UTC())
 
 	wg.Wait()
 
-	bg.Config.Width = canvasWidth
-	bg.Config.Height = canvasHeight
-	bg.Disposal = nil
-	bg.Config.ColorModel = nil
+	bench.Add("overlay frames", time.Now().UTC())
 
-	defer func() {
-		bench.Add("encode", time.Now().UTC())
-		bench.Print()
-	}()
+	background.Config = image.Config{
+		Width:      themeResp.TargetImageW,
+		Height:     themeResp.TargetImageH,
+		ColorModel: nil,
+	}
 
-	return wi.EncodeImages(b, frames, bg, imageOpts.AllowGIF)
+	background.Disposal = nil
+
+	// Encode final image
+	format, err := wi.EncodeImages(b, frames, background)
+	if err != nil {
+		wi.Logger.Error().Err(err).
+			Msg("Failed to encode image")
+	}
+
+	bench.Add("generate images", time.Now().UTC())
+
+	bench.Print()
+
+	return format, err
 }

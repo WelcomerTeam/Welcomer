@@ -10,21 +10,43 @@ import (
 	"golang.org/x/image/font/sfnt"
 )
 
+const bitmask = 255
+
 type (
-	Xalignment uint8
-	Yalignment uint8
+	Xalignment         uint8
+	Yalignment         uint8
+	ProfileAlignment   uint8
+	ProfileBorderCurve uint8
+	Theme              uint8
 )
 
 const (
-	Left Xalignment = iota
-	Middle
-	Right
+	AlignLeft Xalignment = iota
+	AlignMiddle
+	AlignRight
 )
 
 const (
-	Top Yalignment = iota
-	Center
-	Bottom
+	AlignTop Yalignment = iota
+	AlignCenter
+	AlignBottom
+)
+
+const (
+	FloatLeft ProfileAlignment = iota
+	FloatRight
+)
+
+const (
+	CurveCircle ProfileBorderCurve = iota
+	CurveSoft
+	CurveSquare
+)
+
+const (
+	ThemeRegular Theme = iota
+	ThemeBadge
+	ThemeVertical
 )
 
 type ImageOpts struct {
@@ -38,8 +60,8 @@ type ImageOpts struct {
 
 	AllowGIF bool `json:"allow_gif"`
 
-	// Which layout to use when generating images
-	Layout int `json:"layout"` // todo: type
+	// Which theme to use when generating images
+	Theme Theme `json:"layout"`
 
 	// Identifier for background
 	Background string `json:"background"`
@@ -48,25 +70,33 @@ type ImageOpts struct {
 	Font string `json:"font"`
 
 	// Border applied to entire image. If transparent, there is no border.
-	BorderColour color.Color `json:"border_colour"`
-	BorderWidth  int         `json:"border_width"`
+	BorderColour    color.RGBA `json:"-"`
+	BorderColourHex string     `json:"border_colour"`
+	BorderWidth     int        `json:"border_width"`
 
 	// Alignment of left or right (assuming not vertical layout)
-	ProfileAlignment int `json:"profile_alignment"` // todo: type
+	ProfileAlignment ProfileAlignment `json:"profile_alignment"`
+
+	// Text alignment (left, center, right) (top, middle, bottom)
+	TextAlignmentX Xalignment `json:"text_alignment_x"`
+	TextAlignmentY Yalignment `json:"text_alignment_y"`
 
 	// Include a border around profile pictures. This also fills
 	// under the profile.
-	ProfileBorderColour color.Color `json:"profile_border_colour"`
+	ProfileBorderColour    color.RGBA `json:"-"`
+	ProfileBorderColourHex string     `json:"profile_border_colour"`
 	// Padding applied to profile pictures inside profile border
 	ProfileBorderWidth int `json:"profile_border_width"`
-	// Type of curving on the profile border (square, circle, rounded)
-	ProfileBorderCurve int `json:"profile_border_curve"` // todo: type
+	// Type of curving on the profile border (circle, rounded, square)
+	ProfileBorderCurve ProfileBorderCurve `json:"profile_border_curve"`
 
 	// Text stroke. If 0, there is no stroke
-	TextStroke       int         `json:"text_stroke"`
-	TextStrokeColour color.Color `json:"text_stroke_colour"`
+	TextStroke          int        `json:"text_stroke"`
+	TextStrokeColour    color.RGBA `json:"-"`
+	TextStrokeColourHex string     `json:"text_stroke_colour"`
 
-	TextColour color.Color `json:"text_colour"`
+	TextColour    color.RGBA `json:"-"`
+	TextColourHex string     `json:"text_colour"`
 }
 
 // MultilineArguments is a list of arguments for the DrawMultiline function.
@@ -185,4 +215,34 @@ func (ic *ImageCache) GetFrames() []image.Image {
 	copy(im, ic.Frames)
 
 	return im
+}
+
+type GenerateImageArgs struct {
+	ImageOpts ImageOpts
+
+	// Avatar with mask and background pre-applied
+	Avatar image.Image
+}
+
+type GenerateThemeResp struct {
+	// Overlay
+	Overlay image.Image
+
+	// The target size of entire image
+	TargetImageSize            image.Rectangle
+	TargetImageW, TargetImageH int
+
+	// The target size of backgrounds. This is
+	// equal to TargetImage however changes if
+	// there is a border.
+	TargetBackgroundSize                 image.Rectangle
+	TargetBackgroundW, TargetBackgroundH int
+
+	// Point to move from (0,0) when
+	// rendering the backgrounds
+	BackgroundAnchor image.Point
+
+	// Point to move from (0,0) when
+	// rendering the overlay
+	OverlayAnchor image.Point
 }

@@ -1,7 +1,9 @@
 package welcomerimages
 
 import (
+	"encoding/hex"
 	"image"
+	"image/color"
 	"image/gif"
 	"math"
 	"os"
@@ -14,6 +16,16 @@ import (
 	"github.com/rs/zerolog"
 	gotils "github.com/savsgio/gotils/strconv"
 	"github.com/ultimate-guitar/go-imagequant"
+)
+
+const (
+	rgbLength  = 6
+	argbLength = 8
+)
+
+var (
+	colorWhite = color.RGBA{255, 255, 255, 255}
+	colorBlack = color.RGBA{0, 0, 0, 255}
 )
 
 // fsExists checks if a file or folder exists and returns if it does.
@@ -99,6 +111,7 @@ func fitTo(s string, l int) string {
 	return s + strings.Repeat(" ", l-len(s))
 }
 
+// Debugging tool showing timings between steps.
 type Bench struct {
 	sync.RWMutex
 	benches map[int]time.Time
@@ -119,6 +132,8 @@ func (b *Bench) Add(l string, t time.Time) {
 	bn := len(b.benches)
 	b.benches[bn] = t
 	b.labels[bn] = l
+
+	println(l)
 }
 
 func (b *Bench) Print() {
@@ -163,4 +178,28 @@ func (b *Bench) Print() {
 
 	println(strings.Repeat("-", lw) + " | ------- | -------")
 	println("Total time taken: " + strconv.FormatInt(tt, 10) + "ms")
+}
+
+// converts #AARRGGBB to color.RGBA format.
+func convertARGB(input string, d color.RGBA) color.RGBA {
+	input = strings.ReplaceAll(input, "#", "")
+
+	switch len(input) {
+	case rgbLength:
+		h, err := hex.DecodeString(input)
+		if err != nil || len(h) != 3 {
+			return d
+		}
+
+		return color.RGBA{h[0], h[1], h[2], 255}
+	case argbLength:
+		h, err := hex.DecodeString(input)
+		if err != nil || len(h) != 4 {
+			return d
+		}
+
+		return color.RGBA{h[1], h[2], h[3], h[0]}
+	default:
+		return d
+	}
 }

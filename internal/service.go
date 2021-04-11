@@ -33,7 +33,7 @@ import (
 )
 
 // VERSION respects semantic versioning.
-const VERSION = "0.2+110420210201"
+const VERSION = "0.3+110420211952"
 
 const (
 	ConfigurationPath         = "welcomerimages.yaml"
@@ -896,4 +896,8 @@ func (wi *WelcomerImageService) Close() (err error) {
 	wi.PoolWaiter.Wait()
 
 	return
+}
+
+func init() {
+	RegisterFormat(ThemeRegular, CreateDefaultImage)
 }
