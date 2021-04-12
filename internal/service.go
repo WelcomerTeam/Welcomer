@@ -33,7 +33,7 @@ import (
 )
 
 // VERSION respects semantic versioning.
-const VERSION = "0.3+110420211952"
+const VERSION = "0.4+120420212236"
 
 const (
 	ConfigurationPath         = "welcomerimages.yaml"
@@ -646,6 +646,17 @@ func (wi *WelcomerImageService) Open() (err error) {
 					Msg("Failed to serve prometheus server")
 			}
 		}()
+	}
+
+	if _, ok := wi.StaticBackgroundCache["default"]; !ok {
+		return xerrors.New("Could not find default image. Create a background with the name default")
+	}
+
+	if _, ok := wi.FontCache[wi.Configuration.Store.DefaultFont]; !ok {
+		return xerrors.Errorf(
+			"Could not find default font. You have defined the default font as '%s'",
+			wi.Configuration.Store.DefaultFont,
+		)
 	}
 
 	wi.Logger.Info().Msg("Starting up HTTP server")
