@@ -9,40 +9,28 @@ import (
 	"golang.org/x/image/font"
 )
 
-func CreateDefaultImage(
+func CreateBadgeImage(
 	wi *WelcomerImageService,
 	b *bytes.Buffer, args GenerateImageArgs) (GenerateThemeResp, error) {
-	imageSize := image.Rect(0, 0, 1000, 300)
+	imageSize := image.Rect(0, 0, 964, 320)
 	padding := image.Point{32, 32}
-	overlaySize := image.Rect(
-		0, 0,
-		imageSize.Dx()-(padding.X*2),
-		imageSize.Dy()-(padding.Y*2),
-	)
+	overlaySize := image.Rect(0, 0, 900, 256)
 
 	im := image.NewRGBA(overlaySize)
 	context := gg.NewContextForRGBA(im)
 
-	imagePoint := image.Point{}
-	textPoint := image.Point{}
-
-	switch args.ImageOpts.ProfileAlignment {
-	case FloatLeft: // left
-		imagePoint = image.Point{0, 0}
-		textPoint = image.Point{overlaySize.Dy() + 32, 0}
-	case FloatRight: // right
-		imagePoint = image.Point{overlaySize.Dx() - overlaySize.Dy(), 0}
-		textPoint = image.Point{0, 0}
-	}
+	context.SetColor(args.ImageOpts.ProfileBorderColour)
+	context.DrawRoundedRectangle(50, 33, 850, 190, 32)
+	context.Fill()
 
 	context.DrawImage(
 		imaging.Resize(
 			args.Avatar,
-			overlaySize.Dy(),
-			overlaySize.Dy(),
+			256,
+			256,
 			imaging.Lanczos,
 		),
-		imagePoint.X, imagePoint.Y,
+		0, 0,
 	)
 
 	DrawMultiline(
@@ -51,11 +39,11 @@ func CreateDefaultImage(
 		MultilineArguments{
 			DefaultFontSize: defaultFontSize,
 
-			X: textPoint.X,
-			Y: textPoint.Y,
+			X: 288,
+			Y: 50,
 
-			Width:  overlaySize.Dx() - overlaySize.Dy() - 32,
-			Height: overlaySize.Dy(),
+			Width:  579,
+			Height: 159,
 
 			HorizontalAlignment: args.ImageOpts.TextAlignmentX,
 			VerticalAlignment:   args.ImageOpts.TextAlignmentY,
@@ -82,4 +70,12 @@ func CreateDefaultImage(
 		BackgroundAnchor: image.Point{},
 		OverlayAnchor:    padding,
 	}, nil
+
+	// profile (0,0) 236 236
+	// txt 579 159 288,66
+	// square (50, 49, 950, 242) same bg as image rad 16
+}
+
+func init() {
+	RegisterFormat(ThemeBadge, CreateBadgeImage)
 }

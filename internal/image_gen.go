@@ -323,8 +323,8 @@ func (wi *WelcomerImageService) GenerateAvatar(avatar *StaticImageCache, imageOp
 			avatarImage = roundImage(avatar.Image, 1000)
 		}
 	case CurveSoft:
-		rounding = 16
-		avatarImage = roundImage(avatar.Image, 8)
+		rounding = 32
+		avatarImage = roundImage(avatar.Image, 16)
 	case CurveSquare:
 		avatarImage = avatar.Image
 	}

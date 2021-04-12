@@ -897,7 +897,3 @@ func (wi *WelcomerImageService) Close() (err error) {
 
 	return
 }
-
-func init() {
-	RegisterFormat(ThemeRegular, CreateDefaultImage)
-}
