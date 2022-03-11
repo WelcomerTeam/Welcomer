@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer/database"
 	"github.com/gofrs/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 	"golang.org/x/xerrors"
@@ -20,7 +22,7 @@ type Welcomer struct {
 	Bot    *sandwich.Bot
 
 	pool     *pgxpool.Pool
-	Database *database.Database
+	Database *database.Queries
 }
 
 func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welcomer *Welcomer) {
@@ -41,8 +43,8 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 	}
 
 	welcomer.pool = pool
-	welcomer.Database = database.NewDatabase(welcomer.pool)
-	welcomer.Database.CreateTables(context, welcomer.pool)
+	welcomer.Database = database.New(welcomer.pool)
+	// TODO:
 
 	// Register bot (cogs, events)
 
@@ -112,21 +114,33 @@ func (w *Welcomer) CaptureInteractionExecution(interactionCtx *sandwich.Interact
 
 	context := context.Background()
 
-	commandUUID, err = w.Database.ScienceCommandUsages.Create(
-		context,
-		interactionCtx.GuildID,
-		userID,
-		interactionCtx.ChannelID,
-		strings.Join(append([]string{interactionCtx.InteractionCommand.Name}, interactionCtx.CommandTree...), ","),
-		interactionError != nil,
-		time.Since(interactionStart).Milliseconds(),
-	)
+	var guildID sql.NullInt64
+	_ = guildID.Scan(interactionCtx.GuildID)
+
+	var channelID sql.NullInt64
+	_ = channelID.Scan(interactionCtx.ChannelID)
+
+	usage, err := w.Database.CreateCommandUsage(context, &database.CreateCommandUsageParams{
+		GuildID:         guildID,
+		UserID:          int64(userID),
+		ChannelID:       channelID,
+		Command:         strings.Join(append([]string{interactionCtx.InteractionCommand.Name}, interactionCtx.CommandTree...), ","),
+		Errored:         interactionError != nil,
+		ExecutionTimeMs: time.Since(interactionStart).Milliseconds(),
+	})
 	if err != nil {
 		return commandUUID, xerrors.Errorf("Failed to create command usage: %v", err.Error())
 	}
 
 	if interactionError != nil {
-		err = w.Database.ScienceCommandErrors.Create(context, commandUUID, err.Error(), interactionCtx.Arguments)
+		var data pgtype.JSONB
+		_ = data.Set(interactionCtx.Arguments)
+
+		_, err = w.Database.CreateCommandError(context, &database.CreateCommandErrorParams{
+			CommandUuid: usage.CommandUuid,
+			Trace:       interactionError.Error(),
+			Data:        data,
+		})
 		if err != nil {
 			return commandUUID, xerrors.Errorf("Failed to create command error: %v", err.Error())
 		}
