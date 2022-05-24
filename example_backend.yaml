@@ -1,0 +1,11 @@
+logging:
+  level: debug
+  file_logging_enabled: true
+  encode_as_json: false
+  directory: logs
+  filename: backend
+  max_size: 10000000
+  max_backups: 7
+  max_age: 7
+  compress: true
+webhooks:
