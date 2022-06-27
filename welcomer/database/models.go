@@ -195,7 +195,10 @@ type UserMemberships struct {
 	OriginMembershipID uuid.NullUUID `json:"origin_membership_id"`
 	CreatedAt          time.Time     `json:"created_at"`
 	UpdatedAt          time.Time     `json:"updated_at"`
+	StartedAt          time.Time     `json:"started_at"`
+	ExpiresAt          time.Time     `json:"expires_at"`
 	Status             int32         `json:"status"`
+	MembershipType     int32         `json:"membership_type"`
 	TransactionUuid    uuid.NullUUID `json:"transaction_uuid"`
 	UserID             int64         `json:"user_id"`
 	GuildID            sql.NullInt64 `json:"guild_id"`
