@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -34,8 +35,7 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 
 	// Setup Postgres pool
 
-	// poolConnectionString := os.Getenv("WELCOMER_DATABASE_URL")
-	poolConnectionString := `postgres://postgres:ZNgZAtQXxwF227@127.0.0.1:5432/welcomer7?pool_max_conns=16`
+	poolConnectionString := os.Getenv("WELCOMER_DATABASE_URL")
 
 	pool, err := pgxpool.Connect(context, poolConnectionString)
 	if err != nil {
@@ -44,7 +44,6 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 
 	welcomer.pool = pool
 	welcomer.Database = database.New(welcomer.pool)
-	// TODO:
 
 	// Register bot (cogs, events)
 

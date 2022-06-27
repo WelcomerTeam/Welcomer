@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgconn v1.11.0
 	github.com/jackc/pgtype v1.10.0
 	github.com/jackc/pgx/v4 v4.15.0
+	github.com/joho/godotenv v1.4.0
 	github.com/json-iterator/go v1.1.12
 	github.com/rs/zerolog v1.26.1
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1

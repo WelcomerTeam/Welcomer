@@ -11,3 +11,7 @@ CREATE TABLE IF NOT EXISTS user_memberships (
     FOREIGN KEY (origin_membership_id) REFERENCES user_memberships (membership_uuid) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS user_memberships_guild_id ON user_memberships (guild_id);
+
+CREATE INDEX IF NOT EXISTS user_memberships_user_id ON user_memberships (user_id);
+

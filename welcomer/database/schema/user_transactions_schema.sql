@@ -11,4 +11,3 @@ CREATE TABLE IF NOT EXISTS user_transactions (
 );
 
 CREATE INDEX IF NOT EXISTS user_transactions_user_id ON user_transactions (user_id);
-

@@ -24,6 +24,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const (
