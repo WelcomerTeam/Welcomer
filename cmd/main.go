@@ -12,6 +12,8 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
@@ -24,10 +26,10 @@ func main() {
 
 	prometheusAddress := flag.String("prometheusAddress", os.Getenv("PROMETHEUS_ADDRESS"), "Prometheus address")
 
-	postgresAddress := flag.String("postgresAddress", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
+	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
 	botToken := flag.String("botToken", os.Getenv("BOT_TOKEN"), "Primary bot token")
-	fallbackBotToken := flag.String("fallbackBotToken", os.Getenv("BOT_TOKEN_FALLBACK"), "Secondary bot token")
+	fallbackBotToken := flag.String("donatorBotToken", os.Getenv("BOT_TOKEN_DONATOR"), "Donator bot token")
 
 	host := flag.String("host", os.Getenv("HOST"), "Host")
 
@@ -46,6 +48,7 @@ func main() {
 	restInterface := discord.NewTwilightProxy(*proxyURL)
 	restInterface.SetDebug(*proxyDebug)
 
+	// TODO: Move into NewBackend(...)
 	// Setup GRPC
 	grpcConnection, err := grpc.Dial(*grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -63,7 +66,7 @@ func main() {
 	// Setup app.
 	app, err := backend.NewBackend(
 		grpcConnection, restInterface, writer, *isRelease, *configurationLocation, *host,
-		*botToken, *fallbackBotToken, *prometheusAddress, *postgresAddress, *nginxAddress)
+		*botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress)
 	if err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}

@@ -1,0 +1,36 @@
+package backend
+
+import (
+	"github.com/gin-contrib/sessions"
+	"golang.org/x/oauth2"
+)
+
+func GetUserSession(session sessions.Session) (sessionUser SessionUser, ok bool) {
+	sessionUser, ok = session.Get(UserKey).(SessionUser)
+
+	return
+}
+
+func SetUserSession(session sessions.Session, sessionUser SessionUser) {
+	session.Set(UserKey, sessionUser)
+}
+
+func GetTokenSession(session sessions.Session) (token oauth2.Token, ok bool) {
+	token, ok = session.Get(TokenKey).(oauth2.Token)
+
+	return
+}
+
+func SetTokenSession(session sessions.Session, token oauth2.Token) {
+	session.Set(TokenKey, token)
+}
+
+func GetStateSession(session sessions.Session) (state string, ok bool) {
+	state, ok = session.Get(StateKey).(string)
+
+	return
+}
+
+func SetStateSession(session sessions.Session, state string) {
+	session.Set(StateKey, state)
+}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"sync"
@@ -14,6 +13,13 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/gin-contrib/sessions"
+	limits "github.com/gin-contrib/size"
+	"github.com/jackc/pgx/v4/pgxpool"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
+
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -27,7 +33,11 @@ const VERSION = "0.1"
 const (
 	PermissionsDefault = 0o744
 	PermissionWrite    = 0o600
+
+	RequestSizeLimit = 100000000
 )
+
+var backend *Backend
 
 type Backend struct {
 	sync.Mutex
@@ -48,16 +58,23 @@ type Backend struct {
 	SandwichClient protobuf.SandwichClient
 	GRPCInterface  sandwich.GRPC
 
+	PrometheusHandler *ginprometheus.Prometheus
+
 	Route *gin.Engine
 
-	EmptySession    *discord.Session
-	BotSession      *discord.Session
-	FallbackSession *discord.Session
+	Pool  *pgxpool.Pool
+	Store Store
+
+	EmptySession *discord.Session
+
+	botToken   string
+	BotSession *discord.Session
+
+	donatorBotToken   string
+	DonatorBotSession *discord.Session
 
 	// Environment Variables.
 	host              string
-	botToken          string
-	fallbackBotToken  string
 	prometheusAddress string
 	postgresAddress   string
 	nginxAddress      string
@@ -83,7 +100,11 @@ type BackendConfiguration struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, fallbackBotToken, prometheusAddress, postgresAddress, nginxAddress string) (b *Backend, err error) {
+func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress string) (b *Backend, err error) {
+	if backend != nil {
+		return backend, ErrBackendAlreadyExists
+	}
+
 	b = &Backend{
 		Logger: zerolog.New(logger).With().Timestamp().Logger(),
 
@@ -96,7 +117,19 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 
 		SandwichClient: protobuf.NewSandwichClient(conn),
 		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
+
+		PrometheusHandler: ginprometheus.NewPrometheus("gin"),
+
+		host:              host,
+		botToken:          botToken,
+		donatorBotToken:   donatorBotToken,
+		prometheusAddress: prometheusAddress,
+		postgresAddress:   postgresAddress,
+		nginxAddress:      nginxAddress,
 	}
+
+	b.Lock()
+	defer b.Unlock()
 
 	b.ctx, b.cancel = context.WithCancel(context.Background())
 
@@ -104,30 +137,35 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	b.host = host
-	b.botToken = botToken
-	b.fallbackBotToken = fallbackBotToken
-	b.prometheusAddress = prometheusAddress
-	b.postgresAddress = postgresAddress
-	b.nginxAddress = nginxAddress
-
 	// Setup sessions
 	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface, b.Logger)
 	b.BotSession = discord.NewSession(b.ctx, b.botToken, b.RESTInterface, b.Logger)
-	b.FallbackSession = discord.NewSession(b.ctx, b.fallbackBotToken, b.RESTInterface, b.Logger)
-
-	b.Route = b.PrepareGin()
+	b.DonatorBotSession = discord.NewSession(b.ctx, b.donatorBotToken, b.RESTInterface, b.Logger)
 
 	if nginxAddress != "" {
 		err = b.Route.SetTrustedProxies([]string{nginxAddress})
 		if err != nil {
-			return nil, fmt.Errorf("Failed to set trusted proxies: %w", err)
+			return nil, fmt.Errorf("failed to set trusted proxies: %w", err)
 		}
 	}
 
-	b.Lock()
-	defer b.Unlock()
+	// Setup postgres pool.
+	pool, err := pgxpool.Connect(b.ctx, b.postgresAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
+	}
 
+	b.Pool = pool
+
+	// Setup session store.
+	store, err := NewStore(b.Pool, []byte("Testing"))
+	if err != nil {
+		return nil, err
+	}
+
+	b.Store = store
+
+	// Load configuration.
 	configuration, err := b.LoadConfiguration(b.ConfigurationLocation)
 	if err != nil {
 		return nil, err
@@ -166,6 +204,11 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 	mw := io.MultiWriter(writers...)
 	b.Logger = zerolog.New(mw).With().Timestamp().Logger()
 	b.Logger.Info().Msg("Logging configured")
+
+	// Setup gin router.
+	b.Route = b.PrepareGin()
+
+	backend = b
 
 	return b, nil
 }
@@ -211,7 +254,7 @@ func (b *Backend) Open() (err error) {
 
 	err = b.Route.Run(b.host)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to run gin: %w", err)
 	}
 
 	return nil
@@ -226,21 +269,28 @@ func (b *Backend) Close() (err error) {
 func (b *Backend) SetupPrometheus() (err error) {
 	b.Logger.Info().Msgf("Serving prometheus at %s", b.prometheusAddress)
 
-	err = http.ListenAndServe(b.prometheusAddress, nil)
-	if err != nil {
-		b.Logger.Error().Str("host", b.prometheusAddress).Err(err).Msg("Failed to serve prometheus server")
-
-		return fmt.Errorf("Failed to serve prometheus: %w", err)
-	}
+	b.PrometheusHandler.SetListenAddress(b.prometheusAddress)
+	b.PrometheusHandler.SetMetricsPath(nil)
 
 	return nil
 }
 
 // PrepareGin prepares gin routes and middleware.
-func (b *Backend) PrepareGin() (g *gin.Engine) {
-	g = gin.Default()
+func (b *Backend) PrepareGin() (router *gin.Engine) {
+	router = gin.New()
+	router.TrustedPlatform = gin.PlatformCloudflare
+	_ = router.SetTrustedProxies(nil)
 
-	registerStaticRoutes(g)
+	router.Use(gin.Recovery())
+	router.Use(logger.SetLogger())
+	router.Use(b.PrometheusHandler.HandlerFunc())
+	router.Use(sessions.Sessions("session", b.Store))
+	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
+
+	registerSessionRoutes(router)
+	registerExampleRoutes(router)
+	registerUserRoutes(router)
 
 	return
 }
