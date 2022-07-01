@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"time"
@@ -16,15 +17,44 @@ const (
 )
 
 func hasWelcomerPresence(guildID discord.Snowflake) (ok bool, err error) {
+	guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(), guildID)
+
+	if err != nil {
+		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer presence")
+
+		return false, nil
+	}
+
+	if guild == nil {
+		return false, nil
+	}
+
 	return true, nil
 }
 
 func hasWelcomerMembership(guildID discord.Snowflake) (ok bool, err error) {
+	var sqlGuildID sql.NullInt64
+
+	sqlGuildID.Int64 = int64(guildID)
+	sqlGuildID.Valid = true
+
+	memberships, err := backend.Database.GetUserMembershipsByGuildID(backend.ctx, sqlGuildID)
+
+	if err != nil {
+		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer memberships")
+
+		return false, nil
+	}
+
+	if len(memberships) == 0 {
+		return false, nil
+	}
+
 	return true, nil
 }
 
-// GET /user/@me
-// GET /user/guilds?refresh=1
+// GET /users/@me
+// GET /users/guilds?refresh=1
 func (b *Backend) GetUserGuilds(ctx *gin.Context, session sessions.Session) (guilds []*SessionGuild, err error) {
 	token, ok := GetTokenSession(session)
 	if !ok {
@@ -32,7 +62,6 @@ func (b *Backend) GetUserGuilds(ctx *gin.Context, session sessions.Session) (gui
 	}
 
 	httpInterface := discord.NewBaseInterface()
-	httpInterface.SetDebug(true)
 
 	discordSession := discord.NewSession(backend.ctx, token.TokenType+" "+token.AccessToken, httpInterface, backend.Logger)
 
@@ -42,20 +71,30 @@ func (b *Backend) GetUserGuilds(ctx *gin.Context, session sessions.Session) (gui
 	}
 
 	for _, discordGuild := range discordGuilds {
+		welcomerPresence, err := hasWelcomerPresence(discordGuild.ID)
+		if err != nil {
+			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
+		}
+
+		welcomerMembership, err := hasWelcomerMembership(discordGuild.ID)
+		if err != nil {
+			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
+		}
+
 		guilds = append(guilds, &SessionGuild{
 			ID:            discordGuild.ID,
 			Name:          discordGuild.Name,
 			Icon:          discordGuild.Icon,
-			HasWelcomer:   false,
-			HasMembership: false,
+			HasWelcomer:   welcomerPresence,
+			HasMembership: welcomerMembership,
 		})
 	}
 
-	return
+	return guilds, nil
 }
 
 func registerUserRoutes(g *gin.Engine) {
-	g.GET("/api/user/@me", func(ctx *gin.Context) {
+	g.GET("/api/users/@me", func(ctx *gin.Context) {
 		requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 			ctx.Status(http.StatusOK)
 
@@ -70,7 +109,7 @@ func registerUserRoutes(g *gin.Engine) {
 		})
 	})
 
-	g.GET("/api/user/guilds", func(ctx *gin.Context) {
+	g.GET("/api/users/guilds", func(ctx *gin.Context) {
 		requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 			var refreshFrequency time.Duration
 
@@ -85,7 +124,6 @@ func registerUserRoutes(g *gin.Engine) {
 			user, _ := GetUserSession(session)
 
 			refresh := time.Since(user.GuildsLastRequestedAt) > refreshFrequency
-			println(time.Since(user.GuildsLastRequestedAt), refreshFrequency, refresh)
 
 			var guilds []*SessionGuild
 			var err error

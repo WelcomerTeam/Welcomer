@@ -47,6 +47,8 @@ github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb h1:tsGTlFuBI
 github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb/go.mod h1:5rd6sAaQSBXBSR6eoqgFiVIyCf2aGKG9E2th0fE2nhs=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220301121435-84de82ee48f0 h1:lu+KZFu7vzXNxjK28faEgsJ8AHXFG7QFfN3kHksqwuw=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220301121435-84de82ee48f0/go.mod h1:UFAQoAGI2jpf4ZaGwuupvV2nNlWQLuD0Z1R0SeTKuRQ=
+github.com/WelcomerTeam/Welcomer v0.0.0-20220627083721-1bb711278afc h1:R2KMhNxMi6f8l1rQnvb0rfFT+2inTGc8Q7dmjySf0Ow=
+github.com/WelcomerTeam/Welcomer v0.0.0-20220627083721-1bb711278afc/go.mod h1:3L81EILTRt7sU+9ILLhLy9Z29fOdZxQv8cwXvsTAMS0=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904/go.mod h1:rCfCrg0xPnEoVKPXk+GNyHgzTWMzJjhnPaAfDe7UPJE=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

@@ -13,6 +13,7 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Welcomer/welcomer/database"
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -64,6 +65,8 @@ type Backend struct {
 
 	Pool  *pgxpool.Pool
 	Store Store
+
+	Database *database.Queries
 
 	EmptySession *discord.Session
 
@@ -157,6 +160,8 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 
 	b.Pool = pool
 
+	b.Database = database.New(b.Pool)
+
 	// Setup session store.
 	store, err := NewStore(b.Pool, []byte("Testing"))
 	if err != nil {
@@ -211,6 +216,17 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 	backend = b
 
 	return b, nil
+}
+
+// GetEventContext.
+func (b *Backend) GetBasicEventContext() (client *sandwich.EventContext) {
+	return &sandwich.EventContext{
+		Context: b.ctx,
+		Logger:  b.Logger,
+		Sandwich: &sandwich.Sandwich{
+			SandwichClient: b.SandwichClient,
+		},
+	}
 }
 
 // LoadConfiguration handles loading the configuration file.

@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/WelcomerTeam/Welcomer v0.0.0-20220627083721-1bb711278afc // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20220106215444-fb4bf637b56d // indirect

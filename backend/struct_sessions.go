@@ -22,7 +22,7 @@ type SessionUser struct {
 	GuildsLastRequestedAt time.Time         `json:"-"`
 }
 
-// SessionGuild represents a guild passed through /api/user/guilds and is stored in the session.
+// SessionGuild represents a guild passed through /api/users/guilds and is stored in the session.
 type SessionGuild struct {
 	ID            discord.Snowflake `json:"id"`
 	Name          string            `json:"name"`
