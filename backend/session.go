@@ -34,3 +34,13 @@ func GetStateSession(session sessions.Session) (state string, ok bool) {
 func SetStateSession(session sessions.Session, state string) {
 	session.Set(StateKey, state)
 }
+
+func GetPreviousPathSession(session sessions.Session) (previousPath string, ok bool) {
+	previousPath, ok = session.Get(PreviousPathKey).(string)
+
+	return
+}
+
+func SetPreviousPathSession(session sessions.Session, previousPath string) {
+	session.Set(PreviousPathKey, previousPath)
+}

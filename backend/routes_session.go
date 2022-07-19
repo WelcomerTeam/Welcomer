@@ -3,6 +3,7 @@ package backend
 import (
 	"encoding/gob"
 	"net/http"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/gin-contrib/sessions"
@@ -18,7 +19,7 @@ var OAuth2Config = &oauth2.Config{
 		TokenURL:  discord.EndpointDiscord + "/api/v10" + discord.EndpointOAuth2Token,
 		AuthStyle: oauth2.AuthStyleInParams,
 	},
-	RedirectURL: "https://beta-d53e2274.welcomer.gg/callback",
+	RedirectURL: "https://beta-dev.welcomer.gg/callback",
 	Scopes:      []string{"identify", "guilds"},
 }
 
@@ -60,6 +61,10 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 func registerSessionRoutes(g *gin.Engine) {
 	g.GET("/login", func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
+
+		queryPath := ctx.Query("path")
+
+		SetPreviousPathSession(session, queryPath)
 
 		doOAuthAuthorize(session, ctx)
 	})
@@ -113,7 +118,12 @@ func registerSessionRoutes(g *gin.Engine) {
 			backend.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
 
-		ctx.Redirect(http.StatusTemporaryRedirect, "/")
+		queryPath, ok := GetPreviousPathSession(session)
+		if !ok || !strings.HasPrefix(queryPath, "/") {
+			queryPath = "/"
+		}
+
+		ctx.Redirect(http.StatusTemporaryRedirect, queryPath)
 	})
 
 	g.GET("/logout", func(ctx *gin.Context) {

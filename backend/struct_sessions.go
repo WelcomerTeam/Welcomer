@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	UserKey  = "user"
-	TokenKey = "token"
-	StateKey = "state"
+	UserKey         = "user"
+	TokenKey        = "token"
+	StateKey        = "state"
+	PreviousPathKey = "previous_path"
 )
 
 // SessionUser stores the user in a session.
