@@ -4,5 +4,5 @@ package backend
 type BaseResponse struct {
 	Ok    bool        `json:"ok"`
 	Error string      `json:"error,omitempty"`
-	Data  interface{} `json:"data"`
+	Data  interface{} `json:"data,omitempty"`
 }

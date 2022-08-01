@@ -9,6 +9,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	backend "github.com/WelcomerTeam/Website-Backend/backend"
+	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -37,7 +38,15 @@ func main() {
 
 	nginxAddress := flag.String("nginxProxy", os.Getenv("NGINX_PROXY"), "NGINX Proxy Address")
 
+	clientID := flag.String("clientID", os.Getenv("CLIENT_ID"), "OAuth2 Client ID")
+	clientSecret := flag.String("clientSecret", os.Getenv("CLIENT_SECRET"), "OAuth2 Client Secret")
+	redirectURL := flag.String("redirectURL", os.Getenv("REDIRECT_URL"), "OAuth2 Redirect URL")
+
+	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
+
 	flag.Parse()
+
+	gin.SetMode(*releaseMode)
 
 	// Setup Rest
 	proxyURL, err := url.Parse(*proxyAddress)
@@ -66,7 +75,7 @@ func main() {
 	// Setup app.
 	app, err := backend.NewBackend(
 		grpcConnection, restInterface, writer, *isRelease, *configurationLocation, *host,
-		*botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress)
+		*botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress, *clientID, *clientSecret, *redirectURL)
 	if err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}

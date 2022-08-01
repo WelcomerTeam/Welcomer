@@ -103,7 +103,7 @@ type BackendConfiguration struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress string) (b *Backend, err error) {
+func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress, clientId, clientSecret, redirectURL string) (b *Backend, err error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
@@ -139,6 +139,12 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 	if isReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// Setup OAuth2
+
+	OAuth2Config.ClientID = clientId
+	OAuth2Config.ClientSecret = clientSecret
+	OAuth2Config.RedirectURL = redirectURL
 
 	// Setup sessions
 	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface, b.Logger)
@@ -257,7 +263,7 @@ func (b *Backend) LoadConfiguration(path string) (configuration *BackendConfigur
 }
 
 // Open sets up any services and starts the webserver.
-func (b *Backend) Open() (err error) {
+func (b *Backend) Open() error {
 	b.StartTime = time.Now().UTC()
 	b.Logger.Info().Msgf("Starting sandwich. Version %s", VERSION)
 
@@ -268,7 +274,7 @@ func (b *Backend) Open() (err error) {
 
 	b.Logger.Info().Msgf("Serving http at %s", b.host)
 
-	err = b.Route.Run(b.host)
+	err := b.Route.Run(b.host)
 	if err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}
@@ -277,12 +283,14 @@ func (b *Backend) Open() (err error) {
 }
 
 // Close gracefully closes the backend.
-func (b *Backend) Close() (err error) {
-	return
+func (b *Backend) Close() error {
+	// TODO
+
+	return nil
 }
 
 // SetupPrometheus sets up prometheus.
-func (b *Backend) SetupPrometheus() (err error) {
+func (b *Backend) SetupPrometheus() error {
 	b.Logger.Info().Msgf("Serving prometheus at %s", b.prometheusAddress)
 
 	b.PrometheusHandler.SetListenAddress(b.prometheusAddress)
@@ -292,21 +300,23 @@ func (b *Backend) SetupPrometheus() (err error) {
 }
 
 // PrepareGin prepares gin routes and middleware.
-func (b *Backend) PrepareGin() (router *gin.Engine) {
-	router = gin.New()
+func (b *Backend) PrepareGin() *gin.Engine {
+	router := gin.New()
 	router.TrustedPlatform = gin.PlatformCloudflare
+
 	_ = router.SetTrustedProxies(nil)
 
 	router.Use(gin.Recovery())
 	router.Use(logger.SetLogger())
 	router.Use(b.PrometheusHandler.HandlerFunc())
-	router.Use(sessions.Sessions("session", b.Store))
 	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))
+	router.Use(sessions.Sessions("session", b.Store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	registerSessionRoutes(router)
 	registerExampleRoutes(router)
 	registerUserRoutes(router)
+	registerGuildRoutes(router)
 
-	return
+	return router
 }

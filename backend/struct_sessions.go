@@ -8,6 +8,7 @@ import (
 
 const (
 	UserKey         = "user"
+	GuildIDKey      = "guildID"
 	TokenKey        = "token"
 	StateKey        = "state"
 	PreviousPathKey = "previous_path"

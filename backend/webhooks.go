@@ -39,7 +39,7 @@ func (b *Backend) PublishSimpleWebhook(s *discord.Session, title string, descrip
 }
 
 // PublishWebhook sends a webhook message to all added webhooks in the configuration.
-func (b *Backend) PublishWebhook(s *discord.Session, message discord.WebhookMessageParams) {
+func (b *Backend) PublishWebhook(session *discord.Session, message discord.WebhookMessageParams) {
 	for _, webhookURL := range b.Configuration.Webhooks {
 		webhook, err := sandwich.WebhookFromURL(webhookURL)
 		if err != nil {
@@ -48,7 +48,7 @@ func (b *Backend) PublishWebhook(s *discord.Session, message discord.WebhookMess
 			continue
 		}
 
-		_, err = webhook.Send(s, message, false)
+		_, err = webhook.Send(session, message, false)
 		if err != nil && !errors.Is(err, context.Canceled) {
 			b.Logger.Warn().Err(err).Str("url", webhookURL).Msg("Failed to send webhook")
 		}
