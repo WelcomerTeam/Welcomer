@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"encoding/gob"
 	"fmt"
 	"net/http"
@@ -34,6 +35,21 @@ func init() {
 	gob.Register(SessionUser{})
 }
 
+func checkToken(ctx context.Context, config *oauth2.Config, token *oauth2.Token) (newToken *oauth2.Token, changed bool, err error) {
+	source := OAuth2Config.TokenSource(backend.ctx, token)
+
+	newToken, err = source.Token()
+	if err != nil {
+		backend.Logger.Warn().Err(err).Msg("Failed to check token")
+
+		return
+	}
+
+	changed = newToken.AccessToken != token.AccessToken
+
+	return
+}
+
 // Send user to OAuth2 Authorize URL.
 func doOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
 	state := RandStringBytesRmndr(StateStringLength)
@@ -62,6 +78,35 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 	}
 
 	ctx.Set(UserKey, user)
+
+	token, ok := GetTokenSession(session)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, BaseResponse{
+			Ok:    false,
+			Error: ErrMissingToken.Error(),
+		})
+
+		return
+	}
+
+	newToken, changed, err := checkToken(backend.ctx, OAuth2Config, &token)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, BaseResponse{
+			Ok:    false,
+			Error: err.Error(),
+		})
+
+		return
+	}
+
+	if changed {
+		SetTokenSession(session, *newToken)
+
+		err = session.Save()
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		}
+	}
 
 	handler(ctx)
 }

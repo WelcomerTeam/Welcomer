@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Website-Backend
 go 1.18
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20220626094547-4a9b2bb12f21
+	github.com/WelcomerTeam/Discord v0.0.0-20220826105320-36c39f5826df
 	github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220731065214-46288b9f7dbd
 	github.com/WelcomerTeam/Welcomer v0.0.0-20220627123611-8416dea923f8

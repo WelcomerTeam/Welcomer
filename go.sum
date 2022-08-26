@@ -55,8 +55,8 @@ github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/WelcomerTeam/Discord v0.0.0-20220301110943-afefd6106040/go.mod h1:aPAozUdVzF46wZmZy9ll5kNP8VJeH+hBjiOl0ankMYM=
-github.com/WelcomerTeam/Discord v0.0.0-20220626094547-4a9b2bb12f21 h1:RYXf9Woy6L4+DBg763r4M73SZe2afaANVpeXm1nQ6X8=
-github.com/WelcomerTeam/Discord v0.0.0-20220626094547-4a9b2bb12f21/go.mod h1:aPAozUdVzF46wZmZy9ll5kNP8VJeH+hBjiOl0ankMYM=
+github.com/WelcomerTeam/Discord v0.0.0-20220826105320-36c39f5826df h1:cl2hCCCQQtWshIHDd1PD+7XXNiBNGrM+WZzLvOEahvo=
+github.com/WelcomerTeam/Discord v0.0.0-20220826105320-36c39f5826df/go.mod h1:aPAozUdVzF46wZmZy9ll5kNP8VJeH+hBjiOl0ankMYM=
 github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15/go.mod h1:4oemQ7XEqKAc1DTtFpWugoE9K5RLjt7iH0emiFXnL/A=
 github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb h1:tsGTlFuBI557CeZvPsujEORTPT2hnpRqX3yVoocPAmU=
 github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb/go.mod h1:5rd6sAaQSBXBSR6eoqgFiVIyCf2aGKG9E2th0fE2nhs=
