@@ -7,7 +7,6 @@ require (
 	github.com/WelcomerTeam/Sandwich v0.0.0-20220305192139-ada51e96ef86
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220301121435-84de82ee48f0
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/google/uuid v1.3.0
 	github.com/jackc/pgconn v1.11.0
 	github.com/jackc/pgtype v1.10.0
 	github.com/jackc/pgx/v4 v4.15.0
