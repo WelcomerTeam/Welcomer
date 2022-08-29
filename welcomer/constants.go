@@ -1,17 +1,5 @@
 package welcomer
 
-type PunishmentType int16
-
-const (
-	PunishmentTypeUnknown PunishmentType = iota
-	PunishmentTypeWarn
-	PunishmentTypeKick
-	PunishmentTypeTimeout
-	PunishmentTypeBan
-	PunishmentTypeUnban
-	PunishmentTypeSoftBan
-)
-
 type ScienceEventType int64
 
 const (
@@ -24,15 +12,23 @@ type ScienceGuildEventType int64
 
 const (
 	ScienceGuildEventTypeUnknown ScienceGuildEventType = iota
+
 	ScienceGuildEventTypeJoin
 	ScienceGuildEventTypeLeave
-	ScienceGuildEventTypeMigration
-	ScienceGuildEventTypeTimeRoleGiven
-	ScienceGuildEventTypeBorderwallChallenge
-	ScienceGuildEventTypeCompleted
+
 	ScienceGuildEventTypeUserJoin
 	ScienceGuildEventTypeUserLeave
 	ScienceGuildEventTypeUserWelcomed
+
+	ScienceGuildEventTypeTimeRoleGiven
+
+	ScienceGuildEventTypeBorderwallChallenge
+	ScienceGuildEventTypeBorderwallCompleted
+
+	ScienceGuildEventTypeTempChannelCreated
+
+	ScienceGuildEventTypeMembershipReceived
+	ScienceGuildEventTypeMembershipRemoved
 )
 
 type MembershipStatus int64
@@ -44,7 +40,6 @@ const (
 	MembershipStatusExpired
 	MembershipStatusRefunded
 	MembershipStatusRemoved
-	MembershipStatusTransfered
 )
 
 type MembershipType int64
@@ -55,9 +50,8 @@ const (
 	MembershipTypeLegacyWelcomerPro1
 	MembershipTypeLegacyWelcomerPro3
 	MembershipTypeLegacyWelcomerPro5
-	MembershipTypeWelcomerPro1
-	MembershipTypeWelcomerPro3
-	MembershipTypeWelcomerPro5
+	MembershipTypeWelcomerPro
+	MembershipTypeCustomBackgrounds
 )
 
 type PlatformType int64
@@ -76,5 +70,4 @@ const (
 	TransactionStatusPending
 	TransactionStatusCompleted
 	TransactionStatusRefunded
-	TransactionStatusUnclaimed
 )
