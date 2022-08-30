@@ -1,6 +1,6 @@
-package welcomer
+package database
 
-type ScienceEventType int64
+type ScienceEventType int32
 
 const (
 	ScienceEventTypeUnknown ScienceEventType = iota
@@ -8,7 +8,7 @@ const (
 	ScienceEventTypeGuildLeave
 )
 
-type ScienceGuildEventType int64
+type ScienceGuildEventType int32
 
 const (
 	ScienceGuildEventTypeUnknown ScienceGuildEventType = iota
@@ -31,7 +31,7 @@ const (
 	ScienceGuildEventTypeMembershipRemoved
 )
 
-type MembershipStatus int64
+type MembershipStatus int32
 
 const (
 	MembershipStatusUnknown MembershipStatus = iota
@@ -42,7 +42,7 @@ const (
 	MembershipStatusRemoved
 )
 
-type MembershipType int64
+type MembershipType int32
 
 const (
 	MembershipTypeUnknown MembershipType = iota
@@ -54,7 +54,7 @@ const (
 	MembershipTypeCustomBackgrounds
 )
 
-type PlatformType int64
+type PlatformType int32
 
 const (
 	PlatformTypeUnknown PlatformType = iota
@@ -63,7 +63,7 @@ const (
 	PlatformTypeStripe
 )
 
-type TransactionStatus int64
+type TransactionStatus int32
 
 const (
 	TransactionStatusUnknown TransactionStatus = iota
