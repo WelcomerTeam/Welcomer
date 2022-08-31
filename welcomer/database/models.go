@@ -114,8 +114,8 @@ type Guilds struct {
 	EmbedColour      int32          `json:"embed_colour"`
 	SiteSplashUrl    sql.NullString `json:"site_splash_url"`
 	SiteStaffVisible sql.NullBool   `json:"site_staff_visible"`
-	SiteGuildVisible sql.NullInt32  `json:"site_guild_visible"`
-	SiteAllowInvites sql.NullInt32  `json:"site_allow_invites"`
+	SiteGuildVisible sql.NullBool   `json:"site_guild_visible"`
+	SiteAllowInvites sql.NullBool   `json:"site_allow_invites"`
 }
 
 type PatreonUsers struct {

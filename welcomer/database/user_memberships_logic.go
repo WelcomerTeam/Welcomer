@@ -8,7 +8,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 )
 
-// Returns all valid user memberships based on a guild ID
+// Returns all valid user memberships based on a guild ID.
 func (q *Queries) GetValidUserMembershipsByGuildID(ctx context.Context, guildID discord.Snowflake, time time.Time) ([]*GetUserMembershipsByGuildIDRow, error) {
 	var sqlGuildID sql.NullInt64
 	_ = sqlGuildID.Scan(guildID)

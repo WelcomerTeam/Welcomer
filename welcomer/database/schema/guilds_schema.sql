@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS guilds (
     embed_colour integer NOT NULL DEFAULT '3553599',
     site_splash_url text NULL,
     site_staff_visible boolean NULL,
-    site_guild_visible integer NULL,
-    site_allow_invites integer NULL
+    site_guild_visible boolean NULL,
+    site_allow_invites boolean NULL
 );
 
