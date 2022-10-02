@@ -90,10 +90,10 @@ type UpdateWelcomerImagesGuildSettingsParams struct {
 	ToggleEnabled          sql.NullBool   `json:"toggle_enabled"`
 	ToggleImageBorder      sql.NullBool   `json:"toggle_image_border"`
 	BackgroundName         sql.NullString `json:"background_name"`
-	ColourText             sql.NullInt32  `json:"colour_text"`
-	ColourTextBorder       sql.NullInt32  `json:"colour_text_border"`
-	ColourImageBorder      sql.NullInt32  `json:"colour_image_border"`
-	ColourProfileBorder    sql.NullInt32  `json:"colour_profile_border"`
+	ColourText             sql.NullString `json:"colour_text"`
+	ColourTextBorder       sql.NullString `json:"colour_text_border"`
+	ColourImageBorder      sql.NullString `json:"colour_image_border"`
+	ColourProfileBorder    sql.NullString `json:"colour_profile_border"`
 	ImageAlignment         sql.NullInt32  `json:"image_alignment"`
 	ImageTheme             sql.NullInt32  `json:"image_theme"`
 	ImageMessage           sql.NullString `json:"image_message"`
