@@ -107,7 +107,7 @@ type PatreonUsers struct {
 
 type ScienceCommandErrors struct {
 	CommandUuid uuid.UUID    `json:"command_uuid"`
-	CreatedAt   interface{}  `json:"created_at"`
+	CreatedAt   time.Time    `json:"created_at"`
 	Trace       string       `json:"trace"`
 	Data        pgtype.JSONB `json:"data"`
 }

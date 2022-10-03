@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 )
 
@@ -61,7 +60,7 @@ type GetCommandErrorRow struct {
 	Errored         bool           `json:"errored"`
 	ExecutionTimeMs int64          `json:"execution_time_ms"`
 	CommandUuid_2   uuid.NullUUID  `json:"command_uuid_2"`
-	CreatedAt_2     interface{}    `json:"created_at_2"`
+	CreatedAt_2     sql.NullTime   `json:"created_at_2"`
 	Trace           sql.NullString `json:"trace"`
 	Data            pgtype.JSONB   `json:"data"`
 }
