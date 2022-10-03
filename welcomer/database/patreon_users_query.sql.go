@@ -7,8 +7,49 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
+
+const CreateOrUpdatePatreonUser = `-- name: CreateOrUpdatePatreonUser :one
+INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url)
+    VALUES ($1, now(), now(), $2, $3, $4, $5)
+ON CONFLICT(patreon_user_id) DO UPDATE
+    SET updated_at = EXCLUDED.updated_at,
+        user_id = EXCLUDED.user_id,
+        full_name = EXCLUDED.full_name,
+        email = EXCLUDED.email,
+        thumb_url = EXCLUDED.thumb_url
+RETURNING
+    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url
+`
+
+type CreateOrUpdatePatreonUserParams struct {
+	PatreonUserID int64  `json:"patreon_user_id"`
+	UserID        int64  `json:"user_id"`
+	FullName      string `json:"full_name"`
+	Email         string `json:"email"`
+	ThumbUrl      string `json:"thumb_url"`
+}
+
+func (q *Queries) CreateOrUpdatePatreonUser(ctx context.Context, arg *CreateOrUpdatePatreonUserParams) (*PatreonUsers, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdatePatreonUser,
+		arg.PatreonUserID,
+		arg.UserID,
+		arg.FullName,
+		arg.Email,
+		arg.ThumbUrl,
+	)
+	var i PatreonUsers
+	err := row.Scan(
+		&i.PatreonUserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.FullName,
+		&i.Email,
+		&i.ThumbUrl,
+	)
+	return &i, err
+}
 
 const CreatePatreonUser = `-- name: CreatePatreonUser :one
 INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url)
@@ -18,11 +59,11 @@ RETURNING
 `
 
 type CreatePatreonUserParams struct {
-	PatreonUserID int64          `json:"patreon_user_id"`
-	UserID        int64          `json:"user_id"`
-	FullName      string         `json:"full_name"`
-	Email         sql.NullString `json:"email"`
-	ThumbUrl      sql.NullString `json:"thumb_url"`
+	PatreonUserID int64  `json:"patreon_user_id"`
+	UserID        int64  `json:"user_id"`
+	FullName      string `json:"full_name"`
+	Email         string `json:"email"`
+	ThumbUrl      string `json:"thumb_url"`
 }
 
 func (q *Queries) CreatePatreonUser(ctx context.Context, arg *CreatePatreonUserParams) (*PatreonUsers, error) {
@@ -134,11 +175,11 @@ WHERE
 `
 
 type UpdatePatreonUserParams struct {
-	PatreonUserID int64          `json:"patreon_user_id"`
-	UserID        int64          `json:"user_id"`
-	FullName      string         `json:"full_name"`
-	Email         sql.NullString `json:"email"`
-	ThumbUrl      sql.NullString `json:"thumb_url"`
+	PatreonUserID int64  `json:"patreon_user_id"`
+	UserID        int64  `json:"user_id"`
+	FullName      string `json:"full_name"`
+	Email         string `json:"email"`
+	ThumbUrl      string `json:"thumb_url"`
 }
 
 func (q *Queries) UpdatePatreonUser(ctx context.Context, arg *UpdatePatreonUserParams) (int64, error) {

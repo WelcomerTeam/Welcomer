@@ -7,20 +7,66 @@ package database
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/jackc/pgtype"
 )
 
-const CreateWelcomerTextGuildSettings = `-- name: CreateWelcomerTextGuildSettings :one
-INSERT INTO guild_settings_welcomer_text (guild_id)
-    VALUES ($1)
+const CreateOrUpdateWelcomerTextGuildSettings = `-- name: CreateOrUpdateWelcomerTextGuildSettings :one
+INSERT INTO guild_settings_welcomer_text (guild_id, toggle_enabled, channel, message_format)
+    VALUES ($1, $2, $3, $4)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        channel = EXCLUDED.channel,
+        message_format = EXCLUDED.message_format
 RETURNING
     guild_id, toggle_enabled, channel, message_format
 `
 
-func (q *Queries) CreateWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error) {
-	row := q.db.QueryRow(ctx, CreateWelcomerTextGuildSettings, guildID)
+type CreateOrUpdateWelcomerTextGuildSettingsParams struct {
+	GuildID       int64        `json:"guild_id"`
+	ToggleEnabled bool         `json:"toggle_enabled"`
+	Channel       int64        `json:"channel"`
+	MessageFormat pgtype.JSONB `json:"message_format"`
+}
+
+func (q *Queries) CreateOrUpdateWelcomerTextGuildSettings(ctx context.Context, arg *CreateOrUpdateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateWelcomerTextGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.Channel,
+		arg.MessageFormat,
+	)
+	var i GuildSettingsWelcomerText
+	err := row.Scan(
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.Channel,
+		&i.MessageFormat,
+	)
+	return &i, err
+}
+
+const CreateWelcomerTextGuildSettings = `-- name: CreateWelcomerTextGuildSettings :one
+INSERT INTO guild_settings_welcomer_text (guild_id, toggle_enabled, channel, message_format)
+    VALUES ($1, $2, $3, $4)
+RETURNING
+    guild_id, toggle_enabled, channel, message_format
+`
+
+type CreateWelcomerTextGuildSettingsParams struct {
+	GuildID       int64        `json:"guild_id"`
+	ToggleEnabled bool         `json:"toggle_enabled"`
+	Channel       int64        `json:"channel"`
+	MessageFormat pgtype.JSONB `json:"message_format"`
+}
+
+func (q *Queries) CreateWelcomerTextGuildSettings(ctx context.Context, arg *CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error) {
+	row := q.db.QueryRow(ctx, CreateWelcomerTextGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.Channel,
+		arg.MessageFormat,
+	)
 	var i GuildSettingsWelcomerText
 	err := row.Scan(
 		&i.GuildID,
@@ -64,10 +110,10 @@ WHERE
 `
 
 type UpdateWelcomerTextGuildSettingsParams struct {
-	GuildID       int64         `json:"guild_id"`
-	ToggleEnabled sql.NullBool  `json:"toggle_enabled"`
-	Channel       sql.NullInt64 `json:"channel"`
-	MessageFormat pgtype.JSONB  `json:"message_format"`
+	GuildID       int64        `json:"guild_id"`
+	ToggleEnabled bool         `json:"toggle_enabled"`
+	Channel       int64        `json:"channel"`
+	MessageFormat pgtype.JSONB `json:"message_format"`
 }
 
 func (q *Queries) UpdateWelcomerTextGuildSettings(ctx context.Context, arg *UpdateWelcomerTextGuildSettingsParams) (int64, error) {

@@ -7,18 +7,46 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
 const CreateFreeRolesGuildSettings = `-- name: CreateFreeRolesGuildSettings :one
-INSERT INTO guild_settings_freeroles (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_freeroles (guild_id, toggle_enabled, roles)
+    VALUES ($1, $2, $3)
 RETURNING
     guild_id, toggle_enabled, roles
 `
 
-func (q *Queries) CreateFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error) {
-	row := q.db.QueryRow(ctx, CreateFreeRolesGuildSettings, guildID)
+type CreateFreeRolesGuildSettingsParams struct {
+	GuildID       int64   `json:"guild_id"`
+	ToggleEnabled bool    `json:"toggle_enabled"`
+	Roles         []int64 `json:"roles"`
+}
+
+func (q *Queries) CreateFreeRolesGuildSettings(ctx context.Context, arg *CreateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error) {
+	row := q.db.QueryRow(ctx, CreateFreeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
+	var i GuildSettingsFreeroles
+	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Roles)
+	return &i, err
+}
+
+const CreateOrUpdateFreeRolesGuildSettings = `-- name: CreateOrUpdateFreeRolesGuildSettings :one
+INSERT INTO guild_settings_freeroles (guild_id, toggle_enabled, roles)
+    VALUES ($1, $2, $3)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        roles = EXCLUDED.roles
+RETURNING
+    guild_id, toggle_enabled, roles
+`
+
+type CreateOrUpdateFreeRolesGuildSettingsParams struct {
+	GuildID       int64   `json:"guild_id"`
+	ToggleEnabled bool    `json:"toggle_enabled"`
+	Roles         []int64 `json:"roles"`
+}
+
+func (q *Queries) CreateOrUpdateFreeRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateFreeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	var i GuildSettingsFreeroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Roles)
 	return &i, err
@@ -51,9 +79,9 @@ WHERE
 `
 
 type UpdateFreeRolesGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled sql.NullBool `json:"toggle_enabled"`
-	Roles         []int64      `json:"roles"`
+	GuildID       int64   `json:"guild_id"`
+	ToggleEnabled bool    `json:"toggle_enabled"`
+	Roles         []int64 `json:"roles"`
 }
 
 func (q *Queries) UpdateFreeRolesGuildSettings(ctx context.Context, arg *UpdateFreeRolesGuildSettingsParams) (int64, error) {

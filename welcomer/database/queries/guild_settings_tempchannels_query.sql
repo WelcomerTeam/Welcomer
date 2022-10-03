@@ -1,6 +1,18 @@
 -- name: CreateTempChannelsGuildSettings :one
-INSERT INTO guild_settings_tempchannels (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_tempchannels (guild_id, toggle_enabled, toggle_autopurge, channel_lobby, channel_category, default_user_count)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    *;
+
+-- name: CreateOrUpdateTempChannelsGuildSettings :one
+INSERT INTO guild_settings_tempchannels (guild_id, toggle_enabled, toggle_autopurge, channel_lobby, channel_category, default_user_count)
+    VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        toggle_autopurge = EXCLUDED.toggle_autopurge,
+        channel_lobby = EXCLUDED.channel_lobby,
+        channel_category = EXCLUDED.channel_category,
+        default_user_count = EXCLUDED.default_user_count
 RETURNING
     *;
 

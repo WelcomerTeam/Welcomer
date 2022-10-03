@@ -7,18 +7,76 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
-const CreateTempChannelsGuildSettings = `-- name: CreateTempChannelsGuildSettings :one
-INSERT INTO guild_settings_tempchannels (guild_id)
-    VALUES ($1)
+const CreateOrUpdateTempChannelsGuildSettings = `-- name: CreateOrUpdateTempChannelsGuildSettings :one
+INSERT INTO guild_settings_tempchannels (guild_id, toggle_enabled, toggle_autopurge, channel_lobby, channel_category, default_user_count)
+    VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        toggle_autopurge = EXCLUDED.toggle_autopurge,
+        channel_lobby = EXCLUDED.channel_lobby,
+        channel_category = EXCLUDED.channel_category,
+        default_user_count = EXCLUDED.default_user_count
 RETURNING
     guild_id, toggle_enabled, toggle_autopurge, channel_lobby, channel_category, default_user_count
 `
 
-func (q *Queries) CreateTempChannelsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTempchannels, error) {
-	row := q.db.QueryRow(ctx, CreateTempChannelsGuildSettings, guildID)
+type CreateOrUpdateTempChannelsGuildSettingsParams struct {
+	GuildID          int64 `json:"guild_id"`
+	ToggleEnabled    bool  `json:"toggle_enabled"`
+	ToggleAutopurge  bool  `json:"toggle_autopurge"`
+	ChannelLobby     int64 `json:"channel_lobby"`
+	ChannelCategory  int64 `json:"channel_category"`
+	DefaultUserCount int32 `json:"default_user_count"`
+}
+
+func (q *Queries) CreateOrUpdateTempChannelsGuildSettings(ctx context.Context, arg *CreateOrUpdateTempChannelsGuildSettingsParams) (*GuildSettingsTempchannels, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateTempChannelsGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.ToggleAutopurge,
+		arg.ChannelLobby,
+		arg.ChannelCategory,
+		arg.DefaultUserCount,
+	)
+	var i GuildSettingsTempchannels
+	err := row.Scan(
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.ToggleAutopurge,
+		&i.ChannelLobby,
+		&i.ChannelCategory,
+		&i.DefaultUserCount,
+	)
+	return &i, err
+}
+
+const CreateTempChannelsGuildSettings = `-- name: CreateTempChannelsGuildSettings :one
+INSERT INTO guild_settings_tempchannels (guild_id, toggle_enabled, toggle_autopurge, channel_lobby, channel_category, default_user_count)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    guild_id, toggle_enabled, toggle_autopurge, channel_lobby, channel_category, default_user_count
+`
+
+type CreateTempChannelsGuildSettingsParams struct {
+	GuildID          int64 `json:"guild_id"`
+	ToggleEnabled    bool  `json:"toggle_enabled"`
+	ToggleAutopurge  bool  `json:"toggle_autopurge"`
+	ChannelLobby     int64 `json:"channel_lobby"`
+	ChannelCategory  int64 `json:"channel_category"`
+	DefaultUserCount int32 `json:"default_user_count"`
+}
+
+func (q *Queries) CreateTempChannelsGuildSettings(ctx context.Context, arg *CreateTempChannelsGuildSettingsParams) (*GuildSettingsTempchannels, error) {
+	row := q.db.QueryRow(ctx, CreateTempChannelsGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.ToggleAutopurge,
+		arg.ChannelLobby,
+		arg.ChannelCategory,
+		arg.DefaultUserCount,
+	)
 	var i GuildSettingsTempchannels
 	err := row.Scan(
 		&i.GuildID,
@@ -68,12 +126,12 @@ WHERE
 `
 
 type UpdateTempChannelsGuildSettingsParams struct {
-	GuildID          int64         `json:"guild_id"`
-	ToggleEnabled    sql.NullBool  `json:"toggle_enabled"`
-	ToggleAutopurge  sql.NullBool  `json:"toggle_autopurge"`
-	ChannelLobby     sql.NullInt64 `json:"channel_lobby"`
-	ChannelCategory  sql.NullInt64 `json:"channel_category"`
-	DefaultUserCount sql.NullInt32 `json:"default_user_count"`
+	GuildID          int64 `json:"guild_id"`
+	ToggleEnabled    bool  `json:"toggle_enabled"`
+	ToggleAutopurge  bool  `json:"toggle_autopurge"`
+	ChannelLobby     int64 `json:"channel_lobby"`
+	ChannelCategory  int64 `json:"channel_category"`
+	DefaultUserCount int32 `json:"default_user_count"`
 }
 
 func (q *Queries) UpdateTempChannelsGuildSettings(ctx context.Context, arg *UpdateTempChannelsGuildSettingsParams) (int64, error) {

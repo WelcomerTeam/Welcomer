@@ -7,18 +7,43 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
 const CreateModerationGuildSettings = `-- name: CreateModerationGuildSettings :one
-INSERT INTO guild_settings_moderation (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_moderation (guild_id, toggle_reasons_required)
+    VALUES ($1, $2)
 RETURNING
     guild_id, toggle_reasons_required
 `
 
-func (q *Queries) CreateModerationGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsModeration, error) {
-	row := q.db.QueryRow(ctx, CreateModerationGuildSettings, guildID)
+type CreateModerationGuildSettingsParams struct {
+	GuildID               int64 `json:"guild_id"`
+	ToggleReasonsRequired bool  `json:"toggle_reasons_required"`
+}
+
+func (q *Queries) CreateModerationGuildSettings(ctx context.Context, arg *CreateModerationGuildSettingsParams) (*GuildSettingsModeration, error) {
+	row := q.db.QueryRow(ctx, CreateModerationGuildSettings, arg.GuildID, arg.ToggleReasonsRequired)
+	var i GuildSettingsModeration
+	err := row.Scan(&i.GuildID, &i.ToggleReasonsRequired)
+	return &i, err
+}
+
+const CreateOrUpdateModerationGuildSettings = `-- name: CreateOrUpdateModerationGuildSettings :one
+INSERT INTO guild_settings_moderation (guild_id, toggle_reasons_required)
+    VALUES ($1, $2)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_reasons_required = EXCLUDED.toggle_reasons_required
+RETURNING
+    guild_id, toggle_reasons_required
+`
+
+type CreateOrUpdateModerationGuildSettingsParams struct {
+	GuildID               int64 `json:"guild_id"`
+	ToggleReasonsRequired bool  `json:"toggle_reasons_required"`
+}
+
+func (q *Queries) CreateOrUpdateModerationGuildSettings(ctx context.Context, arg *CreateOrUpdateModerationGuildSettingsParams) (*GuildSettingsModeration, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateModerationGuildSettings, arg.GuildID, arg.ToggleReasonsRequired)
 	var i GuildSettingsModeration
 	err := row.Scan(&i.GuildID, &i.ToggleReasonsRequired)
 	return &i, err
@@ -50,8 +75,8 @@ WHERE
 `
 
 type UpdateModerationGuildSettingsParams struct {
-	GuildID               int64        `json:"guild_id"`
-	ToggleReasonsRequired sql.NullBool `json:"toggle_reasons_required"`
+	GuildID               int64 `json:"guild_id"`
+	ToggleReasonsRequired bool  `json:"toggle_reasons_required"`
 }
 
 func (q *Queries) UpdateModerationGuildSettings(ctx context.Context, arg *UpdateModerationGuildSettingsParams) (int64, error) {

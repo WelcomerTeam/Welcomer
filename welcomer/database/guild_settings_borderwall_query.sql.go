@@ -7,20 +7,78 @@ package database
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/jackc/pgtype"
 )
 
 const CreateBorderwallGuildSettings = `-- name: CreateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify)
+    VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING
     guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify
 `
 
-func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error) {
-	row := q.db.QueryRow(ctx, CreateBorderwallGuildSettings, guildID)
+type CreateBorderwallGuildSettingsParams struct {
+	GuildID         int64        `json:"guild_id"`
+	ToggleEnabled   bool         `json:"toggle_enabled"`
+	MessageVerify   pgtype.JSONB `json:"message_verify"`
+	MessageVerified pgtype.JSONB `json:"message_verified"`
+	RolesOnJoin     []int64      `json:"roles_on_join"`
+	RolesOnVerify   []int64      `json:"roles_on_verify"`
+}
+
+func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg *CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
+	row := q.db.QueryRow(ctx, CreateBorderwallGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.MessageVerify,
+		arg.MessageVerified,
+		arg.RolesOnJoin,
+		arg.RolesOnVerify,
+	)
+	var i GuildSettingsBorderwall
+	err := row.Scan(
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.MessageVerify,
+		&i.MessageVerified,
+		&i.RolesOnJoin,
+		&i.RolesOnVerify,
+	)
+	return &i, err
+}
+
+const CreateOrUpdateBorderwallGuildSettings = `-- name: CreateOrUpdateBorderwallGuildSettings :one
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify)
+    VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        message_verify = EXCLUDED.message_verify,
+        message_verified = EXCLUDED.message_verified,
+        roles_on_join = EXCLUDED.roles_on_join,
+        roles_on_verify = EXCLUDED.roles_on_verify
+RETURNING
+    guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify
+`
+
+type CreateOrUpdateBorderwallGuildSettingsParams struct {
+	GuildID         int64        `json:"guild_id"`
+	ToggleEnabled   bool         `json:"toggle_enabled"`
+	MessageVerify   pgtype.JSONB `json:"message_verify"`
+	MessageVerified pgtype.JSONB `json:"message_verified"`
+	RolesOnJoin     []int64      `json:"roles_on_join"`
+	RolesOnVerify   []int64      `json:"roles_on_verify"`
+}
+
+func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg *CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateBorderwallGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.MessageVerify,
+		arg.MessageVerified,
+		arg.RolesOnJoin,
+		arg.RolesOnVerify,
+	)
 	var i GuildSettingsBorderwall
 	err := row.Scan(
 		&i.GuildID,
@@ -71,7 +129,7 @@ WHERE
 
 type UpdateBorderwallGuildSettingsParams struct {
 	GuildID         int64        `json:"guild_id"`
-	ToggleEnabled   sql.NullBool `json:"toggle_enabled"`
+	ToggleEnabled   bool         `json:"toggle_enabled"`
 	MessageVerify   pgtype.JSONB `json:"message_verify"`
 	MessageVerified pgtype.JSONB `json:"message_verified"`
 	RolesOnJoin     []int64      `json:"roles_on_join"`

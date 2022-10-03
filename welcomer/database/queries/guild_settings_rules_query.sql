@@ -1,6 +1,16 @@
 -- name: CreateRulesGuildSettings :one
-INSERT INTO guild_settings_rules (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules)
+    VALUES ($1, $2, $3, $4)
+RETURNING
+    *;
+
+-- name: CreateOrUpdateRulesGuildSettings :one
+INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules)
+    VALUES ($1, $2, $3, $4)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        toggle_dms_enabled = EXCLUDED.toggle_dms_enabled,
+        rules = EXCLUDED.rules
 RETURNING
     *;
 

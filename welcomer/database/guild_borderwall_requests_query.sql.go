@@ -7,25 +7,71 @@ package database
 
 import (
 	"context"
-	"database/sql"
+	"time"
 
 	"github.com/gofrs/uuid"
 )
 
 const CreateBorderwallRequest = `-- name: CreateBorderwallRequest :one
 INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, 'false', NULL)
+    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4)
 RETURNING
     request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
 `
 
 type CreateBorderwallRequestParams struct {
-	GuildID int64 `json:"guild_id"`
-	UserID  int64 `json:"user_id"`
+	GuildID    int64     `json:"guild_id"`
+	UserID     int64     `json:"user_id"`
+	IsVerified bool      `json:"is_verified"`
+	VerifiedAt time.Time `json:"verified_at"`
 }
 
 func (q *Queries) CreateBorderwallRequest(ctx context.Context, arg *CreateBorderwallRequestParams) (*BorderwallRequests, error) {
-	row := q.db.QueryRow(ctx, CreateBorderwallRequest, arg.GuildID, arg.UserID)
+	row := q.db.QueryRow(ctx, CreateBorderwallRequest,
+		arg.GuildID,
+		arg.UserID,
+		arg.IsVerified,
+		arg.VerifiedAt,
+	)
+	var i BorderwallRequests
+	err := row.Scan(
+		&i.RequestUuid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GuildID,
+		&i.UserID,
+		&i.IsVerified,
+		&i.VerifiedAt,
+	)
+	return &i, err
+}
+
+const CreateOrUpdateBorderwallRequest = `-- name: CreateOrUpdateBorderwallRequest :one
+INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
+    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4)
+ON CONFLICT(request_uuid) DO UPDATE
+    SET updated_at = EXCLUDED.updated_at,
+        guild_id = EXCLUDED.guild_id,
+        is_verified = EXCLUDED.is_verified,
+        verified_at = EXCLUDED.verified_at
+RETURNING
+    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
+`
+
+type CreateOrUpdateBorderwallRequestParams struct {
+	GuildID    int64     `json:"guild_id"`
+	UserID     int64     `json:"user_id"`
+	IsVerified bool      `json:"is_verified"`
+	VerifiedAt time.Time `json:"verified_at"`
+}
+
+func (q *Queries) CreateOrUpdateBorderwallRequest(ctx context.Context, arg *CreateOrUpdateBorderwallRequestParams) (*BorderwallRequests, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateBorderwallRequest,
+		arg.GuildID,
+		arg.UserID,
+		arg.IsVerified,
+		arg.VerifiedAt,
+	)
 	var i BorderwallRequests
 	err := row.Scan(
 		&i.RequestUuid,
@@ -119,10 +165,10 @@ WHERE
 `
 
 type UpdateBorderwallRequestParams struct {
-	RequestUuid uuid.UUID    `json:"request_uuid"`
-	GuildID     int64        `json:"guild_id"`
-	IsVerified  bool         `json:"is_verified"`
-	VerifiedAt  sql.NullTime `json:"verified_at"`
+	RequestUuid uuid.UUID `json:"request_uuid"`
+	GuildID     int64     `json:"guild_id"`
+	IsVerified  bool      `json:"is_verified"`
+	VerifiedAt  time.Time `json:"verified_at"`
 }
 
 func (q *Queries) UpdateBorderwallRequest(ctx context.Context, arg *UpdateBorderwallRequestParams) (int64, error) {

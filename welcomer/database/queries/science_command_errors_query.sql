@@ -1,6 +1,6 @@
 -- name: CreateCommandError :one
-INSERT INTO science_command_errors (command_uuid, trace, data)
-    VALUES ($1, $2, $3)
+INSERT INTO science_command_errors (command_uuid, created_at, trace, data)
+    VALUES ($1, now(), $2, $3)
 RETURNING
     *;
 

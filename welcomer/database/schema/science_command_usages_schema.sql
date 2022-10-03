@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS science_command_usages (
     command_uuid uuid NOT NULL UNIQUE PRIMARY KEY,
     created_at timestamp NOT NULL,
     updated_at timestamp NOT NULL,
-    guild_id bigint NULL,
+    guild_id bigint NOT NULL,
     user_id bigint NOT NULL,
     channel_id bigint NULL,
     command text NOT NULL,

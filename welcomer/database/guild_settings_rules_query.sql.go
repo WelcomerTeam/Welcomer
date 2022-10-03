@@ -7,18 +7,64 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
-const CreateRulesGuildSettings = `-- name: CreateRulesGuildSettings :one
-INSERT INTO guild_settings_rules (guild_id)
-    VALUES ($1)
+const CreateOrUpdateRulesGuildSettings = `-- name: CreateOrUpdateRulesGuildSettings :one
+INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules)
+    VALUES ($1, $2, $3, $4)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        toggle_dms_enabled = EXCLUDED.toggle_dms_enabled,
+        rules = EXCLUDED.rules
 RETURNING
     guild_id, toggle_enabled, toggle_dms_enabled, rules
 `
 
-func (q *Queries) CreateRulesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsRules, error) {
-	row := q.db.QueryRow(ctx, CreateRulesGuildSettings, guildID)
+type CreateOrUpdateRulesGuildSettingsParams struct {
+	GuildID          int64    `json:"guild_id"`
+	ToggleEnabled    bool     `json:"toggle_enabled"`
+	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
+	Rules            []string `json:"rules"`
+}
+
+func (q *Queries) CreateOrUpdateRulesGuildSettings(ctx context.Context, arg *CreateOrUpdateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateRulesGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.ToggleDmsEnabled,
+		arg.Rules,
+	)
+	var i GuildSettingsRules
+	err := row.Scan(
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.ToggleDmsEnabled,
+		&i.Rules,
+	)
+	return &i, err
+}
+
+const CreateRulesGuildSettings = `-- name: CreateRulesGuildSettings :one
+INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules)
+    VALUES ($1, $2, $3, $4)
+RETURNING
+    guild_id, toggle_enabled, toggle_dms_enabled, rules
+`
+
+type CreateRulesGuildSettingsParams struct {
+	GuildID          int64    `json:"guild_id"`
+	ToggleEnabled    bool     `json:"toggle_enabled"`
+	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
+	Rules            []string `json:"rules"`
+}
+
+func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg *CreateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
+	row := q.db.QueryRow(ctx, CreateRulesGuildSettings,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.ToggleDmsEnabled,
+		arg.Rules,
+	)
 	var i GuildSettingsRules
 	err := row.Scan(
 		&i.GuildID,
@@ -62,10 +108,10 @@ WHERE
 `
 
 type UpdateRuleGuildSettingsParams struct {
-	GuildID          int64        `json:"guild_id"`
-	ToggleEnabled    sql.NullBool `json:"toggle_enabled"`
-	ToggleDmsEnabled sql.NullBool `json:"toggle_dms_enabled"`
-	Rules            []string     `json:"rules"`
+	GuildID          int64    `json:"guild_id"`
+	ToggleEnabled    bool     `json:"toggle_enabled"`
+	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
+	Rules            []string `json:"rules"`
 }
 
 func (q *Queries) UpdateRuleGuildSettings(ctx context.Context, arg *UpdateRuleGuildSettingsParams) (int64, error) {

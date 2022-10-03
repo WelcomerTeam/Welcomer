@@ -1,6 +1,15 @@
 -- name: CreateFreeRolesGuildSettings :one
-INSERT INTO guild_settings_freeroles (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_freeroles (guild_id, toggle_enabled, roles)
+    VALUES ($1, $2, $3)
+RETURNING
+    *;
+
+-- name: CreateOrUpdateFreeRolesGuildSettings :one
+INSERT INTO guild_settings_freeroles (guild_id, toggle_enabled, roles)
+    VALUES ($1, $2, $3)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        roles = EXCLUDED.roles
 RETURNING
     *;
 

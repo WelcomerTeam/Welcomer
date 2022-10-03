@@ -1,6 +1,18 @@
 -- name: CreateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    *;
+
+-- name: CreateOrUpdateBorderwallGuildSettings :one
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify)
+    VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_enabled = EXCLUDED.toggle_enabled,
+        message_verify = EXCLUDED.message_verify,
+        message_verified = EXCLUDED.message_verified,
+        roles_on_join = EXCLUDED.roles_on_join,
+        roles_on_verify = EXCLUDED.roles_on_verify
 RETURNING
     *;
 

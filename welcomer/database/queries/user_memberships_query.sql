@@ -4,6 +4,20 @@ INSERT INTO user_memberships (membership_uuid, created_at, updated_at, started_a
 RETURNING
     *;
 
+-- name: CreateOrUpdateNewMembership :one
+INSERT INTO user_memberships (membership_uuid, created_at, updated_at, started_at, expires_at, status, membership_type, transaction_uuid, user_id, guild_id)
+    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT(membership_uuid) DO UPDATE
+    SET started_at = EXCLUDED.started_at,
+        expires_at = EXCLUDED.expires_at,
+        status = EXCLUDED.status,
+        transaction_uuid = EXCLUDED.transaction_uuid,
+        user_id = EXCLUDED.user_id,
+        guild_id = EXCLUDED.guild_id,
+        updated_at = EXCLUDED.updated_at
+RETURNING
+    *;
+
 -- name: GetUserMembership :one
 SELECT
     *

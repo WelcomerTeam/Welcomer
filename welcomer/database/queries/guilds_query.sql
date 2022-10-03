@@ -1,6 +1,20 @@
 -- name: CreateGuild :one
 INSERT INTO guilds (guild_id, created_at, updated_at, name, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites)
-    VALUES ($1, now(), now(), $2, '3553599', NULL, NULL, NULL, NULL)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7)
+RETURNING
+    *;
+
+-- name: CreateOrUpdateGuild :one
+INSERT INTO guilds (guild_id, created_at, updated_at, name, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7)
+ON CONFLICT(guild_id) DO UPDATE
+    SET name = EXCLUDED.name,
+        embed_colour = EXCLUDED.embed_colour,
+        site_splash_url = EXCLUDED.site_splash_url,
+        site_staff_visible = EXCLUDED.site_staff_visible,
+        site_guild_visible = EXCLUDED.site_guild_visible,
+        site_allow_invites = EXCLUDED.site_allow_invites,
+        updated_at = now()
 RETURNING
     *;
 

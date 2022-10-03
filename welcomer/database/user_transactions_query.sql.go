@@ -11,6 +11,54 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+const CreateOrUpdateUserTransaction = `-- name: CreateOrUpdateUserTransaction :one
+INSERT INTO user_transactions (transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount)
+    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6)
+ON CONFLICT(transaction_uuid) DO UPDATE
+    SET user_id = EXCLUDED.user_id,
+        platform_type = EXCLUDED.platform_type,
+        transaction_id = EXCLUDED.transaction_id,
+        transaction_status = EXCLUDED.transaction_status,
+        currency_code = EXCLUDED.currency_code,
+        amount = EXCLUDED.amount,
+        updated_at = EXCLUDED.updated_at
+RETURNING
+    transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount
+`
+
+type CreateOrUpdateUserTransactionParams struct {
+	UserID            int64  `json:"user_id"`
+	PlatformType      int32  `json:"platform_type"`
+	TransactionID     string `json:"transaction_id"`
+	TransactionStatus int32  `json:"transaction_status"`
+	CurrencyCode      string `json:"currency_code"`
+	Amount            int32  `json:"amount"`
+}
+
+func (q *Queries) CreateOrUpdateUserTransaction(ctx context.Context, arg *CreateOrUpdateUserTransactionParams) (*UserTransactions, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateUserTransaction,
+		arg.UserID,
+		arg.PlatformType,
+		arg.TransactionID,
+		arg.TransactionStatus,
+		arg.CurrencyCode,
+		arg.Amount,
+	)
+	var i UserTransactions
+	err := row.Scan(
+		&i.TransactionUuid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.PlatformType,
+		&i.TransactionID,
+		&i.TransactionStatus,
+		&i.CurrencyCode,
+		&i.Amount,
+	)
+	return &i, err
+}
+
 const CreateUserTransaction = `-- name: CreateUserTransaction :one
 INSERT INTO user_transactions (transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount)
     VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6)

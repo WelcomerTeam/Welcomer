@@ -7,18 +7,130 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
 const CreateAutoModerationGuildSettings = `-- name: CreateAutoModerationGuildSettings :one
-INSERT INTO guild_settings_automoderation (guild_id)
-    VALUES ($1)
+INSERT INTO guild_settings_automoderation (guild_id, toggle_masscaps, toggle_massmentions, toggle_urls, toggle_invites, toggle_regex, toggle_phishing, toggle_massemojis, threshold_mass_caps_percentage, threshold_mass_mentions, threshold_mass_emojis, blacklisted_urls, whitelisted_urls, regex_patterns, toggle_smartmod)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 RETURNING
     guild_id, toggle_masscaps, toggle_massmentions, toggle_urls, toggle_invites, toggle_regex, toggle_phishing, toggle_massemojis, threshold_mass_caps_percentage, threshold_mass_mentions, threshold_mass_emojis, blacklisted_urls, whitelisted_urls, regex_patterns, toggle_smartmod
 `
 
-func (q *Queries) CreateAutoModerationGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutomoderation, error) {
-	row := q.db.QueryRow(ctx, CreateAutoModerationGuildSettings, guildID)
+type CreateAutoModerationGuildSettingsParams struct {
+	GuildID                     int64    `json:"guild_id"`
+	ToggleMasscaps              bool     `json:"toggle_masscaps"`
+	ToggleMassmentions          bool     `json:"toggle_massmentions"`
+	ToggleUrls                  bool     `json:"toggle_urls"`
+	ToggleInvites               bool     `json:"toggle_invites"`
+	ToggleRegex                 bool     `json:"toggle_regex"`
+	TogglePhishing              bool     `json:"toggle_phishing"`
+	ToggleMassemojis            bool     `json:"toggle_massemojis"`
+	ThresholdMassCapsPercentage int32    `json:"threshold_mass_caps_percentage"`
+	ThresholdMassMentions       int32    `json:"threshold_mass_mentions"`
+	ThresholdMassEmojis         int32    `json:"threshold_mass_emojis"`
+	BlacklistedUrls             []string `json:"blacklisted_urls"`
+	WhitelistedUrls             []string `json:"whitelisted_urls"`
+	RegexPatterns               []string `json:"regex_patterns"`
+	ToggleSmartmod              bool     `json:"toggle_smartmod"`
+}
+
+func (q *Queries) CreateAutoModerationGuildSettings(ctx context.Context, arg *CreateAutoModerationGuildSettingsParams) (*GuildSettingsAutomoderation, error) {
+	row := q.db.QueryRow(ctx, CreateAutoModerationGuildSettings,
+		arg.GuildID,
+		arg.ToggleMasscaps,
+		arg.ToggleMassmentions,
+		arg.ToggleUrls,
+		arg.ToggleInvites,
+		arg.ToggleRegex,
+		arg.TogglePhishing,
+		arg.ToggleMassemojis,
+		arg.ThresholdMassCapsPercentage,
+		arg.ThresholdMassMentions,
+		arg.ThresholdMassEmojis,
+		arg.BlacklistedUrls,
+		arg.WhitelistedUrls,
+		arg.RegexPatterns,
+		arg.ToggleSmartmod,
+	)
+	var i GuildSettingsAutomoderation
+	err := row.Scan(
+		&i.GuildID,
+		&i.ToggleMasscaps,
+		&i.ToggleMassmentions,
+		&i.ToggleUrls,
+		&i.ToggleInvites,
+		&i.ToggleRegex,
+		&i.TogglePhishing,
+		&i.ToggleMassemojis,
+		&i.ThresholdMassCapsPercentage,
+		&i.ThresholdMassMentions,
+		&i.ThresholdMassEmojis,
+		&i.BlacklistedUrls,
+		&i.WhitelistedUrls,
+		&i.RegexPatterns,
+		&i.ToggleSmartmod,
+	)
+	return &i, err
+}
+
+const CreateOrUpdateAutoModerationGuildSettings = `-- name: CreateOrUpdateAutoModerationGuildSettings :one
+INSERT INTO guild_settings_automoderation (guild_id, toggle_masscaps, toggle_massmentions, toggle_urls, toggle_invites, toggle_regex, toggle_phishing, toggle_massemojis, threshold_mass_caps_percentage, threshold_mass_mentions, threshold_mass_emojis, blacklisted_urls, whitelisted_urls, regex_patterns, toggle_smartmod)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+ON CONFLICT(guild_id) DO UPDATE
+    SET toggle_masscaps = EXCLUDED.toggle_masscaps,
+        toggle_massmentions = EXCLUDED.toggle_massmentions,
+        toggle_urls = EXCLUDED.toggle_urls,
+        toggle_invites = EXCLUDED.toggle_invites,
+        toggle_regex = EXCLUDED.toggle_regex,
+        toggle_phishing = EXCLUDED.toggle_phishing,
+        toggle_massemojis = EXCLUDED.toggle_massemojis,
+        threshold_mass_caps_percentage = EXCLUDED.threshold_mass_caps_percentage,
+        threshold_mass_mentions = EXCLUDED.threshold_mass_mentions,
+        threshold_mass_emojis = EXCLUDED.threshold_mass_emojis,
+        blacklisted_urls = EXCLUDED.blacklisted_urls,
+        whitelisted_urls = EXCLUDED.whitelisted_urls,
+        regex_patterns = EXCLUDED.regex_patterns,
+        toggle_smartmod = EXCLUDED.toggle_smartmod
+RETURNING
+    guild_id, toggle_masscaps, toggle_massmentions, toggle_urls, toggle_invites, toggle_regex, toggle_phishing, toggle_massemojis, threshold_mass_caps_percentage, threshold_mass_mentions, threshold_mass_emojis, blacklisted_urls, whitelisted_urls, regex_patterns, toggle_smartmod
+`
+
+type CreateOrUpdateAutoModerationGuildSettingsParams struct {
+	GuildID                     int64    `json:"guild_id"`
+	ToggleMasscaps              bool     `json:"toggle_masscaps"`
+	ToggleMassmentions          bool     `json:"toggle_massmentions"`
+	ToggleUrls                  bool     `json:"toggle_urls"`
+	ToggleInvites               bool     `json:"toggle_invites"`
+	ToggleRegex                 bool     `json:"toggle_regex"`
+	TogglePhishing              bool     `json:"toggle_phishing"`
+	ToggleMassemojis            bool     `json:"toggle_massemojis"`
+	ThresholdMassCapsPercentage int32    `json:"threshold_mass_caps_percentage"`
+	ThresholdMassMentions       int32    `json:"threshold_mass_mentions"`
+	ThresholdMassEmojis         int32    `json:"threshold_mass_emojis"`
+	BlacklistedUrls             []string `json:"blacklisted_urls"`
+	WhitelistedUrls             []string `json:"whitelisted_urls"`
+	RegexPatterns               []string `json:"regex_patterns"`
+	ToggleSmartmod              bool     `json:"toggle_smartmod"`
+}
+
+func (q *Queries) CreateOrUpdateAutoModerationGuildSettings(ctx context.Context, arg *CreateOrUpdateAutoModerationGuildSettingsParams) (*GuildSettingsAutomoderation, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateAutoModerationGuildSettings,
+		arg.GuildID,
+		arg.ToggleMasscaps,
+		arg.ToggleMassmentions,
+		arg.ToggleUrls,
+		arg.ToggleInvites,
+		arg.ToggleRegex,
+		arg.TogglePhishing,
+		arg.ToggleMassemojis,
+		arg.ThresholdMassCapsPercentage,
+		arg.ThresholdMassMentions,
+		arg.ThresholdMassEmojis,
+		arg.BlacklistedUrls,
+		arg.WhitelistedUrls,
+		arg.RegexPatterns,
+		arg.ToggleSmartmod,
+	)
 	var i GuildSettingsAutomoderation
 	err := row.Scan(
 		&i.GuildID,
@@ -95,21 +207,21 @@ WHERE
 `
 
 type UpdateAutoModerationGuildSettingsParams struct {
-	GuildID                     int64        `json:"guild_id"`
-	ToggleMasscaps              sql.NullBool `json:"toggle_masscaps"`
-	ToggleMassmentions          sql.NullBool `json:"toggle_massmentions"`
-	ToggleUrls                  sql.NullBool `json:"toggle_urls"`
-	ToggleInvites               sql.NullBool `json:"toggle_invites"`
-	ToggleRegex                 sql.NullBool `json:"toggle_regex"`
-	TogglePhishing              sql.NullBool `json:"toggle_phishing"`
-	ToggleMassemojis            sql.NullBool `json:"toggle_massemojis"`
-	ThresholdMassCapsPercentage int32        `json:"threshold_mass_caps_percentage"`
-	ThresholdMassMentions       int32        `json:"threshold_mass_mentions"`
-	ThresholdMassEmojis         int32        `json:"threshold_mass_emojis"`
-	BlacklistedUrls             []string     `json:"blacklisted_urls"`
-	WhitelistedUrls             []string     `json:"whitelisted_urls"`
-	RegexPatterns               []string     `json:"regex_patterns"`
-	ToggleSmartmod              bool         `json:"toggle_smartmod"`
+	GuildID                     int64    `json:"guild_id"`
+	ToggleMasscaps              bool     `json:"toggle_masscaps"`
+	ToggleMassmentions          bool     `json:"toggle_massmentions"`
+	ToggleUrls                  bool     `json:"toggle_urls"`
+	ToggleInvites               bool     `json:"toggle_invites"`
+	ToggleRegex                 bool     `json:"toggle_regex"`
+	TogglePhishing              bool     `json:"toggle_phishing"`
+	ToggleMassemojis            bool     `json:"toggle_massemojis"`
+	ThresholdMassCapsPercentage int32    `json:"threshold_mass_caps_percentage"`
+	ThresholdMassMentions       int32    `json:"threshold_mass_mentions"`
+	ThresholdMassEmojis         int32    `json:"threshold_mass_emojis"`
+	BlacklistedUrls             []string `json:"blacklisted_urls"`
+	WhitelistedUrls             []string `json:"whitelisted_urls"`
+	RegexPatterns               []string `json:"regex_patterns"`
+	ToggleSmartmod              bool     `json:"toggle_smartmod"`
 }
 
 func (q *Queries) UpdateAutoModerationGuildSettings(ctx context.Context, arg *UpdateAutoModerationGuildSettingsParams) (int64, error) {

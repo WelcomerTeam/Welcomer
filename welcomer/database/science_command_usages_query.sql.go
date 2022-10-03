@@ -20,7 +20,7 @@ RETURNING
 `
 
 type CreateCommandUsageParams struct {
-	GuildID         sql.NullInt64 `json:"guild_id"`
+	GuildID         int64         `json:"guild_id"`
 	UserID          int64         `json:"user_id"`
 	ChannelID       sql.NullInt64 `json:"channel_id"`
 	Command         string        `json:"command"`

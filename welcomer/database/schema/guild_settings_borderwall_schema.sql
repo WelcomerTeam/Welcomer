@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS guild_settings_borderwall (
     guild_id bigint NOT NULL UNIQUE PRIMARY KEY,
-    toggle_enabled boolean DEFAULT 'false',
-    message_verify jsonb NULL,
-    message_verified jsonb NULL,
-    roles_on_join bigint[],
-    roles_on_verify bigint[],
+    toggle_enabled boolean NOT NULL,
+    message_verify jsonb NOT NULL,
+    message_verified jsonb NOT NULL,
+    roles_on_join bigint[] NOT NULL,
+    roles_on_verify bigint[] NOT NULL,
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

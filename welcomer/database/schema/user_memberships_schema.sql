@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS user_memberships (
     expires_at timestamp NOT NULL,
     status integer NOT NULL,
     membership_type integer NOT NULL,
-    transaction_uuid uuid NULL,
+    transaction_uuid uuid NOT NULL,
     user_id bigint NOT NULL,
-    guild_id bigint NULL,
+    guild_id bigint NOT NULL,
     FOREIGN KEY (transaction_uuid) REFERENCES user_transactions (transaction_uuid) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 

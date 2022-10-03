@@ -7,8 +7,45 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
+
+const CreateOrUpdateUser = `-- name: CreateOrUpdateUser :one
+INSERT INTO users (user_id, created_at, updated_at, name, discriminator, avatar_hash)
+    VALUES ($1, now(), now(), $2, $3, $4)
+ON CONFLICT(user_id) DO UPDATE
+    SET name = EXCLUDED.name,
+        discriminator = EXCLUDED.discriminator,
+        avatar_hash = EXCLUDED.avatar_hash,
+        updated_at = EXCLUDED.updated_at
+RETURNING
+    user_id, created_at, updated_at, name, discriminator, avatar_hash
+`
+
+type CreateOrUpdateUserParams struct {
+	UserID        int64  `json:"user_id"`
+	Name          string `json:"name"`
+	Discriminator string `json:"discriminator"`
+	AvatarHash    string `json:"avatar_hash"`
+}
+
+func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg *CreateOrUpdateUserParams) (*Users, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateUser,
+		arg.UserID,
+		arg.Name,
+		arg.Discriminator,
+		arg.AvatarHash,
+	)
+	var i Users
+	err := row.Scan(
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Discriminator,
+		&i.AvatarHash,
+	)
+	return &i, err
+}
 
 const CreateUser = `-- name: CreateUser :one
 INSERT INTO users (user_id, created_at, updated_at, name, discriminator, avatar_hash)
@@ -18,10 +55,10 @@ RETURNING
 `
 
 type CreateUserParams struct {
-	UserID        int64          `json:"user_id"`
-	Name          string         `json:"name"`
-	Discriminator string         `json:"discriminator"`
-	AvatarHash    sql.NullString `json:"avatar_hash"`
+	UserID        int64  `json:"user_id"`
+	Name          string `json:"name"`
+	Discriminator string `json:"discriminator"`
+	AvatarHash    string `json:"avatar_hash"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (*Users, error) {
@@ -79,10 +116,10 @@ WHERE
 `
 
 type UpdateUserParams struct {
-	UserID        int64          `json:"user_id"`
-	Name          string         `json:"name"`
-	Discriminator string         `json:"discriminator"`
-	AvatarHash    sql.NullString `json:"avatar_hash"`
+	UserID        int64  `json:"user_id"`
+	Name          string `json:"name"`
+	Discriminator string `json:"discriminator"`
+	AvatarHash    string `json:"avatar_hash"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (int64, error) {
