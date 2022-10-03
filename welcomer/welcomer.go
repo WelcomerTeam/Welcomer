@@ -113,8 +113,10 @@ func (w *Welcomer) CaptureInteractionExecution(interactionCtx *sandwich.Interact
 
 	context := context.Background()
 
-	var guildID sql.NullInt64
-	_ = guildID.Scan(interactionCtx.GuildID)
+	var guildID int64
+	if interactionCtx.GuildID != nil {
+		guildID = int64(*interactionCtx.GuildID)
+	}
 
 	var channelID sql.NullInt64
 	_ = channelID.Scan(interactionCtx.ChannelID)

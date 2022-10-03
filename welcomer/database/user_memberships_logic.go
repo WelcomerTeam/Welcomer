@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -10,10 +9,7 @@ import (
 
 // Returns all valid user memberships based on a guild ID.
 func (q *Queries) GetValidUserMembershipsByGuildID(ctx context.Context, guildID discord.Snowflake, time time.Time) ([]*GetUserMembershipsByGuildIDRow, error) {
-	var sqlGuildID sql.NullInt64
-	_ = sqlGuildID.Scan(guildID)
-
-	userMemberships, err := q.GetUserMembershipsByGuildID(ctx, sqlGuildID)
+	userMemberships, err := q.GetUserMembershipsByGuildID(ctx, int64(guildID))
 	if err != nil {
 		return []*GetUserMembershipsByGuildIDRow{}, err
 	}
@@ -41,7 +37,7 @@ func isUserMembershipValid(userMembership *GetUserMembershipsByGuildIDRow, time 
 		return false
 	}
 
-	if userMembership.TransactionUuid.Valid {
+	if !userMembership.TransactionUuid.IsNil() {
 		// Validate transaction is in database if referenced.
 		if !userMembership.TransactionUuid_2.Valid {
 			return false
