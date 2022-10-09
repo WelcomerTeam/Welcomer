@@ -54,6 +54,46 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds []*SessionGuil
 	return guilds, nil
 }
 
+func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*Membership, err error) {
+	user, ok := GetUserSession(session)
+	if !ok {
+		return nil, ErrMissingUser
+	}
+
+	userMemberships, err := backend.Database.GetUserMembershipsByUserID(backend.ctx, int64(user.ID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user memberships: %w", err)
+	}
+
+	for _, userMembership := range userMemberships {
+		membership := &Membership{
+			MembershipUuid: userMembership.MembershipUuid,
+			CreatedAt:      userMembership.CreatedAt,
+			UpdatedAt:      userMembership.UpdatedAt,
+			StartedAt:      userMembership.StartedAt,
+			ExpiresAt:      userMembership.ExpiresAt,
+			Status:         userMembership.Status,
+			MembershipType: userMembership.MembershipType,
+			GuildID:        discord.Snowflake(userMembership.GuildID),
+		}
+
+		if userMembership.GuildID != 0 {
+			ok, guild, err := hasWelcomerPresence(discord.Snowflake(userMembership.GuildID))
+			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
+			}
+
+			if ok {
+				membership.Guild = GuildToMinimal(guild)
+			}
+		}
+
+		memberships = append(memberships, membership)
+	}
+
+	return memberships, nil
+}
+
 // GET /users/@me
 func usersMe(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
@@ -61,9 +101,79 @@ func usersMe(ctx *gin.Context) {
 
 		user, _ := GetUserSession(session)
 
+		refresh := time.Since(user.MembershipsLastRequestedAt) > RefreshFrequency
+
+		if refresh {
+			memberships, err := backend.GetUserMemberships(session)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok:    false,
+					Error: err.Error(),
+				})
+
+				return
+			}
+
+			user.Memberships = memberships
+			user.MembershipsLastRequestedAt = time.Now()
+
+			SetUserSession(session, user)
+		}
+
 		ctx.JSON(http.StatusOK, BaseResponse{
 			Ok:   true,
-			Data: user,
+			Data: SessionUserToMinimal(&user),
+		})
+	})
+}
+
+// GET /users/@me/memberships
+func usersMeMemberships(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		var refreshFrequency time.Duration
+
+		if ctx.Query("refresh") == "1" {
+			refreshFrequency = MinimumRefreshFrequency
+		} else {
+			refreshFrequency = RefreshFrequency
+		}
+
+		session := sessions.Default(ctx)
+
+		user, _ := GetUserSession(session)
+
+		refresh := time.Since(user.MembershipsLastRequestedAt) > refreshFrequency
+
+		var memberships []*Membership
+		var err error
+
+		if refresh {
+			memberships, err = backend.GetUserMemberships(session)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok:    false,
+					Error: err.Error(),
+				})
+
+				return
+			}
+
+			user.Memberships = memberships
+			user.MembershipsLastRequestedAt = time.Now()
+
+			SetUserSession(session, user)
+		} else {
+			memberships = user.Memberships
+		}
+
+		err = session.Save()
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		}
+
+		ctx.JSON(http.StatusOK, BaseResponse{
+			Ok:   true,
+			Data: memberships,
 		})
 	})
 }
@@ -120,5 +230,6 @@ func usersGuild(ctx *gin.Context) {
 
 func registerUserRoutes(g *gin.Engine) {
 	g.GET("/api/users/@me", usersMe)
+	g.GET("/api/users/@me/memberships", usersMeMemberships)
 	g.GET("/api/users/guilds", usersGuild)
 }

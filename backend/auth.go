@@ -9,6 +9,7 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer/database"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -186,6 +187,8 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 
 			for _, guild := range user.Guilds {
 				if guild.ID == guildID {
+					ctx.Set(GuildKey, guild)
+
 					handler(ctx)
 
 					return
@@ -203,15 +206,62 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 
 // RequireGuildElevation checks if a user has privileges on a guild.
 func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
-	// TODO
+	requireMutualGuild(ctx, func(ctx *gin.Context) {
+		// TODO
 
-	handler(ctx)
+		handler(ctx)
+	})
 }
 
-// TryGetGuildID returns GuildID from context. Panics if it cannot find.
-func tryGetGuildID(ctx *gin.Context) (guildID discord.Snowflake) {
-	rawGuildID, _ := ctx.Get(GuildIDKey)
-	guildID, _ = rawGuildID.(discord.Snowflake)
+// tryGetKey returns Key from context. Panics if it cannot find.
+func tryGetKey(ctx *gin.Context) string {
+	rawKey, _ := ctx.Get(KeyKey)
+	key, _ := rawKey.(string)
 
-	return
+	return key
+}
+
+// tryGetGuildID returns GuildID from context. Panics if it cannot find.
+func tryGetGuildID(ctx *gin.Context) discord.Snowflake {
+	rawGuildID, _ := ctx.Get(GuildIDKey)
+	guildID, _ := rawGuildID.(discord.Snowflake)
+
+	return guildID
+}
+
+// tryGetGuild returns Guild from context. Panics if it cannot find. Set during requireMutualGuild.
+func tryGetGuild(ctx *gin.Context) discord.Guild {
+	rawGuild, _ := ctx.Get(GuildKey)
+	guild, _ := rawGuild.(discord.Guild)
+
+	return guild
+}
+
+// ensureGuild will create or update a guild entry. This requires requireMutualGuild to be called.
+func ensureGuild(ctx *gin.Context, guildID discord.Snowflake) error {
+	contextGuild := tryGetGuild(ctx)
+
+	databaseGuild, err := backend.Database.GetGuild(ctx, int64(guildID))
+	if err != nil {
+		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild")
+	}
+
+	_, err = backend.Database.CreateOrUpdateGuild(ctx, &database.CreateOrUpdateGuildParams{
+		GuildID:          int64(guildID),
+		Name:             contextGuild.Name,
+		EmbedColour:      databaseGuild.EmbedColour,
+		SiteSplashUrl:    databaseGuild.SiteSplashUrl,
+		SiteStaffVisible: databaseGuild.SiteStaffVisible,
+		SiteGuildVisible: databaseGuild.SiteGuildVisible,
+		SiteAllowInvites: databaseGuild.SiteAllowInvites,
+	})
+	if err != nil {
+		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild")
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to ensure guild: %w", err)
+	}
+
+	return nil
 }

@@ -7,12 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	int64Base    = 10
-	int64BitSize = 64
-)
-
-// GET/api/guild/:guildID
+// GET /api/guild/:guildID
 func getGuild(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireMutualGuild(ctx, func(ctx *gin.Context) {
@@ -71,8 +66,28 @@ func getGuild(ctx *gin.Context) {
 			discordGuild.Roles = roles
 			discordGuild.Emojis = emojis
 
+			welcomerMembership, err := hasWelcomerMembership(discordGuild.ID)
+			if err != nil {
+				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
+			}
+
+			guildConfig, err := backend.Database.GetGuild(backend.ctx, int64(discordGuild.ID))
+			if err != nil {
+				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting guild settings")
+			}
+
 			guild := Guild{
-				Guild: discordGuild,
+				Guild: GuildToPartial(discordGuild),
+
+				HasMembership: welcomerMembership,
+
+				CreatedAt:    guildConfig.CreatedAt,
+				UpdatedAt:    guildConfig.UpdatedAt,
+				EmbedColour:  int(guildConfig.EmbedColour),
+				SplashURL:    guildConfig.SiteSplashUrl,
+				StaffVisible: guildConfig.SiteStaffVisible,
+				GuildVisible: guildConfig.SiteGuildVisible,
+				AllowInvites: guildConfig.SiteAllowInvites,
 			}
 
 			ctx.JSON(http.StatusOK, BaseResponse{

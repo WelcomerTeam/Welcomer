@@ -313,10 +313,13 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	router.Use(sessions.Sessions("session", b.Store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	registerSessionRoutes(router)
 	registerExampleRoutes(router)
+
+	registerSessionRoutes(router)
 	registerUserRoutes(router)
+
 	registerGuildRoutes(router)
+	registerGuildSettingsWelcomerRoutes(router)
 
 	return router
 }
