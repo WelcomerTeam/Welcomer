@@ -38,6 +38,12 @@ func IsValidHex(str string, allowAlpha bool) bool {
 	return err == nil
 }
 
+func IsValidBackground(s string) bool {
+	_, err := ParseBackground(s)
+
+	return err == nil
+}
+
 func IsValidEmbed(s string) bool {
 	var upe UserProvidedEmbed
 
