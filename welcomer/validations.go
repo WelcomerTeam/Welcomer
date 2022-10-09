@@ -22,6 +22,12 @@ func IsValidColour(str string) bool {
 	return err == nil
 }
 
+func IsValidInteger(str string) bool {
+	_, err := strconv.ParseInt(str, int64Base, int64BitSize)
+
+	return err == nil
+}
+
 func IsValidHex(str string, allowAlpha bool) bool {
 	if len(str) != 6 && (!allowAlpha || len(str) != 8) {
 		return false
