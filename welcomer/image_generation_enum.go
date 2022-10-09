@@ -11,6 +11,73 @@ import (
 )
 
 const (
+	// BackgroundTypeDefault is a BackgroundType of type Default.
+	BackgroundTypeDefault BackgroundType = iota
+	// BackgroundTypeWelcomer is a BackgroundType of type Welcomer.
+	BackgroundTypeWelcomer
+	// BackgroundTypeSolid is a BackgroundType of type Solid.
+	BackgroundTypeSolid
+	// BackgroundTypeSolidProfile is a BackgroundType of type SolidProfile.
+	BackgroundTypeSolidProfile
+	// BackgroundTypeUnsplash is a BackgroundType of type Unsplash.
+	BackgroundTypeUnsplash
+	// BackgroundTypeUrl is a BackgroundType of type Url.
+	BackgroundTypeUrl
+)
+
+const _BackgroundTypeName = "defaultwelcomersolidsolidProfileunsplashurl"
+
+var _BackgroundTypeMap = map[BackgroundType]string{
+	BackgroundTypeDefault:      _BackgroundTypeName[0:7],
+	BackgroundTypeWelcomer:     _BackgroundTypeName[7:15],
+	BackgroundTypeSolid:        _BackgroundTypeName[15:20],
+	BackgroundTypeSolidProfile: _BackgroundTypeName[20:32],
+	BackgroundTypeUnsplash:     _BackgroundTypeName[32:40],
+	BackgroundTypeUrl:          _BackgroundTypeName[40:43],
+}
+
+// String implements the Stringer interface.
+func (x BackgroundType) String() string {
+	if str, ok := _BackgroundTypeMap[x]; ok {
+		return str
+	}
+	return fmt.Sprintf("BackgroundType(%d)", x)
+}
+
+var _BackgroundTypeValue = map[string]BackgroundType{
+	_BackgroundTypeName[0:7]:   BackgroundTypeDefault,
+	_BackgroundTypeName[7:15]:  BackgroundTypeWelcomer,
+	_BackgroundTypeName[15:20]: BackgroundTypeSolid,
+	_BackgroundTypeName[20:32]: BackgroundTypeSolidProfile,
+	_BackgroundTypeName[32:40]: BackgroundTypeUnsplash,
+	_BackgroundTypeName[40:43]: BackgroundTypeUrl,
+}
+
+// ParseBackgroundType attempts to convert a string to a BackgroundType.
+func ParseBackgroundType(name string) (BackgroundType, error) {
+	if x, ok := _BackgroundTypeValue[name]; ok {
+		return x, nil
+	}
+	return BackgroundType(0), fmt.Errorf("%s is not a valid BackgroundType", name)
+}
+
+// MarshalText implements the text marshaller method.
+func (x BackgroundType) MarshalText() ([]byte, error) {
+	return []byte(x.String()), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *BackgroundType) UnmarshalText(text []byte) error {
+	name := string(text)
+	tmp, err := ParseBackgroundType(name)
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// ImageAlignmentLeft is a ImageAlignment of type Left.
 	ImageAlignmentLeft ImageAlignment = iota
 	// ImageAlignmentCenter is a ImageAlignment of type Center.

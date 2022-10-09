@@ -11,6 +11,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	plugins "github.com/WelcomerTeam/Welcomer/welcomer/plugins"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -59,7 +60,7 @@ func (w *Welcomer) Register() (err error) {
 
 	// Register cogs
 
-	w.Bot.MustRegisterCog(NewPogCog())
+	w.Bot.MustRegisterCog(plugins.NewPogCog())
 
 	// Register events
 
