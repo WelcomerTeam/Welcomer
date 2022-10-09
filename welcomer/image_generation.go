@@ -81,7 +81,7 @@ func ParseBackground(str string) (*Background, error) {
 				Type:  BackgroundTypeSolidProfile,
 				Value: "",
 			}, nil
-		} else if isValidColour(value) {
+		} else if IsValidColour(value) {
 			return &Background{
 				Type:  BackgroundTypeSolid,
 				Value: value,
@@ -91,7 +91,7 @@ func ParseBackground(str string) (*Background, error) {
 		// extract value
 		value := strings.TrimPrefix(str, UnsplashPrefix)
 
-		if isValidUnsplashID(value) {
+		if IsValidUnsplashID(value) {
 			return &Background{
 				Type:  BackgroundTypeUnsplash,
 				Value: value,
@@ -206,7 +206,7 @@ func ParseColour(str string, defaultValue string) (*Colour, error) {
 		}
 	default:
 		str = strings.TrimPrefix(str, "#")
-		if isValidHex(str, true) {
+		if IsValidHex(str, true) {
 			// We can assume these values are ints due to isValidHex.
 			colourR, _ := strconv.ParseInt(strings.TrimSpace(str[0:1]), hexBase, int64BitSize)
 			colourG, _ := strconv.ParseInt(strings.TrimSpace(str[2:3]), hexBase, int64BitSize)
