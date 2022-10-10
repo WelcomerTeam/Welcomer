@@ -3,10 +3,10 @@ module github.com/WelcomerTeam/Website-Backend
 go 1.18
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20220826105320-36c39f5826df
+	github.com/WelcomerTeam/Discord v0.0.0-20221010221041-45e51a580888
 	github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220802210957-3650b8eb6437
-	github.com/WelcomerTeam/Welcomer v0.0.0-20221009213828-46d6bbab9c7b
+	github.com/WelcomerTeam/Welcomer v0.0.0-20221010123913-99e60f45b670
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-contrib/logger v0.2.2
@@ -17,6 +17,7 @@ require (
 	github.com/jackc/pgtype v1.12.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/joho/godotenv v1.4.0
+	github.com/json-iterator/go v1.1.12
 	github.com/rs/zerolog v1.28.0
 	github.com/savsgio/gotils v0.0.0-20220530130905-52f3993e8d6d
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
@@ -51,7 +52,6 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.1 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lithammer/fuzzysearch v1.1.5 // indirect
