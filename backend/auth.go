@@ -36,6 +36,34 @@ func init() {
 	gob.Register(SessionUser{})
 }
 
+func hasElevation(discordGuild *discord.Guild, user SessionUser) bool {
+	if discordGuild.OwnerID == &user.ID {
+		return true
+	}
+
+	if discordGuild.Permissions != nil {
+		permissions := *discordGuild.Permissions
+		permissions &= discord.PermissionElevated
+
+		if permissions != 0 {
+			return true
+		}
+	}
+
+	// Backdoor here :)
+
+	return false
+}
+
+func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
+	guild, ok := user.Guilds[guildID]
+	if !ok {
+		return false
+	}
+
+	return guild.IsOwner || guild.HasElevation
+}
+
 func checkToken(ctx context.Context, config *oauth2.Config, token *oauth2.Token) (newToken *oauth2.Token, changed bool, err error) {
 	source := OAuth2Config.TokenSource(backend.ctx, token)
 
@@ -114,8 +142,6 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 
 // RequireGuildIDKey returns BadRequest if the request does not supply a guildID. Sets GuildID key.
 func requireGuildIDKey(ctx *gin.Context, handler gin.HandlerFunc) {
-	// Extract GuildID from URL and verify
-
 	rawGuildID := ctx.Param(GuildIDKey)
 
 	guildIDInt, err := strconv.ParseInt(rawGuildID, int64Base, int64BitSize)
@@ -207,7 +233,28 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 // RequireGuildElevation checks if a user has privileges on a guild.
 func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 	requireMutualGuild(ctx, func(ctx *gin.Context) {
-		// TODO
+		session := sessions.Default(ctx)
+
+		user, ok := GetUserSession(session)
+		if !ok {
+			ctx.JSON(http.StatusUnauthorized, BaseResponse{
+				Ok:    false,
+				Error: ErrMissingUser.Error(),
+			})
+
+			return
+		}
+
+		guildID := tryGetGuildID(ctx)
+
+		if !userHasElevation(guildID, user) {
+			ctx.JSON(http.StatusUnauthorized, BaseResponse{
+				Ok:    false,
+				Error: ErrMissingUser.Error(),
+			})
+
+			return
+		}
 
 		handler(ctx)
 	})

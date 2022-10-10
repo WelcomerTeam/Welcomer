@@ -73,7 +73,7 @@ func callback(ctx *gin.Context) {
 		Discriminator: user.Discriminator,
 		Avatar:        user.Avatar,
 
-		Guilds:                make([]*SessionGuild, 0),
+		Guilds:                make(map[discord.Snowflake]*SessionGuild),
 		GuildsLastRequestedAt: time.Time{},
 	}
 

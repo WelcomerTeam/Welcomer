@@ -16,10 +16,17 @@ const (
 	LazyRefreshFrequency    = time.Hour
 )
 
-func (b *Backend) GetUserGuilds(session sessions.Session) (guilds []*SessionGuild, err error) {
+func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Snowflake]*SessionGuild, err error) {
 	token, ok := GetTokenSession(session)
 	if !ok {
 		return nil, ErrMissingToken
+	}
+
+	guilds = make(map[discord.Snowflake]*SessionGuild)
+
+	user, ok := GetUserSession(session)
+	if !ok {
+		return nil, ErrMissingUser
 	}
 
 	httpInterface := discord.NewBaseInterface()
@@ -37,18 +44,22 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds []*SessionGuil
 			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
 		}
 
-		welcomerMembership, err := hasWelcomerMembership(discordGuild.ID)
+		hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(discordGuild.ID)
 		if err != nil {
 			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 		}
 
-		guilds = append(guilds, &SessionGuild{
-			ID:            discordGuild.ID,
-			Name:          discordGuild.Name,
-			Icon:          discordGuild.Icon,
-			HasWelcomer:   welcomerPresence,
-			HasMembership: welcomerMembership,
-		})
+		guilds[discordGuild.ID] = &SessionGuild{
+			ID:          discordGuild.ID,
+			Name:        discordGuild.Name,
+			Icon:        discordGuild.Icon,
+			HasWelcomer: welcomerPresence,
+
+			HasWelcomerPro:       hasWelcomerPro,
+			HasCustomBackgrounds: hasCustomBackgrounds,
+			HasElevation:         hasElevation(discordGuild, user),
+			IsOwner:              discordGuild.Owner,
+		}
 	}
 
 	return guilds, nil
@@ -178,7 +189,7 @@ func usersMeMemberships(ctx *gin.Context) {
 	})
 }
 
-func usersGuild(ctx *gin.Context) {
+func usersGuilds(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		var refreshFrequency time.Duration
 
@@ -194,11 +205,11 @@ func usersGuild(ctx *gin.Context) {
 
 		refresh := time.Since(user.GuildsLastRequestedAt) > refreshFrequency
 
-		var guilds []*SessionGuild
+		var mappedGuilds map[discord.Snowflake]*SessionGuild
 		var err error
 
 		if refresh {
-			guilds, err = backend.GetUserGuilds(session)
+			mappedGuilds, err = backend.GetUserGuilds(session)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok:    false,
@@ -208,17 +219,23 @@ func usersGuild(ctx *gin.Context) {
 				return
 			}
 
-			user.Guilds = guilds
+			user.Guilds = mappedGuilds
 			user.GuildsLastRequestedAt = time.Now()
 
 			SetUserSession(session, user)
+
+			err = session.Save()
+			if err != nil {
+				backend.Logger.Warn().Err(err).Msg("Failed to save session")
+			}
 		} else {
-			guilds = user.Guilds
+			mappedGuilds = user.Guilds
 		}
 
-		err = session.Save()
-		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		guilds := make([]*SessionGuild, 0, len(mappedGuilds))
+
+		for _, guild := range mappedGuilds {
+			guilds = append(guilds, guild)
 		}
 
 		ctx.JSON(http.StatusOK, BaseResponse{
@@ -231,5 +248,5 @@ func usersGuild(ctx *gin.Context) {
 func registerUserRoutes(g *gin.Engine) {
 	g.GET("/api/users/@me", usersMe)
 	g.GET("/api/users/@me/memberships", usersMeMemberships)
-	g.GET("/api/users/guilds", usersGuild)
+	g.GET("/api/users/guilds", usersGuilds)
 }

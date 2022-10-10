@@ -9,7 +9,8 @@ import (
 type Guild struct {
 	Guild *PartialGuild `json:"guild,omitempty"`
 
-	HasMembership bool `json:"has_membership"`
+	HasWelcomerPro       bool `json:"has_welcomer_pro"`
+	HasCustomBackgrounds bool `json:"has_custom_backgrounds"`
 
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
