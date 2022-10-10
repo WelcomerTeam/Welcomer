@@ -52,7 +52,7 @@ type Backend struct {
 	StartTime time.Time      `json:"start_time" yaml:"start_time"`
 
 	configurationMu sync.RWMutex
-	Configuration   *BackendConfiguration `json:"configuration" yaml:"configuration"`
+	Configuration   *Configuration `json:"configuration" yaml:"configuration"`
 
 	RESTInterface discord.RESTInterface
 
@@ -83,8 +83,8 @@ type Backend struct {
 	nginxAddress      string
 }
 
-// BackendConfiguration represents the configuration file.
-type BackendConfiguration struct {
+// Configuration represents the configuration file.
+type Configuration struct {
 	Logging struct {
 		Level              string `json:"level" yaml:"level"`
 		FileLoggingEnabled bool   `json:"file_logging_enabled" yaml:"file_logging_enabled"`
@@ -114,7 +114,7 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 		ConfigurationLocation: configurationLocation,
 
 		configurationMu: sync.RWMutex{},
-		Configuration:   &BackendConfiguration{},
+		Configuration:   &Configuration{},
 
 		RESTInterface: restInterface,
 
@@ -236,7 +236,7 @@ func (b *Backend) GetBasicEventContext() (client *sandwich.EventContext) {
 }
 
 // LoadConfiguration handles loading the configuration file.
-func (b *Backend) LoadConfiguration(path string) (configuration *BackendConfiguration, err error) {
+func (b *Backend) LoadConfiguration(path string) (configuration *Configuration, err error) {
 	b.Logger.Debug().
 		Str("path", path).
 		Msg("Loading configuration")
@@ -252,7 +252,7 @@ func (b *Backend) LoadConfiguration(path string) (configuration *BackendConfigur
 		return configuration, ErrReadConfigurationFailure
 	}
 
-	configuration = &BackendConfiguration{}
+	configuration = &Configuration{}
 
 	err = yaml.Unmarshal(file, configuration)
 	if err != nil {
@@ -306,12 +306,13 @@ func (b *Backend) PrepareGin() *gin.Engine {
 
 	_ = router.SetTrustedProxies(nil)
 
-	router.Use(gin.Recovery())
 	router.Use(logger.SetLogger())
 	router.Use(b.PrometheusHandler.HandlerFunc())
 	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))
 	router.Use(sessions.Sessions("session", b.Store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
+
+	router.Use(gin.Recovery())
 
 	registerExampleRoutes(router)
 
