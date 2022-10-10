@@ -56,3 +56,62 @@ func (q *Queries) DeleteWelcomerBackground(ctx context.Context, imageUuid uuid.U
 	}
 	return result.RowsAffected(), nil
 }
+
+const GetWelcomerBackground = `-- name: GetWelcomerBackground :one
+SELECT
+    image_uuid, created_at, guild_id, filename, filesize, filetype
+FROM
+    guild_settings_welcomer_backgrounds
+WHERE
+    image_uuid = $1
+`
+
+func (q *Queries) GetWelcomerBackground(ctx context.Context, imageUuid uuid.UUID) (*GuildSettingsWelcomerBackgrounds, error) {
+	row := q.db.QueryRow(ctx, GetWelcomerBackground, imageUuid)
+	var i GuildSettingsWelcomerBackgrounds
+	err := row.Scan(
+		&i.ImageUuid,
+		&i.CreatedAt,
+		&i.GuildID,
+		&i.Filename,
+		&i.Filesize,
+		&i.Filetype,
+	)
+	return &i, err
+}
+
+const GetWelcomerBackgroundByGuildID = `-- name: GetWelcomerBackgroundByGuildID :many
+SELECT
+    image_uuid, created_at, guild_id, filename, filesize, filetype
+FROM
+    guild_settings_welcomer_backgrounds
+WHERE
+    guild_id = $1
+`
+
+func (q *Queries) GetWelcomerBackgroundByGuildID(ctx context.Context, guildID int64) ([]*GuildSettingsWelcomerBackgrounds, error) {
+	rows, err := q.db.Query(ctx, GetWelcomerBackgroundByGuildID, guildID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GuildSettingsWelcomerBackgrounds{}
+	for rows.Next() {
+		var i GuildSettingsWelcomerBackgrounds
+		if err := rows.Scan(
+			&i.ImageUuid,
+			&i.CreatedAt,
+			&i.GuildID,
+			&i.Filename,
+			&i.Filesize,
+			&i.Filetype,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

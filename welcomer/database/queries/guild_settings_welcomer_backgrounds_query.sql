@@ -4,7 +4,7 @@ INSERT INTO guild_settings_welcomer_backgrounds (image_uuid, created_at, guild_i
 RETURNING
     *;
 
--- GetWelcomerBackground :one
+-- name: GetWelcomerBackground :one
 SELECT
     *
 FROM
@@ -12,7 +12,7 @@ FROM
 WHERE
     image_uuid = $1;
 
--- GetWelcomerBackgroundByGuildID :many
+-- name: GetWelcomerBackgroundByGuildID :many
 SELECT
     *
 FROM

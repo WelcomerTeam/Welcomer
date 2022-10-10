@@ -63,6 +63,8 @@ type Querier interface {
 	GetUserMembershipsByUserID(ctx context.Context, userID int64) ([]*GetUserMembershipsByUserIDRow, error)
 	GetUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (*UserTransactions, error)
 	GetUserTransactionsByUserID(ctx context.Context, userID int64) ([]*UserTransactions, error)
+	GetWelcomerBackground(ctx context.Context, imageUuid uuid.UUID) (*GuildSettingsWelcomerBackgrounds, error)
+	GetWelcomerBackgroundByGuildID(ctx context.Context, guildID int64) ([]*GuildSettingsWelcomerBackgrounds, error)
 	GetWelcomerDMsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerDms, error)
 	GetWelcomerImagesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerImages, error)
 	GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error)
