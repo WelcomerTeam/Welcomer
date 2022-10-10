@@ -40,14 +40,14 @@ type GuildSettingsWelcomerDms struct {
 }
 
 type GuildSettingsWelcomerCustom struct {
-	IDs []string `json:"ids"`
+	CustomBackgroundIDs []string `json:"custom_ids"`
 }
 
 func GuildSettingsWelcomerSettingsToPartial(
 	text *database.GuildSettingsWelcomerText,
 	images *database.GuildSettingsWelcomerImages,
 	dms *database.GuildSettingsWelcomerDms,
-	customIDs []string,
+	Custom *GuildSettingsWelcomerCustom,
 ) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
 		Text: &GuildSettingsWelcomerText{
@@ -74,12 +74,7 @@ func GuildSettingsWelcomerSettingsToPartial(
 			ToggleIncludeImage:  dms.ToggleIncludeImage,
 			MessageFormat:       JSONBToString(dms.MessageFormat),
 		},
-	}
-
-	if len(customIDs) > 0 {
-		partial.Custom = &GuildSettingsWelcomerCustom{
-			IDs: customIDs,
-		}
+		Custom: Custom,
 	}
 
 	return partial

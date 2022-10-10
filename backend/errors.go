@@ -18,6 +18,11 @@ var (
 	ErrEnsureFailure    = errors.New("failed to ensure guild")
 )
 
+// HTTP errors.
+var (
+	ErrInvalidContentType = errors.New("content type not accepted")
+)
+
 // Validation errors.
 var (
 	ErrRequired                 = errors.New("this field is required")
