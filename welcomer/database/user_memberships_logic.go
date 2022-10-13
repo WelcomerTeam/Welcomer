@@ -48,9 +48,7 @@ func isUserMembershipValid(userMembership *GetUserMembershipsByGuildIDRow, time 
 			return false
 		}
 
-		transactionStatus, _ := userMembership.TransactionStatus.Value()
-
-		if transactionStatus != TransactionStatusCompleted {
+		if TransactionStatus(userMembership.TransactionStatus.Int32) != TransactionStatusCompleted {
 			return false
 		}
 	}
