@@ -19,3 +19,6 @@ type PlatformType int32
 
 // ENUM(unknown, pending, completed, refunded)
 type TransactionStatus int32
+
+// ENUM(unknown, PNG, JPG, GIF, WEBP)
+type BackgroundFileType int32

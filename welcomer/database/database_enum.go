@@ -11,6 +11,69 @@ import (
 )
 
 const (
+	// BackgroundFileTypeUnknown is a BackgroundFileType of type Unknown.
+	BackgroundFileTypeUnknown BackgroundFileType = iota
+	// BackgroundFileTypePNG is a BackgroundFileType of type PNG.
+	BackgroundFileTypePNG
+	// BackgroundFileTypeJPG is a BackgroundFileType of type JPG.
+	BackgroundFileTypeJPG
+	// BackgroundFileTypeGIF is a BackgroundFileType of type GIF.
+	BackgroundFileTypeGIF
+	// BackgroundFileTypeWEBP is a BackgroundFileType of type WEBP.
+	BackgroundFileTypeWEBP
+)
+
+const _BackgroundFileTypeName = "unknownPNGJPGGIFWEBP"
+
+var _BackgroundFileTypeMap = map[BackgroundFileType]string{
+	BackgroundFileTypeUnknown: _BackgroundFileTypeName[0:7],
+	BackgroundFileTypePNG:     _BackgroundFileTypeName[7:10],
+	BackgroundFileTypeJPG:     _BackgroundFileTypeName[10:13],
+	BackgroundFileTypeGIF:     _BackgroundFileTypeName[13:16],
+	BackgroundFileTypeWEBP:    _BackgroundFileTypeName[16:20],
+}
+
+// String implements the Stringer interface.
+func (x BackgroundFileType) String() string {
+	if str, ok := _BackgroundFileTypeMap[x]; ok {
+		return str
+	}
+	return fmt.Sprintf("BackgroundFileType(%d)", x)
+}
+
+var _BackgroundFileTypeValue = map[string]BackgroundFileType{
+	_BackgroundFileTypeName[0:7]:   BackgroundFileTypeUnknown,
+	_BackgroundFileTypeName[7:10]:  BackgroundFileTypePNG,
+	_BackgroundFileTypeName[10:13]: BackgroundFileTypeJPG,
+	_BackgroundFileTypeName[13:16]: BackgroundFileTypeGIF,
+	_BackgroundFileTypeName[16:20]: BackgroundFileTypeWEBP,
+}
+
+// ParseBackgroundFileType attempts to convert a string to a BackgroundFileType.
+func ParseBackgroundFileType(name string) (BackgroundFileType, error) {
+	if x, ok := _BackgroundFileTypeValue[name]; ok {
+		return x, nil
+	}
+	return BackgroundFileType(0), fmt.Errorf("%s is not a valid BackgroundFileType", name)
+}
+
+// MarshalText implements the text marshaller method.
+func (x BackgroundFileType) MarshalText() ([]byte, error) {
+	return []byte(x.String()), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *BackgroundFileType) UnmarshalText(text []byte) error {
+	name := string(text)
+	tmp, err := ParseBackgroundFileType(name)
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// MembershipStatusUnknown is a MembershipStatus of type Unknown.
 	MembershipStatusUnknown MembershipStatus = iota
 	// MembershipStatusIdle is a MembershipStatus of type Idle.
