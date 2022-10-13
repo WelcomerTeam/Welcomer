@@ -33,4 +33,9 @@ var (
 	ErrInvalidImageAlignment    = errors.New("image alignment is not recognised")
 	ErrInvalidImageTheme        = errors.New("image theme is not recognised")
 	ErrInvalidProfileBorderType = errors.New("profile border type is not recognised")
+
+	ErrBackgroundTooLarge = errors.New("background size is too large")
+	ErrFileSizeTooLarge   = errors.New("this file has an image resolution that is too high")
+	ErrFileNotSupported   = errors.New("this file format is not supported")
+	ErrConversionFailed   = errors.New("failed to convert background")
 )

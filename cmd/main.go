@@ -42,6 +42,8 @@ func main() {
 	clientSecret := flag.String("clientSecret", os.Getenv("CLIENT_SECRET"), "OAuth2 Client Secret")
 	redirectURL := flag.String("redirectURL", os.Getenv("REDIRECT_URL"), "OAuth2 Redirect URL")
 
+	cdnCustomBackgroundsPath := flag.String("cdnCustomBackgrounds", os.Getenv("CDN_CUSTOM_BACKGROUNDS_PATH"), "Absolute path to custom backgrounds in")
+
 	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
 
 	flag.Parse()
@@ -75,7 +77,8 @@ func main() {
 	// Setup app.
 	app, err := backend.NewBackend(
 		grpcConnection, restInterface, writer, *isRelease, *configurationLocation, *host,
-		*botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress, *clientID, *clientSecret, *redirectURL)
+		*botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress, *clientID, *clientSecret, *redirectURL,
+		*cdnCustomBackgroundsPath)
 	if err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}

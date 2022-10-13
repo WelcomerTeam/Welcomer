@@ -76,6 +76,8 @@ type Backend struct {
 	donatorBotToken   string
 	DonatorBotSession *discord.Session
 
+	cdnCustomBackgroundsPath string
+
 	// Environment Variables.
 	host              string
 	prometheusAddress string
@@ -103,7 +105,7 @@ type Configuration struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress, clientId, clientSecret, redirectURL string) (b *Backend, err error) {
+func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress, clientId, clientSecret, redirectURL, cdnCustomBackgroundsPath string) (b *Backend, err error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
@@ -122,6 +124,8 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
 
 		PrometheusHandler: ginprometheus.NewPrometheus("gin"),
+
+		cdnCustomBackgroundsPath: cdnCustomBackgroundsPath,
 
 		host:              host,
 		botToken:          botToken,

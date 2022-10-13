@@ -4,9 +4,10 @@ go 1.18
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20221010221041-45e51a580888
+	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220802210957-3650b8eb6437
-	github.com/WelcomerTeam/Welcomer v0.0.0-20221010123913-99e60f45b670
+	github.com/WelcomerTeam/Welcomer v0.0.0-20221013224341-eead62d06111
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-contrib/logger v0.2.2
@@ -76,6 +77,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.35 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148 // indirect
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be // indirect
 	golang.org/x/net v0.0.0-20221002022538-bcab6841153b // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect

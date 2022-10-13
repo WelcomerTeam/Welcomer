@@ -66,12 +66,14 @@ github.com/WelcomerTeam/Discord v0.0.0-20220626094547-4a9b2bb12f21/go.mod h1:aPA
 github.com/WelcomerTeam/Discord v0.0.0-20221010221041-45e51a580888 h1:zU1nqXd88BJxoHNmz20sfQievV63Ihd5W3K5plonFf0=
 github.com/WelcomerTeam/Discord v0.0.0-20221010221041-45e51a580888/go.mod h1:aPAozUdVzF46wZmZy9ll5kNP8VJeH+hBjiOl0ankMYM=
 github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15/go.mod h1:4oemQ7XEqKAc1DTtFpWugoE9K5RLjt7iH0emiFXnL/A=
+github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1 h1:oRQxRYf1MXY8RDRmc9deLNPxuX6pN/4FQDeML2Rlfpk=
+github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1/go.mod h1:L8c+jhb6r5usiSeAI9CDnA2Bvs4BYtYV4D0hrWp/wOg=
 github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb h1:tsGTlFuBI557CeZvPsujEORTPT2hnpRqX3yVoocPAmU=
 github.com/WelcomerTeam/Sandwich v0.0.0-20220528115938-548a2c54b6eb/go.mod h1:5rd6sAaQSBXBSR6eoqgFiVIyCf2aGKG9E2th0fE2nhs=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220802210957-3650b8eb6437 h1:8GxRnSfUYnMvjNVTpS+vAhwtqndvjPU6QJCZzYqKkfo=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20220802210957-3650b8eb6437/go.mod h1:Zg+zRlgoO6ykbXKkD+9Nrvu1noLd3wswkIPhE3gstU8=
-github.com/WelcomerTeam/Welcomer v0.0.0-20221010123913-99e60f45b670 h1:f0ldxTO8Z2jQhaQkTQClu4lGXIpXaB4jEc2wZDMttQI=
-github.com/WelcomerTeam/Welcomer v0.0.0-20221010123913-99e60f45b670/go.mod h1:CqvISYpnTSSqtstUbktfYVovhq/9p6AB7E6ZfdY4R7o=
+github.com/WelcomerTeam/Welcomer v0.0.0-20221013224341-eead62d06111 h1:t3VC5gVTpYm1r2YHE+gGXtZb/Yc41cZMIuEyXaoSyCE=
+github.com/WelcomerTeam/Welcomer v0.0.0-20221013224341-eead62d06111/go.mod h1:CqvISYpnTSSqtstUbktfYVovhq/9p6AB7E6ZfdY4R7o=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904/go.mod h1:rCfCrg0xPnEoVKPXk+GNyHgzTWMzJjhnPaAfDe7UPJE=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
@@ -602,6 +604,8 @@ github.com/ugorji/go v1.2.7/go.mod h1:nF9osbDWLy6bDVv/Rtoh6QgnvNDpmCalQV5urGCCS6
 github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLYF3GoBXY=
 github.com/ugorji/go/codec v1.2.7 h1:YPXUKf7fYbp/y8xloBqZOw2qaVggbfwMlI8WM3wZUJ0=
 github.com/ugorji/go/codec v1.2.7/go.mod h1:WGN1fab3R1fzQlVQTkfxVtIBhWDRqOviHU95kRgeqEY=
+github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148 h1:GgcqhvYPYa8Gq+0/McMBTnr7dkHIa6dMx2Cbzn/+JpI=
+github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148/go.mod h1:i+Clhf23O1KGsVN8mTevqTQpnjIf4+KaYuXBjX2urSw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.32.0/go.mod h1:2rsYD01CKFrjjsvFxx75KlEUNpWNBY9JWD3K/7o2Cus=
 github.com/valyala/fasthttp v1.38.0/go.mod h1:t/G+3rLek+CyY9bnIE+YlMRddxVAAGjhxndDB4i4C0I=
