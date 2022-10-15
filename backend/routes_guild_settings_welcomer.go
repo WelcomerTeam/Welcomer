@@ -3,6 +3,7 @@ package backend
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"image/jpeg"
 	"image/png"
@@ -10,14 +11,15 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer"
 	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -224,9 +226,22 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 									Str("mimetype", mimeType).
 									Msg("Failed to upload custom welcomer background")
 
-								ctx.JSON(http.StatusInternalServerError, BaseResponse{
+								var code int
+
+								switch {
+								case errors.Is(err, ErrBackgroundTooLarge),
+									errors.Is(err, ErrFileSizeTooLarge),
+									errors.Is(err, ErrFileNotSupported),
+									errors.Is(err, ErrConversionFailed):
+									code = http.StatusBadRequest
+								default:
+									err = ErrConversionFailed
+									code = http.StatusInternalServerError
+								}
+
+								ctx.JSON(code, BaseResponse{
 									Ok:    false,
-									Error: ErrConversionFailed.Error(),
+									Error: err.Error(),
 								})
 
 								return
@@ -235,6 +250,38 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 							// Set background name from custom:upload to custom:00000000-0000-0000-0000-000000000000
 							// depending on uploaded file.
 							welcomerImages.BackgroundName = welcomer.CustomBackgroundPrefix + res.ImageUuid.String()
+
+							// Remove previous welcome images
+							backgrounds, err := backend.Database.GetWelcomerBackgroundByGuildID(ctx, int64(guildID))
+							if err == nil {
+								for _, background := range backgrounds {
+									if background.ImageUuid == res.ImageUuid {
+										continue
+									}
+
+									err = welcomerRemoveBackgound(background.Filename)
+									if err != nil {
+										backend.Logger.Warn().
+											Err(err).
+											Int64("guild_id", int64(guildID)).
+											Str("filename", background.Filename).
+											Msg("Failed to remove background file")
+
+										continue
+									}
+
+									_, err = backend.Database.DeleteWelcomerBackground(ctx, background.ImageUuid)
+									if err != nil {
+										backend.Logger.Warn().
+											Err(err).
+											Int64("guild_id", int64(guildID)).
+											Str("filename", background.Filename).
+											Msg("Failed to remove background database entry")
+
+										continue
+									}
+								}
+							}
 						default:
 							backend.Logger.Info().
 								Int64("guild_id", int64(guildID)).
@@ -293,6 +340,23 @@ func getGuildWelcomerPreview(ctx *gin.Context) {
 	println(rawKey)
 }
 
+func welcomerRemoveBackgound(fileName string) error {
+	filePath, err := securejoin.SecureJoin(backend.cdnCustomBackgroundsPath, fileName)
+	if err != nil {
+		return err
+	}
+
+	backend.Logger.Info().Str("path", filePath).Msg("Removing welcomer background")
+
+	// Try to remove file. Do not raise error if we get the IsNotExists error!
+	err = os.Remove(filePath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	return nil
+}
+
 func welcomerStoreCustomBackground(fileBytes []byte, guildID discord.Snowflake, fileExtension string) (string, int, error) {
 	fileUUID, err := uuid.NewV4()
 	if err != nil {
@@ -300,7 +364,13 @@ func welcomerStoreCustomBackground(fileBytes []byte, guildID discord.Snowflake, 
 	}
 
 	fileName := fmt.Sprintf("%s.%s.%s", fileUUID, strconv.Itoa(int(guildID)), fileExtension)
-	filePath := path.Join(backend.cdnCustomBackgroundsPath, fileName)
+
+	filePath, err := securejoin.SecureJoin(backend.cdnCustomBackgroundsPath, fileName)
+	if err != nil {
+		return "", -1, err
+	}
+
+	backend.Logger.Info().Str("path", filePath).Msg("Creating welcomer background")
 
 	f, err := os.Create(filePath)
 	if err != nil {
@@ -312,19 +382,31 @@ func welcomerStoreCustomBackground(fileBytes []byte, guildID discord.Snowflake, 
 		return "", -1, err
 	}
 
+	backend.Logger.Info().Str("path", filePath).Int("bytes", fileSize).Msg("Wrote welcomer background")
+
 	return fileName, fileSize, nil
 }
 
-func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.Reader) (*database.GuildSettingsWelcomerBackgrounds, error) {
+func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker) (*database.GuildSettingsWelcomerBackgrounds, error) {
+	start := time.Now()
+
+	backend.Logger.Info().Int64("size", file.Size).Msg("Recoding image")
+
 	recoderResult, err := recoder.RecodeImage(fileBytes, RecoderQuantizationAttributes)
 	if err != nil {
 		return nil, err
 	}
 
-	buf := bytes.NewBuffer(nil)
-	buf.ReadFrom(recoderResult)
+	backend.Logger.Info().Dur("time", time.Since(start)).Msg("Recoded image successfully")
 
-	fileName, size, err := welcomerStoreCustomBackground(buf.Bytes(), guildID, "gif")
+	buf := bytes.NewBuffer(nil)
+
+	_, err = buf.ReadFrom(recoderResult)
+	if err != nil {
+		return nil, err
+	}
+
+	fileName, fileSize, err := welcomerStoreCustomBackground(buf.Bytes(), guildID, "gif")
 	if err != nil {
 		return nil, err
 	}
@@ -332,25 +414,33 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	return backend.Database.CreateWelcomerBackground(ctx, &database.CreateWelcomerBackgroundParams{
 		GuildID:  int64(guildID),
 		Filename: fileName,
-		Filesize: int32(size),
+		Filesize: int32(fileSize),
 		Filetype: database.BackgroundFileTypeGIF.String(),
 	})
 }
 
-func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.Reader) (*database.GuildSettingsWelcomerBackgrounds, error) {
+func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker) (*database.GuildSettingsWelcomerBackgrounds, error) {
 	// Validate file and get size
 	img, err := png.Decode(fileBytes)
 	if err != nil {
 		return nil, err
 	}
 
+	_, _ = fileBytes.Seek(0, 0)
+
 	// Validate image resolution
 	imageSize := img.Bounds().Size()
 	if (imageSize.X * imageSize.Y) > MaxFileResolution {
+		backend.Logger.Info().
+			Int("width", imageSize.X).Int("height", imageSize.Y).
+			Int("total", (imageSize.X*imageSize.Y)).Int("max", MaxFileResolution).
+			Msg("Rejected image due to resolution")
+
 		return nil, ErrFileSizeTooLarge
 	}
 
 	buf := bytes.NewBuffer(nil)
+
 	_, err = buf.ReadFrom(fileBytes)
 	if err != nil {
 		return nil, err
@@ -369,26 +459,34 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 	})
 }
 
-func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.Reader) (*database.GuildSettingsWelcomerBackgrounds, error) {
+func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker) (*database.GuildSettingsWelcomerBackgrounds, error) {
 	// Validate file and get size
 	img, err := jpeg.Decode(fileBytes)
 	if err != nil {
 		return nil, err
 	}
 
+	_, _ = fileBytes.Seek(0, 0)
+
 	// Validate image resolution
 	imageSize := img.Bounds().Size()
 	if (imageSize.X * imageSize.Y) > MaxFileResolution {
+		backend.Logger.Info().
+			Int("width", imageSize.X).Int("height", imageSize.Y).
+			Int("total", (imageSize.X*imageSize.Y)).Int("max", MaxFileResolution).
+			Msg("Rejected image due to resolution")
+
 		return nil, ErrFileSizeTooLarge
 	}
 
 	buf := bytes.NewBuffer(nil)
+
 	_, err = buf.ReadFrom(fileBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	fileName, size, err := welcomerStoreCustomBackground(buf.Bytes(), guildID, "jpg")
+	fileName, fileSize, err := welcomerStoreCustomBackground(buf.Bytes(), guildID, "jpg")
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +494,7 @@ func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Sno
 	return backend.Database.CreateWelcomerBackground(ctx, &database.CreateWelcomerBackgroundParams{
 		GuildID:  int64(guildID),
 		Filename: fileName,
-		Filesize: int32(size),
+		Filesize: int32(fileSize),
 		Filetype: database.BackgroundFileTypeJPG.String(),
 	})
 }
