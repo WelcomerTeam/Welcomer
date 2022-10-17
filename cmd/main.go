@@ -42,7 +42,8 @@ func main() {
 	clientSecret := flag.String("clientSecret", os.Getenv("CLIENT_SECRET"), "OAuth2 Client Secret")
 	redirectURL := flag.String("redirectURL", os.Getenv("REDIRECT_URL"), "OAuth2 Redirect URL")
 
-	cdnCustomBackgroundsPath := flag.String("cdnCustomBackgrounds", os.Getenv("CDN_CUSTOM_BACKGROUNDS_PATH"), "Absolute path to custom backgrounds in")
+	cdnCustomBackgroundsPath := flag.String("cdnCustomBackgroundsPath", os.Getenv("CDN_CUSTOM_BACKGROUNDS_PATH"), "Absolute path to custom backgrounds")
+	cdnBackgroundsPath := flag.String("cdnackgroundsPath", os.Getenv("CDN_BACKGROUNDS_PATH"), "Absolute path to backgrounds")
 
 	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
 
@@ -78,7 +79,7 @@ func main() {
 	app, err := backend.NewBackend(
 		grpcConnection, restInterface, writer, *isRelease, *configurationLocation, *host,
 		*botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress, *clientID, *clientSecret, *redirectURL,
-		*cdnCustomBackgroundsPath)
+		*cdnCustomBackgroundsPath, *cdnBackgroundsPath)
 	if err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}

@@ -3,6 +3,7 @@ package backend
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"image/jpeg"
@@ -12,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -23,7 +23,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
+	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
+
+//go:embed imageFailure.png
+var imageFailure []byte
 
 const (
 	MaxBackgroundSize = 20000000
@@ -323,21 +327,52 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 	})
 }
 
-// GET /api/guild/:guildID/welcomer/background/:key
+// GET /api/welcomer/preview/:key
 func getGuildWelcomerPreview(ctx *gin.Context) {
-	rawKey := ctx.Param(KeyKey)
+	key := ctx.Param(KeyKey)
 
-	if strings.TrimSpace(rawKey) == "" {
-		ctx.JSON(http.StatusBadRequest, BaseResponse{
-			Ok:    false,
-			Error: fmt.Sprintf(ErrMissingParameter.Error(), KeyKey),
-			Data:  nil,
-		})
+	uuid := uuid.UUID{}
+
+	err := uuid.UnmarshalText(gotils_strconv.S2B(key))
+	if err != nil {
+		backend.Logger.Info().
+			Str("key", key).Msg("Failed to unmarshal key to uuid")
+
+		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
 
 		return
 	}
 
-	println(rawKey)
+	background, err := backend.Database.GetWelcomerBackground(ctx, uuid)
+	if err != nil {
+		backend.Logger.Info().Str("key", key).Msg("Failed to find welcomer background with key")
+
+		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
+
+		return
+	}
+
+	path, err := securejoin.SecureJoin(backend.cdnCustomBackgroundsPath, background.Filename)
+	if err != nil {
+		backend.Logger.Info().
+			Str("path", backend.cdnCustomBackgroundsPath).
+			Str("filename", background.Filename).
+			Msg("Failed to secure join")
+
+		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
+
+		return
+	}
+
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		backend.Logger.Info().Str("key", key).Str("path", path).Msg("File does not exist")
+
+		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
+
+		return
+	}
+
+	ctx.File(path)
 }
 
 func welcomerRemoveBackgound(fileName string) error {

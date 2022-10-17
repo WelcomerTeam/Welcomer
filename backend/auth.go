@@ -260,14 +260,6 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 	})
 }
 
-// tryGetKey returns Key from context. Panics if it cannot find.
-func tryGetKey(ctx *gin.Context) string {
-	rawKey, _ := ctx.Get(KeyKey)
-	key, _ := rawKey.(string)
-
-	return key
-}
-
 // tryGetGuildID returns GuildID from context. Panics if it cannot find.
 func tryGetGuildID(ctx *gin.Context) discord.Snowflake {
 	rawGuildID, _ := ctx.Get(GuildIDKey)
