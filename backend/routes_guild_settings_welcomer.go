@@ -150,149 +150,77 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 						backend.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 					}
 
-					// We should probably return an error if they are not actually allowed to
-					// upload custom backgrounds, but for now it will silently fail.
-					if hasWelcomerPro || hasCustomBackgrounds {
-						if file.Size > MaxBackgroundSize {
-							ctx.JSON(http.StatusBadRequest, BaseResponse{
-								Ok:    false,
-								Error: ErrBackgroundTooLarge.Error(),
-							})
+					if !hasWelcomerPro && !hasCustomBackgrounds {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: ErrCannotUseCustomBackgrounds.Error(),
+						})
 
-							return
-						}
+						return
+					}
 
-						fileOpen, err := file.Open()
-						if err != nil {
-							ctx.JSON(http.StatusInternalServerError, BaseResponse{
-								Ok:    false,
-								Error: ErrConversionFailed.Error(),
-							})
+					if file.Size > MaxBackgroundSize {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: ErrBackgroundTooLarge.Error(),
+						})
 
-							return
-						}
+						return
+					}
 
-						defer fileOpen.Close()
+					fileOpen, err := file.Open()
+					if err != nil {
+						ctx.JSON(http.StatusInternalServerError, BaseResponse{
+							Ok:    false,
+							Error: ErrConversionFailed.Error(),
+						})
 
-						var fileBytes bytes.Buffer
+						return
+					}
 
-						_, err = fileBytes.ReadFrom(fileOpen)
-						if err != nil {
-							ctx.JSON(http.StatusInternalServerError, BaseResponse{
-								Ok:    false,
-								Error: ErrConversionFailed.Error(),
-							})
+					defer fileOpen.Close()
 
-							return
-						}
+					var fileBytes bytes.Buffer
 
-						_, err = fileOpen.Seek(0, 0)
-						if err != nil {
-							ctx.JSON(http.StatusInternalServerError, BaseResponse{
-								Ok:    false,
-								Error: ErrConversionFailed.Error(),
-							})
+					_, err = fileBytes.ReadFrom(fileOpen)
+					if err != nil {
+						ctx.JSON(http.StatusInternalServerError, BaseResponse{
+							Ok:    false,
+							Error: ErrConversionFailed.Error(),
+						})
 
-							return
-						}
+						return
+					}
 
-						mimeType := http.DetectContentType(fileBytes.Bytes())
+					_, err = fileOpen.Seek(0, 0)
+					if err != nil {
+						ctx.JSON(http.StatusInternalServerError, BaseResponse{
+							Ok:    false,
+							Error: ErrConversionFailed.Error(),
+						})
 
-						var res *database.GuildSettingsWelcomerBackgrounds
+						return
+					}
 
-						switch mimeType {
-						case MIMEGIF, MIMEPNG, MIMEJPEG:
-							switch {
-							case mimeType == MIMEGIF && hasWelcomerPro:
-								res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, file, fileOpen)
-							case mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
-								// We will still accept GIFs if they do not have Welcomer Pro, however
-								// they will be converted to PNG. This saves having to extract the first
-								// frame every time we try to generate the resulting welcome image.
-								// If you do not like this, get Welcomer Pro :)
-								// It helps me out.
-								res, err = welcomerCustomBackgroundsUploadPNG(ctx, guildID, file, fileOpen)
-							case mimeType == MIMEJPEG:
-								res, err = welcomerCustomBackgroundsUploadJPG(ctx, guildID, file, fileOpen)
-							default:
-								ctx.JSON(http.StatusBadRequest, BaseResponse{
-									Ok:    false,
-									Error: ErrFileNotSupported.Error(),
-								})
+					mimeType := http.DetectContentType(fileBytes.Bytes())
 
-								return
-							}
+					var res *database.GuildSettingsWelcomerBackgrounds
 
-							if err != nil {
-								backend.Logger.Error().Err(err).
-									Int64("guild_id", int64(guildID)).
-									Int64("filesize", file.Size).
-									Str("mimetype", mimeType).
-									Msg("Failed to upload custom welcomer background")
-
-								var code int
-
-								switch {
-								case errors.Is(err, ErrBackgroundTooLarge),
-									errors.Is(err, ErrFileSizeTooLarge),
-									errors.Is(err, ErrFileNotSupported),
-									errors.Is(err, ErrConversionFailed):
-									code = http.StatusBadRequest
-								default:
-									err = ErrConversionFailed
-									code = http.StatusInternalServerError
-								}
-
-								ctx.JSON(code, BaseResponse{
-									Ok:    false,
-									Error: err.Error(),
-								})
-
-								return
-							}
-
-							// Set background name from custom:upload to custom:00000000-0000-0000-0000-000000000000
-							// depending on uploaded file.
-							welcomerImages.BackgroundName = welcomer.CustomBackgroundPrefix + res.ImageUuid.String()
-
-							// Remove previous welcome images
-							backgrounds, err := backend.Database.GetWelcomerBackgroundByGuildID(ctx, int64(guildID))
-							if err == nil {
-								for _, background := range backgrounds {
-									if background.ImageUuid == res.ImageUuid {
-										continue
-									}
-
-									err = welcomerRemoveBackgound(background.Filename)
-									if err != nil {
-										backend.Logger.Warn().
-											Err(err).
-											Int64("guild_id", int64(guildID)).
-											Str("filename", background.Filename).
-											Msg("Failed to remove background file")
-
-										continue
-									}
-
-									_, err = backend.Database.DeleteWelcomerBackground(ctx, background.ImageUuid)
-									if err != nil {
-										backend.Logger.Warn().
-											Err(err).
-											Int64("guild_id", int64(guildID)).
-											Str("filename", background.Filename).
-											Msg("Failed to remove background database entry")
-
-										continue
-									}
-								}
-							}
+					switch mimeType {
+					case MIMEGIF, MIMEPNG, MIMEJPEG:
+						switch {
+						case mimeType == MIMEGIF && hasWelcomerPro:
+							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, file, fileOpen)
+						case mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
+							// We will still accept GIFs if they do not have Welcomer Pro, however
+							// they will be converted to PNG. This saves having to extract the first
+							// frame every time we try to generate the resulting welcome image.
+							// If you do not like this, get Welcomer Pro :)
+							// It helps me out.
+							res, err = welcomerCustomBackgroundsUploadPNG(ctx, guildID, file, fileOpen)
+						case mimeType == MIMEJPEG:
+							res, err = welcomerCustomBackgroundsUploadJPG(ctx, guildID, file, fileOpen)
 						default:
-							backend.Logger.Info().
-								Int64("guild_id", int64(guildID)).
-								Int64("filesize", file.Size).
-								Str("mimetype", mimeType).
-								Msg("Rejected custom welcomer background")
-
 							ctx.JSON(http.StatusBadRequest, BaseResponse{
 								Ok:    false,
 								Error: ErrFileNotSupported.Error(),
@@ -300,6 +228,83 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 							return
 						}
+
+						if err != nil {
+							backend.Logger.Error().Err(err).
+								Int64("guild_id", int64(guildID)).
+								Int64("filesize", file.Size).
+								Str("mimetype", mimeType).
+								Msg("Failed to upload custom welcomer background")
+
+							var code int
+
+							switch {
+							case errors.Is(err, ErrBackgroundTooLarge),
+								errors.Is(err, ErrFileSizeTooLarge),
+								errors.Is(err, ErrFileNotSupported),
+								errors.Is(err, ErrConversionFailed):
+								code = http.StatusBadRequest
+							default:
+								err = ErrConversionFailed
+								code = http.StatusInternalServerError
+							}
+
+							ctx.JSON(code, BaseResponse{
+								Ok:    false,
+								Error: err.Error(),
+							})
+
+							return
+						}
+
+						// Set background name from custom:upload to custom:00000000-0000-0000-0000-000000000000
+						// depending on uploaded file.
+						welcomerImages.BackgroundName = welcomer.CustomBackgroundPrefix + res.ImageUuid.String()
+
+						// Remove previous welcome images
+						backgrounds, err := backend.Database.GetWelcomerBackgroundByGuildID(ctx, int64(guildID))
+						if err == nil {
+							for _, background := range backgrounds {
+								if background.ImageUuid == res.ImageUuid {
+									continue
+								}
+
+								err = welcomerRemoveBackgound(background.Filename)
+								if err != nil {
+									backend.Logger.Warn().
+										Err(err).
+										Int64("guild_id", int64(guildID)).
+										Str("filename", background.Filename).
+										Msg("Failed to remove background file")
+
+									continue
+								}
+
+								_, err = backend.Database.DeleteWelcomerBackground(ctx, background.ImageUuid)
+								if err != nil {
+									backend.Logger.Warn().
+										Err(err).
+										Int64("guild_id", int64(guildID)).
+										Str("filename", background.Filename).
+										Msg("Failed to remove background database entry")
+
+									continue
+								}
+							}
+						}
+					default:
+						backend.Logger.Info().
+							Int64("guild_id", int64(guildID)).
+							Int64("filesize", file.Size).
+							Str("mimetype", mimeType).
+							Msg("Rejected custom welcomer background")
+
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: ErrFileNotSupported.Error(),
+						})
+
+						return
 					}
 				}
 			}

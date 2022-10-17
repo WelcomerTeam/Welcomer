@@ -38,4 +38,6 @@ var (
 	ErrFileSizeTooLarge   = errors.New("this file has an image resolution that is too high")
 	ErrFileNotSupported   = errors.New("this file format is not supported")
 	ErrConversionFailed   = errors.New("failed to convert background")
+
+	ErrCannotUseCustomBackgrounds = errors.New("you cannot upload custom welcomer backgrounds")
 )
