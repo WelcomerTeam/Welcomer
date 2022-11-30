@@ -3,8 +3,9 @@ module github.com/WelcomerTeam/Welcomer/welcomer-gateway
 go 1.18
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20221125141653-240921554909
-	github.com/WelcomerTeam/Sandwich v0.0.0-20221126233312-4d5a894539cf
+	github.com/WelcomerTeam/Discord v0.0.0-20221129152541-6b9f9a5df511
+	github.com/WelcomerTeam/Sandwich v0.0.0-20221130120623-dbe9dba9d876
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20221128125143-3bc244d72648
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/joho/godotenv v1.4.0
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20221122124504-51003afb72e9 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
