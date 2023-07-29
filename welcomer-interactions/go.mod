@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20221130161544-85846f26aceb
-	github.com/WelcomerTeam/Sandwich v0.0.0-20221127123900-413728ad6a19
+	github.com/WelcomerTeam/Sandwich v0.0.0-20221130120623-dbe9dba9d876
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20221128125143-3bc244d72648
-	github.com/WelcomerTeam/Subway v0.0.0-20221130154910-abf16ebc1a6a
+	github.com/WelcomerTeam/Subway v0.0.0-20221130201708-e5f9d189c4de
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/joho/godotenv v1.4.0

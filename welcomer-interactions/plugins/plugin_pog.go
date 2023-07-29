@@ -103,13 +103,24 @@ func (p *GeneralCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "modal_test",
 		Description: "Test modals with submit",
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			println("options:", interaction.Data.CustomID)
-			for i, k := range interaction.Data.Options {
-				println(i, k.Focused, k.Name, k.Type, k.Value)
-				for j, l := range k.Options {
-					println("-", j, l.Name, l.Value)
+			sub.HandleComponent(interaction, "test", 15*time.Minute, func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+				println("options:", interaction.Data.CustomID)
+				for i, k := range interaction.Data.Options {
+					println(i, k.Focused, k.Name, k.Type, k.Value)
+					for j, l := range k.Options {
+						println("-", j, l.Name, l.Value)
+					}
 				}
-			}
+
+				b, _ := jsoniter.Marshal(interaction)
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Content: "```json\n" + string(b) + "```",
+					},
+				}, nil
+			})
 
 			err := interaction.SendResponse(sub.EmptySession, discord.InteractionCallbackTypeModal, &discord.InteractionCallbackData{
 				CustomID: "test",
@@ -123,7 +134,8 @@ func (p *GeneralCog) RegisterCog(sub *subway.Subway) error {
 								Type:     discord.InteractionComponentTypeTextInput,
 								Style:    discord.InteractionComponentStyleShort,
 								CustomID: "name",
-							}},
+							},
+						},
 					}, {
 						Type: discord.InteractionComponentTypeActionRow,
 						Components: []*discord.InteractionComponent{
