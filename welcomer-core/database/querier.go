@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	CreateAutoRolesGuildSettings(ctx context.Context, arg *CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateBorderwallGuildSettings(ctx context.Context, arg *CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
 	CreateBorderwallRequest(ctx context.Context, arg *CreateBorderwallRequestParams) (*BorderwallRequests, error)
 	CreateCommandError(ctx context.Context, arg *CreateCommandErrorParams) (*ScienceCommandErrors, error)
@@ -19,6 +20,7 @@ type Querier interface {
 	CreateGuild(ctx context.Context, arg *CreateGuildParams) (*Guilds, error)
 	CreateLeaverGuildSettings(ctx context.Context, arg *CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error)
 	CreateNewMembership(ctx context.Context, arg *CreateNewMembershipParams) (*UserMemberships, error)
+	CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg *CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
 	CreateOrUpdateBorderwallRequest(ctx context.Context, arg *CreateOrUpdateBorderwallRequestParams) (*BorderwallRequests, error)
 	CreateOrUpdateFreeRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error)
@@ -48,6 +50,7 @@ type Querier interface {
 	CreateWelcomerTextGuildSettings(ctx context.Context, arg *CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error)
 	DeletePatreonUser(ctx context.Context, patreonUserID int64) (int64, error)
 	DeleteWelcomerBackground(ctx context.Context, imageUuid uuid.UUID) (int64, error)
+	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error)
 	GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUID) (*BorderwallRequests, error)
 	GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg *GetBorderwallRequestsByGuildIDUserIDParams) ([]*BorderwallRequests, error)
@@ -74,6 +77,7 @@ type Querier interface {
 	GetWelcomerDMsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerDms, error)
 	GetWelcomerImagesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerImages, error)
 	GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error)
+	UpdateAutoRolesGuildSettings(ctx context.Context, arg *UpdateAutoRolesGuildSettingsParams) (int64, error)
 	UpdateBorderwallGuildSettings(ctx context.Context, arg *UpdateBorderwallGuildSettingsParams) (int64, error)
 	UpdateBorderwallRequest(ctx context.Context, arg *UpdateBorderwallRequestParams) (int64, error)
 	UpdateFreeRolesGuildSettings(ctx context.Context, arg *UpdateFreeRolesGuildSettingsParams) (int64, error)
