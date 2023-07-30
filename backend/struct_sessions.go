@@ -21,6 +21,7 @@ type SessionUser struct {
 	ID                         discord.Snowflake                   `json:"id"`
 	Username                   string                              `json:"username"`
 	Discriminator              string                              `json:"discriminator"`
+	GlobalName                 string                              `json:"global_name"`
 	Avatar                     string                              `json:"avatar"`
 	Guilds                     map[discord.Snowflake]*SessionGuild `json:"guilds"`
 	GuildsLastRequestedAt      time.Time                           `json:"-"`

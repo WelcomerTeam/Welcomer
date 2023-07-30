@@ -40,4 +40,7 @@ var (
 	ErrConversionFailed   = errors.New("failed to convert background")
 
 	ErrCannotUseCustomBackgrounds = errors.New("you cannot upload custom welcomer backgrounds")
+
+	ErrStringTooLong = errors.New("string is too long")
+	ErrListTooLong   = errors.New("list is too long")
 )

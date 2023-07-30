@@ -11,6 +11,7 @@ type MinimalUser struct {
 	ID            discord.Snowflake `json:"id"`
 	Username      string            `json:"username"`
 	Discriminator string            `json:"discriminator"`
+	GlobalName    string            `json:"global_name"`
 	Avatar        string            `json:"avatar"`
 
 	Memberships []*Membership `json:"memberships,omitempty"`
@@ -35,6 +36,7 @@ func SessionUserToMinimal(sessionUser *SessionUser) *MinimalUser {
 		ID:            sessionUser.ID,
 		Username:      sessionUser.Username,
 		Discriminator: sessionUser.Discriminator,
+		GlobalName:    sessionUser.GlobalName,
 		Avatar:        sessionUser.Avatar,
 		Memberships:   sessionUser.Memberships,
 	}

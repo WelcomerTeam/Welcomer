@@ -19,14 +19,14 @@ type store struct {
 var _ Store = new(store)
 
 func NewStore(db *pgxpool.Pool, keyPairs ...[]byte) (Store, error) {
-	p, err := pgxstore.NewPGStoreFromConn(db, keyPairs...)
+	pgStore, err := pgxstore.NewPGStoreFromConn(db, keyPairs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pgstore from pool: %w", err)
 	}
 
-	p.MaxLength(0)
+	pgStore.MaxLength(0)
 
-	return &store{p}, nil
+	return &store{pgStore}, nil
 }
 
 func (s *store) Options(options sessions.Options) {

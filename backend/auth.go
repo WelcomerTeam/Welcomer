@@ -9,7 +9,7 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -278,8 +278,6 @@ func tryGetGuild(ctx *gin.Context) discord.Guild {
 
 // ensureGuild will create or update a guild entry. This requires requireMutualGuild to be called.
 func ensureGuild(ctx *gin.Context, guildID discord.Snowflake) error {
-	contextGuild := tryGetGuild(ctx)
-
 	databaseGuild, err := backend.Database.GetGuild(ctx, int64(guildID))
 	if err != nil {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild")
@@ -287,7 +285,6 @@ func ensureGuild(ctx *gin.Context, guildID discord.Snowflake) error {
 
 	_, err = backend.Database.CreateOrUpdateGuild(ctx, &database.CreateOrUpdateGuildParams{
 		GuildID:          int64(guildID),
-		Name:             contextGuild.Name,
 		EmbedColour:      databaseGuild.EmbedColour,
 		SiteSplashUrl:    databaseGuild.SiteSplashUrl,
 		SiteStaffVisible: databaseGuild.SiteStaffVisible,

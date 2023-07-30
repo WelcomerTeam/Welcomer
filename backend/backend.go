@@ -13,7 +13,7 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
-	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -326,6 +326,14 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerUserRoutes(router)
 
 	registerGuildRoutes(router)
+	registerGuildSettingsRoutes(router)
+
+	registerGuildSettingsBorderwallRoutes(router)
+	registerGuildSettingsFreeRolesRoutes(router)
+	registerGuildSettingsLeaverRoutes(router)
+	registerGuildSettingsRulesRoutes(router)
+	registerGuildSettingsTempChannelsRoutes(router)
+	registerGuildSettingsTimeRolesRoutes(router)
 	registerGuildSettingsWelcomerRoutes(router)
 
 	return router

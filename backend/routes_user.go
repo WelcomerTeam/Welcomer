@@ -105,7 +105,7 @@ func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*M
 	return memberships, nil
 }
 
-// GET /users/@me
+// Route GET /api/users/@me
 func usersMe(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
@@ -138,7 +138,7 @@ func usersMe(ctx *gin.Context) {
 	})
 }
 
-// GET /users/@me/memberships
+// Route GET /api/users/@me/memberships
 func usersMeMemberships(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		var refreshFrequency time.Duration
@@ -189,6 +189,7 @@ func usersMeMemberships(ctx *gin.Context) {
 	})
 }
 
+// ROUTE GET /api/users/guilds
 func usersGuilds(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		var refreshFrequency time.Duration

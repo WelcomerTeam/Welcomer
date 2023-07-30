@@ -17,8 +17,8 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
-	"github.com/WelcomerTeam/Welcomer/welcomer"
-	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -41,7 +41,7 @@ const (
 
 var RecoderQuantizationAttributes = recoder.NewQuantizationAttributes()
 
-// GET /api/guild/:guildID/welcomer
+// Route GET /api/guild/:guildID/welcomer
 func getGuildSettingsWelcomer(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -81,7 +81,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 	})
 }
 
-// POST /api/guild/:guildID/welcomer
+// Route POST /api/guild/:guildID/welcomer
 func setGuildSettingsWelcomer(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -332,7 +332,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 	})
 }
 
-// GET /api/welcomer/preview/:key
+// Route GET /api/welcomer/preview/:key
 func getGuildWelcomerPreview(ctx *gin.Context) {
 	key := ctx.Param(KeyKey)
 

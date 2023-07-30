@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GET /login
+// Route GET /login
 func login(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 
@@ -21,7 +21,7 @@ func login(ctx *gin.Context) {
 	doOAuthAuthorize(session, ctx)
 }
 
-// GET /logout
+// Route GET /logout
 func logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 
@@ -31,7 +31,7 @@ func logout(ctx *gin.Context) {
 	ctx.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
-// POST /callback
+// Route POST /callback
 func callback(ctx *gin.Context) {
 	queryCode := ctx.Query("code")
 	queryState := ctx.Query("state")
@@ -70,6 +70,7 @@ func callback(ctx *gin.Context) {
 	sessionUser := SessionUser{
 		ID:            user.ID,
 		Username:      user.Username,
+		GlobalName:    user.GlobalName,
 		Discriminator: user.Discriminator,
 		Avatar:        user.Avatar,
 

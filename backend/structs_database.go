@@ -25,21 +25,29 @@ func StringPointerToInt64(value *string) int64 {
 	return v
 }
 
-func StringToJSONB(value string) pgtype.JSONB {
+func BytesToJSONB(value []byte) pgtype.JSONB {
 	v := pgtype.JSONB{}
 
-	if value == "" {
-		value = `{}`
+	if len(value) == 0 {
+		value = []byte{123, 125} // {}
 	}
 
-	err := v.Set(gotils_strconv.S2B(value))
+	err := v.Set(value)
 	if err != nil {
-		_ = v.Set(`{}`)
+		_ = v.Set([]byte{123, 125}) // {}
 	}
 
 	return v
 }
 
+func JSONBToBytes(value pgtype.JSONB) []byte {
+	return value.Bytes
+}
+
+func StringToJSONB(value string) pgtype.JSONB {
+	return BytesToJSONB(gotils_strconv.S2B(value))
+}
+
 func JSONBToString(value pgtype.JSONB) string {
-	return gotils_strconv.B2S(value.Bytes)
+	return gotils_strconv.B2S(JSONBToBytes(value))
 }

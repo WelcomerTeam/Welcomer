@@ -4,11 +4,11 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 func hasWelcomerPresence(guildID discord.Snowflake) (ok bool, guild *discord.Guild, err error) {
-	guild, err = backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(), guildID)
+	guild, err = backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext().ToGRPCContext(), guildID)
 
 	if err != nil {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer presence")

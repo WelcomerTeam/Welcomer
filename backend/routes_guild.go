@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GET /api/guild/:guildID
+// Route GET /api/guild/:guildID
 func getGuild(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireMutualGuild(ctx, func(ctx *gin.Context) {
@@ -28,7 +28,7 @@ func getGuild(ctx *gin.Context) {
 				return
 			}
 
-			grpcContext := backend.GetBasicEventContext()
+			grpcContext := backend.GetBasicEventContext().ToGRPCContext()
 
 			channels, err := backend.GRPCInterface.FetchChannelsByName(grpcContext, guildID, "")
 			if err != nil {
@@ -82,8 +82,6 @@ func getGuild(ctx *gin.Context) {
 				HasWelcomerPro:       hasWelcomerPro,
 				HasCustomBackgrounds: hasCustomBackgrounds,
 
-				CreatedAt:    guildConfig.CreatedAt,
-				UpdatedAt:    guildConfig.UpdatedAt,
 				EmbedColour:  int(guildConfig.EmbedColour),
 				SplashURL:    guildConfig.SiteSplashUrl,
 				StaffVisible: guildConfig.SiteStaffVisible,

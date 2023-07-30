@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"github.com/WelcomerTeam/Welcomer/welcomer"
-	"github.com/WelcomerTeam/Welcomer/welcomer/database"
+	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 type GuildSettingsWelcomer struct {
