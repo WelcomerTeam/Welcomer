@@ -328,6 +328,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildRoutes(router)
 	registerGuildSettingsRoutes(router)
 
+	registerGuildSettingsAutoRolesRoutes(router)
 	registerGuildSettingsBorderwallRoutes(router)
 	registerGuildSettingsFreeRolesRoutes(router)
 	registerGuildSettingsLeaverRoutes(router)

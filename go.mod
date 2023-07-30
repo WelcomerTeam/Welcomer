@@ -7,7 +7,7 @@ require (
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich v0.0.0-20221130120623-dbe9dba9d876
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20221128125143-3bc244d72648
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730090715-a56853890718
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730204523-6926abefb917
 	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/gzip v0.0.6

@@ -18,6 +18,8 @@ github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230729232723-8454382f3c5
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230729232723-8454382f3c5d/go.mod h1:1I3/1ppbwu5a23RkKkWCwuRCBgLzj6qE3oa7NqvJ+fE=
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730090715-a56853890718 h1:NmhOst8tYN6n+oBwmosOwbHljO9QgbhwSxRK5fA6Gfc=
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730090715-a56853890718/go.mod h1:1I3/1ppbwu5a23RkKkWCwuRCBgLzj6qE3oa7NqvJ+fE=
+github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730204523-6926abefb917 h1:9bXOpBykSGDVK5tIrU0gJMVA2ameBC7fADD9Vp47W7Y=
+github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730204523-6926abefb917/go.mod h1:1I3/1ppbwu5a23RkKkWCwuRCBgLzj6qE3oa7NqvJ+fE=
 github.com/armon/go-metrics v0.4.1 h1:hR91U9KYmb6bLBYLQjyM+3j+rcd/UhE+G78SFnF8gJA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
