@@ -28,11 +28,11 @@ WHERE
 UPDATE
     guilds
 SET
-    embed_colour = $3,
-    site_splash_url = $4,
-    site_staff_visible = $5,
-    site_guild_visible = $6,
-    site_allow_invites = $7
+    embed_colour = $2,
+    site_splash_url = $3,
+    site_staff_visible = $4,
+    site_guild_visible = $5,
+    site_allow_invites = $6
 WHERE
     guild_id = $1;
 

@@ -106,15 +106,12 @@ type GuildSettingsWelcomerText struct {
 }
 
 type Guilds struct {
-	GuildID          int64     `json:"guild_id"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
-	Name             string    `json:"name"`
-	EmbedColour      int32     `json:"embed_colour"`
-	SiteSplashUrl    string    `json:"site_splash_url"`
-	SiteStaffVisible bool      `json:"site_staff_visible"`
-	SiteGuildVisible bool      `json:"site_guild_visible"`
-	SiteAllowInvites bool      `json:"site_allow_invites"`
+	GuildID          int64  `json:"guild_id"`
+	EmbedColour      int32  `json:"embed_colour"`
+	SiteSplashUrl    string `json:"site_splash_url"`
+	SiteStaffVisible bool   `json:"site_staff_visible"`
+	SiteGuildVisible bool   `json:"site_guild_visible"`
+	SiteAllowInvites bool   `json:"site_allow_invites"`
 }
 
 type PatreonUsers struct {
