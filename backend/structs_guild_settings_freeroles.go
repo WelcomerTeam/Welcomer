@@ -5,8 +5,8 @@ import (
 )
 
 type GuildSettingsFreeRoles struct {
-	ToggleEnabled bool    `json:"enabled"`
-	Roles         []int64 `json:"roles"`
+	ToggleEnabled bool     `json:"enabled"`
+	Roles         []string `json:"roles"`
 }
 
 func GuildSettingsFreeRolesSettingsToPartial(
@@ -14,11 +14,11 @@ func GuildSettingsFreeRolesSettingsToPartial(
 ) *GuildSettingsFreeRoles {
 	partial := &GuildSettingsFreeRoles{
 		ToggleEnabled: freeRoles.ToggleEnabled,
-		Roles:         freeRoles.Roles,
+		Roles:         Int64SliceToString(freeRoles.Roles),
 	}
 
 	if len(partial.Roles) == 0 {
-		partial.Roles = make([]int64, 0)
+		partial.Roles = make([]string, 0)
 	}
 
 	return partial
@@ -28,6 +28,6 @@ func PartialToGuildSettingsFreeRolesSettings(guildID int64, guildSettings *Guild
 	return &database.GuildSettingsFreeroles{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,
-		Roles:         guildSettings.Roles,
+		Roles:         StringSliceToInt64(guildSettings.Roles),
 	}
 }

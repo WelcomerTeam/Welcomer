@@ -51,3 +51,27 @@ func StringToJSONB(value string) pgtype.JSONB {
 func JSONBToString(value pgtype.JSONB) string {
 	return gotils_strconv.B2S(JSONBToBytes(value))
 }
+
+func StringSliceToInt64(value []string) []int64 {
+	r := make([]int64, 0, len(value))
+
+	for _, value_string := range value {
+		v, e := strconv.ParseInt(value_string, int64Base, int64BitSize)
+		if e == nil {
+			r = append(r, v)
+		}
+	}
+
+	return r
+}
+
+func Int64SliceToString(value []int64) []string {
+	r := make([]string, 0, len(value))
+
+	for _, value_int64 := range value {
+		v := strconv.FormatInt(value_int64, int64Base)
+		r = append(r, v)
+	}
+
+	return r
+}

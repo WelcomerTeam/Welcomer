@@ -6,7 +6,7 @@ import (
 
 type GuildSettingsLeaver struct {
 	ToggleEnabled bool   `json:"enabled"`
-	Channel       int64  `json:"channel"`
+	Channel       *string  `json:"channel"`
 	MessageFormat string `json:"message_json"`
 }
 
@@ -15,7 +15,7 @@ func GuildSettingsLeaverSettingsToPartial(
 ) *GuildSettingsLeaver {
 	partial := &GuildSettingsLeaver{
 		ToggleEnabled: leaver.ToggleEnabled,
-		Channel:       leaver.Channel,
+		Channel:       Int64ToStringPointer(leaver.Channel),
 		MessageFormat: JSONBToString(leaver.MessageFormat),
 	}
 
@@ -26,7 +26,7 @@ func PartialToGuildSettingsLeaverSettings(guildID int64, guildSettings *GuildSet
 	return &database.GuildSettingsLeaver{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,
-		Channel:       guildSettings.Channel,
+		Channel:       StringPointerToInt64(guildSettings.Channel),
 		MessageFormat: StringToJSONB(guildSettings.MessageFormat),
 	}
 }
