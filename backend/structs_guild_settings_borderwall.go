@@ -5,7 +5,7 @@ import (
 )
 
 type GuildSettingsBorderwall struct {
-	ToggleEnabled   bool    `json:"toggle_enabled"`
+	ToggleEnabled   bool    `json:"enabled"`
 	MessageVerify   string  `json:"message_verify"`
 	MessageVerified string  `json:"message_verified"`
 	RolesOnJoin     []int64 `json:"roles_on_join"`

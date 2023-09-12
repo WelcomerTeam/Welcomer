@@ -5,7 +5,7 @@ import (
 )
 
 type GuildSettingsFreeRoles struct {
-	ToggleEnabled bool    `json:"toggle_enabled"`
+	ToggleEnabled bool    `json:"enabled"`
 	Roles         []int64 `json:"roles"`
 }
 

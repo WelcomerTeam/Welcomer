@@ -5,7 +5,7 @@ import (
 )
 
 type GuildSettingsTempChannels struct {
-	ToggleEnabled    bool  `json:"toggle_enabled"`
+	ToggleEnabled    bool  `json:"enabled"`
 	ToggleAutopurge  bool  `json:"toggle_autopurge"`
 	ChannelLobby     int64 `json:"channel_lobby"`
 	ChannelCategory  int64 `json:"channel_category"`

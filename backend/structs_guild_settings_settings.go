@@ -5,7 +5,6 @@ import (
 )
 
 type GuildSettingsSettings struct {
-GuildID          int64  `json:"guild_id"`
 	Name             string `json:"name"`
 	EmbedColour      int32  `json:"embed_colour"`
 	SiteSplashUrl    string `json:"site_splash_url"`
