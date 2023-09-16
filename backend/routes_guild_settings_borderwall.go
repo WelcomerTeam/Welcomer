@@ -72,7 +72,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 			borderwall := PartialToGuildSettingsBorderwallSettings(int64(guildID), partial)
 
 			databaseBorderwallGuildSettings := database.CreateOrUpdateBorderwallGuildSettingsParams(*borderwall)
-			borderwall, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, &databaseBorderwallGuildSettings)
+			_, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, &databaseBorderwallGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild borderwall settings")
 			}

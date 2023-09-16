@@ -62,6 +62,9 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 			}
 
 			guildBackgrounds, err := backend.Database.GetWelcomerBackgroundByGuildID(ctx, int64(guildID))
+			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images backgrounds")
+			}
 
 			customIDs := make([]string, 0, len(guildBackgrounds))
 
@@ -310,19 +313,19 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			}
 
 			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(*welcomerText)
-			welcomerText, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, &databaseWelcomerTextGuildSettings)
+			_, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, &databaseWelcomerTextGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer text settings")
 			}
 
 			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
-			welcomerImages, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, &databaseWelcomerImagesGuildSettings)
+			_, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, &databaseWelcomerImagesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
 			}
 
 			databaseWelcomerDMsGuildSettings := database.CreateOrUpdateWelcomerDMsGuildSettingsParams(*welcomerDMs)
-			welcomerDMs, err = backend.Database.CreateOrUpdateWelcomerDMsGuildSettings(ctx, &databaseWelcomerDMsGuildSettings)
+			_, err = backend.Database.CreateOrUpdateWelcomerDMsGuildSettings(ctx, &databaseWelcomerDMsGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
 			}

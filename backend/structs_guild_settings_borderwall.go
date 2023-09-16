@@ -5,7 +5,9 @@ import (
 )
 
 type GuildSettingsBorderwall struct {
-	ToggleEnabled   bool    `json:"enabled"`
+	ToggleEnabled   bool    `json:"toggle_enabled"`
+	ToggleSendDm    bool    `json:"toggle_send_dm"`
+	Channel         *string `json:"channel"`
 	MessageVerify   string  `json:"message_verify"`
 	MessageVerified string  `json:"message_verified"`
 	RolesOnJoin     []int64 `json:"roles_on_join"`
@@ -17,6 +19,8 @@ func GuildSettingsBorderwallSettingsToPartial(
 ) *GuildSettingsBorderwall {
 	partial := &GuildSettingsBorderwall{
 		ToggleEnabled:   borderwall.ToggleEnabled,
+		ToggleSendDm:    borderwall.ToggleSendDm,
+		Channel:         Int64ToStringPointer(borderwall.Channel),
 		MessageVerify:   JSONBToString(borderwall.MessageVerify),
 		MessageVerified: JSONBToString(borderwall.MessageVerified),
 		RolesOnJoin:     borderwall.RolesOnJoin,
@@ -38,6 +42,8 @@ func PartialToGuildSettingsBorderwallSettings(guildID int64, guildSettings *Guil
 	return &database.GuildSettingsBorderwall{
 		GuildID:         guildID,
 		ToggleEnabled:   guildSettings.ToggleEnabled,
+		ToggleSendDm:    guildSettings.ToggleSendDm,
+		Channel:         StringPointerToInt64(guildSettings.Channel),
 		MessageVerify:   StringToJSONB(guildSettings.MessageVerify),
 		MessageVerified: StringToJSONB(guildSettings.MessageVerified),
 		RolesOnJoin:     guildSettings.RolesOnJoin,

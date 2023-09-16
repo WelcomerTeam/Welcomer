@@ -72,7 +72,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			leaver := PartialToGuildSettingsLeaverSettings(int64(guildID), partial)
 
 			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
-			leaver, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, &databaseLeaverGuildSettings)
+			_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, &databaseLeaverGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
 			}

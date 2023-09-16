@@ -268,14 +268,6 @@ func tryGetGuildID(ctx *gin.Context) discord.Snowflake {
 	return guildID
 }
 
-// tryGetGuild returns Guild from context. Panics if it cannot find. Set during requireMutualGuild.
-func tryGetGuild(ctx *gin.Context) discord.Guild {
-	rawGuild, _ := ctx.Get(GuildKey)
-	guild, _ := rawGuild.(discord.Guild)
-
-	return guild
-}
-
 // ensureGuild will create or update a guild entry. This requires requireMutualGuild to be called.
 func ensureGuild(ctx *gin.Context, guildID discord.Snowflake) error {
 	databaseGuild, err := backend.Database.GetGuild(ctx, int64(guildID))

@@ -72,7 +72,7 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 			timeroles := PartialToGuildSettingsTimeRolesSettings(int64(guildID), partial)
 
 			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(*timeroles)
-			timeroles, err = backend.Database.CreateOrUpdateTimeRolesGuildSettings(ctx, &databaseTimeRolesGuildSettings)
+			_, err = backend.Database.CreateOrUpdateTimeRolesGuildSettings(ctx, &databaseTimeRolesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild timeroles settings")
 			}

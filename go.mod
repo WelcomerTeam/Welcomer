@@ -7,8 +7,8 @@ require (
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich v0.0.0-20230914001140-a7a1fd53a02f
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230730204523-6926abefb917
-	github.com/cyphar/filepath-securejoin v0.2.3
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230916182836-2c0dc59b8c66
+	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-contrib/logger v0.2.6
@@ -25,15 +25,15 @@ require (
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
 	github.com/zsais/go-gin-prometheus v0.1.0
 	golang.org/x/oauth2 v0.12.0
-	google.golang.org/grpc v1.58.0
+	google.golang.org/grpc v1.58.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bradfitz/gomemcache v0.0.0-20230611145640-acc696258285 // indirect
-	github.com/bytedance/sonic v1.10.0-rc3 // indirect
+	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874 // indirect
+	github.com/bytedance/sonic v1.10.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.14.1 // indirect
+	github.com/go-playground/validator/v10 v10.15.4 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -72,7 +72,7 @@ require (
 	github.com/nats-io/nkeys v0.4.4 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nats-io/stan.go v0.10.4 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.9 // indirect
+	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
@@ -85,7 +85,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148 // indirect
-	golang.org/x/arch v0.4.0 // indirect
+	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect

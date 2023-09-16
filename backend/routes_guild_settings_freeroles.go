@@ -72,7 +72,7 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 			freeroles := PartialToGuildSettingsFreeRolesSettings(int64(guildID), partial)
 
 			databaseFreeRolesGuildSettings := database.CreateOrUpdateFreeRolesGuildSettingsParams(*freeroles)
-			freeroles, err = backend.Database.CreateOrUpdateFreeRolesGuildSettings(ctx, &databaseFreeRolesGuildSettings)
+			_, err = backend.Database.CreateOrUpdateFreeRolesGuildSettings(ctx, &databaseFreeRolesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild freeroles settings")
 			}
