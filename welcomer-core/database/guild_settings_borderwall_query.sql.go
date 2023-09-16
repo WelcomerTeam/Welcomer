@@ -12,15 +12,17 @@ import (
 )
 
 const CreateBorderwallGuildSettings = `-- name: CreateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING
-    guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify
+    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify
 `
 
 type CreateBorderwallGuildSettingsParams struct {
 	GuildID         int64        `json:"guild_id"`
 	ToggleEnabled   bool         `json:"toggle_enabled"`
+	ToggleSendDm    bool         `json:"toggle_send_dm"`
+	Channel         int64        `json:"channel"`
 	MessageVerify   pgtype.JSONB `json:"message_verify"`
 	MessageVerified pgtype.JSONB `json:"message_verified"`
 	RolesOnJoin     []int64      `json:"roles_on_join"`
@@ -31,6 +33,8 @@ func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg *Create
 	row := q.db.QueryRow(ctx, CreateBorderwallGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
+		arg.ToggleSendDm,
+		arg.Channel,
 		arg.MessageVerify,
 		arg.MessageVerified,
 		arg.RolesOnJoin,
@@ -40,6 +44,8 @@ func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg *Create
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
+		&i.ToggleSendDm,
+		&i.Channel,
 		&i.MessageVerify,
 		&i.MessageVerified,
 		&i.RolesOnJoin,
@@ -49,21 +55,25 @@ func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg *Create
 }
 
 const CreateOrUpdateBorderwallGuildSettings = `-- name: CreateOrUpdateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT(guild_id) DO UPDATE
-    SET toggle_enabled = EXCLUDED.toggle_enabled,
-        message_verify = EXCLUDED.message_verify,
-        message_verified = EXCLUDED.message_verified,
-        roles_on_join = EXCLUDED.roles_on_join,
+    SET toggle_enabled = EXCLUDED.toggle_enabled, 
+        toggle_send_dm = EXCLUDED.toggle_send_dm, 
+        channel = EXCLUDED.channel, 
+        message_verify = EXCLUDED.message_verify, 
+        message_verified = EXCLUDED.message_verified, 
+        roles_on_join = EXCLUDED.roles_on_join, 
         roles_on_verify = EXCLUDED.roles_on_verify
 RETURNING
-    guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify
+    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify
 `
 
 type CreateOrUpdateBorderwallGuildSettingsParams struct {
 	GuildID         int64        `json:"guild_id"`
 	ToggleEnabled   bool         `json:"toggle_enabled"`
+	ToggleSendDm    bool         `json:"toggle_send_dm"`
+	Channel         int64        `json:"channel"`
 	MessageVerify   pgtype.JSONB `json:"message_verify"`
 	MessageVerified pgtype.JSONB `json:"message_verified"`
 	RolesOnJoin     []int64      `json:"roles_on_join"`
@@ -74,6 +84,8 @@ func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg
 	row := q.db.QueryRow(ctx, CreateOrUpdateBorderwallGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
+		arg.ToggleSendDm,
+		arg.Channel,
 		arg.MessageVerify,
 		arg.MessageVerified,
 		arg.RolesOnJoin,
@@ -83,6 +95,8 @@ func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
+		&i.ToggleSendDm,
+		&i.Channel,
 		&i.MessageVerify,
 		&i.MessageVerified,
 		&i.RolesOnJoin,
@@ -93,7 +107,7 @@ func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg
 
 const GetBorderwallGuildSettings = `-- name: GetBorderwallGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, message_verify, message_verified, roles_on_join, roles_on_verify
+    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify
 FROM
     guild_settings_borderwall
 WHERE
@@ -106,6 +120,8 @@ func (q *Queries) GetBorderwallGuildSettings(ctx context.Context, guildID int64)
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
+		&i.ToggleSendDm,
+		&i.Channel,
 		&i.MessageVerify,
 		&i.MessageVerified,
 		&i.RolesOnJoin,
@@ -119,10 +135,12 @@ UPDATE
     guild_settings_borderwall
 SET
     toggle_enabled = $2,
-    message_verify = $3,
-    message_verified = $4,
-    roles_on_join = $5,
-    roles_on_verify = $6
+    toggle_send_dm = $3,
+    channel = $4,
+    message_verify = $5,
+    message_verified = $6,
+    roles_on_join = $7,
+    roles_on_verify = $8
 WHERE
     guild_id = $1
 `
@@ -130,6 +148,8 @@ WHERE
 type UpdateBorderwallGuildSettingsParams struct {
 	GuildID         int64        `json:"guild_id"`
 	ToggleEnabled   bool         `json:"toggle_enabled"`
+	ToggleSendDm    bool         `json:"toggle_send_dm"`
+	Channel         int64        `json:"channel"`
 	MessageVerify   pgtype.JSONB `json:"message_verify"`
 	MessageVerified pgtype.JSONB `json:"message_verified"`
 	RolesOnJoin     []int64      `json:"roles_on_join"`
@@ -140,6 +160,8 @@ func (q *Queries) UpdateBorderwallGuildSettings(ctx context.Context, arg *Update
 	result, err := q.db.Exec(ctx, UpdateBorderwallGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
+		arg.ToggleSendDm,
+		arg.Channel,
 		arg.MessageVerify,
 		arg.MessageVerified,
 		arg.RolesOnJoin,

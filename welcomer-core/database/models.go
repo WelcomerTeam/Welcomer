@@ -31,6 +31,8 @@ type GuildSettingsAutoroles struct {
 type GuildSettingsBorderwall struct {
 	GuildID         int64        `json:"guild_id"`
 	ToggleEnabled   bool         `json:"toggle_enabled"`
+	ToggleSendDm    bool         `json:"toggle_send_dm"`
+	Channel         int64        `json:"channel"`
 	MessageVerify   pgtype.JSONB `json:"message_verify"`
 	MessageVerified pgtype.JSONB `json:"message_verified"`
 	RolesOnJoin     []int64      `json:"roles_on_join"`
