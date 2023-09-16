@@ -13,7 +13,7 @@ func getGuild(ctx *gin.Context) {
 		requireMutualGuild(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			welcomerPresence, discordGuild, err := hasWelcomerPresence(guildID)
+			welcomerPresence, discordGuild, guildMembers, err := hasWelcomerPresence(guildID, true)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to check welcomer presence")
 			}
@@ -76,8 +76,11 @@ func getGuild(ctx *gin.Context) {
 				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting guild settings")
 			}
 
+			partialGuild := GuildToPartial(discordGuild)
+			partialGuild.Roles = CalculateRoleValues(partialGuild.Roles, guildMembers)
+
 			guild := Guild{
-				Guild: GuildToPartial(discordGuild),
+				Guild: partialGuild,
 
 				HasWelcomerPro:       hasWelcomerPro,
 				HasCustomBackgrounds: hasCustomBackgrounds,

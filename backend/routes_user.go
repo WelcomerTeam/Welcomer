@@ -39,7 +39,7 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 	}
 
 	for _, discordGuild := range discordGuilds {
-		welcomerPresence, _, err := hasWelcomerPresence(discordGuild.ID)
+		welcomerPresence, _, _, err := hasWelcomerPresence(discordGuild.ID, false)
 		if err != nil {
 			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
 		}
@@ -89,7 +89,7 @@ func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*M
 		}
 
 		if userMembership.GuildID != 0 {
-			ok, guild, err := hasWelcomerPresence(discord.Snowflake(userMembership.GuildID))
+			ok, guild, _, err := hasWelcomerPresence(discord.Snowflake(userMembership.GuildID), false)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
 			}
