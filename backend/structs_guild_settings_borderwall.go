@@ -5,11 +5,11 @@ import (
 )
 
 type GuildSettingsBorderwall struct {
-	ToggleEnabled   bool    `json:"toggle_enabled"`
-	ToggleSendDm    bool    `json:"toggle_send_dm"`
-	Channel         *string `json:"channel"`
-	MessageVerify   string  `json:"message_verify"`
-	MessageVerified string  `json:"message_verified"`
+	ToggleEnabled   bool     `json:"enabled"`
+	ToggleSendDm    bool     `json:"send_dm"`
+	Channel         *string  `json:"channel"`
+	MessageVerify   string   `json:"message_verify"`
+	MessageVerified string   `json:"message_verified"`
 	RolesOnJoin     []string `json:"roles_on_join"`
 	RolesOnVerify   []string `json:"roles_on_verify"`
 }

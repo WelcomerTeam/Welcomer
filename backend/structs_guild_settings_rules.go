@@ -6,7 +6,7 @@ import (
 
 type GuildSettingsRules struct {
 	ToggleEnabled    bool     `json:"enabled"`
-	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
+	ToggleDmsEnabled bool     `json:"dms_enabled"`
 	Rules            []string `json:"rules"`
 }
 

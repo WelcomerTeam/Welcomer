@@ -5,11 +5,11 @@ import (
 )
 
 type GuildSettingsTempChannels struct {
-	ToggleEnabled    bool  `json:"enabled"`
-	ToggleAutopurge  bool  `json:"toggle_autopurge"`
-	ChannelLobby     int64 `json:"channel_lobby"`
-	ChannelCategory  int64 `json:"channel_category"`
-	DefaultUserCount int32 `json:"default_user_count"`
+	ToggleEnabled    bool    `json:"enabled"`
+	ToggleAutopurge  bool    `json:"autopurge"`
+	ChannelLobby     *string `json:"channel_lobby"`
+	ChannelCategory  *string `json:"channel_category"`
+	DefaultUserCount int32   `json:"default_user_count"`
 }
 
 func GuildSettingsTempChannelsSettingsToPartial(
@@ -18,8 +18,8 @@ func GuildSettingsTempChannelsSettingsToPartial(
 	partial := &GuildSettingsTempChannels{
 		ToggleEnabled:    tempChannels.ToggleEnabled,
 		ToggleAutopurge:  tempChannels.ToggleAutopurge,
-		ChannelLobby:     tempChannels.ChannelLobby,
-		ChannelCategory:  tempChannels.ChannelCategory,
+		ChannelLobby:     Int64ToStringPointer(tempChannels.ChannelLobby),
+		ChannelCategory:  Int64ToStringPointer(tempChannels.ChannelCategory),
 		DefaultUserCount: tempChannels.DefaultUserCount,
 	}
 
@@ -31,8 +31,8 @@ func PartialToGuildSettingsTempChannelsSettings(guildID int64, guildSettings *Gu
 		GuildID:          guildID,
 		ToggleEnabled:    guildSettings.ToggleEnabled,
 		ToggleAutopurge:  guildSettings.ToggleAutopurge,
-		ChannelLobby:     guildSettings.ChannelLobby,
-		ChannelCategory:  guildSettings.ChannelCategory,
+		ChannelLobby:     StringPointerToInt64(guildSettings.ChannelLobby),
+		ChannelCategory:  StringPointerToInt64(guildSettings.ChannelCategory),
 		DefaultUserCount: guildSettings.DefaultUserCount,
 	}
 }
