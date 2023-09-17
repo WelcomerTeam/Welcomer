@@ -10,8 +10,8 @@ type GuildSettingsBorderwall struct {
 	Channel         *string `json:"channel"`
 	MessageVerify   string  `json:"message_verify"`
 	MessageVerified string  `json:"message_verified"`
-	RolesOnJoin     []int64 `json:"roles_on_join"`
-	RolesOnVerify   []int64 `json:"roles_on_verify"`
+	RolesOnJoin     []string `json:"roles_on_join"`
+	RolesOnVerify   []string `json:"roles_on_verify"`
 }
 
 func GuildSettingsBorderwallSettingsToPartial(
@@ -23,16 +23,16 @@ func GuildSettingsBorderwallSettingsToPartial(
 		Channel:         Int64ToStringPointer(borderwall.Channel),
 		MessageVerify:   JSONBToString(borderwall.MessageVerify),
 		MessageVerified: JSONBToString(borderwall.MessageVerified),
-		RolesOnJoin:     borderwall.RolesOnJoin,
-		RolesOnVerify:   borderwall.RolesOnVerify,
+		RolesOnJoin:     Int64SliceToString(borderwall.RolesOnJoin),
+		RolesOnVerify:   Int64SliceToString(borderwall.RolesOnVerify),
 	}
 
 	if len(partial.RolesOnJoin) == 0 {
-		partial.RolesOnJoin = make([]int64, 0)
+		partial.RolesOnJoin = make([]string, 0)
 	}
 
 	if len(partial.RolesOnVerify) == 0 {
-		partial.RolesOnVerify = make([]int64, 0)
+		partial.RolesOnVerify = make([]string, 0)
 	}
 
 	return partial
@@ -46,7 +46,7 @@ func PartialToGuildSettingsBorderwallSettings(guildID int64, guildSettings *Guil
 		Channel:         StringPointerToInt64(guildSettings.Channel),
 		MessageVerify:   StringToJSONB(guildSettings.MessageVerify),
 		MessageVerified: StringToJSONB(guildSettings.MessageVerified),
-		RolesOnJoin:     guildSettings.RolesOnJoin,
-		RolesOnVerify:   guildSettings.RolesOnVerify,
+		RolesOnJoin:     StringSliceToInt64(guildSettings.RolesOnJoin),
+		RolesOnVerify:   StringSliceToInt64(guildSettings.RolesOnVerify),
 	}
 }
