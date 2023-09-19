@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -35,6 +36,18 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 
 	discordGuilds, err := discord.GetCurrentUserGuilds(discordSession)
 	if err != nil {
+		// If we have received Unauthorized, clear their token.
+		if errors.Is(err, discord.ErrUnauthorized) {
+			ClearTokenSession(session)
+
+			err = session.Save()
+			if err != nil {
+				backend.Logger.Warn().Err(err).Msg("Failed to save session")
+			}
+
+			return nil, discord.ErrUnauthorized
+		}
+
 		return nil, fmt.Errorf("failed to get current user guilds: %w", err)
 	}
 
@@ -211,8 +224,16 @@ func usersGuilds(ctx *gin.Context) {
 
 		if refresh {
 			mappedGuilds, err = backend.GetUserGuilds(session)
+
 			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+				var statusCode int
+				if errors.Is(err, discord.ErrUnauthorized) {
+					statusCode = http.StatusUnauthorized
+				} else {
+					statusCode = http.StatusInternalServerError
+				}
+
+				ctx.JSON(statusCode, BaseResponse{
 					Ok:    false,
 					Error: err.Error(),
 				})

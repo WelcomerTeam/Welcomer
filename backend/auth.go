@@ -3,6 +3,7 @@ package backend
 import (
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -193,7 +194,14 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 		if refresh {
 			guilds, err := backend.GetUserGuilds(session)
 			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+				var statusCode int
+				if errors.Is(err, discord.ErrUnauthorized) {
+					statusCode = http.StatusUnauthorized
+				} else {
+					statusCode = http.StatusInternalServerError
+				}
+
+				ctx.JSON(statusCode, BaseResponse{
 					Ok:    false,
 					Error: err.Error(),
 				})

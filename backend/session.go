@@ -25,6 +25,10 @@ func SetTokenSession(session sessions.Session, token oauth2.Token) {
 	session.Set(TokenKey, token)
 }
 
+func ClearTokenSession(session sessions.Session) {
+	session.Delete(TokenKey)
+}
+
 func GetStateSession(session sessions.Session) (state string, ok bool) {
 	state, ok = session.Get(StateKey).(string)
 
