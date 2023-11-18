@@ -1,6 +1,6 @@
 module github.com/WelcomerTeam/Welcomer/welcomer-interactions
 
-go 1.18
+go 1.21
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20221130161544-85846f26aceb

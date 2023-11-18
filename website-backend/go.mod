@@ -1,13 +1,13 @@
 module github.com/WelcomerTeam/Website-Backend
 
-go 1.20
+go 1.21
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20230919203812-a65cb654c4a8
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich v0.0.0-20230914001140-a7a1fd53a02f
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20230916182836-2c0dc59b8c66
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/gzip v0.0.6
@@ -94,3 +94,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230913181813-007df8e322eb // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
+
+replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core
