@@ -1,0 +1,8 @@
+go 1.21.4
+
+use (
+	./welcomer-backend
+	./welcomer-core
+	./welcomer-gateway
+	./welcomer-interactions
+)
