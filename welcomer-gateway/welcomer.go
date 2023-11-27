@@ -53,7 +53,7 @@ func (w *Welcomer) Register() error {
 
 	// Register cogs
 
-	w.Bot.MustRegisterCog(plugins.NewGeneralCog())
+	w.Bot.MustRegisterCog(plugins.NewWelcomerCog())
 
 	return nil
 }

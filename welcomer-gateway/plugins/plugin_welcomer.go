@@ -9,35 +9,38 @@ import (
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
-func NewGeneralCog() *GeneralCog {
-	return &GeneralCog{
-		EventHandler: sandwich.SetupHandler(nil),
-	}
-}
-
-type GeneralCog struct {
+type WelcomerCog struct {
 	EventHandler *sandwich.Handlers
 }
 
 // Assert types.
 
 var (
-	_ sandwich.Cog           = (*GeneralCog)(nil)
-	_ sandwich.CogWithEvents = (*GeneralCog)(nil)
+	_ sandwich.Cog           = (*WelcomerCog)(nil)
+	_ sandwich.CogWithEvents = (*WelcomerCog)(nil)
 )
 
-func (p *GeneralCog) CogInfo() *sandwich.CogInfo {
-	return &sandwich.CogInfo{
-		Name:        "GeneralCog",
-		Description: "General commands",
+func NewWelcomerCog() *WelcomerCog {
+	return &WelcomerCog{
+		EventHandler: sandwich.SetupHandler(nil),
 	}
 }
 
-func (p *GeneralCog) RegisterCog(bot *sandwich.Bot) error {
-	// Register custom events.
-	bot.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
-		bot.Logger.Trace().Msg("Called " + core.CustomEventInvokeWelcomer + " handler")
+func (p *WelcomerCog) CogInfo() *sandwich.CogInfo {
+	return &sandwich.CogInfo{
+		Name:        "Welcomer",
+		Description: "Provides the functionality for the 'Welcomer' feature",
+	}
+}
 
+func (p *WelcomerCog) GetEventHandlers() *sandwich.Handlers {
+	return p.EventHandler
+}
+
+func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
+
+	// Register CustomEventInvokeWelcomer event.
+	bot.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var guildMemberAddPayload discord.GuildMemberAdd
 		if err := eventCtx.DecodeContent(payload, &guildMemberAddPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -57,10 +60,8 @@ func (p *GeneralCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	// Links ON_GUILD_MEMBER_ADD to CustomEventInvokeWelcomer event.
+	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD is triggered.
 	bot.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		bot.Logger.Trace().Msg("Called " + eventCtx.Payload.Type + " in " + discord.DiscordEventGuildMemberAdd + " handler")
-
 		err := bot.DispatchType(eventCtx, core.CustomEventInvokeWelcomer, *eventCtx.Payload)
 		if err != nil {
 			return fmt.Errorf("failed to dispatch %s: %w", core.CustomEventInvokeWelcomer, err)
@@ -69,17 +70,13 @@ func (p *GeneralCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	// Register events.
-	RegisterOnInvokeWelcomerEvent(bot.Handlers, func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		bot.Logger.Trace().Msg("Called " + eventCtx.Payload.Type + " in " + core.CustomEventInvokeWelcomer + " event")
-
-		return nil
-	})
+	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
+	RegisterOnInvokeWelcomerEvent(bot.Handlers, p.OnInvokeWelcomerEvent)
 
 	return nil
 }
 
-// RegisterOnGuildMemberAddEvent adds a new event handler for the GUILD_MEMBER_ADD event.
+// RegisterOnInvokeWelcomerEvent adds a new event handler for the WELCOMER_INVOKE_WELCOMER event.
 // It does not override a handler and instead will add another handler.
 func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event core.OnInvokeWelcomerFuncType) {
 	eventName := core.CustomEventInvokeWelcomer
@@ -87,6 +84,10 @@ func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event core.OnInvokeWelc
 	h.RegisterEvent(eventName, nil, event)
 }
 
-func (p *GeneralCog) GetEventHandlers() *sandwich.Handlers {
-	return p.EventHandler
+// OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
+// This can be from when a user joins or a user uses /welcomer test.
+func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+	println("POG")
+
+	return nil
 }
