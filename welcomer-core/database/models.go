@@ -199,3 +199,11 @@ type Users struct {
 	Discriminator string    `json:"discriminator"`
 	AvatarHash    string    `json:"avatar_hash"`
 }
+
+type WelcomerImages struct {
+	WelcomerImageUuid uuid.UUID `json:"welcomer_image_uuid"`
+	GuildID           int64     `json:"guild_id"`
+	CreatedAt         time.Time `json:"created_at"`
+	ImageType         string    `json:"image_type"`
+	Data              []byte    `json:"data"`
+}

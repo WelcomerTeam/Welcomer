@@ -13,4 +13,3 @@ CREATE TABLE IF NOT EXISTS guild_settings_welcomer_images (
     image_profile_border_type integer NOT NULL,
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
