@@ -5,4 +5,5 @@ use (
 	./welcomer-core
 	./welcomer-gateway
 	./welcomer-interactions
+	./welcomer-images
 )
