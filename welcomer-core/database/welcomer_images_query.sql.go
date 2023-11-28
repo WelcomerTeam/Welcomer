@@ -46,6 +46,19 @@ func (q *Queries) CreateWelcomerImages(ctx context.Context, arg *CreateWelcomerI
 	return &i, err
 }
 
+const DeleteWelcomerImage = `-- name: DeleteWelcomerImage :execrows
+DELETE FROM welcomer_images
+WHERE welcomer_image_uuid = $1
+`
+
+func (q *Queries) DeleteWelcomerImage(ctx context.Context, welcomerImageUuid uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, DeleteWelcomerImage, welcomerImageUuid)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const GetWelcomerImages = `-- name: GetWelcomerImages :one
 SELECT
     welcomer_image_uuid, guild_id, created_at, image_type, data
@@ -66,4 +79,39 @@ func (q *Queries) GetWelcomerImages(ctx context.Context, welcomerImageUuid uuid.
 		&i.Data,
 	)
 	return &i, err
+}
+
+const GetWelcomerImagesByGuildId = `-- name: GetWelcomerImagesByGuildId :many
+SELECT
+    welcomer_image_uuid, guild_id, created_at, image_type, data
+FROM
+    welcomer_images
+WHERE
+    guild_id = $1
+`
+
+func (q *Queries) GetWelcomerImagesByGuildId(ctx context.Context, guildID int64) ([]*WelcomerImages, error) {
+	rows, err := q.db.Query(ctx, GetWelcomerImagesByGuildId, guildID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*WelcomerImages{}
+	for rows.Next() {
+		var i WelcomerImages
+		if err := rows.Scan(
+			&i.WelcomerImageUuid,
+			&i.GuildID,
+			&i.CreatedAt,
+			&i.ImageType,
+			&i.Data,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

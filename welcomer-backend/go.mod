@@ -7,10 +7,10 @@ require (
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich v0.0.0-20230914001140-a7a1fd53a02f
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77
-	github.com/cyphar/filepath-securejoin v0.2.4
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/gzip v0.0.6
-	github.com/gin-contrib/logger v0.2.6
+	github.com/gin-contrib/logger v0.3.0
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-contrib/size v0.0.0-20230212012657-e14a14094dc4
 	github.com/gin-gonic/gin v1.9.1
@@ -59,7 +59,6 @@ require (
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
-	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -80,7 +79,7 @@ require (
 	github.com/prometheus/common v0.45.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62 // indirect
-	github.com/segmentio/kafka-go v0.4.45 // indirect
+	github.com/segmentio/kafka-go v0.4.46 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

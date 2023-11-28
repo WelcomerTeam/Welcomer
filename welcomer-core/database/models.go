@@ -74,15 +74,6 @@ type GuildSettingsTimeroles struct {
 	Timeroles     pgtype.JSONB `json:"timeroles"`
 }
 
-type GuildSettingsWelcomerBackgrounds struct {
-	ImageUuid uuid.UUID `json:"image_uuid"`
-	CreatedAt time.Time `json:"created_at"`
-	GuildID   int64     `json:"guild_id"`
-	Filename  string    `json:"filename"`
-	Filesize  int32     `json:"filesize"`
-	Filetype  string    `json:"filetype"`
-}
-
 type GuildSettingsWelcomerDms struct {
 	GuildID             int64        `json:"guild_id"`
 	ToggleEnabled       bool         `json:"toggle_enabled"`

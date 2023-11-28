@@ -13,24 +13,24 @@ import (
 const (
 	// BackgroundFileTypeUnknown is a BackgroundFileType of type Unknown.
 	BackgroundFileTypeUnknown BackgroundFileType = iota
-	// BackgroundFileTypePNG is a BackgroundFileType of type PNG.
-	BackgroundFileTypePNG
-	// BackgroundFileTypeJPG is a BackgroundFileType of type JPG.
-	BackgroundFileTypeJPG
-	// BackgroundFileTypeGIF is a BackgroundFileType of type GIF.
-	BackgroundFileTypeGIF
-	// BackgroundFileTypeWEBP is a BackgroundFileType of type WEBP.
-	BackgroundFileTypeWEBP
+	// BackgroundFileTypeImagePng is a BackgroundFileType of type Image/Png.
+	BackgroundFileTypeImagePng
+	// BackgroundFileTypeImageJpeg is a BackgroundFileType of type Image/Jpeg.
+	BackgroundFileTypeImageJpeg
+	// BackgroundFileTypeImageGif is a BackgroundFileType of type Image/Gif.
+	BackgroundFileTypeImageGif
+	// BackgroundFileTypeImageWebp is a BackgroundFileType of type Image/Webp.
+	BackgroundFileTypeImageWebp
 )
 
-const _BackgroundFileTypeName = "unknownPNGJPGGIFWEBP"
+const _BackgroundFileTypeName = "unknownimage/pngimage/jpegimage/gifimage/webp"
 
 var _BackgroundFileTypeMap = map[BackgroundFileType]string{
-	BackgroundFileTypeUnknown: _BackgroundFileTypeName[0:7],
-	BackgroundFileTypePNG:     _BackgroundFileTypeName[7:10],
-	BackgroundFileTypeJPG:     _BackgroundFileTypeName[10:13],
-	BackgroundFileTypeGIF:     _BackgroundFileTypeName[13:16],
-	BackgroundFileTypeWEBP:    _BackgroundFileTypeName[16:20],
+	BackgroundFileTypeUnknown:   _BackgroundFileTypeName[0:7],
+	BackgroundFileTypeImagePng:  _BackgroundFileTypeName[7:16],
+	BackgroundFileTypeImageJpeg: _BackgroundFileTypeName[16:26],
+	BackgroundFileTypeImageGif:  _BackgroundFileTypeName[26:35],
+	BackgroundFileTypeImageWebp: _BackgroundFileTypeName[35:45],
 }
 
 // String implements the Stringer interface.
@@ -43,10 +43,10 @@ func (x BackgroundFileType) String() string {
 
 var _BackgroundFileTypeValue = map[string]BackgroundFileType{
 	_BackgroundFileTypeName[0:7]:   BackgroundFileTypeUnknown,
-	_BackgroundFileTypeName[7:10]:  BackgroundFileTypePNG,
-	_BackgroundFileTypeName[10:13]: BackgroundFileTypeJPG,
-	_BackgroundFileTypeName[13:16]: BackgroundFileTypeGIF,
-	_BackgroundFileTypeName[16:20]: BackgroundFileTypeWEBP,
+	_BackgroundFileTypeName[7:16]:  BackgroundFileTypeImagePng,
+	_BackgroundFileTypeName[16:26]: BackgroundFileTypeImageJpeg,
+	_BackgroundFileTypeName[26:35]: BackgroundFileTypeImageGif,
+	_BackgroundFileTypeName[35:45]: BackgroundFileTypeImageWebp,
 }
 
 // ParseBackgroundFileType attempts to convert a string to a BackgroundFileType.

@@ -12,7 +12,7 @@ FROM
 WHERE
     welcomer_image_uuid = $1;
 
--- GetWelcomerImagesByGuildId :many
+-- name: GetWelcomerImagesByGuildId :many
 SELECT
     *
 FROM
@@ -20,6 +20,6 @@ FROM
 WHERE
     guild_id = $1;
 
--- DeleteWelcomerImage :execrows
+-- name: DeleteWelcomerImage :execrows
 DELETE FROM welcomer_images
 WHERE welcomer_image_uuid = $1;
