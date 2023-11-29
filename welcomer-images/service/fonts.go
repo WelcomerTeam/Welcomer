@@ -10,23 +10,6 @@ import (
 	"golang.org/x/image/font/sfnt"
 )
 
-var fonts = map[string]*Font{
-    "balsamiqsans-bold": fontsBalsamiqSansBoldFont,
-    "balsamiqsans-regular": fontsBalsamiqSansRegularFont,
-    "fredokaone-regular": fontsFredokaOneRegularFont,
-    "inter-bold": fontsInterBoldFont,
-    "inter-regular": fontsInterRegularFont,
-    "luckiestguy-regular": fontsLuckiestGuyRegularFont,
-    "mada-bold": fontsMadaBoldFont,
-    "mada-medium": fontsMadaMediumFont,
-    "mina-bold": fontsMinaBoldFont,
-    "mina-regular": fontsMinaRegularFont,
-    "nunito-bold": fontsNunitoBoldFont,
-    "nunito-regular": fontsNunitoRegularFont,
-    "raleway-bold": fontsRalewayBoldFont,
-    "raleway-regular": fontsRalewayRegularFont,
-}
-
 var fallback = map[string]*Font{
     "arialunicodems": fallbackArialUnicodeMSFont,
     "asana-math": fallbackAsanaMathFont,
@@ -134,6 +117,23 @@ var fallback = map[string]*Font{
     "notosansvai-regular": fallbackNotoSansVaiRegularFont,
     "notosansyi-regular": fallbackNotoSansYiRegularFont,
     "latinmodern-math": fallbackLatinmodernMathFont,
+}
+
+var fonts = map[string]*Font{
+    "balsamiqsans-bold": fontsBalsamiqSansBoldFont,
+    "balsamiqsans-regular": fontsBalsamiqSansRegularFont,
+    "fredokaone-regular": fontsFredokaOneRegularFont,
+    "inter-bold": fontsInterBoldFont,
+    "inter-regular": fontsInterRegularFont,
+    "luckiestguy-regular": fontsLuckiestGuyRegularFont,
+    "mada-bold": fontsMadaBoldFont,
+    "mada-medium": fontsMadaMediumFont,
+    "mina-bold": fontsMinaBoldFont,
+    "mina-regular": fontsMinaRegularFont,
+    "nunito-bold": fontsNunitoBoldFont,
+    "nunito-regular": fontsNunitoRegularFont,
+    "raleway-bold": fontsRalewayBoldFont,
+    "raleway-regular": fontsRalewayRegularFont,
 }
 
 func mustDecodeFont(n string, src []byte) *sfnt.Font {

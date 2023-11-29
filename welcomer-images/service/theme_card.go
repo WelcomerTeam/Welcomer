@@ -43,8 +43,7 @@ func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp Gener
 			Width:  579,
 			Height: 159,
 
-			HorizontalAlignment: args.ImageOptions.TextHorizontalAlign,
-			VerticalAlignment:   args.ImageOptions.TextVerticalAlign,
+			Alignment: args.ImageOptions.TextAlign,
 
 			StrokeWeight: args.ImageOptions.TextStroke,
 			StrokeColor:  args.ImageOptions.TextStrokeColor,

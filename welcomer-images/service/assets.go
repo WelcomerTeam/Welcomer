@@ -7,6 +7,11 @@ import (
 	"image"
 )
 
+var assets = map[string]image.Image{
+    "brokeimage": assetsBrokeImageImage,
+    "defaultavatar": assetsDefaultAvatarImage,
+}
+
 var backgrounds = map[string]image.Image{
     "aesthetics": backgroundsAestheticsImage,
     "afterwork": backgroundsAfterworkImage,
@@ -58,11 +63,6 @@ var backgrounds = map[string]image.Image{
     "vectors": backgroundsVectorsImage,
     "wood": backgroundsWoodImage,
     "yellow": backgroundsYellowImage,
-}
-
-var assets = map[string]image.Image{
-    "brokeimage": assetsBrokeImageImage,
-    "defaultavatar": assetsDefaultAvatarImage,
 }
 
 func mustDecodeBytes(n string, src []byte) image.Image {

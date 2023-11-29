@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"image/color"
+	"os"
 	"runtime/debug"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -62,7 +63,9 @@ func (grpc *routeImageGenerationServiceServer) GenerateImage(ctx context.Context
 		return
 	}
 
-	// os.WriteFile("output.png", file, 0o644)
+	if grpc.is.Options.Debug {
+		os.WriteFile("output.png", file, 0o644)
+	}
 
 	response.File = file
 	response.Filetype = format.String()
@@ -73,25 +76,24 @@ func (grpc *routeImageGenerationServiceServer) GenerateImage(ctx context.Context
 
 func generateImageRequestToOptions(req *pb.GenerateImageRequest) GenerateImageOptions {
 	return GenerateImageOptions{
-		GuildID:             discord.Snowflake(req.GuildID),
-		UserID:              discord.Snowflake(req.UserID),
-		AllowAnimated:       req.AllowAnimated,
-		AvatarURL:           req.AvatarURL,
-		Theme:               welcomer.ImageTheme(req.Theme),
-		Background:          req.Background,
-		Text:                req.Text,
-		TextFont:            req.TextFont,
-		TextStroke:          formatTextStroke(req.TextStroke),
-		TextHorizontalAlign: welcomer.ImageAlignment(req.TextHorizontalAlign),
-		TextVerticalAlign:   welcomer.ImageAlignment(req.TextVerticalAlign),
-		TextColor:           convertToRGBA(req.TextColor),
-		TextStrokeColor:     convertToRGBA(req.TextStrokeColor),
-		ImageBorderColor:    convertToRGBA(req.ImageBorderColor),
-		ImageBorderWidth:    int(req.ImageBorderWidth),
-		ProfileFloat:        welcomer.ImageAlignment(req.ProfileFloat),
-		ProfileBorderColor:  convertToRGBA(req.ProfileBorderColor),
-		ProfileBorderWidth:  int(req.ProfileBorderWidth),
-		ProfileBorderCurve:  welcomer.ImageProfileBorderType(req.ProfileBorderCurve),
+		GuildID:            discord.Snowflake(req.GuildID),
+		UserID:             discord.Snowflake(req.UserID),
+		AllowAnimated:      req.AllowAnimated,
+		AvatarURL:          req.AvatarURL,
+		Theme:              welcomer.ImageTheme(req.Theme),
+		Background:         req.Background,
+		Text:               req.Text,
+		TextFont:           req.TextFont,
+		TextStroke:         formatTextStroke(req.TextStroke),
+		TextAlign:          welcomer.ImageAlignment(req.TextAlign),
+		TextColor:          convertToRGBA(req.TextColor),
+		TextStrokeColor:    convertToRGBA(req.TextStrokeColor),
+		ImageBorderColor:   convertToRGBA(req.ImageBorderColor),
+		ImageBorderWidth:   int(req.ImageBorderWidth),
+		ProfileFloat:       welcomer.ImageAlignment(req.ProfileFloat),
+		ProfileBorderColor: convertToRGBA(req.ProfileBorderColor),
+		ProfileBorderWidth: int(req.ProfileBorderWidth),
+		ProfileBorderCurve: welcomer.ImageProfileBorderType(req.ProfileBorderCurve),
 	}
 }
 

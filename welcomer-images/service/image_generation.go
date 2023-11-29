@@ -49,8 +49,7 @@ type GenerateImageOptions struct {
 	Text                string
 	TextFont            string
 	TextStroke          int
-	TextHorizontalAlign core.ImageAlignment
-	TextVerticalAlign   core.ImageAlignment
+	TextAlign core.ImageAlignment
 	TextColor           color.RGBA
 	TextStrokeColor     color.RGBA
 	ImageBorderColor    color.RGBA

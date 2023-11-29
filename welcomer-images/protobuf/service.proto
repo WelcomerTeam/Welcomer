@@ -34,17 +34,16 @@ message GenerateImageRequest {
     string text = 7;
     string textFont = 8;
     bool textStroke = 9;
-    int32 textHorizontalAlign = 10;
-    int32 textVerticalAlign = 11;
+    int32 textAlign = 10;
 
-    int64 textColor = 12;
-    int64 textStrokeColor = 13;
+    int64 textColor = 11;
+    int64 textStrokeColor = 12;
 
-    int64 imageBorderColor = 14;
-    int32 imageBorderWidth = 15;
+    int64 imageBorderColor = 13;
+    int32 imageBorderWidth = 14;
 
-    int32 profileFloat = 16;
-    int64 profileBorderColor = 17;
-    int32 profileBorderWidth = 18;
-    int32 profileBorderCurve = 19;
+    int32 profileFloat = 15;
+    int64 profileBorderColor = 16;
+    int32 profileBorderWidth = 17;
+    int32 profileBorderCurve = 18;
 }

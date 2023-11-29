@@ -56,8 +56,7 @@ func CreateRegularImage(
 			Width:  668,
 			Height: 236,
 
-			HorizontalAlignment: args.ImageOptions.TextHorizontalAlign,
-			VerticalAlignment:   args.ImageOptions.TextVerticalAlign,
+			Alignment: args.ImageOptions.TextAlign,
 
 			StrokeWeight: args.ImageOptions.TextStroke,
 			StrokeColor:  args.ImageOptions.TextStrokeColor,

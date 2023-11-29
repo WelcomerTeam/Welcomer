@@ -25,8 +25,7 @@ type MultilineArguments struct {
 	Width  int
 	Height int
 
-	HorizontalAlignment core.ImageAlignment
-	VerticalAlignment   core.ImageAlignment
+	Alignment core.ImageAlignment
 
 	StrokeWeight int
 	StrokeColor  color.Color
@@ -102,23 +101,23 @@ func drawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 
 		var Dy int
 
-		switch args.HorizontalAlignment {
-		case core.ImageAlignmentLeft:
+		switch args.Alignment {
+		case core.ImageAlignmentTopLeft, core.ImageAlignmentLeft, core.ImageAlignmentBottomLeft:
 			Dx = 0
-		case core.ImageAlignmentCenter:
+		case core.ImageAlignmentTopCenter, core.ImageAlignmentCenter, core.ImageAlignmentBottomCenter:
 			Dx = int((args.Width - adv.Ceil()) / 2)
-		case core.ImageAlignmentRight:
+		case core.ImageAlignmentTopRight, core.ImageAlignmentRight, core.ImageAlignmentBottomRight:
 			Dx = args.Width - adv.Ceil()
 		default:
 			return ErrInvalidHorizontalAlignment
 		}
 
-		switch args.VerticalAlignment {
-		case core.ImageAlignmentTopCenter:
+		switch args.Alignment {
+		case core.ImageAlignmentTopLeft, core.ImageAlignmentTopCenter, core.ImageAlignmentTopRight:
 			Dy = lineNo * fh
-		case core.ImageAlignmentCenter:
+		case core.ImageAlignmentLeft, core.ImageAlignmentCenter, core.ImageAlignmentRight:
 			Dy = (lineNo * fh) + (args.Height / 2) - (th / 2)
-		case core.ImageAlignmentBottomCenter:
+		case core.ImageAlignmentBottomLeft, core.ImageAlignmentBottomCenter, core.ImageAlignmentBottomRight:
 			Dy = args.Height - th + (lineNo * fh)
 		default:
 			return ErrInvalidVerticalAlignment

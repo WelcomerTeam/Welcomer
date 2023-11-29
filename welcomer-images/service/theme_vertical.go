@@ -39,8 +39,7 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp Ge
 			Width:  686,
 			Height: 200,
 
-			HorizontalAlignment: args.ImageOptions.TextHorizontalAlign,
-			VerticalAlignment:   args.ImageOptions.TextVerticalAlign,
+			Alignment: args.ImageOptions.TextAlign,
 
 			StrokeWeight: args.ImageOptions.TextStroke,
 			StrokeColor:  args.ImageOptions.TextStrokeColor,

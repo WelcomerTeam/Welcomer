@@ -53,6 +53,8 @@ type ImageServiceOptions struct {
 	GRPCHost               string `json:"grpc_host" yaml:"grpc_host"`
 	GRPCCertFile           string `json:"grpc_cert_file" yaml:"grpc_cert_file"`
 	GRPCServerNameOverride string `json:"grpc_server_name_override" yaml:"grpc_server_name_override"`
+
+	Debug bool `json:"debug" yaml:"debug"`
 }
 
 // NewImageService creates the service and initializes it.

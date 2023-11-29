@@ -44,6 +44,8 @@ func main() {
 	loggingMaxBackups := flag.Int("maxBackups", core.MustParseInt(os.Getenv("LOGGING_MAX_BACKUPS")), "Maximum number of log files before being deleted")
 	loggingMaxAge := flag.Int("maxAge", core.MustParseInt(os.Getenv("LOGGING_MAX_AGE")), "Maximum age in days for a log file")
 
+	debug := flag.Bool("debug", false, "When enabled, images will be saved to a file.")
+
 	flag.Parse()
 
 	// Setup Logger
@@ -99,6 +101,8 @@ func main() {
 		GRPCHost:               *grpcHost,
 		GRPCCertFile:           *grpcCertFile,
 		GRPCServerNameOverride: *grpcServerNameOverride,
+
+		Debug: *debug,
 	}
 
 	// Image Service initialization
