@@ -1,7 +1,0 @@
-- Add HTTP endpoint to clear background from cache
-- Add GRPC to request images and clear cache
-- Integrate Redis to store image data
-
-Maybes:
-- Ability to only make images on demand
-- Possibility to pass data for custom themes

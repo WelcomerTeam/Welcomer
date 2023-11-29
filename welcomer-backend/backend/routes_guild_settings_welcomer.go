@@ -15,7 +15,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
-	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -145,7 +145,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(int64(guildID), partial)
 
-			if welcomerImages.BackgroundName == welcomer.CustomBackgroundPrefix+"upload" {
+			if welcomerImages.BackgroundName == core.CustomBackgroundPrefix+"upload" {
 				if file != nil {
 					hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(guildID)
 					if err != nil {
@@ -261,7 +261,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 						// Set background name from custom:upload to custom:00000000-0000-0000-0000-000000000000
 						// depending on uploaded file.
-						welcomerImages.BackgroundName = welcomer.CustomBackgroundPrefix + res.WelcomerImageUuid.String()
+						welcomerImages.BackgroundName = core.CustomBackgroundPrefix + res.WelcomerImageUuid.String()
 
 						// Remove previous welcome images
 						backgrounds, err := backend.Database.GetWelcomerImagesByGuildId(ctx, int64(guildID))
@@ -343,6 +343,7 @@ func getGuildWelcomerPreview(ctx *gin.Context) {
 	if err != nil {
 		backend.Logger.Info().Str("key", key).Msg("Failed to find welcomer background with key")
 
+		// TODO needs to recognise file type
 		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
 
 		return
@@ -370,11 +371,15 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 		return nil, err
 	}
 
+	var welcomerImageUuid uuid.UUID
+	welcomerImageUuid, _ = gen.NewV7()
+
 	return backend.Database.CreateWelcomerImages(ctx, &database.CreateWelcomerImagesParams{
-		GuildID:   int64(guildID),
-		CreatedAt: time.Now(),
-		ImageType: database.BackgroundFileTypeImageGif.String(),
-		Data:      buf.Bytes(),
+		WelcomerImageUuid: welcomerImageUuid,
+		GuildID:           int64(guildID),
+		CreatedAt:         time.Now(),
+		ImageType:         core.ImageFileTypeImageGif.String(),
+		Data:              buf.Bytes(),
 	})
 }
 
@@ -412,7 +417,7 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 		WelcomerImageUuid: welcomerImageUuid,
 		GuildID:           int64(guildID),
 		CreatedAt:         time.Now(),
-		ImageType:         database.BackgroundFileTypeImagePng.String(),
+		ImageType:         core.ImageFileTypeImagePng.String(),
 		Data:              buf.Bytes(),
 	})
 }
@@ -444,26 +449,28 @@ func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Sno
 		return nil, err
 	}
 
-	uuid.NewV7()
+	var welcomerImageUuid uuid.UUID
+	welcomerImageUuid, _ = gen.NewV7()
 
 	return backend.Database.CreateWelcomerImages(ctx, &database.CreateWelcomerImagesParams{
-		GuildID:   int64(guildID),
-		CreatedAt: time.Now(),
-		ImageType: database.BackgroundFileTypeImageJpeg.String(),
-		Data:      buf.Bytes(),
+		WelcomerImageUuid: welcomerImageUuid,
+		GuildID:           int64(guildID),
+		CreatedAt:         time.Now(),
+		ImageType:         core.ImageFileTypeImageJpeg.String(),
+		Data:              buf.Bytes(),
 	})
 }
 
 // Validates welcomer guild settings
 func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
 	if guildSettings.DMs.MessageFormat != "" {
-		if !welcomer.IsValidEmbed(guildSettings.Text.MessageFormat) {
+		if !core.IsValidEmbed(guildSettings.Text.MessageFormat) {
 			return fmt.Errorf("text message is invalid: %w", ErrInvalidJSON)
 		}
 	}
 
 	if guildSettings.DMs.MessageFormat != "" {
-		if !welcomer.IsValidEmbed(guildSettings.DMs.MessageFormat) {
+		if !core.IsValidEmbed(guildSettings.DMs.MessageFormat) {
 			return fmt.Errorf("dms message is invalid: %w", ErrInvalidJSON)
 		}
 	}
@@ -491,41 +498,41 @@ func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
 			return fmt.Errorf("text channel is invalid: %w", ErrRequired)
 		}
 
-		if !welcomer.IsValidInteger(*guildSettings.Text.Channel) {
+		if !core.IsValidInteger(*guildSettings.Text.Channel) {
 			return fmt.Errorf("text channel is invalid: %w", ErrChannelInvalid)
 		}
 	}
 
 	if guildSettings.Images.ToggleEnabled {
-		if !welcomer.IsValidBackground(guildSettings.Images.BackgroundName) {
+		if !core.IsValidBackground(guildSettings.Images.BackgroundName) {
 			return fmt.Errorf("image background is invalid: %w", ErrInvalidBackground)
 		}
 
-		if !welcomer.IsValidColour(guildSettings.Images.ColourText) {
+		if !core.IsValidColour(guildSettings.Images.ColourText) {
 			return fmt.Errorf("image text colour is invalid: %w", ErrInvalidColour)
 		}
 
-		if !welcomer.IsValidColour(guildSettings.Images.ColourTextBorder) {
+		if !core.IsValidColour(guildSettings.Images.ColourTextBorder) {
 			return fmt.Errorf("image text border colour is invalid: %w", ErrInvalidColour)
 		}
 
-		if !welcomer.IsValidColour(guildSettings.Images.ColourImageBorder) {
+		if !core.IsValidColour(guildSettings.Images.ColourImageBorder) {
 			return fmt.Errorf("image border colour is invalid: %w", ErrInvalidColour)
 		}
 
-		if !welcomer.IsValidColour(guildSettings.Images.ColourProfileBorder) {
+		if !core.IsValidColour(guildSettings.Images.ColourProfileBorder) {
 			return fmt.Errorf("image profile border colour is invalid: %w", ErrInvalidColour)
 		}
 
-		if !welcomer.IsValidImageAlignment(guildSettings.Images.ImageAlignment) {
+		if !core.IsValidImageAlignment(guildSettings.Images.ImageAlignment) {
 			return fmt.Errorf("image ImageAlignment is invalid: %w", ErrInvalidImageAlignment)
 		}
 
-		if !welcomer.IsValidImageProfileBorderType(guildSettings.Images.ImageProfileBorderType) {
+		if !core.IsValidImageProfileBorderType(guildSettings.Images.ImageProfileBorderType) {
 			return fmt.Errorf("image ImageProfileBorderType is invalid: %w", ErrInvalidProfileBorderType)
 		}
 
-		if !welcomer.IsValidImageTheme(guildSettings.Images.ImageTheme) {
+		if !core.IsValidImageTheme(guildSettings.Images.ImageTheme) {
 			return fmt.Errorf("image ImageTheme is invalid: %w", ErrInvalidImageTheme)
 		}
 	}

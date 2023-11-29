@@ -29,7 +29,7 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 
 	// Setup Postgres pool
 
-	poolConnectionString := os.Getenv("WELCOMER_DATABASE_URL")
+	poolConnectionString := os.Getenv("POSTGRES_URL")
 
 	pool, err := pgxpool.Connect(context, poolConnectionString)
 	if err != nil {

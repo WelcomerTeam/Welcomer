@@ -38,6 +38,9 @@ type ImageProfileBorderType int32
 // ENUM(default, welcomer, solid, solidProfile, unsplash, url)
 type BackgroundType int32
 
+// ENUM(unknown, image/png, image/jpeg, image/gif, image/webp)
+type ImageFileType int32
+
 type Background struct {
 	Type BackgroundType `json:"type"`
 	// Background specific values.
@@ -61,8 +64,8 @@ type Colour struct {
 // solid:FFAAAA - Solid colour with HEX code.
 // solid:profile - Solid colour based on user profile picture.
 // unsplash:Bnr_ZSmqbDY - Unsplash along with Id.
-// custom_341685098468343822 - per-guild welcomer background
-func ParseBackground(str string) (*Background, error) {
+// custom:018c186a-4ce5-74c7-b2d1-b0639c2f4686 - per-guild welcomer background
+func ParseBackground(str string) (Background, error) {
 	str = strings.TrimSpace(str)
 
 	switch {
@@ -71,12 +74,12 @@ func ParseBackground(str string) (*Background, error) {
 		value := strings.TrimPrefix(str, SolidColourPrefix)
 
 		if value == SolidColourPrefixBased {
-			return &Background{
+			return Background{
 				Type:  BackgroundTypeSolidProfile,
 				Value: "",
 			}, nil
 		} else if IsValidColour(value) {
-			return &Background{
+			return Background{
 				Type:  BackgroundTypeSolid,
 				Value: value,
 			}, nil
@@ -86,7 +89,7 @@ func ParseBackground(str string) (*Background, error) {
 		value := strings.TrimPrefix(str, UnsplashPrefix)
 
 		if IsValidUnsplashID(value) {
-			return &Background{
+			return Background{
 				Type:  BackgroundTypeUnsplash,
 				Value: value,
 			}, nil
@@ -95,16 +98,16 @@ func ParseBackground(str string) (*Background, error) {
 		// extract value
 		value := strings.TrimPrefix(str, CustomBackgroundPrefix)
 
-		return &Background{
+		return Background{
 			Type:  BackgroundTypeWelcomer,
 			Value: value,
 		}, nil
 	default:
-		return &Background{
+		return Background{
 			Type:  BackgroundTypeDefault,
-			Value: "",
+			Value: str,
 		}, nil
 	}
 
-	return nil, ErrInvalidBackground
+	return Background{}, ErrInvalidBackground
 }

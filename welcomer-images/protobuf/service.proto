@@ -1,0 +1,50 @@
+syntax = "proto3";
+package service;
+
+option go_package = "github.com/WelcomerTeam/Welcomer/welcomer-image";
+
+service ImageGenerationService {
+    // GenerateImage requests for a new image to be generated. Returns the resulting file.
+    rpc GenerateImage(GenerateImageRequest) returns (GenerateImageResponse) {}
+}
+
+message BaseResponse {
+  string version = 1;
+  bool ok = 2;
+  string error = 3;
+}
+
+message GenerateImageResponse {
+    BaseResponse baseResponse = 1;
+    bytes file = 2;
+    string filetype = 3;
+}
+
+message GenerateImageRequest {
+    int64 guildID = 1;
+    int64 userID = 2;
+    bool allowAnimated = 3;
+
+    string avatarURL = 4;
+
+    int32 theme = 5;
+    string background = 6;
+
+
+    string text = 7;
+    string textFont = 8;
+    bool textStroke = 9;
+    int32 textHorizontalAlign = 10;
+    int32 textVerticalAlign = 11;
+
+    int64 textColor = 12;
+    int64 textStrokeColor = 13;
+
+    int64 imageBorderColor = 14;
+    int32 imageBorderWidth = 15;
+
+    int32 profileFloat = 16;
+    int64 profileBorderColor = 17;
+    int32 profileBorderWidth = 18;
+    int32 profileBorderCurve = 19;
+}

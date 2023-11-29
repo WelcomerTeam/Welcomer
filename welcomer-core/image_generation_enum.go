@@ -157,6 +157,69 @@ func (x *ImageAlignment) UnmarshalText(text []byte) error {
 }
 
 const (
+	// ImageFileTypeUnknown is a ImageFileType of type Unknown.
+	ImageFileTypeUnknown ImageFileType = iota
+	// ImageFileTypeImagePng is a ImageFileType of type Image/Png.
+	ImageFileTypeImagePng
+	// ImageFileTypeImageJpeg is a ImageFileType of type Image/Jpeg.
+	ImageFileTypeImageJpeg
+	// ImageFileTypeImageGif is a ImageFileType of type Image/Gif.
+	ImageFileTypeImageGif
+	// ImageFileTypeImageWebp is a ImageFileType of type Image/Webp.
+	ImageFileTypeImageWebp
+)
+
+const _ImageFileTypeName = "unknownimage/pngimage/jpegimage/gifimage/webp"
+
+var _ImageFileTypeMap = map[ImageFileType]string{
+	ImageFileTypeUnknown:   _ImageFileTypeName[0:7],
+	ImageFileTypeImagePng:  _ImageFileTypeName[7:16],
+	ImageFileTypeImageJpeg: _ImageFileTypeName[16:26],
+	ImageFileTypeImageGif:  _ImageFileTypeName[26:35],
+	ImageFileTypeImageWebp: _ImageFileTypeName[35:45],
+}
+
+// String implements the Stringer interface.
+func (x ImageFileType) String() string {
+	if str, ok := _ImageFileTypeMap[x]; ok {
+		return str
+	}
+	return fmt.Sprintf("ImageFileType(%d)", x)
+}
+
+var _ImageFileTypeValue = map[string]ImageFileType{
+	_ImageFileTypeName[0:7]:   ImageFileTypeUnknown,
+	_ImageFileTypeName[7:16]:  ImageFileTypeImagePng,
+	_ImageFileTypeName[16:26]: ImageFileTypeImageJpeg,
+	_ImageFileTypeName[26:35]: ImageFileTypeImageGif,
+	_ImageFileTypeName[35:45]: ImageFileTypeImageWebp,
+}
+
+// ParseImageFileType attempts to convert a string to a ImageFileType.
+func ParseImageFileType(name string) (ImageFileType, error) {
+	if x, ok := _ImageFileTypeValue[name]; ok {
+		return x, nil
+	}
+	return ImageFileType(0), fmt.Errorf("%s is not a valid ImageFileType", name)
+}
+
+// MarshalText implements the text marshaller method.
+func (x ImageFileType) MarshalText() ([]byte, error) {
+	return []byte(x.String()), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *ImageFileType) UnmarshalText(text []byte) error {
+	name := string(text)
+	tmp, err := ParseImageFileType(name)
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// ImageProfileBorderTypeCircular is a ImageProfileBorderType of type Circular.
 	ImageProfileBorderTypeCircular ImageProfileBorderType = iota
 	// ImageProfileBorderTypeRounded is a ImageProfileBorderType of type Rounded.
