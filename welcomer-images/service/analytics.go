@@ -29,7 +29,7 @@ var (
 		prometheus.HistogramOpts{
 			Name:    "imgen_request_durations_seconds",
 			Help:    "Image Generation request durations",
-			Buckets: prometheus.ExponentialBucketsRange(0.5, 5, 20),
+			Buckets: prometheus.ExponentialBucketsRange(0.1, 5, 20),
 		},
 		[]string{"guild_id", "format", "background"},
 	)

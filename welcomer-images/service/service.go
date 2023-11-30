@@ -139,6 +139,9 @@ func (is *ImageService) setupGRPC() error {
 
 func (is *ImageService) setupPrometheus() error {
 	prometheus.MustRegister(grpcImgenRequests)
+	prometheus.MustRegister(grpcImgenTotalRequests)
+	prometheus.MustRegister(grpcImgenTotalDuration)
+	prometheus.MustRegister(grpcImgenDuration)
 
 	http.Handle("/metrics", promhttp.HandlerFor(
 		prometheus.DefaultGatherer,

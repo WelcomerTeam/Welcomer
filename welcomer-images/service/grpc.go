@@ -6,9 +6,11 @@ import (
 	"image/color"
 	"os"
 	"runtime/debug"
+	"strconv"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	pb "github.com/WelcomerTeam/Welcomer/welcomer-images/protobuf"
 )
 
@@ -26,6 +28,23 @@ func (is *ImageService) newImageGenerationServiceServer() *routeImageGenerationS
 
 func onGRPCRequest() {
 	grpcImgenRequests.Inc()
+}
+
+func onImgenComplete(start time.Time, guildID int64, background string, format core.ImageFileType) {
+	guildIDstring := strconv.FormatInt(guildID, 10)
+	dur := time.Since(start).Seconds()
+
+	grpcImgenTotalRequests.
+		WithLabelValues(guildIDstring, format.String(), background).
+		Inc()
+
+	grpcImgenTotalDuration.
+		WithLabelValues(guildIDstring, format.String(), background).
+		Add(dur)
+
+	grpcImgenDuration.
+		WithLabelValues(guildIDstring, format.String(), background).
+		Observe(dur)
 }
 
 func (grpc *routeImageGenerationServiceServer) GenerateImage(ctx context.Context, req *pb.GenerateImageRequest) (response *pb.GenerateImageResponse, err error) {
@@ -52,6 +71,7 @@ func (grpc *routeImageGenerationServiceServer) GenerateImage(ctx context.Context
 	}()
 
 	onGRPCRequest()
+	start := time.Now()
 
 	response = &pb.GenerateImageResponse{}
 	response.BaseResponse = &pb.BaseResponse{}
@@ -71,6 +91,8 @@ func (grpc *routeImageGenerationServiceServer) GenerateImage(ctx context.Context
 	response.Filetype = format.String()
 	response.BaseResponse.Ok = true
 
+	onImgenComplete(start, req.GuildID, req.Background, format)
+
 	return
 }
 
@@ -80,20 +102,20 @@ func generateImageRequestToOptions(req *pb.GenerateImageRequest) GenerateImageOp
 		UserID:             discord.Snowflake(req.UserID),
 		AllowAnimated:      req.AllowAnimated,
 		AvatarURL:          req.AvatarURL,
-		Theme:              welcomer.ImageTheme(req.Theme),
+		Theme:              core.ImageTheme(req.Theme),
 		Background:         req.Background,
 		Text:               req.Text,
 		TextFont:           req.TextFont,
 		TextStroke:         formatTextStroke(req.TextStroke),
-		TextAlign:          welcomer.ImageAlignment(req.TextAlign),
+		TextAlign:          core.ImageAlignment(req.TextAlign),
 		TextColor:          convertToRGBA(req.TextColor),
 		TextStrokeColor:    convertToRGBA(req.TextStrokeColor),
 		ImageBorderColor:   convertToRGBA(req.ImageBorderColor),
 		ImageBorderWidth:   int(req.ImageBorderWidth),
-		ProfileFloat:       welcomer.ImageAlignment(req.ProfileFloat),
+		ProfileFloat:       core.ImageAlignment(req.ProfileFloat),
 		ProfileBorderColor: convertToRGBA(req.ProfileBorderColor),
 		ProfileBorderWidth: int(req.ProfileBorderWidth),
-		ProfileBorderCurve: welcomer.ImageProfileBorderType(req.ProfileBorderCurve),
+		ProfileBorderCurve: core.ImageProfileBorderType(req.ProfileBorderCurve),
 	}
 }
 
