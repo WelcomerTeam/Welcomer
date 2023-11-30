@@ -7,6 +7,7 @@ var (
 	ErrNoFontFound       = fmt.Errorf("no font found")
 	ErrNotImplemented    = fmt.Errorf("not yet implemented")
 	ErrAvatarFetchFailed = fmt.Errorf("failed to fetch avatar resource")
+	ErrInvalidURL        = fmt.Errorf("url is invalid or untrusted")
 
 	ErrInvalidHorizontalAlignment = fmt.Errorf("unknown horizontal alignment")
 	ErrInvalidVerticalAlignment   = fmt.Errorf("unknown vertical alignment")

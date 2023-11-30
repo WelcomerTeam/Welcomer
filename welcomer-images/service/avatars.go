@@ -21,6 +21,19 @@ const (
 )
 
 func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) (image.Image, error) {
+	url, isValidURL := core.IsValidURL(avatarURL)
+	if !isValidURL {
+		return nil, ErrInvalidURL
+	}
+
+	query := url.Query()
+	if query.Has("size") {
+		// Set size to 256, if present.
+		query.Set("size", "256")
+		url.RawQuery = query.Encode()
+		avatarURL = url.String()
+	}
+
 	req, err := http.NewRequest(http.MethodGet, avatarURL, nil)
 	if err != nil {
 		is.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to create new request for avatar")
@@ -48,6 +61,8 @@ func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) 
 	im, _, err := image.Decode(resp.Body)
 	if err != nil {
 		is.Logger.Error().Err(err).Msg("Failed to decode profile picture of user")
+
+		return nil, err
 	}
 
 	return im, nil
@@ -92,7 +107,7 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 					avatar,
 					(avatar.Bounds().Dx()-(cropPix*2)),
 					(avatar.Bounds().Dx()-(cropPix*2)),
-					imaging.Lanczos,
+					imaging.MitchellNetravali,
 				),
 				cropPix,
 				cropPix,

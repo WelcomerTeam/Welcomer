@@ -39,7 +39,7 @@ func CreateRegularImage(
 			args.Avatar,
 			236,
 			236,
-			imaging.Lanczos,
+			imaging.MitchellNetravali,
 		),
 		imagePoint.X, imagePoint.Y,
 	)

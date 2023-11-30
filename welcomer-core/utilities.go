@@ -1,9 +1,12 @@
 package welcomer
 
 import (
+	"net"
+	"net/url"
 	"strconv"
 	"strings"
 
+	urlverifier "github.com/davidmytton/url-verifier"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -12,6 +15,8 @@ const (
 	int64Base    = 10
 	int64BitSize = 64
 )
+
+var verifier = urlverifier.NewVerifier()
 
 func MustParseBool(str string) bool {
 	boolean, _ := strconv.ParseBool(str)
@@ -81,6 +86,40 @@ func IsValidImageProfileBorderType(value string) bool {
 	_, err := ParseImageProfileBorderType(value)
 
 	return err == nil
+}
+
+// Validates a URL and prevents SSRF.
+func IsValidURL(url string) (*url.URL, bool) {
+	result, err := verifier.Verify(url)
+	if err != nil {
+		return nil, false
+	}
+
+	if !result.IsURL || !result.IsRFC3986URL {
+		return nil, false
+	}
+
+	if !isValidHostname(result.URLComponents.Hostname()) {
+		return nil, false
+	}
+
+	return result.URLComponents, true
+}
+
+func isValidHostname(host string) bool {
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		return false
+	}
+
+	// Check each IP to see if it is an internal IP
+	for _, ip := range ips {
+		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsInterfaceLocalMulticast() || ip.IsUnspecified() {
+			return false
+		}
+	}
+
+	return true
 }
 
 // ParseColour parses a colour and returns RGBA.

@@ -22,7 +22,7 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp Ge
 			args.Avatar,
 			236,
 			236,
-			imaging.Lanczos,
+			imaging.MitchellNetravali,
 		),
 		225, 0,
 	)

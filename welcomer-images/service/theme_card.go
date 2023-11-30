@@ -26,7 +26,7 @@ func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp Gener
 			args.Avatar,
 			256,
 			256,
-			imaging.Lanczos,
+			imaging.MitchellNetravali,
 		),
 		0, 0,
 	)
