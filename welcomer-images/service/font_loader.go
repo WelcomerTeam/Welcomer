@@ -1,8 +1,6 @@
 package service
 
 import (
-	"sync"
-
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
@@ -16,9 +14,6 @@ const (
 
 type Font struct {
 	Font *sfnt.Font
-
-	FontFacesMu sync.RWMutex
-	FontFaces   map[float64]*FontFace
 }
 
 type FontFace struct {
@@ -74,14 +69,6 @@ func (is *ImageService) FetchFont(f string, size float64) (face *FontFace, font 
 		return nil, nil, ErrNoFontFound
 	}
 
-	font.FontFacesMu.RLock()
-	face, ok = font.FontFaces[size]
-	font.FontFacesMu.RUnlock()
-
-	if ok {
-		return face, font, nil
-	}
-
 	fc, err := opentype.NewFace(font.Font, &opentype.FaceOptions{
 		Size: float64(size),
 		DPI:  fontDPI,
@@ -93,10 +80,6 @@ func (is *ImageService) FetchFont(f string, size float64) (face *FontFace, font 
 	}
 
 	face = &FontFace{&fc}
-
-	font.FontFacesMu.Lock()
-	font.FontFaces[size] = face
-	font.FontFacesMu.Unlock()
 
 	return face, font, nil
 }

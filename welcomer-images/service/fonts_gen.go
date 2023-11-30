@@ -56,7 +56,6 @@ func writeHeader(assetsFile *os.File) {
 	_, _ = fmt.Fprint(assetsFile, "import (\n")
 	_, _ = fmt.Fprint(assetsFile, "	_ \"embed\"\n")
 	_, _ = fmt.Fprint(assetsFile, "	\"fmt\"\n\n")
-	_, _ = fmt.Fprint(assetsFile, "	\"sync\"\n\n")
 	_, _ = fmt.Fprint(assetsFile, "	\"golang.org/x/image/font/opentype\"\n")
 	_, _ = fmt.Fprint(assetsFile, "	\"golang.org/x/image/font/sfnt\"\n")
 	_, _ = fmt.Fprint(assetsFile, ")\n\n")
@@ -80,8 +79,6 @@ func writeEmbedStatements(assetsFile *os.File, fontFiles map[string][]string) {
 			_, _ = fmt.Fprintf(assetsFile, "var %sFontBytes []byte\n", removeInvalidCharacters(folderName+fileName))
 			_, _ = fmt.Fprintf(assetsFile, "var %sFont = &Font{\n", removeInvalidCharacters(folderName+fileName))
 			_, _ = fmt.Fprintf(assetsFile, "	Font: mustDecodeFont(\"%sFont\", %sFontBytes),\n", folderName+fileName, removeInvalidCharacters(folderName+fileName))
-			_, _ = fmt.Fprintf(assetsFile, "	FontFacesMu: sync.RWMutex{},\n")
-			_, _ = fmt.Fprintf(assetsFile, "	FontFaces: make(map[float64]*FontFace),\n")
 			_, _ = fmt.Fprintf(assetsFile, "}\n\n")
 		}
 		fmt.Fprintf(assetsFile, "\n")
