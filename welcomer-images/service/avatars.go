@@ -103,7 +103,7 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 			avatarImage = roundImage(avatar, 1000)
 		}
 	case core.ImageProfileBorderTypeRounded:
-		rounding = 32
+		rounding = 16 + float64(generateImageOptions.ProfileBorderWidth)
 		avatarImage = roundImage(avatar, 16)
 	case core.ImageProfileBorderTypeSquared:
 		avatarImage = avatar
