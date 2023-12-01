@@ -28,7 +28,6 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 	context := context.Background()
 
 	// Setup Postgres pool
-
 	poolConnectionString := os.Getenv("POSTGRES_URL")
 
 	pool, err := pgxpool.Connect(context, poolConnectionString)
@@ -40,8 +39,8 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 	welcomer.Database = database.New(welcomer.pool)
 
 	// Register bot (cogs, events)
-
-	if err := welcomer.Register(); err != nil {
+	err = welcomer.Register()
+	if err != nil {
 		panic(fmt.Sprintf("welcomer.Register(): %v", err.Error()))
 	}
 
@@ -52,7 +51,6 @@ func (w *Welcomer) Register() error {
 	w.Bot = sandwich.NewBot(w.Logger)
 
 	// Register cogs
-
 	w.Bot.MustRegisterCog(plugins.NewWelcomerCog())
 
 	return nil

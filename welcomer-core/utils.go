@@ -1,6 +1,7 @@
 package welcomer
 
 import (
+	"image/color"
 	"net"
 	"net/url"
 	"strconv"
@@ -17,6 +18,23 @@ const (
 )
 
 var verifier = urlverifier.NewVerifier()
+
+func FormatTextStroke(v bool) int {
+	if v {
+		return 4
+	}
+
+	return 0
+}
+
+func ConvertToRGBA(int32Color int64) color.RGBA {
+	alpha := uint8(int32Color >> 24 & 0xFF)
+	red := uint8(int32Color >> 16 & 0xFF)
+	green := uint8(int32Color >> 8 & 0xFF)
+	blue := uint8(int32Color & 0xFF)
+
+	return color.RGBA{R: red, G: green, B: blue, A: alpha}
+}
 
 func MustParseBool(str string) bool {
 	boolean, _ := strconv.ParseBool(str)

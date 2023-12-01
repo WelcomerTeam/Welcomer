@@ -14,7 +14,7 @@ import (
 func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subway {
 	sub, err := subway.NewSubway(ctx, options)
 	if err != nil {
-		panic(fmt.Errorf("failed to create subway client. sub.NewClient(%w): %w", options, err))
+		panic(fmt.Errorf("subway.NewSubway(%v): %v", options, err))
 	}
 
 	sub.Commands.ErrorHandler = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, err error) (*discord.InteractionResponse, error) {

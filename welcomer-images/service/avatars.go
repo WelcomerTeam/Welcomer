@@ -17,7 +17,7 @@ var (
 )
 
 const (
-	UserAgent = "WelcomerImageService (https://github.com/WelcomerTeam/Welcomer/welcomer-images, " + VERSION + ")"
+	UserAgent = "WelcomerImageService (https://github.com/WelcomerTeam/Welcomer, " + VERSION + ")"
 )
 
 func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) (image.Image, error) {

@@ -1,19 +1,17 @@
 package main
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
-	pb "github.com/WelcomerTeam/Welcomer/welcomer-images/protobuf"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/WelcomerTeam/Welcomer/welcomer-images/service"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -103,40 +101,28 @@ func main() {
 }
 
 func doLoadTest() {
-	grpcConnection, err := grpc.Dial(GRPC_TARGET, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		panic(fmt.Sprintf(`grpc.Dial(%s): %v`, GRPC_TARGET, err.Error()))
-	}
-
-	client := pb.NewImageGenerationServiceClient(grpcConnection)
-	ctx := context.TODO()
-
 	for {
 		start := time.Now()
+
 		req := getImageRequest()
-		res, err := client.GenerateImage(ctx, req)
+		jval, _ := json.Marshal(req)
+
+		res, err := http.Post("http://127.0.0.1:4003/generate", "application/json", bytes.NewBuffer(jval))
 		if err != nil {
 			r, _ := json.Marshal(req)
 			println(err.Error(), string(r))
-			panic("oh")
 		} else {
-			if res.BaseResponse.Ok {
-				println(time.Since(start).Milliseconds())
-			} else {
-				r, _ := json.Marshal(req)
-				println(res.BaseResponse.Error, string(r))
-				panic("oh")
-			}
+			println(res.StatusCode, time.Since(start).Milliseconds(), res.Header.Get("X-Elapsed"))
 		}
 	}
 }
 
-func getImageRequest() *pb.GenerateImageRequest {
-	return &pb.GenerateImageRequest{
+func getImageRequest() service.GenerateImageOptionsRaw {
+	return service.GenerateImageOptionsRaw{
 		GuildID:            341685098468343822,
 		UserID:             143090142360371200,
 		AllowAnimated:      randomBool(),
-		AvatarURL:          "",
+		AvatarURL:          "https://cdn.discordapp.com/avatars/143090142360371200/a73420b217a77a77b17fb42fa7ecfbcc.png?size=1024",
 		Theme:              rand.Int31n(2),
 		Background:         randomBackground(),
 		Text:               "Welcome ImRock\nto the server!",

@@ -1,15 +1,21 @@
 package service
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"strconv"
+	"time"
+
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 var (
-	grpcImgenRequests = prometheus.NewCounter(
+	imgenRequests = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "imgen_grpc_requests_total",
-			Help: "Image Generation GRPC Requests",
+			Help: "Image Generation Requests",
 		},
 	)
-	grpcImgenTotalRequests = prometheus.NewGaugeVec(
+	imgenTotalRequests = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "imgen_request_total",
 			Help: "Image Generation total request count",
@@ -17,7 +23,7 @@ var (
 		[]string{"guild_id", "format", "background"},
 	)
 
-	grpcImgenTotalDuration = prometheus.NewGaugeVec(
+	imgenTotalDuration = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "imgen_request_duration_seconds",
 			Help: "Image Generation total request duration",
@@ -25,7 +31,7 @@ var (
 		[]string{"guild_id", "format", "background"},
 	)
 
-	grpcImgenDuration = prometheus.NewHistogramVec(
+	imgenDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "imgen_request_durations_seconds",
 			Help:    "Image Generation request durations",
@@ -34,3 +40,24 @@ var (
 		[]string{"guild_id", "format", "background"},
 	)
 )
+
+func onRequest() {
+	imgenRequests.Inc()
+}
+
+func onGenerationComplete(start time.Time, guildID int64, background string, format core.ImageFileType) {
+	guildIDstring := strconv.FormatInt(guildID, 10)
+	dur := time.Since(start).Seconds()
+
+	imgenTotalRequests.
+		WithLabelValues(guildIDstring, format.String(), background).
+		Inc()
+
+	imgenTotalDuration.
+		WithLabelValues(guildIDstring, format.String(), background).
+		Add(dur)
+
+	imgenDuration.
+		WithLabelValues(guildIDstring, format.String(), background).
+		Observe(dur)
+}

@@ -4,6 +4,6 @@ use (
 	./welcomer-backend
 	./welcomer-core
 	./welcomer-gateway
-	./welcomer-interactions
 	./welcomer-images
+	./welcomer-interactions
 )

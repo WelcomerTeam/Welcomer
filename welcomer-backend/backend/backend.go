@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
-	"path"
 	"sync"
 	"time"
 
@@ -23,10 +20,7 @@ import (
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
-	yaml "gopkg.in/yaml.v3"
 )
 
 const VERSION = "0.1"
@@ -43,16 +37,10 @@ var backend *Backend
 type Backend struct {
 	sync.Mutex
 
-	ConfigurationLocation string `json:"configuration_location"`
-
-	ctx    context.Context
-	cancel func()
+	ctx context.Context
 
 	Logger    zerolog.Logger `json:"-"`
 	StartTime time.Time      `json:"start_time" yaml:"start_time"`
-
-	configurationMu sync.RWMutex
-	Configuration   *Configuration `json:"configuration" yaml:"configuration"`
 
 	RESTInterface discord.RESTInterface
 
@@ -76,9 +64,6 @@ type Backend struct {
 	donatorBotToken   string
 	DonatorBotSession *discord.Session
 
-	cdnCustomBackgroundsPath string
-	customBackgroundsPath    string
-
 	// Environment Variables.
 	host              string
 	prometheusAddress string
@@ -86,27 +71,8 @@ type Backend struct {
 	nginxAddress      string
 }
 
-// Configuration represents the configuration file.
-type Configuration struct {
-	Logging struct {
-		Level              string `json:"level" yaml:"level"`
-		FileLoggingEnabled bool   `json:"file_logging_enabled" yaml:"file_logging_enabled"`
-
-		EncodeAsJSON bool `json:"encode_as_json" yaml:"encode_as_json"`
-
-		Directory  string `json:"directory" yaml:"directory"`
-		Filename   string `json:"filename" yaml:"filename"`
-		MaxSize    int    `json:"max_size" yaml:"max_size"`
-		MaxBackups int    `json:"max_backups" yaml:"max_backups"`
-		MaxAge     int    `json:"max_age" yaml:"max_age"`
-		Compress   bool   `json:"compress" yaml:"compress"`
-	} `json:"logging" yaml:"logging"`
-
-	Webhooks []string `json:"webhooks" yaml:"webhooks"`
-}
-
 // NewBackend creates a new backend.
-func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, isReleaseMode bool, configurationLocation, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress, clientId, clientSecret, redirectURL, cdnCustomBackgroundsPath, cdnBackgroundsPath string) (b *Backend, err error) {
+func NewBackend(ctx context.Context, conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, pool *pgxpool.Pool, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress, clientId, clientSecret, redirectURL string) (b *Backend, err error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
@@ -114,20 +80,12 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 	b = &Backend{
 		Logger: zerolog.New(logger).With().Timestamp().Logger(),
 
-		ConfigurationLocation: configurationLocation,
-
-		configurationMu: sync.RWMutex{},
-		Configuration:   &Configuration{},
-
 		RESTInterface: restInterface,
 
 		SandwichClient: protobuf.NewSandwichClient(conn),
 		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
 
 		PrometheusHandler: ginprometheus.NewPrometheus("gin"),
-
-		cdnCustomBackgroundsPath: cdnCustomBackgroundsPath,
-		customBackgroundsPath:    cdnBackgroundsPath,
 
 		host:              host,
 		botToken:          botToken,
@@ -140,11 +98,7 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 	b.Lock()
 	defer b.Unlock()
 
-	b.ctx, b.cancel = context.WithCancel(context.Background())
-
-	if isReleaseMode {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	b.ctx = ctx
 
 	// Setup OAuth2
 
@@ -164,14 +118,7 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 		}
 	}
 
-	// Setup postgres pool.
-	pool, err := pgxpool.Connect(b.ctx, b.postgresAddress)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
-	}
-
 	b.Pool = pool
-
 	b.Database = database.New(b.Pool)
 
 	// Setup session store.
@@ -182,44 +129,7 @@ func NewBackend(conn grpc.ClientConnInterface, restInterface discord.RESTInterfa
 
 	b.Store = store
 
-	// Load configuration.
-	configuration, err := b.LoadConfiguration(b.ConfigurationLocation)
-	if err != nil {
-		return nil, err
-	}
-
-	b.Configuration = configuration
-
-	var writers []io.Writer
-
-	writers = append(writers, logger)
-
-	if b.Configuration.Logging.FileLoggingEnabled {
-		if err := os.MkdirAll(b.Configuration.Logging.Directory, PermissionsDefault); err != nil {
-			log.Error().Err(err).Str("path", b.Configuration.Logging.Directory).Msg("Unable to create log directory")
-		} else {
-			lumber := &lumberjack.Logger{
-				Filename:   path.Join(b.Configuration.Logging.Directory, b.Configuration.Logging.Filename),
-				MaxBackups: b.Configuration.Logging.MaxBackups,
-				MaxSize:    b.Configuration.Logging.MaxSize,
-				MaxAge:     b.Configuration.Logging.MaxAge,
-				Compress:   b.Configuration.Logging.Compress,
-			}
-
-			if b.Configuration.Logging.EncodeAsJSON {
-				writers = append(writers, lumber)
-			} else {
-				writers = append(writers, zerolog.ConsoleWriter{
-					Out:        lumber,
-					TimeFormat: time.Stamp,
-					NoColor:    true,
-				})
-			}
-		}
-	}
-
-	mw := io.MultiWriter(writers...)
-	b.Logger = zerolog.New(mw).With().Timestamp().Logger()
+	b.Logger = zerolog.New(logger).With().Timestamp().Logger()
 	b.Logger.Info().Msg("Logging configured")
 
 	// Setup gin router.
@@ -241,39 +151,10 @@ func (b *Backend) GetBasicEventContext() (client *sandwich.EventContext) {
 	}
 }
 
-// LoadConfiguration handles loading the configuration file.
-func (b *Backend) LoadConfiguration(path string) (configuration *Configuration, err error) {
-	b.Logger.Debug().
-		Str("path", path).
-		Msg("Loading configuration")
-
-	defer func() {
-		if err == nil {
-			b.Logger.Info().Msg("Configuration loaded")
-		}
-	}()
-
-	file, err := ioutil.ReadFile(path)
-	if err != nil {
-		return configuration, ErrReadConfigurationFailure
-	}
-
-	configuration = &Configuration{}
-
-	err = yaml.Unmarshal(file, configuration)
-	if err != nil {
-		return configuration, ErrLoadConfigurationFailure
-	}
-
-	return configuration, nil
-}
-
 // Open sets up any services and starts the webserver.
 func (b *Backend) Open() error {
 	b.StartTime = time.Now().UTC()
-	b.Logger.Info().Msgf("Starting sandwich. Version %s", VERSION)
-
-	go b.PublishSimpleWebhook(b.EmptySession, "Starting backend", "", "Version "+VERSION, EmbedColourSandwich)
+	b.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
 
 	// Setup Prometheus
 	go b.SetupPrometheus()

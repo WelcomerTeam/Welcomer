@@ -39,32 +39,55 @@ type FullImage struct {
 	BackgroundIndex byte
 }
 
-type GenerateImageOptions struct {
-	GuildID             discord.Snowflake
-	UserID              discord.Snowflake
-	AllowAnimated       bool
-	AvatarURL           string
-	Theme               core.ImageTheme
-	Background          string
-	Text                string
-	TextFont            string
-	TextStroke          int
-	TextAlign core.ImageAlignment
-	TextColor           color.RGBA
-	TextStrokeColor     color.RGBA
-	ImageBorderColor    color.RGBA
-	ImageBorderWidth    int
-	ProfileFloat        core.ImageAlignment
-	ProfileBorderColor  color.RGBA
-	ProfileBorderWidth  int
-	ProfileBorderCurve  core.ImageProfileBorderType
+type GenerateImageOptionsRaw struct {
+	GuildID            int64
+	UserID             int64
+	AllowAnimated      bool
+	AvatarURL          string
+	Theme              int32
+	Background         string
+	Text               string
+	TextFont           string
+	TextStroke         bool
+	TextAlign          int32
+	TextColor          int64
+	TextStrokeColor    int64
+	ImageBorderColor   int64
+	ImageBorderWidth   int32
+	ProfileFloat       int32
+	ProfileBorderColor int64
+	ProfileBorderWidth int32
+	ProfileBorderCurve int32
 }
 
-func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte, core.ImageFileType, error) {
+type GenerateImageOptions struct {
+	GuildID            discord.Snowflake
+	UserID             discord.Snowflake
+	AllowAnimated      bool
+	AvatarURL          string
+	Theme              core.ImageTheme
+	Background         string
+	Text               string
+	TextFont           string
+	TextStroke         int
+	TextAlign          core.ImageAlignment
+	TextColor          color.RGBA
+	TextStrokeColor    color.RGBA
+	ImageBorderColor   color.RGBA
+	ImageBorderWidth   int
+	ProfileFloat       core.ImageAlignment
+	ProfileBorderColor color.RGBA
+	ProfileBorderWidth int
+	ProfileBorderCurve core.ImageProfileBorderType
+}
+
+func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte, core.ImageFileType, *Timing, error) {
 	theme, ok := themes[imageOptions.Theme]
 	if !ok {
 		theme = themes[core.ImageThemeDefault]
 	}
+
+	timing := NewTiming()
 
 	avatar, err := is.FetchAvatar(imageOptions.UserID, imageOptions.AvatarURL)
 	if err != nil {
@@ -73,6 +96,8 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 		avatar = assetsDefaultAvatarImage
 	}
 
+	timing.Track("fetchAvatar")
+
 	background, err := is.FetchBackground(imageOptions.Background, imageOptions.AllowAnimated, avatar)
 	if err != nil {
 		is.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
@@ -80,10 +105,14 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 		background = &FullImage{Frames: []image.Image{backgroundsDefaultImage}}
 	}
 
+	timing.Track("fetchBackground")
+
 	avatarOverlay, err := applyAvatarEffects(avatar, imageOptions)
 	if err != nil {
 		is.Logger.Error().Err(err).Msg("Failed to generate avatar")
 	}
+
+	timing.Track("applyAvatarEffects")
 
 	themeResponse, err := theme(is, GenerateImageArguments{
 		ImageOptions: imageOptions,
@@ -92,14 +121,20 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 	if err != nil {
 		is.Logger.Error().Err(err).Msg("Failed to generate theme overlay")
 
-		return nil, core.ImageFileTypeUnknown, err
+		return nil, core.ImageFileTypeUnknown, timing, err
 	}
+
+	timing.Track("theme")
 
 	if imageOptions.ImageBorderWidth > 0 {
 		applyImageBorder(&themeResponse, imageOptions)
+
+		timing.Track("applyImageBorder")
 	}
 
 	frames := overlayFrames(&themeResponse, background)
+
+	timing.Track("overlayFrames")
 
 	background.Config = image.Config{
 		ColorModel: nil,
@@ -114,7 +149,9 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 		is.Logger.Error().Err(err).Msg("Failed to encode frames")
 	}
 
-	return file, format, err
+	timing.Track("encodeFrames")
+
+	return file, format, timing, err
 }
 
 // overlay frames

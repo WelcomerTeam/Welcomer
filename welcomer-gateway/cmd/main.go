@@ -4,75 +4,42 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"net/url"
 	"os"
-	"path"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	messaging "github.com/WelcomerTeam/Sandwich/messaging"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	gateway "github.com/WelcomerTeam/Welcomer/welcomer-gateway"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"gopkg.in/natefinch/lumberjack.v2"
 
 	_ "github.com/joho/godotenv/autoload"
 )
 
-const (
-	PermissionsDefault = 0o744
-)
-
 func main() {
-	producerName := flag.String("producerName", os.Getenv("PRODUCER_NAME"), "Sandwich producer identifier name")
-
-	grpcAddress := flag.String("grpcAddress", os.Getenv("GRPC_ADDRESS"), "GRPC Address")
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Twilight proxy Address")
-
-	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs Streaming Address")
-	stanCluster := flag.String("stanCluster", os.Getenv("STAN_CLUSTER"), "NATs Streaming Cluster")
-	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs Streaming Channel")
-
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
-	loggingFileLoggingEnabled := flag.Bool("fileLoggingEnabled", core.MustParseBool(os.Getenv("LOGGING_FILE_LOGGING_ENABLED")), "When enabled, will save logs to files")
-	loggingEncodeAsJSON := flag.Bool("encodeAsJSON", core.MustParseBool(os.Getenv("LOGGING_ENCODE_AS_JSON")), "When enabled, will save logs as JSON")
-	loggingCompress := flag.Bool("compress", core.MustParseBool(os.Getenv("LOGGING_COMPRESS")), "If true, will compress log files once reached max size")
-	loggingDirectory := flag.String("directory", os.Getenv("LOGGING_DIRECTORY"), "Directory to store logs in")
-	loggingFilename := flag.String("filename", os.Getenv("LOGGING_FILENAME"), "Filename to store logs as")
-	loggingMaxSize := flag.Int("maxSize", core.MustParseInt(os.Getenv("LOGGING_MAX_SIZE")), "Maximum size for log files before being split into seperate files")
-	loggingMaxBackups := flag.Int("maxBackups", core.MustParseInt(os.Getenv("LOGGING_MAX_BACKUPS")), "Maximum number of log files before being deleted")
-	loggingMaxAge := flag.Int("maxAge", core.MustParseInt(os.Getenv("LOGGING_MAX_AGE")), "Maximum age in days for a log file")
+	sandwichGRPCHost := flag.String("grpcAddress", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichProducerName := flag.String("producerName", os.Getenv("SANDWICH_PRODUCER_NAME"), "Sandwich producer identifier name")
+	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
-	oneShot := flag.Bool("oneshot", false, "If true, will close the app after setting up the app")
+	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
+	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
+	stanCluster := flag.String("stanCluster", os.Getenv("STAN_CLUSTER"), "NATs streaming Cluster")
 
-	proxyDebug := flag.Bool("proxyDebug", false, "Enable debug on proxy")
+	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
 
 	flag.Parse()
 
-	// Setup Rest
-	proxyURL, err := url.Parse(*proxyAddress)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse proxy address. url.Parse(%s): %w", *proxyAddress, err))
-	}
-
-	restInterface := discord.NewTwilightProxy(*proxyURL)
-	restInterface.SetDebug(*proxyDebug)
-
-	// Setup GRPC
-	grpcConnection, err := grpc.Dial(*grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		panic(fmt.Sprintf(`grpc.Dial(%s): %v`, *grpcAddress, err.Error()))
-	}
+	var err error
 
 	// Setup Logger
-	level, err := zerolog.ParseLevel(*loggingLevel)
-	if err != nil {
+	var level zerolog.Level
+	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
 		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
 	}
 
@@ -83,74 +50,57 @@ func main() {
 		TimeFormat: time.Stamp,
 	}
 
-	var writers []io.Writer
-
-	writers = append(writers, writer)
-
-	if *loggingFileLoggingEnabled {
-		if err := os.MkdirAll(*loggingDirectory, PermissionsDefault); err != nil {
-			log.Error().Err(err).Str("path", *loggingDirectory).Msg("Unable to create log directory")
-		} else {
-			lumber := &lumberjack.Logger{
-				Filename:   path.Join(*loggingDirectory, *loggingFilename),
-				MaxBackups: *loggingMaxBackups,
-				MaxSize:    *loggingMaxSize,
-				MaxAge:     *loggingMaxAge,
-				Compress:   *loggingCompress,
-			}
-
-			if *loggingEncodeAsJSON {
-				writers = append(writers, lumber)
-			} else {
-				writers = append(writers, zerolog.ConsoleWriter{
-					Out:        lumber,
-					TimeFormat: time.Stamp,
-					NoColor:    true,
-				})
-			}
-		}
-	}
-
-	mw := io.MultiWriter(writers...)
-	logger := zerolog.New(mw).With().Timestamp().Logger()
+	logger := zerolog.New(writer).With().Timestamp().Logger()
 	logger.Info().Msg("Logging configured")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Setup Rest
+	var proxyURL *url.URL
+	if proxyURL, err = url.Parse(*proxyAddress); err != nil {
+		panic(fmt.Errorf("failed to parse proxy address. url.Parse(%s): %w", *proxyAddress, err))
+	}
+
+	restInterface := discord.NewTwilightProxy(*proxyURL)
+	restInterface.SetDebug(*proxyDebug)
+
+	// Setup GRPC
+	var grpcConnection *grpc.ClientConn
+	if grpcConnection, err = grpc.Dial(*sandwichGRPCHost, grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
+		panic(fmt.Sprintf(`grpc.Dial(%s): %v`, *sandwichGRPCHost, err.Error()))
+	}
+
 	// Setup NATs
 	stanClient := messaging.NewStanMQClient()
 
-	err = stanClient.Connect(ctx, "sandwich", map[string]interface{}{
+	if err = stanClient.Connect(ctx, "sandwich", map[string]interface{}{
 		"Address": *stanAddress,
 		"Cluster": *stanCluster,
 		"Channel": *stanChannel,
-	})
-	if err != nil {
+	}); err != nil {
 		panic(fmt.Sprintf(`stanClient.Connect(): %v`, err.Error()))
 	}
 
-	err = stanClient.Subscribe(ctx, *stanChannel)
-	if err != nil {
+	if err = stanClient.Subscribe(ctx, *stanChannel); err != nil {
 		panic(fmt.Sprintf(`stanClient.Subscribe(%s): %v`, *stanChannel, err.Error()))
 	}
 
 	// Setup sandwich.
 	sandwichClient := sandwich.NewSandwich(grpcConnection, restInterface, writer)
 
-	welcomer := gateway.NewWelcomer(*producerName, sandwichClient)
-	sandwichClient.RegisterBot(*producerName, welcomer.Bot)
+	welcomer := gateway.NewWelcomer(*sandwichProducerName, sandwichClient)
+	sandwichClient.RegisterBot(*sandwichProducerName, welcomer.Bot)
 
 	// We return if it a dry run. Any issues loading up the bot would've already caused a panic.
-	if *oneShot {
+	if *dryRun {
 		return
 	}
 
 	// Register message channels
 	stanMessages := stanClient.Chan()
 
-	err = sandwichClient.ListenToChannel(ctx, stanMessages)
-	if err != nil {
-		panic(fmt.Sprintf(`sandwichClient.ListenToChannel(): %w`, err))
+	if err = sandwichClient.ListenToChannel(ctx, stanMessages); err != nil {
+		logger.Panic().Err(err).Msg("Failed to listen to channel")
 	}
 
 	cancel()
@@ -158,8 +108,7 @@ func main() {
 	// Close sandwich
 	stanClient.Unsubscribe()
 
-	err = grpcConnection.Close()
-	if err != nil {
+	if err = grpcConnection.Close(); err != nil {
 		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 }

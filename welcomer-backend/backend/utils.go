@@ -1,6 +1,8 @@
 package backend
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 const (
 	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
