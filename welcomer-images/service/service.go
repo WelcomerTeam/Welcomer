@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -25,12 +24,10 @@ const VERSION = "0.0.1"
 type ImageService struct {
 	ctx context.Context
 
-	Logger    zerolog.Logger `json:"-"`
-	StartTime time.Time      `json:"start_time" yaml:"start_time"`
+	Logger    zerolog.Logger
+	StartTime time.Time
 
-	Options ImageServiceOptions `json:"options" yaml:"options"`
-
-	Pool *pgxpool.Pool
+	Options ImageServiceOptions
 
 	Database *database.Queries
 
@@ -42,33 +39,26 @@ type ImageService struct {
 // ImageServiceOptions represents any options passable when creating
 // the image generation service
 type ImageServiceOptions struct {
-	PrometheusAddress string
-	PostgresAddress   string
-	Host              string
 	Debug             bool
+	Host              string
+	Pool              *pgxpool.Pool
+	PostgresAddress   string
+	PrometheusAddress string
 }
 
 // NewImageService creates the service and initializes it.
-func NewImageService(ctx context.Context, logger io.Writer, options ImageServiceOptions) (is *ImageService, err error) {
+func NewImageService(ctx context.Context, logger zerolog.Logger, options ImageServiceOptions) (is *ImageService, err error) {
 	is = &ImageService{
 		ctx: ctx,
 
-		Logger: zerolog.New(logger).With().Timestamp().Logger(),
+		Logger: logger,
 
 		Options: options,
 
 		Client: http.Client{Timeout: 5 * time.Second},
+
+		Database: database.New(options.Pool),
 	}
-
-	// Setup postgres pool.
-	pool, err := pgxpool.Connect(is.ctx, is.Options.PostgresAddress)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
-	}
-
-	is.Pool = pool
-
-	is.Database = database.New(is.Pool)
 
 	return is, nil
 }

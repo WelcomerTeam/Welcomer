@@ -86,7 +86,20 @@ func main() {
 
 	// Setup app.
 	var app *backend.Backend
-	if app, err = backend.NewBackend(ctx, grpcConnection, restInterface, writer, pool, *host, *botToken, *fallbackBotToken, *prometheusAddress, *postgresURL, *nginxAddress, *clientID, *clientSecret, *redirectURL); err != nil {
+	if app, err = backend.NewBackend(ctx, logger, backend.BackendOptions{
+		Conn:              grpcConnection,
+		RESTInterface:     restInterface,
+		Pool:              pool,
+		Host:              *host,
+		BotToken:          *botToken,
+		DonatorBotToken:   *fallbackBotToken,
+		PrometheusAddress: *prometheusAddress,
+		PostgresAddress:   *postgresURL,
+		NginxAddress:      *nginxAddress,
+		ClientId:          *clientID,
+		ClientSecret:      *clientSecret,
+		RedirectURL:       *redirectURL,
+	}); err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}
 

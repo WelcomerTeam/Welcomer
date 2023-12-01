@@ -11,6 +11,7 @@ import (
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-images/service"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -50,14 +51,20 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Setup postgres pool.
+	var pool *pgxpool.Pool
+	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
+		panic(fmt.Sprintf(`pgxpool.Connect(%s): %v`, *postgresURL, err.Error()))
+	}
+
 	// Image Service initialization
 	var imageService *service.ImageService
-	if imageService, err = service.NewImageService(ctx, writer, service.ImageServiceOptions{
-		PrometheusAddress: *prometheusAddress,
+	if imageService, err = service.NewImageService(ctx, logger, service.ImageServiceOptions{
+		Debug:             *debug,
+		Host:              *imageHost,
+		Pool:              pool,
 		PostgresAddress:   *postgresURL,
-
-		Host:  *imageHost,
-		Debug: *debug,
+		PrometheusAddress: *prometheusAddress,
 	}); err != nil {
 		logger.Panic().Err(err).Msg("Cannot create image service")
 	}

@@ -3,8 +3,6 @@ package backend
 import (
 	"context"
 	"fmt"
-	"io"
-	"sync"
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -35,12 +33,12 @@ const (
 var backend *Backend
 
 type Backend struct {
-	sync.Mutex
-
 	ctx context.Context
 
-	Logger    zerolog.Logger `json:"-"`
-	StartTime time.Time      `json:"start_time" yaml:"start_time"`
+	Logger    zerolog.Logger
+	StartTime time.Time
+
+	Options BackendOptions
 
 	RESTInterface discord.RESTInterface
 
@@ -51,86 +49,79 @@ type Backend struct {
 
 	Route *gin.Engine
 
-	Pool  *pgxpool.Pool
 	Store Store
 
 	Database *database.Queries
 
-	EmptySession *discord.Session
-
-	botToken   string
-	BotSession *discord.Session
-
-	donatorBotToken   string
+	EmptySession      *discord.Session
+	BotSession        *discord.Session
 	DonatorBotSession *discord.Session
+}
 
-	// Environment Variables.
-	host              string
-	prometheusAddress string
-	postgresAddress   string
-	nginxAddress      string
+// BackendOptions represents any options passable when creating
+// the backend service
+type BackendOptions struct {
+	BotToken          string
+	ClientId          string
+	ClientSecret      string
+	Conn              grpc.ClientConnInterface
+	DonatorBotToken   string
+	Host              string
+	NginxAddress      string
+	Pool              *pgxpool.Pool
+	PostgresAddress   string
+	PrometheusAddress string
+	RedirectURL       string
+	RESTInterface     discord.RESTInterface
 }
 
 // NewBackend creates a new backend.
-func NewBackend(ctx context.Context, conn grpc.ClientConnInterface, restInterface discord.RESTInterface, logger io.Writer, pool *pgxpool.Pool, host, botToken, donatorBotToken, prometheusAddress, postgresAddress, nginxAddress, clientId, clientSecret, redirectURL string) (b *Backend, err error) {
+func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptions) (b *Backend, err error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
 
 	b = &Backend{
-		Logger: zerolog.New(logger).With().Timestamp().Logger(),
+		ctx: ctx,
 
-		RESTInterface: restInterface,
+		Logger: logger,
 
-		SandwichClient: protobuf.NewSandwichClient(conn),
+		Options: options,
+
+		RESTInterface: options.RESTInterface,
+
+		SandwichClient: protobuf.NewSandwichClient(options.Conn),
 		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
 
 		PrometheusHandler: ginprometheus.NewPrometheus("gin"),
 
-		host:              host,
-		botToken:          botToken,
-		donatorBotToken:   donatorBotToken,
-		prometheusAddress: prometheusAddress,
-		postgresAddress:   postgresAddress,
-		nginxAddress:      nginxAddress,
+		Database: database.New(options.Pool),
 	}
 
-	b.Lock()
-	defer b.Unlock()
-
-	b.ctx = ctx
-
 	// Setup OAuth2
-
-	OAuth2Config.ClientID = clientId
-	OAuth2Config.ClientSecret = clientSecret
-	OAuth2Config.RedirectURL = redirectURL
+	OAuth2Config.ClientID = options.ClientId
+	OAuth2Config.ClientSecret = options.ClientSecret
+	OAuth2Config.RedirectURL = options.RedirectURL
 
 	// Setup sessions
 	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface, b.Logger)
-	b.BotSession = discord.NewSession(b.ctx, b.botToken, b.RESTInterface, b.Logger)
-	b.DonatorBotSession = discord.NewSession(b.ctx, b.donatorBotToken, b.RESTInterface, b.Logger)
+	b.BotSession = discord.NewSession(b.ctx, b.Options.BotToken, b.RESTInterface, b.Logger)
+	b.DonatorBotSession = discord.NewSession(b.ctx, b.Options.DonatorBotToken, b.RESTInterface, b.Logger)
 
-	if nginxAddress != "" {
-		err = b.Route.SetTrustedProxies([]string{nginxAddress})
+	if options.NginxAddress != "" {
+		err = b.Route.SetTrustedProxies([]string{options.NginxAddress})
 		if err != nil {
 			return nil, fmt.Errorf("failed to set trusted proxies: %w", err)
 		}
 	}
 
-	b.Pool = pool
-	b.Database = database.New(b.Pool)
-
 	// Setup session store.
-	store, err := NewStore(b.Pool, []byte("Testing"))
+	store, err := NewStore(options.Pool, []byte("Testing"))
 	if err != nil {
 		return nil, err
 	}
 
 	b.Store = store
-
-	b.Logger = zerolog.New(logger).With().Timestamp().Logger()
-	b.Logger.Info().Msg("Logging configured")
 
 	// Setup gin router.
 	b.Route = b.PrepareGin()
@@ -159,9 +150,9 @@ func (b *Backend) Open() error {
 	// Setup Prometheus
 	go b.SetupPrometheus()
 
-	b.Logger.Info().Msgf("Serving http at %s", b.host)
+	b.Logger.Info().Msgf("Serving http at %s", b.Options.Host)
 
-	err := b.Route.Run(b.host)
+	err := b.Route.Run(b.Options.Host)
 	if err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}
@@ -178,9 +169,9 @@ func (b *Backend) Close() error {
 
 // SetupPrometheus sets up prometheus.
 func (b *Backend) SetupPrometheus() error {
-	b.Logger.Info().Msgf("Serving prometheus at %s", b.prometheusAddress)
+	b.Logger.Info().Msgf("Serving prometheus at %s", b.Options.PrometheusAddress)
 
-	b.PrometheusHandler.SetListenAddress(b.prometheusAddress)
+	b.PrometheusHandler.SetListenAddress(b.Options.PostgresAddress)
 	b.PrometheusHandler.SetMetricsPath(nil)
 
 	return nil
