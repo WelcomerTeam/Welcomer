@@ -2,7 +2,10 @@ package backend
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -28,6 +31,8 @@ const (
 	PermissionWrite    = 0o600
 
 	RequestSizeLimit = 100000000
+
+	MaxAge = time.Hour * 24 * 7
 )
 
 var backend *Backend
@@ -73,6 +78,7 @@ type BackendOptions struct {
 	PrometheusAddress string
 	RedirectURL       string
 	RESTInterface     discord.RESTInterface
+	KeyPairs          string
 }
 
 // NewBackend creates a new backend.
@@ -115,11 +121,32 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 		}
 	}
 
+	keyPairs := [][]byte{}
+
+	keyPairStrings := strings.Split(options.KeyPairs, ",")
+	for _, keyPairString := range keyPairStrings {
+		byteSlice, err := hex.DecodeString(keyPairString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse keyPairString %s to hex: %v", keyPairString, err.Error())
+		}
+
+		keyPairs = append(keyPairs, byteSlice)
+	}
+
 	// Setup session store.
-	store, err := NewStore(options.Pool, []byte("Testing"))
+	store, err := NewStore(options.Pool, keyPairs...)
 	if err != nil {
 		return nil, err
 	}
+
+	store.Options(sessions.Options{
+		Path:     "",
+		Domain:   "",
+		MaxAge:   int(MaxAge),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	b.Store = store
 

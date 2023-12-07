@@ -100,6 +100,14 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					json := multipart.Value["json"][0]
 
 					err = jsoniter.UnmarshalFromString(json, &partial)
+					if err != nil {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: err.Error(),
+						})
+
+						return
+					}
 				}
 			case gin.MIMEJSON:
 				err = ctx.BindJSON(partial)
@@ -343,7 +351,7 @@ func getGuildWelcomerPreview(ctx *gin.Context) {
 	if err != nil {
 		backend.Logger.Info().Str("key", key).Msg("Failed to find welcomer background with key")
 
-		// TODO needs to recognise file type
+		// TODO needs to recognize file type
 		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
 
 		return

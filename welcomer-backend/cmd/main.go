@@ -31,6 +31,7 @@ func main() {
 	botToken := flag.String("botToken", os.Getenv("BOT_TOKEN"), "Primary bot token")
 	fallbackBotToken := flag.String("donatorBotToken", os.Getenv("BOT_TOKEN_DONATOR"), "Donator bot token")
 	host := flag.String("host", os.Getenv("BACKEND_HOST"), "Host to serve backend from")
+	keyPairs := flag.String("keypairs", os.Getenv("BACKEND_KEYPAIRS"), "Comma separated list of keypairs to use for sessions. This should be in the format <newhashkey>,<newblockkey>,<oldhashkey>,<oldblockkey>... to allow for key rotation")
 
 	clientID := flag.String("clientID", os.Getenv("BOT_CLIENT_ID"), "OAuth2 Client ID")
 	clientSecret := flag.String("clientSecret", os.Getenv("BOT_CLIENT_SECRET"), "OAuth2 Client Secret")
@@ -99,6 +100,7 @@ func main() {
 		ClientId:          *clientID,
 		ClientSecret:      *clientSecret,
 		RedirectURL:       *redirectURL,
+		KeyPairs:          *keyPairs,
 	}); err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}
