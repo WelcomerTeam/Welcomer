@@ -11,7 +11,10 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	messaging "github.com/WelcomerTeam/Sandwich/messaging"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	gateway "github.com/WelcomerTeam/Welcomer/welcomer-gateway"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -26,6 +29,7 @@ func main() {
 	sandwichProducerName := flag.String("producerName", os.Getenv("SANDWICH_PRODUCER_NAME"), "Sandwich producer identifier name")
 	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
+	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
@@ -84,6 +88,17 @@ func main() {
 	if err = stanClient.Subscribe(ctx, *stanChannel); err != nil {
 		panic(fmt.Sprintf(`stanClient.Subscribe(%s): %v`, *stanChannel, err.Error()))
 	}
+
+	// Setup postgres pool.
+	pool, err := pgxpool.Connect(ctx, *postgresURL)
+	if err != nil {
+		panic(fmt.Sprintf("pgxpool.Connect(%s): %v", *postgresURL, err))
+	}
+
+	queries := database.New(pool)
+
+	ctx = welcomer.AddPoolToContext(ctx, pool)
+	ctx = welcomer.AddQueriesToContext(ctx, queries)
 
 	// Setup sandwich.
 	sandwichClient := sandwich.NewSandwich(grpcConnection, restInterface, writer)

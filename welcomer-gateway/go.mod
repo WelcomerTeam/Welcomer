@@ -3,17 +3,21 @@ module github.com/WelcomerTeam/Welcomer/welcomer-gateway
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20230919203812-a65cb654c4a8
-	github.com/WelcomerTeam/Sandwich v0.0.0-20230914001140-a7a1fd53a02f
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77
+	github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8
+	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/joho/godotenv v1.5.1
+	github.com/json-iterator/go v1.1.12
 	github.com/rs/zerolog v1.31.0
-	google.golang.org/grpc v1.60.0
+	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee
+	google.golang.org/grpc v1.60.1
 )
 
 require (
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
+	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davidmytton/url-verifier v1.0.0 // indirect
@@ -30,7 +34,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -43,9 +46,8 @@ require (
 	github.com/nats-io/stan.go v0.10.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.19 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

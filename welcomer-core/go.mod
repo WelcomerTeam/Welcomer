@@ -12,6 +12,8 @@ require (
 	github.com/json-iterator/go v1.1.12
 )
 
+require github.com/jackc/puddle v1.3.0 // indirect
+
 require (
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect

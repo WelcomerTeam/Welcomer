@@ -9,4 +9,9 @@ const (
 	CustomEventInvokeWelcomer = "WELCOMER_INVOKE_WELCOMER"
 )
 
-type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member discord.GuildMember) error
+type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
+
+type CustomEventInvokeWelcomerStructure struct {
+	Interaction *discord.Interaction
+	Member      *discord.GuildMember
+}

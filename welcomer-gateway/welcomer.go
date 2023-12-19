@@ -1,9 +1,7 @@
 package welcomer
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -25,21 +23,8 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 		Logger: sandwichClient.Logger,
 	}
 
-	context := context.Background()
-
-	// Setup Postgres pool
-	poolConnectionString := os.Getenv("POSTGRES_URL")
-
-	pool, err := pgxpool.Connect(context, poolConnectionString)
-	if err != nil {
-		panic(fmt.Sprintf("pgxpool.Connect(%s): %v", poolConnectionString, err.Error()))
-	}
-
-	welcomer.pool = pool
-	welcomer.Database = database.New(welcomer.pool)
-
 	// Register bot (cogs, events)
-	err = welcomer.Register()
+	err := welcomer.Register()
 	if err != nil {
 		panic(fmt.Sprintf("welcomer.Register(): %v", err.Error()))
 	}

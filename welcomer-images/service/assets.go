@@ -74,6 +74,15 @@ func mustDecodeBytes(n string, src []byte) image.Image {
 	return res
 }
 
+//go:embed assets/broke_image.png
+var assetsBrokeImageImageBytes []byte
+var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBrokeImageImageBytes)
+
+//go:embed assets/default_avatar.png
+var assetsDefaultAvatarImageBytes []byte
+var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)
+
+
 //go:embed backgrounds/aesthetics.png
 var backgroundsAestheticsImageBytes []byte
 var backgroundsAestheticsImage = mustDecodeBytes("backgroundsAestheticsImage", backgroundsAestheticsImageBytes)
@@ -273,14 +282,5 @@ var backgroundsWoodImage = mustDecodeBytes("backgroundsWoodImage", backgroundsWo
 //go:embed backgrounds/yellow.png
 var backgroundsYellowImageBytes []byte
 var backgroundsYellowImage = mustDecodeBytes("backgroundsYellowImage", backgroundsYellowImageBytes)
-
-
-//go:embed assets/broke_image.png
-var assetsBrokeImageImageBytes []byte
-var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBrokeImageImageBytes)
-
-//go:embed assets/default_avatar.png
-var assetsDefaultAvatarImageBytes []byte
-var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)
 
 

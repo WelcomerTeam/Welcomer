@@ -12,8 +12,9 @@ import (
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
-	"github.com/WelcomerTeam/Welcomer/welcomer-interactions"
-	"github.com/WelcomerTeam/Welcomer/welcomer-interactions/internal"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
@@ -87,11 +88,14 @@ func main() {
 		panic(fmt.Sprintf("pgxpool.Connect(%s): %v", *postgresURL, err))
 	}
 
-	ctx = internal.AddPoolToContext(ctx, pool)
-	ctx = internal.AddManagerNameToContext(ctx, *sandwichManagerName)
+	queries := database.New(pool)
+
+	ctx = welcomer.AddPoolToContext(ctx, pool)
+	ctx = welcomer.AddQueriesToContext(ctx, queries)
+	ctx = welcomer.AddManagerNameToContext(ctx, *sandwichManagerName)
 
 	// Setup app.
-	app := welcomer.NewWelcomer(ctx, subway.SubwayOptions{
+	app := interactions.NewWelcomer(ctx, subway.SubwayOptions{
 		SandwichClient:    sandwichClient,
 		RESTInterface:     restInterface,
 		Logger:            logger,
