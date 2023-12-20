@@ -3,8 +3,10 @@ module github.com/WelcomerTeam/Welcomer/welcomer-core
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20230919203812-a65cb654c4a8
-	github.com/WelcomerTeam/Sandwich v0.0.0-20230914001140-a7a1fd53a02f
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
+	github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8
+	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
+	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgtype v1.14.0
@@ -12,10 +14,10 @@ require (
 	github.com/json-iterator/go v1.1.12
 )
 
-require github.com/jackc/puddle v1.3.0 // indirect
+require github.com/WelcomerTeam/Subway v0.0.0-20231220125207-6d71d88a21c5 // indirect
 
 require (
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davidmytton/url-verifier v1.0.0
@@ -25,11 +27,13 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
+	github.com/hashicorp/go-msgpack/v2 v2.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
+	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
@@ -47,11 +51,11 @@ require (
 	github.com/rs/zerolog v1.31.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0 // indirect
-	google.golang.org/grpc v1.60.0 // indirect
+	google.golang.org/grpc v1.60.1 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )

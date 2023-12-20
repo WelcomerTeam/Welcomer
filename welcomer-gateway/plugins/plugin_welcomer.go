@@ -67,12 +67,10 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD is triggered.
 	bot.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		err := bot.DispatchType(eventCtx, welcomer.CustomEventInvokeWelcomer, *eventCtx.Payload)
-		if err != nil {
-			return fmt.Errorf("failed to dispatch %s: %w", welcomer.CustomEventInvokeWelcomer, err)
-		}
-
-		return nil
+		return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
+			Interaction: nil,
+			Member:      &member,
+		})
 	})
 
 	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
@@ -92,6 +90,32 @@ func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event welcomer.OnInvoke
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
 func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeWelcomerStructure) (err error) {
+	defer func() {
+		// Send follow-up if present.
+		if event.Interaction != nil && event.Interaction.Token != "" {
+			var message discord.WebhookMessageParams
+
+			if err == nil {
+				message = discord.WebhookMessageParams{
+					Content: "✔️ Executed successfully!",
+				}
+			} else {
+				message = discord.WebhookMessageParams{
+					Content: fmt.Sprintf("❌ Failed to execute: `%s`", err.Error()),
+				}
+			}
+
+			_, err = event.Interaction.SendFollowup(eventCtx.Session, message)
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("application_id", int64(event.Interaction.ApplicationID)).
+					Str("token", event.Interaction.Token).
+					Msg("Failed to send interaction follow-up")
+			}
+		}
+	}()
+
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
@@ -126,10 +150,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	funcs := welcomer.GatherFunctions()
-	vars := welcomer.GatherVariables(eventCtx, *event.Member, *guild)
+	functions := welcomer.GatherFunctions()
+	variables := welcomer.GatherVariables(eventCtx, *event.Member, *guild)
 
-	messageFormat, err := welcomer.FormatString(funcs, vars, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
+	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -168,22 +192,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Construct a message for the server
 	// Construct a message for DM
-
-	// Send follow-up if present.
-	if event.Interaction != nil && event.Interaction.Token != "" {
-		_, err = event.Interaction.SendFollowup(eventCtx.Session, discord.WebhookMessageParams{
-			Content: "✔️ Executed successfully!",
-		})
-		if err != nil {
-			eventCtx.Logger.Error().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Int64("application_id", int64(event.Interaction.ApplicationID)).
-				Str("token", event.Interaction.Token).
-				Msg("Failed to send interaction follow-up")
-
-			return err
-		}
-	}
 
 	return nil
 }

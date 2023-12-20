@@ -29,8 +29,8 @@ var imageFailure []byte
 var gen = uuid.NewGen()
 
 const (
-	MaxBackgroundSize = 20000000
-	MaxFileResolution = 16777216
+	MaxBackgroundSize = 20_000_000 // 20MB file size.
+	MaxFileResolution = 16_777_216 // Maximum pixels. This is ~4096x4096 for a 1:1 image.
 
 	MIMEPNG  = "image/png"
 	MIMEJPEG = "image/jpeg"
@@ -170,7 +170,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					}
 
 					if file.Size > MaxBackgroundSize {
-						ctx.JSON(http.StatusBadRequest, BaseResponse{
+						ctx.JSON(http.StatusRequestEntityTooLarge, BaseResponse{
 							Ok:    false,
 							Error: ErrBackgroundTooLarge.Error(),
 						})

@@ -56,7 +56,7 @@ func callback(ctx *gin.Context) {
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(backend.ctx, token.TokenType+" "+token.AccessToken, httpInterface, backend.Logger)
+	discordSession := discord.NewSession(backend.ctx, token.TokenType+" "+token.AccessToken, httpInterface)
 
 	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(discordSession)
 	if err != nil {

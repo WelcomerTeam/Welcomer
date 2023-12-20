@@ -15,7 +15,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/jackc/pgx/v4/pgxpool"
-	ginprometheus "github.com/zsais/go-gin-prometheus"
+	gin_prometheus "github.com/zsais/go-gin-prometheus"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
@@ -50,7 +50,7 @@ type Backend struct {
 	SandwichClient protobuf.SandwichClient
 	GRPCInterface  sandwich.GRPC
 
-	PrometheusHandler *ginprometheus.Prometheus
+	PrometheusHandler *gin_prometheus.Prometheus
 
 	Route *gin.Engine
 
@@ -99,7 +99,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 		SandwichClient: protobuf.NewSandwichClient(options.Conn),
 		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
 
-		PrometheusHandler: ginprometheus.NewPrometheus("gin"),
+		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
 
 		Database: database.New(options.Pool),
 	}
@@ -110,9 +110,9 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	OAuth2Config.RedirectURL = options.RedirectURL
 
 	// Setup sessions
-	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface, b.Logger)
-	b.BotSession = discord.NewSession(b.ctx, b.Options.BotToken, b.RESTInterface, b.Logger)
-	b.DonatorBotSession = discord.NewSession(b.ctx, b.Options.DonatorBotToken, b.RESTInterface, b.Logger)
+	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface)
+	b.BotSession = discord.NewSession(b.ctx, b.Options.BotToken, b.RESTInterface)
+	b.DonatorBotSession = discord.NewSession(b.ctx, b.Options.DonatorBotToken, b.RESTInterface)
 
 	if options.NginxAddress != "" {
 		err = b.Route.SetTrustedProxies([]string{options.NginxAddress})
@@ -169,7 +169,7 @@ func (b *Backend) GetBasicEventContext() (client *sandwich.EventContext) {
 	}
 }
 
-// Open sets up any services and starts the webserver.
+// Open sets up any services and starts the web server.
 func (b *Backend) Open() error {
 	b.StartTime = time.Now().UTC()
 	b.Logger.Info().Msgf("Starting backend. Version %s", VERSION)

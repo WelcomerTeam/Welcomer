@@ -3,19 +3,27 @@ module github.com/WelcomerTeam/Welcomer/welcomer-images
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20230919203812-a65cb654c4a8
+	github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20231207113131-173f8298d4b3
 	github.com/disintegration/imaging v1.6.2
+	github.com/fogleman/gg v1.3.0
+	github.com/gin-contrib/logger v0.3.0
+	github.com/gin-gonic/gin v1.9.1
+	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/jackc/pgx/v4 v4.18.1
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.17.0
 	github.com/rs/zerolog v1.31.0
-	google.golang.org/grpc v1.60.0
+	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee
+	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
+	golang.org/x/image v0.14.0
+	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.31.0
 )
 
 require (
-	github.com/WelcomerTeam/Sandwich v0.0.0-20230914001140-a7a1fd53a02f // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230916083319-1035b332fc77 // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
@@ -34,6 +42,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/hashicorp/go-msgpack/v2 v2.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -66,21 +75,10 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.6.0 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
-
-require (
-	github.com/fogleman/gg v1.3.0
-	github.com/gin-contrib/logger v0.3.0
-	github.com/gin-gonic/gin v1.9.1
-	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/jackc/pgx/v4 v4.18.1
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee
-	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
-	golang.org/x/image v0.14.0
 )
