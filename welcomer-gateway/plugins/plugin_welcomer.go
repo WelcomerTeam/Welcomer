@@ -125,16 +125,16 @@ func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event welcomer.OnInvoke
 func (p *WelcomerCog) FetchWelcomerImage(options images.GenerateImageOptionsRaw) (io.ReadCloser, string, error) {
 	optionsJSON, _ := jsoniter.Marshal(options)
 
-	res, err := p.Client.Post("http://"+os.Getenv("IMAGE_HOST")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
+	resp, err := p.Client.Post("http://"+os.Getenv("IMAGE_HOST")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
 	if err != nil {
 		return nil, "", fmt.Errorf("fetch welcomer image request failed: %w", err)
 	}
 
-	if res.StatusCode >= 300 {
-		return nil, "", fmt.Errorf("failed to fetch welcomer image: %s", res.Status)
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		return nil, "", fmt.Errorf("failed to fetch welcomer image with status %s", resp.Status)
 	}
 
-	return res.Body, res.Header.Get("Content-Type"), nil
+	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.

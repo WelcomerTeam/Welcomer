@@ -68,15 +68,35 @@ func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) 
 	return im, nil
 }
 
+func hasImageTransparentBorder(image image.Image, w, h int) (bool, int) {
+	padding := w / 8
+
+	// Check the sides of the image to see if they are all transparent.
+	// This makes certain avatars look a bit nicer.
+
+	hasTransparentBorder := image.At(padding, padding) == transparent &&
+		image.At(w/2, padding) == transparent &&
+		image.At(w-padding, padding) == transparent &&
+		image.At(padding, h/2) == transparent &&
+		image.At(w-padding, h/2) == transparent &&
+		image.At(padding, h-padding) == transparent &&
+		image.At(w/2, h-padding) == transparent &&
+		image.At(w-padding, h-padding) == transparent
+
+	return hasTransparentBorder, padding
+}
+
 // applyAvatarEffects applies masking and resizing to the avatar.
 // Outputs an image.Image with same dimension as src image.
 func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOptions) (im image.Image, err error) {
-	cropPix := int(math.Floor(float64(avatar.Bounds().Dx()) / 8))
+	bounds := avatar.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
 
 	atlas := image.NewRGBA(image.Rect(
 		0, 0,
-		avatar.Bounds().Dx()+(generateImageOptions.ProfileBorderWidth*2),
-		avatar.Bounds().Dy()+(generateImageOptions.ProfileBorderWidth*2),
+		width+(generateImageOptions.ProfileBorderWidth*2),
+		height+(generateImageOptions.ProfileBorderWidth*2),
 	))
 
 	context := gg.NewContextForRGBA(atlas)
@@ -92,21 +112,15 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 	case core.ImageProfileBorderTypeCircular:
 		rounding = 1000
 
-		canCrop := (avatar.At(cropPix, cropPix) == transparent &&
-			avatar.At(
-				avatar.Bounds().Dx()-cropPix,
-				avatar.Bounds().Dy()-cropPix,
-			) == transparent)
-
-		if canCrop {
-			avatarMinimize := image.NewRGBA(avatar.Bounds())
+		if canCrop, cropPix := hasImageTransparentBorder(avatar, width, height); canCrop {
+			avatarMinimize := image.NewRGBA(bounds)
 			avatarContext := gg.NewContextForRGBA(avatarMinimize)
 
 			avatarContext.DrawImage(
 				imaging.Resize(
 					avatar,
-					(avatar.Bounds().Dx()-(cropPix*2)),
-					(avatar.Bounds().Dx()-(cropPix*2)),
+					(width-(cropPix*2)),
+					(height-(cropPix*2)),
 					imaging.MitchellNetravali,
 				),
 				cropPix,
@@ -140,11 +154,14 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 }
 
 // roundImage cuts out a rounded segment from an image.
-func roundImage(im image.Image, r float64) image.Image {
-	b := im.Bounds()
-	r = math.Max(0, math.Min(r, float64(b.Dy())/2))
-	context := gg.NewContext(b.Dx(), b.Dy())
-	context.DrawRoundedRectangle(0, 0, float64(b.Dx()), float64(b.Dy()), r)
+func roundImage(im image.Image, radius float64) image.Image {
+	bounds := im.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	radius = math.Max(0, math.Min(radius, float64(height)/2))
+	context := gg.NewContext(width, height)
+	context.DrawRoundedRectangle(0, 0, float64(width), float64(height), radius)
 	context.Clip()
 	context.DrawImage(im, 0, 0)
 
