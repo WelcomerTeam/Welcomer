@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	DefaultFont        = "fredokaone-regular"
-	DefaultBorderWidth = 16
+	DefaultFont               = "fredokaone-regular"
+	DefaultImageBorderWidth   = 16
+	DefaultProfileBorderWidth = 8
 )
 
 var (
@@ -86,10 +87,25 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD is triggered.
 	bot.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
-			Interaction: nil,
-			Member:      &member,
-		})
+		if !member.Pending {
+			return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
+				Interaction: nil,
+				Member:      &member,
+			})
+		}
+
+		return nil
+	})
+
+	bot.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
+		if before.Pending && !after.Pending {
+			return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
+				Interaction: nil,
+				Member:      &after,
+			})
+		}
+
+		return nil
 	})
 
 	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
@@ -112,6 +128,10 @@ func (p *WelcomerCog) FetchWelcomerImage(options images.GenerateImageOptionsRaw)
 	res, err := p.Client.Post("http://"+os.Getenv("IMAGE_HOST")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
 	if err != nil {
 		return nil, "", fmt.Errorf("fetch welcomer image request failed: %w", err)
+	}
+
+	if res.StatusCode >= 300 {
+		return nil, "", fmt.Errorf("failed to fetch welcomer image: %s", res.Status)
 	}
 
 	return res.Body, res.Header.Get("Content-Type"), nil
@@ -203,12 +223,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	functions := welcomer.GatherFunctions()
 	variables := welcomer.GatherVariables(eventCtx, *event.Member, *guild)
 
-	var message discord.MessageParams
-	var directMessage discord.MessageParams
+	var serverMessage *discord.MessageParams
+	var directMessage *discord.MessageParams
 
-	var imageReaderCloser io.ReadCloser
-	var contentType string
-	var fileName string
+	var file *discord.File
 
 	if guildSettingsWelcomerImages.ToggleEnabled {
 		messageFormat, err := welcomer.FormatString(functions, variables, guildSettingsWelcomerImages.ImageMessage)
@@ -231,14 +249,23 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
 
 		var borderWidth int32
-
 		if guildSettingsWelcomerImages.ToggleImageBorder {
-			borderWidth = DefaultBorderWidth
+			borderWidth = DefaultImageBorderWidth
 		} else {
 			borderWidth = 0
 		}
 
-		imageReaderCloser, contentType, err = p.FetchWelcomerImage(images.GenerateImageOptionsRaw{
+		var profileFloat welcomer.ImageAlignment
+		switch guildSettingsWelcomerImages.ImageTheme {
+		case int32(welcomer.ImageThemeDefault):
+			profileFloat = welcomer.ImageAlignmentLeft
+		case int32(welcomer.ImageThemeVertical):
+			profileFloat = welcomer.ImageAlignmentCenter
+		case int32(welcomer.ImageThemeCard):
+			profileFloat = welcomer.ImageAlignmentLeft
+		}
+
+		imageReaderCloser, contentType, err := p.FetchWelcomerImage(images.GenerateImageOptionsRaw{
 			GuildID:            int64(eventCtx.Guild.ID),
 			UserID:             int64(event.Member.User.ID),
 			AllowAnimated:      hasWelcomerPro,
@@ -253,9 +280,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			TextStrokeColor:    tryParseColourAsInt64(guildSettingsWelcomerImages.ColourTextBorder, black),
 			ImageBorderColor:   tryParseColourAsInt64(guildSettingsWelcomerImages.ColourImageBorder, white),
 			ImageBorderWidth:   borderWidth,
-			ProfileFloat:       int32(welcomer.ImageAlignmentCenter),
+			ProfileFloat:       int32(profileFloat),
 			ProfileBorderColor: tryParseColourAsInt64(guildSettingsWelcomerImages.ColourProfileBorder, white),
-			ProfileBorderWidth: DefaultBorderWidth,
+			ProfileBorderWidth: DefaultProfileBorderWidth,
 			ProfileBorderCurve: guildSettingsWelcomerImages.ImageProfileBorderType,
 		})
 		if err != nil {
@@ -265,15 +292,20 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				Msg("Failed to fetch welcomer image")
 		}
 
-		defer imageReaderCloser.Close()
+		if imageReaderCloser != nil {
+			defer imageReaderCloser.Close()
 
-		fileName = "image.png"
+			file = &discord.File{
+				Name:        "image.png",
+				ContentType: contentType,
+				Reader:      imageReaderCloser,
+			}
+		}
 	}
 
 	if guildSettingsWelcomerText.ToggleEnabled || guildSettingsWelcomerImages.ToggleEnabled {
 		if guildSettingsWelcomerText.Channel == 0 {
-			return nil
-			// TODO: Return an error for no channel set
+			return nil // TODO: Return an error for no channel set
 		}
 
 		if guildSettingsWelcomerText.ToggleEnabled {
@@ -282,13 +314,13 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				eventCtx.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Failed to format welcomer text payload")
+					Msg("Failed to format welcomer DMs payload")
 
 				return err
 			}
 
 			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &message)
+			err = jsoniter.UnmarshalFromString(messageFormat, &serverMessage)
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -297,27 +329,41 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				return err
 			}
-		}
 
-		if guildSettingsWelcomerImages.ToggleEnabled {
-			// TODO: This is not working, possibly due to the ReaderCloser already being read.
-			message.AddFile(discord.File{
-				Name:        fileName,
-				ContentType: contentType,
-				Reader:      imageReaderCloser,
-			})
+			if file != nil {
+				serverMessage.AddFile(*file)
 
-			if len(message.Embeds) == 0 {
-				message.AddEmbed(discord.Embed{})
+				if len(serverMessage.Embeds) == 0 {
+					serverMessage.AddEmbed(discord.Embed{})
+				}
+
+				serverMessage.Embeds[0].SetImage(discord.NewEmbedImage("attachment://" + file.Name))
 			}
-
-			message.Embeds[0].SetImage(discord.NewEmbedImage("attachment://" + fileName))
 		}
 	}
 
 	if guildSettingsWelcomerDMs.ToggleEnabled {
 		if guildSettingsWelcomerText.ToggleEnabled && guildSettingsWelcomerDMs.ToggleUseTextFormat {
-			directMessage = message
+			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to format welcomer DMs payload")
+
+				return err
+			}
+
+			// Convert MessageFormat to MessageParams so we can send it.
+			err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to unmarshal messageFormat")
+
+				return err
+			}
 		} else {
 			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes))
 			if err != nil {
@@ -339,39 +385,29 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				return err
 			}
-
-			if guildSettingsWelcomerImages.ToggleEnabled {
-				directMessage.AddFile(discord.File{
-					Name:        fileName,
-					ContentType: contentType,
-					Reader:      imageReaderCloser,
-				})
-
-				if len(directMessage.Embeds) == 0 {
-					directMessage.AddEmbed(discord.Embed{})
-				}
-
-				directMessage.Embeds[0].SetImage(discord.NewEmbedImage("attachment://" + fileName))
-			}
 		}
 	}
 
-	channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
+	if serverMessage != nil {
+		channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
-	_, err = channel.Send(eventCtx.Session, message)
-	if err != nil {
-		eventCtx.Logger.Warn().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("channel_id", guildSettingsWelcomerText.Channel).
-			Msg("Failed to send message to channel")
+		_, err = channel.Send(eventCtx.Session, *serverMessage)
+		if err != nil {
+			eventCtx.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsWelcomerText.Channel).
+				Msg("Failed to send message to channel")
+		}
 	}
 
-	_, err = event.Member.Send(eventCtx.Session, directMessage)
-	if err != nil {
-		eventCtx.Logger.Warn().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.Member.User.ID)).
-			Msg("Failed to send message to user")
+	if directMessage != nil {
+		_, err = event.Member.Send(eventCtx.Session, *directMessage)
+		if err != nil {
+			eventCtx.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to send message to user")
+		}
 	}
 
 	return nil

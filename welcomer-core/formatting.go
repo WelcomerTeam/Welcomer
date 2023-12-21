@@ -13,7 +13,45 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 )
 
+// ordinal takes 1 argument but 0 was given
+// ordinal argument 1 type "string" is not supported
+
+func AssertLength(name string, expectedLength int, arguments ...interface{}) (err error) {
+	if len(arguments) != expectedLength {
+		return fmt.Errorf("%s takes %d argument(s) but %d was given", name, expectedLength, len(arguments))
+	}
+
+	return nil
+}
+
 func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
+	funcs = map[string]govaluate.ExpressionFunction{}
+
+	funcs["Ordinal"] = func(arguments ...interface{}) (interface{}, error) {
+		if err := AssertLength("Ordinal", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(float64)
+		if !ok {
+			return nil, fmt.Errorf("Ordinal argument 1 is not supported")
+		}
+
+		var suffix string
+		switch int64(argument) % 10 {
+		case 1:
+			suffix = "st"
+		case 2:
+			suffix = "nd"
+		case 3:
+			suffix = "rd"
+		default:
+			suffix = "th"
+		}
+
+		return strconv.FormatInt(int64(argument), int64Base) + suffix, nil
+	}
+
 	return
 }
 
@@ -26,6 +64,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 		Username:      member.User.Username,
 		Discriminator: member.User.Discriminator,
 		GlobalName:    member.User.GlobalName,
+		Mention:       "<@" + member.User.ID.String() + ">",
 		CreatedAt:     StubTime(member.User.ID.Time()),
 		JoinedAt:      StubTime(member.JoinedAt),
 		Avatar:        GetUserAvatar(member.User),
@@ -130,6 +169,8 @@ type StubUser struct {
 	Username      string `json:"username"`
 	Discriminator string `json:"discriminator"`
 	GlobalName    string `json:"global_name"`
+
+	Mention string `json:"mention"`
 
 	CreatedAt StubTime `json:"created_at"`
 	JoinedAt  StubTime `json:"joined_at"`
