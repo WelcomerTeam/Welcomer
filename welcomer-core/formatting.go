@@ -28,7 +28,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 		GlobalName:    member.User.GlobalName,
 		CreatedAt:     StubTime(member.User.ID.Time()),
 		JoinedAt:      StubTime(member.JoinedAt),
-		Avatar:        getUserAvatar(member.User),
+		Avatar:        GetUserAvatar(member.User),
 		Bot:           member.User.Bot,
 		Pending:       member.Pending,
 	}
@@ -87,7 +87,7 @@ func getGuildBanner(guild discord.Guild) string {
 	return discord.EndpointCDN + "/" + discord.EndpointGuildBanner(guild.ID.String(), guild.Banner)
 }
 
-func getUserAvatar(user *discord.User) string {
+func GetUserAvatar(user *discord.User) string {
 	if user.Avatar == "" {
 		if user.Discriminator == "" {
 			// If a user is on the new username system, the index is (user_id >> 22) % 6

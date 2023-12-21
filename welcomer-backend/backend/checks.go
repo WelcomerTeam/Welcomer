@@ -4,7 +4,7 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
 func hasWelcomerPresence(guildID discord.Snowflake, returnBotGuildMembers bool) (ok bool, guild *discord.Guild, guildMembers []*discord.GuildMember, err error) {
@@ -61,18 +61,7 @@ func getGuildMembership(guildID discord.Snowflake) (hasWelcomerPro bool, hasCust
 		return false, false, err
 	}
 
-	for _, membership := range memberships {
-		switch database.MembershipType(membership.MembershipType) {
-		case database.MembershipTypeLegacyCustomBackgrounds,
-			database.MembershipTypeCustomBackgrounds:
-			hasCustomBackgrounds = true
-		case database.MembershipTypeLegacyWelcomerPro1,
-			database.MembershipTypeLegacyWelcomerPro3,
-			database.MembershipTypeLegacyWelcomerPro5,
-			database.MembershipTypeWelcomerPro:
-			hasWelcomerPro = true
-		}
-	}
+	hasWelcomerPro, hasCustomBackgrounds = welcomer.CheckGuildMemberships(memberships)
 
 	return
 }

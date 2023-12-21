@@ -14,8 +14,6 @@ require (
 	github.com/json-iterator/go v1.1.12
 )
 
-require github.com/WelcomerTeam/Subway v0.0.0-20231220125207-6d71d88a21c5 // indirect
-
 require (
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect

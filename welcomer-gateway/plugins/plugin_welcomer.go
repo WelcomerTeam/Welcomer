@@ -1,19 +1,37 @@
 package plugins
 
 import (
+	"bytes"
 	"fmt"
+	"image/color"
+	"io"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	images "github.com/WelcomerTeam/Welcomer/welcomer-images/service"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/savsgio/gotils/strconv"
 )
 
+const (
+	DefaultFont        = "fredokaone-regular"
+	DefaultBorderWidth = 16
+)
+
+var (
+	white = &color.RGBA{255, 255, 255, 255}
+	black = &color.RGBA{0, 0, 0, 255}
+)
+
 type WelcomerCog struct {
 	EventHandler *sandwich.Handlers
+	Client       http.Client
 }
 
 // Assert types.
@@ -26,6 +44,7 @@ var (
 func NewWelcomerCog() *WelcomerCog {
 	return &WelcomerCog{
 		EventHandler: sandwich.SetupHandler(nil),
+		Client:       http.Client{},
 	}
 }
 
@@ -87,6 +106,17 @@ func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event welcomer.OnInvoke
 	h.RegisterEvent(eventName, nil, event)
 }
 
+func (p *WelcomerCog) FetchWelcomerImage(options images.GenerateImageOptionsRaw) (io.ReadCloser, string, error) {
+	optionsJSON, _ := jsoniter.Marshal(options)
+
+	res, err := p.Client.Post("http://"+os.Getenv("IMAGE_HOST")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
+	if err != nil {
+		return nil, "", fmt.Errorf("fetch welcomer image request failed: %w", err)
+	}
+
+	return res.Body, res.Header.Get("Content-Type"), nil
+}
+
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
 func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeWelcomerStructure) (err error) {
@@ -107,7 +137,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 			_, err = event.Interaction.SendFollowup(eventCtx.Session, message)
 			if err != nil {
-				eventCtx.Logger.Error().Err(err).
+				eventCtx.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("application_id", int64(event.Interaction.ApplicationID)).
 					Str("token", event.Interaction.Token).
@@ -128,8 +158,28 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		return err
 	}
 
-	// Quit if disabled or not channel configured.
-	if !guildSettingsWelcomerText.ToggleEnabled || guildSettingsWelcomerText.Channel == 0 {
+	guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		eventCtx.Logger.Error().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Msg("Failed to fetch welcomer image guild settings")
+
+		return err
+	}
+
+	guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		eventCtx.Logger.Error().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Msg("Failed to fetch welcomer dm guild settings")
+
+		return err
+	}
+
+	// Quit if nothing is enabled.
+	if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
 		return nil
 	}
 
@@ -153,45 +203,185 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	functions := welcomer.GatherFunctions()
 	variables := welcomer.GatherVariables(eventCtx, *event.Member, *guild)
 
-	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
-	if err != nil {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.Member.User.ID)).
-			Msg("Failed to format welcomer text payload")
+	var message discord.MessageParams
+	var directMessage discord.MessageParams
 
-		return err
+	var imageReaderCloser io.ReadCloser
+	var contentType string
+	var fileName string
+
+	if guildSettingsWelcomerImages.ToggleEnabled {
+		messageFormat, err := welcomer.FormatString(functions, variables, guildSettingsWelcomerImages.ImageMessage)
+		if err != nil {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to format welcomer text payload")
+
+			return err
+		}
+
+		memberships, err := queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
+		if err != nil {
+			eventCtx.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get welcomer memberships")
+		}
+
+		hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+
+		var borderWidth int32
+
+		if guildSettingsWelcomerImages.ToggleImageBorder {
+			borderWidth = DefaultBorderWidth
+		} else {
+			borderWidth = 0
+		}
+
+		imageReaderCloser, contentType, err = p.FetchWelcomerImage(images.GenerateImageOptionsRaw{
+			GuildID:            int64(eventCtx.Guild.ID),
+			UserID:             int64(event.Member.User.ID),
+			AllowAnimated:      hasWelcomerPro,
+			AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
+			Theme:              guildSettingsWelcomerImages.ImageTheme,
+			Background:         guildSettingsWelcomerImages.BackgroundName,
+			Text:               messageFormat,
+			TextFont:           DefaultFont,
+			TextStroke:         true,
+			TextAlign:          guildSettingsWelcomerImages.ImageAlignment,
+			TextColor:          tryParseColourAsInt64(guildSettingsWelcomerImages.ColourText, white),
+			TextStrokeColor:    tryParseColourAsInt64(guildSettingsWelcomerImages.ColourTextBorder, black),
+			ImageBorderColor:   tryParseColourAsInt64(guildSettingsWelcomerImages.ColourImageBorder, white),
+			ImageBorderWidth:   borderWidth,
+			ProfileFloat:       int32(welcomer.ImageAlignmentCenter),
+			ProfileBorderColor: tryParseColourAsInt64(guildSettingsWelcomerImages.ColourProfileBorder, white),
+			ProfileBorderWidth: DefaultBorderWidth,
+			ProfileBorderCurve: guildSettingsWelcomerImages.ImageProfileBorderType,
+		})
+		if err != nil {
+			eventCtx.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to fetch welcomer image")
+		}
+
+		defer imageReaderCloser.Close()
+
+		fileName = "image.png"
 	}
 
-	var message discord.MessageParams
+	if guildSettingsWelcomerText.ToggleEnabled || guildSettingsWelcomerImages.ToggleEnabled {
+		if guildSettingsWelcomerText.Channel == 0 {
+			return nil
+			// TODO: Return an error for no channel set
+		}
 
-	// Convert MessageFormat to MessageParams so we can send it.
-	err = jsoniter.UnmarshalFromString(messageFormat, &message)
-	if err != nil {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.Member.User.ID)).
-			Msg("Failed to unmarshal embedJSON")
+		if guildSettingsWelcomerText.ToggleEnabled {
+			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to format welcomer text payload")
 
-		return err
+				return err
+			}
+
+			// Convert MessageFormat to MessageParams so we can send it.
+			err = jsoniter.UnmarshalFromString(messageFormat, &message)
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to unmarshal messageFormat")
+
+				return err
+			}
+		}
+
+		if guildSettingsWelcomerImages.ToggleEnabled {
+			// TODO: This is not working, possibly due to the ReaderCloser already being read.
+			message.AddFile(discord.File{
+				Name:        fileName,
+				ContentType: contentType,
+				Reader:      imageReaderCloser,
+			})
+
+			if len(message.Embeds) == 0 {
+				message.AddEmbed(discord.Embed{})
+			}
+
+			message.Embeds[0].SetImage(discord.NewEmbedImage("attachment://" + fileName))
+		}
+	}
+
+	if guildSettingsWelcomerDMs.ToggleEnabled {
+		if guildSettingsWelcomerText.ToggleEnabled && guildSettingsWelcomerDMs.ToggleUseTextFormat {
+			directMessage = message
+		} else {
+			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes))
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to format welcomer DMs payload")
+
+				return err
+			}
+
+			// Convert MessageFormat to MessageParams so we can send it.
+			err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
+			if err != nil {
+				eventCtx.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to unmarshal messageFormat")
+
+				return err
+			}
+
+			if guildSettingsWelcomerImages.ToggleEnabled {
+				directMessage.AddFile(discord.File{
+					Name:        fileName,
+					ContentType: contentType,
+					Reader:      imageReaderCloser,
+				})
+
+				if len(directMessage.Embeds) == 0 {
+					directMessage.AddEmbed(discord.Embed{})
+				}
+
+				directMessage.Embeds[0].SetImage(discord.NewEmbedImage("attachment://" + fileName))
+			}
+		}
 	}
 
 	channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
 	_, err = channel.Send(eventCtx.Session, message)
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		eventCtx.Logger.Warn().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("channel_id", guildSettingsWelcomerText.Channel).
 			Msg("Failed to send message to channel")
-
-		return err
 	}
 
-	// Create welcomer image
-
-	// Construct a message for the server
-	// Construct a message for DM
+	_, err = event.Member.Send(eventCtx.Session, directMessage)
+	if err != nil {
+		eventCtx.Logger.Warn().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Msg("Failed to send message to user")
+	}
 
 	return nil
+}
+
+func tryParseColourAsInt64(str string, defaultValue *color.RGBA) int64 {
+	c, err := welcomer.ParseColour(str, "")
+	if err != nil {
+		c = defaultValue
+	}
+
+	return (int64(c.A) << 24) + (int64(c.R) << 16) + (int64(c.G) << 8) + int64(c.B)
 }

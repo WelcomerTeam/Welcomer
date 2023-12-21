@@ -33,6 +33,7 @@ var backgrounds = map[string]image.Image{
     "lodge": backgroundsLodgeImage,
     "meteorshower": backgroundsMeteorshowerImage,
     "midnightride": backgroundsMidnightrideImage,
+    "mountains": backgroundsMountainsImage,
     "neko": backgroundsNekoImage,
     "nightview": backgroundsNightviewImage,
     "paint": backgroundsPaintImage,
@@ -49,6 +50,7 @@ var backgrounds = map[string]image.Image{
     "sea": backgroundsSeaImage,
     "shards": backgroundsShardsImage,
     "solarglare": backgroundsSolarglareImage,
+    "spots": backgroundsSpotsImage,
     "squares": backgroundsSquaresImage,
     "stacks": backgroundsStacksImage,
     "summer": backgroundsSummerImage,
@@ -163,6 +165,10 @@ var backgroundsMeteorshowerImage = mustDecodeBytes("backgroundsMeteorshowerImage
 var backgroundsMidnightrideImageBytes []byte
 var backgroundsMidnightrideImage = mustDecodeBytes("backgroundsMidnightrideImage", backgroundsMidnightrideImageBytes)
 
+//go:embed backgrounds/mountains.png
+var backgroundsMountainsImageBytes []byte
+var backgroundsMountainsImage = mustDecodeBytes("backgroundsMountainsImage", backgroundsMountainsImageBytes)
+
 //go:embed backgrounds/neko.png
 var backgroundsNekoImageBytes []byte
 var backgroundsNekoImage = mustDecodeBytes("backgroundsNekoImage", backgroundsNekoImageBytes)
@@ -226,6 +232,10 @@ var backgroundsShardsImage = mustDecodeBytes("backgroundsShardsImage", backgroun
 //go:embed backgrounds/solarglare.png
 var backgroundsSolarglareImageBytes []byte
 var backgroundsSolarglareImage = mustDecodeBytes("backgroundsSolarglareImage", backgroundsSolarglareImageBytes)
+
+//go:embed backgrounds/spots.png
+var backgroundsSpotsImageBytes []byte
+var backgroundsSpotsImage = mustDecodeBytes("backgroundsSpotsImage", backgroundsSpotsImageBytes)
 
 //go:embed backgrounds/squares.png
 var backgroundsSquaresImageBytes []byte

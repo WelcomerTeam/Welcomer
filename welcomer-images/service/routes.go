@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Rouye POST /generate
+// Route POST /generate
 func (is *ImageService) generateHandler(c *gin.Context) {
 	onRequest()
 

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -18,6 +19,23 @@ const (
 )
 
 var verifier = urlverifier.NewVerifier()
+
+func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
+	for _, membership := range memberships {
+		switch database.MembershipType(membership.MembershipType) {
+		case database.MembershipTypeLegacyCustomBackgrounds,
+			database.MembershipTypeCustomBackgrounds:
+			hasCustomBackgrounds = true
+		case database.MembershipTypeLegacyWelcomerPro1,
+			database.MembershipTypeLegacyWelcomerPro3,
+			database.MembershipTypeLegacyWelcomerPro5,
+			database.MembershipTypeWelcomerPro:
+			hasWelcomerPro = true
+		}
+	}
+
+	return
+}
 
 func FormatTextStroke(v bool) int {
 	if v {
@@ -146,7 +164,7 @@ func isValidHostname(host string) bool {
 // #FFAAAAFF
 // RGBA(255, 255, 255, 0.1)
 // RGB(255, 255, 255)
-func ParseColour(str string, defaultValue string) (*Colour, error) {
+func ParseColour(str string, defaultValue string) (*color.RGBA, error) {
 	str = strings.TrimSpace(str)
 
 	if str == "" {
@@ -198,7 +216,7 @@ func ParseColour(str string, defaultValue string) (*Colour, error) {
 						return nil, ErrInvalidColour
 					}
 
-					return &Colour{uint8(colourR), uint8(colourG), uint8(colourB), alphaInt}, nil
+					return &color.RGBA{uint8(colourR), uint8(colourG), uint8(colourB), alphaInt}, nil
 				}
 			}
 		} else {
@@ -226,21 +244,21 @@ func ParseColour(str string, defaultValue string) (*Colour, error) {
 					return nil, ErrInvalidColour
 				}
 
-				return &Colour{uint8(colourR), uint8(colourG), uint8(colourB), 255}, nil
+				return &color.RGBA{uint8(colourR), uint8(colourG), uint8(colourB), 255}, nil
 			}
 		}
 	default:
 		str = strings.TrimPrefix(str, "#")
 		if IsValidHex(str, true) {
 			// We can assume these values are ints due to isValidHex.
-			colourR, _ := strconv.ParseInt(strings.TrimSpace(str[0:1]), hexBase, int64BitSize)
-			colourG, _ := strconv.ParseInt(strings.TrimSpace(str[2:3]), hexBase, int64BitSize)
-			colourB, _ := strconv.ParseInt(strings.TrimSpace(str[4:5]), hexBase, int64BitSize)
+			colourR, _ := strconv.ParseInt(strings.TrimSpace(str[0:2]), hexBase, int64BitSize)
+			colourG, _ := strconv.ParseInt(strings.TrimSpace(str[2:4]), hexBase, int64BitSize)
+			colourB, _ := strconv.ParseInt(strings.TrimSpace(str[4:6]), hexBase, int64BitSize)
 
 			var colourA int64
 
 			if len(str) == 8 {
-				colourA, _ = strconv.ParseInt(strings.TrimSpace(str[6:7]), hexBase, int64BitSize)
+				colourA, _ = strconv.ParseInt(strings.TrimSpace(str[6:8]), hexBase, int64BitSize)
 			} else {
 				colourA = 255
 			}
@@ -257,7 +275,7 @@ func ParseColour(str string, defaultValue string) (*Colour, error) {
 				return nil, ErrInvalidColour
 			}
 
-			return &Colour{uint8(colourR), uint8(colourG), uint8(colourB), uint8(colourA)}, nil
+			return &color.RGBA{uint8(colourR), uint8(colourG), uint8(colourB), uint8(colourA)}, nil
 		}
 	}
 

@@ -52,13 +52,6 @@ type UserProvidedEmbed struct {
 	Embeds  []discord.Embed `json:"embeds"`
 }
 
-type Colour struct {
-	R uint8
-	G uint8
-	B uint8
-	A uint8
-}
-
 // ParseBackground parses a background string provided by user.
 // Expected formats:
 // solid:FFAAAA - Solid colour with HEX code.
