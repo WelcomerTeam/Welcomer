@@ -162,6 +162,7 @@ func getUserDisplayName(user *discord.User) string {
 	return user.Username
 }
 
+// StubUser represents a user on discord.
 type StubUser struct {
 	ID   discord.Snowflake `json:"id"`
 	Name string            `json:"name"`
@@ -180,6 +181,18 @@ type StubUser struct {
 	Pending bool   `json:"pending"`
 }
 
+func (s StubUser) String() string {
+	if s.GlobalName != "" {
+		return s.GlobalName
+	}
+
+	if s.Discriminator != "" && s.Discriminator != "0" {
+		return s.Username + "#" + s.Discriminator
+	}
+
+	return s.Username
+}
+
 // Guild represents a guild on discord.
 type StubGuild struct {
 	ID      discord.Snowflake `json:"id"`
@@ -188,6 +201,10 @@ type StubGuild struct {
 	Splash  string            `json:"splash"`
 	Members int32             `json:"members"`
 	Banner  string            `json:"banner"`
+}
+
+func (s StubGuild) String() string {
+	return s.Name
 }
 
 type StubTime time.Time
