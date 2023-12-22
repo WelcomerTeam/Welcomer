@@ -10,6 +10,7 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -37,23 +38,18 @@ func init() {
 	gob.Register(SessionUser{})
 }
 
-func hasElevation(discordGuild *discord.Guild, user SessionUser) bool {
-	if discordGuild.OwnerID == &user.ID {
-		return true
-	}
-
-	if discordGuild.Permissions != nil {
-		permissions := *discordGuild.Permissions
-		permissions &= discord.PermissionElevated
-
-		if permissions != 0 {
-			return true
-		}
-	}
-
-	// Backdoor here :)
-
-	return false
+func hasElevation(discordGuild discord.Guild, user SessionUser) bool {
+	return welcomer.MemberHasElevation(discordGuild, discord.GuildMember{
+		User: &discord.User{
+			ID:            user.ID,
+			Username:      user.Username,
+			Discriminator: user.Discriminator,
+			GlobalName:    user.GlobalName,
+			Avatar:        user.Avatar,
+		},
+		GuildID:     &discordGuild.ID,
+		Permissions: discordGuild.Permissions,
+	})
 }
 
 func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
