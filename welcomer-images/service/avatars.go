@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	transparent = color.NRGBA{0, 0, 0, 0}
+	transparent = color.RGBA{0, 0, 0, 0}
 )
 
 const (

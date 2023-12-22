@@ -18,8 +18,8 @@ var (
 
 	fallbackColour = "#FFFFFF"
 
-	RGBRegex  = regexp.MustCompile(`^rgb\(([0-9]+)\w+?, ([0-9]+)\w+?, ([0-9]+)\w+?\)$`)
-	RGBARegex = regexp.MustCompile(`^rgba\(([0-9]+)\w+?, ([0-9]+)\w+?, ([0-9].+)\w+?\)$`)
+	RGBRegex  = regexp.MustCompile(`^rgb\(([0-9]+)(\w+)?, ([0-9]+)(\w+)?, ([0-9]+)(\w+)?\)$`)
+	RGBARegex = regexp.MustCompile(`^rgba\(([0-9]+)(\w+)?, ([0-9]+)(\w+)?, ([0-9].+)(\w+)?\)$`)
 
 	unsplashRegex = regexp.MustCompile(`^[a-zA-Z_-]+$`)
 )
