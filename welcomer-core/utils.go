@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	jsoniter "github.com/json-iterator/go"
@@ -280,4 +281,36 @@ func ParseColour(str string, defaultValue string) (*color.RGBA, error) {
 	}
 
 	return nil, ErrInvalidColour
+}
+
+// IsJSONBEmpty checks if a byte slice is empty or is a JSON empty object.
+func IsJSONBEmpty(b []byte) bool {
+	return len(b) == 0 || (len(b) == 2 && b[0] == '{' && b[1] == '}')
+}
+
+// IsMessageParamsEmpty checks if the given message parameters are empty.
+// It returns true if the content and all the fields in the embeds are empty, otherwise it returns false.
+func IsMessageParamsEmpty(m discord.MessageParams) bool {
+	if m.Content != "" {
+		return false
+	}
+
+	if len(m.Embeds) == 0 {
+		return true
+	}
+
+	for _, embed := range m.Embeds {
+		if embed.Title != "" || embed.Description != "" || embed.URL != "" || len(embed.Fields) > 0 || embed.Color != 0 {
+			return false
+		}
+
+		// Check each field in the embed
+		for _, field := range embed.Fields {
+			if field.Name != "" || field.Value != "" || field.Inline {
+				return false
+			}
+		}
+	}
+
+	return true
 }

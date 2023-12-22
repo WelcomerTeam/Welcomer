@@ -203,6 +203,29 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		return nil
 	}
 
+	// Query state cache for user.
+	users, err := eventCtx.Sandwich.SandwichClient.FetchUsers(eventCtx, &pb.FetchUsersRequest{
+		UserIDs:         []int64{int64(event.Member.User.ID)},
+		CreateDMChannel: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	var user *discord.User
+	userPb, ok := users.Users[int64(event.Member.User.ID)]
+	if ok {
+		user, err = pb.GRPCToUser(userPb)
+		if err != nil {
+			return err
+		}
+	} else {
+		eventCtx.Logger.Warn().
+			Int64("user_id", int64(event.Member.User.ID)).
+			Msg("Failed to fetch user from state cache, falling back to event.Member.User")
+		user = event.Member.User
+	}
+
 	// Query state cache for guild.
 	guilds, err := eventCtx.Sandwich.SandwichClient.FetchGuild(eventCtx, &pb.FetchGuildRequest{
 		GuildIDs: []int64{int64(eventCtx.Guild.ID)},
@@ -308,7 +331,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			return nil // TODO: Return an error for no channel set
 		}
 
-		if guildSettingsWelcomerText.ToggleEnabled {
+		if guildSettingsWelcomerText.ToggleEnabled && !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) {
 			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
@@ -343,52 +366,56 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	if guildSettingsWelcomerDMs.ToggleEnabled {
-		if guildSettingsWelcomerText.ToggleEnabled && guildSettingsWelcomerDMs.ToggleUseTextFormat {
-			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
-			if err != nil {
-				eventCtx.Logger.Error().Err(err).
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Failed to format welcomer DMs payload")
+		if guildSettingsWelcomerDMs.ToggleUseTextFormat {
+			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) {
+				messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
+				if err != nil {
+					eventCtx.Logger.Error().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to format welcomer DMs payload")
 
-				return err
-			}
+					return err
+				}
 
-			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
-			if err != nil {
-				eventCtx.Logger.Error().Err(err).
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Failed to unmarshal messageFormat")
+				// Convert MessageFormat to MessageParams so we can send it.
+				err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
+				if err != nil {
+					eventCtx.Logger.Error().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to unmarshal messageFormat")
 
-				return err
+					return err
+				}
 			}
 		} else {
-			messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes))
-			if err != nil {
-				eventCtx.Logger.Error().Err(err).
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Failed to format welcomer DMs payload")
+			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerDMs.MessageFormat.Bytes) {
+				messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes))
+				if err != nil {
+					eventCtx.Logger.Error().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to format welcomer DMs payload")
 
-				return err
-			}
+					return err
+				}
 
-			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
-			if err != nil {
-				eventCtx.Logger.Error().Err(err).
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Failed to unmarshal messageFormat")
+				// Convert MessageFormat to MessageParams so we can send it.
+				err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
+				if err != nil {
+					eventCtx.Logger.Error().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to unmarshal messageFormat")
 
-				return err
+					return err
+				}
 			}
 		}
 	}
 
-	if serverMessage != nil {
+	if serverMessage != nil && !welcomer.IsMessageParamsEmpty(*serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
 		_, err = channel.Send(eventCtx.Session, *serverMessage)
@@ -400,8 +427,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	if directMessage != nil {
-		_, err = event.Member.Send(eventCtx.Session, *directMessage)
+	if directMessage != nil && !welcomer.IsMessageParamsEmpty(*directMessage) {
+		_, err = user.Send(eventCtx.Session, *directMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

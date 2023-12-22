@@ -351,8 +351,7 @@ func getGuildWelcomerPreview(ctx *gin.Context) {
 	if err != nil {
 		backend.Logger.Info().Str("key", key).Msg("Failed to find welcomer background with key")
 
-		// TODO needs to recognize file type
-		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
+		ctx.Data(http.StatusNotFound, background.ImageType, imageFailure)
 
 		return
 	}
