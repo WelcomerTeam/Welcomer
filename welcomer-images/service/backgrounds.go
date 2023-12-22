@@ -12,10 +12,6 @@ import (
 )
 
 const (
-	hexBase      = 16
-	int64Base    = 10
-	int64BitSize = 64
-
 	SolidProfileLuminance = 0.7
 )
 
