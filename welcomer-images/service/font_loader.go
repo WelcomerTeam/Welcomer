@@ -58,14 +58,6 @@ func (is *ImageService) FetchFont(f string, size float64) (face *FontFace, font 
 	}
 
 	if !ok {
-		if f != DefaultFont {
-			face, font, err = is.FetchFont(DefaultFont, size)
-
-			if err == nil {
-				return face, font, err
-			}
-		}
-
 		return nil, nil, ErrNoFontFound
 	}
 
