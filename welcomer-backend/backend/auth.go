@@ -38,7 +38,7 @@ func init() {
 	gob.Register(SessionUser{})
 }
 
-func hasElevation(discordGuild discord.Guild, user SessionUser) bool {
+func hasElevation(discordGuild *discord.Guild, user SessionUser) bool {
 	return welcomer.MemberHasElevation(discordGuild, discord.GuildMember{
 		User: &discord.User{
 			ID:            user.ID,

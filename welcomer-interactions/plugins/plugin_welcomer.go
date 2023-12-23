@@ -60,34 +60,36 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			member := subway.MustGetArgument(ctx, "user").MustMember()
-			if member == nil {
-				member = interaction.Member
-			}
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				member := subway.MustGetArgument(ctx, "user").MustMember()
+				if member == nil {
+					member = interaction.Member
+				}
 
-			// GuildID may be missing, fill it in.
-			member.GuildID = interaction.GuildID
+				// GuildID may be missing, fill it in.
+				member.GuildID = interaction.GuildID
 
-			data, err := jsoniter.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
-				Interaction: &interaction,
-				Member:      member,
+				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
+					Interaction: &interaction,
+					Member:      member,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+					Manager: welcomer.GetManagerNameFromContext(ctx),
+					Type:    welcomer.CustomEventInvokeWelcomer,
+					Data:    data,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
 			})
-			if err != nil {
-				return nil, err
-			}
-
-			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-				Manager: welcomer.GetManagerNameFromContext(ctx),
-				Type:    welcomer.CustomEventInvokeWelcomer,
-				Data:    data,
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			return &discord.InteractionResponse{
-				Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
-			}, nil
 		},
 	})
 
