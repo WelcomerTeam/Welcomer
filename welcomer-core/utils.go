@@ -38,6 +38,11 @@ func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRo
 	return
 }
 
+// S2J converts a string to a jsoniter.RawMessage.
+func S2J(s string) jsoniter.RawMessage {
+	return jsoniter.RawMessage([]byte(`"` + s + `"`))
+}
+
 func FormatTextStroke(v bool) int {
 	if v {
 		return 4
