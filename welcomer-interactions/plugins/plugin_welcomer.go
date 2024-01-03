@@ -148,7 +148,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Enabled all modules.",
+							Embeds: welcomer.NewEmbed("Enabled all modules", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleText:
@@ -159,7 +159,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Enabled text module.",
+							Embeds: welcomer.NewEmbed("Enabled text module", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleImages:
@@ -170,7 +170,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Enabled images module.",
+							Embeds: welcomer.NewEmbed("Enabled images module", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
@@ -181,7 +181,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Enabled DMs module.",
+							Embeds: welcomer.NewEmbed("Enabled DMs module", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				}
@@ -189,7 +189,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Content: "Unknown module: " + module,
+						Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
 					},
 				}, nil
 			})
@@ -239,7 +239,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Disabled all modules.",
+							Embeds: welcomer.NewEmbed("Disabled all modules", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleText:
@@ -250,7 +250,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Disabled text module.",
+							Embeds: welcomer.NewEmbed("Disabled text module", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleImages:
@@ -261,7 +261,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Disabled images module.",
+							Embeds: welcomer.NewEmbed("Disabled images module", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
@@ -272,7 +272,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Content: "Disabled DMs module.",
+							Embeds: welcomer.NewEmbed("Disabled DMs module", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				}
@@ -280,7 +280,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Content: "Unknown module: " + module,
+						Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
 					},
 				}, nil
 			})

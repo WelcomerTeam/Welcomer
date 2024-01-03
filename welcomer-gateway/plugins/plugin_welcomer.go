@@ -147,11 +147,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 			if err == nil {
 				message = discord.WebhookMessageParams{
-					Content: "✔️ Executed successfully!",
+					Embeds: welcomer.NewEmbed("Executed successfully", welcomer.EmbedColourSuccess),
 				}
 			} else {
 				message = discord.WebhookMessageParams{
-					Content: fmt.Sprintf("❌ Failed to execute: `%s`", err.Error()),
+					Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
 				}
 			}
 
