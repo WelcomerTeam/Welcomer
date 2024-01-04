@@ -78,6 +78,57 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					member = interaction.Member
 				}
 
+				queries := welcomer.GetQueriesFromContext(ctx)
+
+				// Fetch guild settings.
+
+				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to fetch welcomer text guild settings")
+
+					return nil, err
+				}
+
+				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to fetch welcomer image guild settings")
+
+					return nil, err
+				}
+
+				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to fetch welcomer dm guild settings")
+
+					return nil, err
+				}
+
+				// If no modules are enabled, let the user know.
+				if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("No modules are enabled. Please use `/welcomer enable`", welcomer.EmbedColourError),
+						},
+					}, nil
+				}
+
+				// If text or images are enabled, but no channel is set, let the user know.
+				if !guildSettingsWelcomerDMs.ToggleEnabled && guildSettingsWelcomerText.Channel == 0 {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("No channel is set. Please use `/welcomer channel`", welcomer.EmbedColourError),
+						},
+					}, nil
+				}
+
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
@@ -287,13 +338,76 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
+	welcomerGroup.AddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "channel",
+		Description: "Sets the channel to send the welcome message to.",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Required:     false,
+				ArgumentType: subway.ArgumentTypeTextChannel,
+				Name:         "channel",
+				Description:  "The channel you would like to send the welcome message to.",
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
+
+				queries := welcomer.GetQueriesFromContext(ctx)
+				guildSettingsWelcomerText, err := getWelcomerTextGuildSettings(ctx, sub, queries, int64(*interaction.GuildID))
+				if err != nil {
+					return nil, err
+				}
+
+				if channel != nil {
+					guildSettingsWelcomerText.Channel = int64(channel.ID)
+				} else {
+					guildSettingsWelcomerText.Channel = 0
+				}
+
+				_, err = queries.UpdateWelcomerTextGuildSettings(ctx, &database.UpdateWelcomerTextGuildSettingsParams{
+					GuildID:       guildSettingsWelcomerText.GuildID,
+					ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
+					Channel:       guildSettingsWelcomerText.Channel,
+					MessageFormat: guildSettingsWelcomerText.MessageFormat,
+				})
+				if err != nil {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to update welcomer text guild settings")
+
+					return nil, err
+				}
+
+				if channel != nil {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Set channel to: <#"+channel.ID.String()+">", welcomer.EmbedColourSuccess),
+						},
+					}, nil
+				} else {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Unset channel. Welcomer text and image features will not work, if enabled.", welcomer.EmbedColourWarn),
+						},
+					}, nil
+				}
+			})
+		},
+	})
+
 	p.InteractionCommands.MustAddInteractionCommand(welcomerGroup)
 
 	return nil
 }
 
-func toggleWelcomerTextGuildSetting(ctx context.Context, sub *subway.Subway, guildID int64, value bool) error {
-	queries := welcomer.GetQueriesFromContext(ctx)
+func getWelcomerTextGuildSettings(ctx context.Context, sub *subway.Subway, queries *database.Queries, guildID int64) (*database.GuildSettingsWelcomerText, error) {
 	guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, guildID)
 	if err != nil {
 		sub.Logger.Error().Err(err).
@@ -301,7 +415,7 @@ func toggleWelcomerTextGuildSetting(ctx context.Context, sub *subway.Subway, gui
 			Msg("Failed to fetch welcomer text guild settings")
 
 		if !errors.Is(err, pgx.ErrNoRows) {
-			return err
+			return nil, err
 		}
 	}
 
@@ -309,6 +423,17 @@ func toggleWelcomerTextGuildSetting(ctx context.Context, sub *subway.Subway, gui
 		guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
 			GuildID: guildID,
 		}
+	}
+
+	return guildSettingsWelcomerText, err
+}
+
+func toggleWelcomerTextGuildSetting(ctx context.Context, sub *subway.Subway, guildID int64, value bool) error {
+	queries := welcomer.GetQueriesFromContext(ctx)
+
+	guildSettingsWelcomerText, err := getWelcomerTextGuildSettings(ctx, sub, queries, guildID)
+	if err != nil {
+		return err
 	}
 
 	guildSettingsWelcomerText.ToggleEnabled = value

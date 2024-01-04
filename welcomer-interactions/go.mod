@@ -3,10 +3,10 @@ module github.com/WelcomerTeam/Welcomer/welcomer-interactions
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8
+	github.com/WelcomerTeam/Discord v0.0.0-20240103212130-b5603c89aa4e
 	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942
-	github.com/WelcomerTeam/Subway v0.0.0-20240101121959-54f630f3e94a
+	github.com/WelcomerTeam/Subway v0.0.0-20240104010732-3c30012e2117
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/joho/godotenv v1.5.1
@@ -21,7 +21,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/davidmytton/url-verifier v1.0.0 // indirect
+	github.com/davidmytton/url-verifier v1.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
@@ -56,9 +56,9 @@ require (
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 )
 

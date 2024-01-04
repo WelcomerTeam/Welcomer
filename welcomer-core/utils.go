@@ -300,6 +300,10 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 		return false
 	}
 
+	if len(m.Files) > 0 {
+		return false
+	}
+
 	if len(m.Embeds) == 0 {
 		return true
 	}
