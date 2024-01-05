@@ -30,8 +30,6 @@ var (
 	_ subway.CogWithInteractionCommands = (*WelcomerCog)(nil)
 )
 
-var WelcomerModule string
-
 const (
 	WelcomerModuleAll    = "all"
 	WelcomerModuleText   = "text"
@@ -39,18 +37,18 @@ const (
 	WelcomerModuleDMs    = "dms"
 )
 
-func (p *WelcomerCog) CogInfo() *subway.CogInfo {
+func (w *WelcomerCog) CogInfo() *subway.CogInfo {
 	return &subway.CogInfo{
 		Name:        "Welcomer",
 		Description: "Provides the functionality for the 'Welcomer' feature",
 	}
 }
 
-func (p *WelcomerCog) GetInteractionCommandable() *subway.InteractionCommandable {
-	return p.InteractionCommands
+func (w *WelcomerCog) GetInteractionCommandable() *subway.InteractionCommandable {
+	return w.InteractionCommands
 }
 
-func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
+func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 	welcomerGroup := subway.NewSubcommandGroup(
 		"welcomer",
 		"Welcome new users to your server with fancy images, text or send them a direct message.",
@@ -115,6 +113,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
 							Embeds: welcomer.NewEmbed("No modules are enabled. Please use `/welcomer enable`", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -125,6 +124,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
 							Embeds: welcomer.NewEmbed("No channel is set. Please use `/welcomer channel`", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -158,7 +158,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
-		Description: "Enables the Welcomer functionality.",
+		Description: "Enables a welcomer module for your server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -167,7 +167,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Required:     true,
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "module",
-				Description:  "The module you would like to enable.",
+				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
 					{Name: WelcomerModuleAll, Value: welcomer.S2J(WelcomerModuleAll)},
@@ -199,7 +199,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled all modules", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Enabled all modules.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleText:
@@ -210,7 +210,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled text module", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Enabled welcomer text messages.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleImages:
@@ -221,7 +221,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled images module", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Enabled welcomer images.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
@@ -232,24 +232,25 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled DMs module", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Enabled welcomer direct messages.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+						},
+					}, nil
+				default:
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
-					},
-				}, nil
 			})
 		},
 	})
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "disable",
-		Description: "Disables the Welcomer functionality.",
+		Description: "Disables a welcomer module for your server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -258,7 +259,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Required:     true,
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "module",
-				Description:  "The module you would like to disable.",
+				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
 					{Name: WelcomerModuleAll, Value: welcomer.S2J(WelcomerModuleAll)},
@@ -290,7 +291,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled all modules", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Disabled all modules.", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleText:
@@ -301,7 +302,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled text module", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Disabled welcomer text messages.", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleImages:
@@ -312,7 +313,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled images module", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Disabled welcomer images", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
@@ -323,7 +324,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled DMs module", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Disabled welcomer direct messages", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				}
@@ -332,6 +333,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
 						Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+						Flags:  uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			})
@@ -340,7 +342,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 	welcomerGroup.AddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "channel",
-		Description: "Sets the channel to send the welcome message to.",
+		Description: "Sets the channel to send welcome messages to.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -387,14 +389,14 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set channel to: <#"+channel.ID.String()+">", welcomer.EmbedColourSuccess),
+							Embeds: welcomer.NewEmbed("Set channel to: <#"+channel.ID.String()+">.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
 						},
 					}, nil
 				} else {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unset channel. Welcomer text and image features will not work, if enabled.", welcomer.EmbedColourWarn),
+							Embeds: welcomer.NewEmbed("Unset channel. Welcomer text and image features will not work, if they are enabled.", welcomer.EmbedColourWarn),
 						},
 					}, nil
 				}
@@ -402,7 +404,7 @@ func (p *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	p.InteractionCommands.MustAddInteractionCommand(welcomerGroup)
+	w.InteractionCommands.MustAddInteractionCommand(welcomerGroup)
 
 	return nil
 }
@@ -419,11 +421,7 @@ func getWelcomerTextGuildSettings(ctx context.Context, sub *subway.Subway, queri
 		}
 	}
 
-	if guildSettingsWelcomerText == nil {
-		guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
-			GuildID: guildID,
-		}
-	}
+	guildSettingsWelcomerText.GuildID = guildID
 
 	return guildSettingsWelcomerText, err
 }
@@ -468,12 +466,7 @@ func toggleWelcomerImagesGuildSetting(ctx context.Context, sub *subway.Subway, g
 		}
 	}
 
-	if guildSettingsWelcomerImages == nil {
-		guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
-			GuildID: guildID,
-		}
-	}
-
+	guildSettingsWelcomerImages.GuildID = guildID
 	guildSettingsWelcomerImages.ToggleEnabled = value
 
 	_, err = queries.UpdateWelcomerImagesGuildSettings(ctx, &database.UpdateWelcomerImagesGuildSettingsParams{
@@ -514,12 +507,7 @@ func toggleWelcomerDMsGuildSetting(ctx context.Context, sub *subway.Subway, guil
 		}
 	}
 
-	if guildSettingsWelcomerDMs == nil {
-		guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
-			GuildID: guildID,
-		}
-	}
-
+	guildSettingsWelcomerDMs.GuildID = guildID
 	guildSettingsWelcomerDMs.ToggleEnabled = value
 
 	_, err = queries.UpdateWelcomerDMsGuildSettings(ctx, &database.UpdateWelcomerDMsGuildSettingsParams{

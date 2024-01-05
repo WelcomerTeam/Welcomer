@@ -5,6 +5,8 @@ github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0
 github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8 h1:1YhIaflkbnVwYpWGwZZdpxFP6t+EP3c+nrJrqMn/gMc=
 github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
 github.com/WelcomerTeam/Discord v0.0.0-20240103212130-b5603c89aa4e/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240104222028-dbc55499e995 h1:hvPe2CtryBevLUNAR4CyfqgbafyQEYLYOnXPRrSBoac=
+github.com/WelcomerTeam/Discord v0.0.0-20240104222028-dbc55499e995/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07 h1:v/14vBaVSd4dF84YETlg/RG0WrcnTao+exlbqS0GS9g=
