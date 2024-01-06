@@ -41,7 +41,8 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 		return &discord.InteractionResponse{
 			Type: discord.InteractionCallbackTypeChannelMessageSource,
 			Data: &discord.InteractionCallbackData{
-				Content: "This command can only be used in a guild.",
+				Embeds: NewEmbed("This command can only be used in a guild.", EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
 			},
 		}, nil
 	}
@@ -72,7 +73,8 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Content: "You do not have the required permissions to use this command.",
+					Embeds: NewEmbed("You do not have the required permissions to use this command.", EmbedColourError),
+					Flags:  uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
 		}
