@@ -67,14 +67,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallModuleBorderwall, Value: welcomer.S2J(BorderwallModuleBorderwall)},
-					{Name: BorderwallModuleDMs, Value: welcomer.S2J(BorderwallModuleDMs)},
+					{Name: BorderwallModuleBorderwall, Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall)},
+					{Name: BorderwallModuleDMs, Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs)},
 				},
 			},
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: discord.PermissionElevated,
+		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -180,14 +180,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallModuleBorderwall, Value: welcomer.S2J(BorderwallModuleBorderwall)},
-					{Name: BorderwallModuleDMs, Value: welcomer.S2J(BorderwallModuleDMs)},
+					{Name: BorderwallModuleBorderwall, Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall)},
+					{Name: BorderwallModuleDMs, Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs)},
 				},
 			},
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: discord.PermissionElevated,
+		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -275,7 +275,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: discord.PermissionElevated,
+		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {

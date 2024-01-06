@@ -68,14 +68,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: RuleModuleRules, Value: welcomer.S2J(RuleModuleRules)},
-					{Name: RuleModuleDMs, Value: welcomer.S2J(RuleModuleDMs)},
+					{Name: RuleModuleRules, Value: welcomer.StringToJsonLiteral(RuleModuleRules)},
+					{Name: RuleModuleDMs, Value: welcomer.StringToJsonLiteral(RuleModuleDMs)},
 				},
 			},
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: discord.PermissionElevated,
+		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -166,14 +166,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: RuleModuleRules, Value: welcomer.S2J(RuleModuleRules)},
-					{Name: RuleModuleDMs, Value: welcomer.S2J(RuleModuleDMs)},
+					{Name: RuleModuleRules, Value: welcomer.StringToJsonLiteral(RuleModuleRules)},
+					{Name: RuleModuleDMs, Value: welcomer.StringToJsonLiteral(RuleModuleDMs)},
 				},
 			},
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: discord.PermissionElevated,
+		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {

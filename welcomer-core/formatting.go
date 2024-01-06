@@ -38,6 +38,7 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 		}
 
 		var suffix string
+
 		switch int64(argument) % 10 {
 		case 1:
 			suffix = "st"

@@ -3,10 +3,10 @@ module github.com/WelcomerTeam/Welcomer/welcomer-interactions
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240106132346-9455336cf6b7
+	github.com/WelcomerTeam/Discord v0.0.0-20240106162202-947908d7b5d6
 	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942
-	github.com/WelcomerTeam/Subway v0.0.0-20240106134432-a00315102531
+	github.com/WelcomerTeam/Subway v0.0.0-20240106162927-d5b031031ff7
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/joho/godotenv v1.5.1

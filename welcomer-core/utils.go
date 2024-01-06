@@ -43,9 +43,16 @@ func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRo
 	return
 }
 
-// S2J converts a string to a jsoniter.RawMessage.
-func S2J(s string) jsoniter.RawMessage {
+// StringToJsonLiteral converts a string to a jsoniter.RawMessage.
+func StringToJsonLiteral(s string) jsoniter.RawMessage {
 	return jsoniter.RawMessage([]byte(`"` + s + `"`))
+}
+
+// IntToInt64Pointer converts an int to a pointer.
+func IntToInt64Pointer(i int) *discord.Int64 {
+	v := discord.Int64(i)
+
+	return &v
 }
 
 func FormatTextStroke(v bool) int {

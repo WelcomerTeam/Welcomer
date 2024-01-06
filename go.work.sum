@@ -409,6 +409,7 @@ github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3
 github.com/WelcomerTeam/Discord v0.0.0-20230725202103-d2fe946d9c56/go.mod h1:xx2AEDJzKQSegernYkY2wWFPa1FgND52NxxPtqjx1s8=
 github.com/WelcomerTeam/Discord v0.0.0-20240106122801-8c43fa07b121 h1:koqCR4MlLN3tTyeMv7h3RYV3OrDLDWxk3b/PSisik90=
 github.com/WelcomerTeam/Discord v0.0.0-20240106132346-9455336cf6b7 h1:EcTH8eB8dgRgUdDqyZDGybHz5zWOlRThXoKUwpBRmII=
+github.com/WelcomerTeam/Discord v0.0.0-20240106162202-947908d7b5d6 h1:BIFkkcG1fIFbWQL1SypDOIFk0YEirp3b7raRtrNtobM=
 github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15 h1:i3H4TzA9QZVoguPhdc7QJCM+zW4CeZwKZMSw6GLQEHI=
 github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15/go.mod h1:4oemQ7XEqKAc1DTtFpWugoE9K5RLjt7iH0emiFXnL/A=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230914000629-4b5c0aee0420/go.mod h1:cY4s0lNOCnhVDD4b5F75q0VGtpGfd93vJ6L1hdlgCcA=
