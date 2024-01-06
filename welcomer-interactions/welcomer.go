@@ -29,6 +29,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.MustRegisterCog(plugins.NewGeneralCog())
 	sub.MustRegisterCog(plugins.NewWelcomerCog())
 	sub.MustRegisterCog(plugins.NewRulesCog())
+	sub.MustRegisterCog(plugins.NewBorderwallCog())
 
 	return sub
 }

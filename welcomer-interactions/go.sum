@@ -7,6 +7,8 @@ github.com/WelcomerTeam/Discord v0.0.0-20231219154631-752b6cd8eee8/go.mod h1:75a
 github.com/WelcomerTeam/Discord v0.0.0-20240103212130-b5603c89aa4e/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
 github.com/WelcomerTeam/Discord v0.0.0-20240104222028-dbc55499e995 h1:hvPe2CtryBevLUNAR4CyfqgbafyQEYLYOnXPRrSBoac=
 github.com/WelcomerTeam/Discord v0.0.0-20240104222028-dbc55499e995/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240106122801-8c43fa07b121/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240106132346-9455336cf6b7/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07 h1:v/14vBaVSd4dF84YETlg/RG0WrcnTao+exlbqS0GS9g=
@@ -33,6 +35,10 @@ github.com/WelcomerTeam/Subway v0.0.0-20240104010314-fae27b2d314f h1:8lxdIMDXr5g
 github.com/WelcomerTeam/Subway v0.0.0-20240104010314-fae27b2d314f/go.mod h1:u91qVh1t+KeIB4XDD/W24XKvYni2oPbxkXvwVg4KujM=
 github.com/WelcomerTeam/Subway v0.0.0-20240104010732-3c30012e2117 h1:YB4zJTMeTNFHcXklrnqwhIXYxp5RNyLD/ah+MNcWWok=
 github.com/WelcomerTeam/Subway v0.0.0-20240104010732-3c30012e2117/go.mod h1:u91qVh1t+KeIB4XDD/W24XKvYni2oPbxkXvwVg4KujM=
+github.com/WelcomerTeam/Subway v0.0.0-20240106125715-e7a82e1aa477 h1:dUVoh48wiWpoO9n0KKNuyd8A4XfQ+o3YKHUGh7BkB6g=
+github.com/WelcomerTeam/Subway v0.0.0-20240106125715-e7a82e1aa477/go.mod h1:+bPDz2owH/ZQE3BA9frgJoH1UPhFr2ZLPaO+S7FvYB0=
+github.com/WelcomerTeam/Subway v0.0.0-20240106134432-a00315102531 h1:P/OtX2OmTtNImlL5A6eHxFlLsAvGT7AZwwfZZQeQ1N4=
+github.com/WelcomerTeam/Subway v0.0.0-20240106134432-a00315102531/go.mod h1:uarauKAp4e41e7D5VGHqRjw6IacO1DObWqE4jgeJV90=
 github.com/armon/go-metrics v0.4.1 h1:hR91U9KYmb6bLBYLQjyM+3j+rcd/UhE+G78SFnF8gJA=
 github.com/armon/go-metrics v0.4.1/go.mod h1:E6amYzXo6aW1tqzoZGT755KkbgrJsSdpwZ+3JqfkOG4=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=

@@ -51,9 +51,12 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		"Provide rules for the server.",
 	)
 
+	// Disable the rules module for DM channels.
+	ruleGroup.DMPermission = &welcomer.False
+
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
-		Description: "Enable a rule module for your server.",
+		Description: "Enable a rule module for this server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -70,6 +73,9 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				},
 			},
 		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: discord.PermissionElevated,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -148,7 +154,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "disable",
-		Description: "Disables a rule module for your server.",
+		Description: "Disables a rule module for this server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -165,6 +171,9 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				},
 			},
 		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: discord.PermissionElevated,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -237,6 +246,8 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		Description: "List the rules for the server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {

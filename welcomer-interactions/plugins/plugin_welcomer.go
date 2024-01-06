@@ -54,6 +54,9 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 		"Welcome new users to your server with fancy images, text or send them a direct message.",
 	)
 
+	// Disable the welcomer module for DM channels.
+	welcomerGroup.DMPermission = &welcomer.False
+
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "test",
 		Description: "Tests the Welcomer functionality.",
@@ -68,6 +71,9 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The user you would like to send the welcome message for.",
 			},
 		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: discord.PermissionElevated,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -158,7 +164,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
-		Description: "Enables a welcomer module for your server.",
+		Description: "Enables a welcomer module for this server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -177,6 +183,9 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				},
 			},
 		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: discord.PermissionElevated,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -250,7 +259,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "disable",
-		Description: "Disables a welcomer module for your server.",
+		Description: "Disables a welcomer module for this server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -269,6 +278,9 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				},
 			},
 		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: discord.PermissionElevated,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -354,6 +366,9 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The channel you would like to send the welcome message to.",
 			},
 		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: discord.PermissionElevated,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -455,6 +470,7 @@ func toggleWelcomerTextGuildSetting(ctx context.Context, sub *subway.Subway, gui
 
 func toggleWelcomerImagesGuildSetting(ctx context.Context, sub *subway.Subway, guildID int64, value bool) error {
 	queries := welcomer.GetQueriesFromContext(ctx)
+
 	guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, guildID)
 	if err != nil {
 		sub.Logger.Error().Err(err).
@@ -496,6 +512,7 @@ func toggleWelcomerImagesGuildSetting(ctx context.Context, sub *subway.Subway, g
 
 func toggleWelcomerDMsGuildSetting(ctx context.Context, sub *subway.Subway, guildID int64, value bool) error {
 	queries := welcomer.GetQueriesFromContext(ctx)
+
 	guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, guildID)
 	if err != nil {
 		sub.Logger.Error().Err(err).

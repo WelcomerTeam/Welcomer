@@ -13,6 +13,11 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+var (
+	True  = true
+	False = false
+)
+
 const (
 	hexBase      = 16
 	int64Base    = 10
