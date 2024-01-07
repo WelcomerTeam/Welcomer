@@ -274,8 +274,8 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				embeds := []*discord.Embed{}
 				embed := &discord.Embed{Title: "Rules", Color: welcomer.EmbedColourInfo}
 
-				for roleNumber, rule := range guildSettingsRules.Rules {
-					ruleWithNumber := fmt.Sprintf("%d. %s\n", roleNumber, rule)
+				for ruleNumber, rule := range guildSettingsRules.Rules {
+					ruleWithNumber := fmt.Sprintf("%d. %s\n", ruleNumber, rule)
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(ruleWithNumber) > 4000 {
