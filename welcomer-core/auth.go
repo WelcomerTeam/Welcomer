@@ -1,8 +1,11 @@
 package welcomer
 
 import (
+	"context"
+
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 )
 
@@ -53,7 +56,7 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, handler BasicInteractionHandler) (*discord.InteractionResponse, error) {
 	return RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 		// Query state cache for guild.
-		guilds, err := sub.SandwichClient.FetchGuild(sub.Context, &pb.FetchGuildRequest{
+		guilds, err := sub.SandwichClient.FetchGuild(sub.Context, &protobuf.FetchGuildRequest{
 			GuildIDs: []int64{int64(*interaction.GuildID)},
 		})
 		if err != nil {
@@ -63,7 +66,7 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 		var guild *discord.Guild
 		guildPb, ok := guilds.Guilds[int64(*interaction.GuildID)]
 		if ok {
-			guild, err = pb.GRPCToGuild(guildPb)
+			guild, err = protobuf.GRPCToGuild(guildPb)
 			if err != nil {
 				return nil, err
 			}
@@ -81,4 +84,21 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 
 		return handler()
 	})
+}
+
+func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string) (session *discord.Session, err error) {
+	configurations, err := sub.GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
+		Context:        ctx,
+		SandwichClient: sub.SandwichClient,
+	}, managerName)
+	if err != nil {
+		return nil, err
+	}
+
+	configuration, ok := configurations.Identifiers[managerName]
+	if !ok {
+		return nil, ErrMissingApplicationUser
+	}
+
+	return discord.NewSession(ctx, "Bot "+configuration.Token, sub.RESTInterface), nil
 }
