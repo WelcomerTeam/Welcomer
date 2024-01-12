@@ -89,8 +89,6 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get borderwall guild settings.")
 				}
 
-				guildSettingsBorderwall.GuildID = int64(*interaction.GuildID)
-
 				switch module {
 				case BorderwallModuleBorderwall:
 					guildSettingsBorderwall.ToggleEnabled = true
@@ -118,7 +116,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = queries.UpdateBorderwallGuildSettings(ctx, &database.UpdateBorderwallGuildSettingsParams{
-					GuildID:         guildSettingsBorderwall.GuildID,
+					GuildID:         int64(*interaction.GuildID),
 					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
 					Channel:         guildSettingsBorderwall.Channel,
@@ -202,8 +200,6 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get borderwall guild settings.")
 				}
 
-				guildSettingsBorderwall.GuildID = int64(*interaction.GuildID)
-
 				switch module {
 				case BorderwallModuleBorderwall:
 					guildSettingsBorderwall.ToggleEnabled = false
@@ -220,7 +216,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = queries.UpdateBorderwallGuildSettings(ctx, &database.UpdateBorderwallGuildSettingsParams{
-					GuildID:         guildSettingsBorderwall.GuildID,
+					GuildID:         int64(*interaction.GuildID),
 					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
 					Channel:         guildSettingsBorderwall.Channel,
@@ -308,7 +304,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = queries.UpdateBorderwallGuildSettings(ctx, &database.UpdateBorderwallGuildSettingsParams{
-					GuildID:         guildSettingsBorderwall.GuildID,
+					GuildID:         int64(*interaction.GuildID),
 					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
 					Channel:         guildSettingsBorderwall.Channel,

@@ -90,8 +90,6 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get rules guild settings.")
 				}
 
-				guildSettingsRules.GuildID = int64(*interaction.GuildID)
-
 				switch module {
 				case RuleModuleRules:
 					guildSettingsRules.ToggleEnabled = true
@@ -108,7 +106,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = queries.UpdateRuleGuildSettings(ctx, &database.UpdateRuleGuildSettingsParams{
-					GuildID:          guildSettingsRules.GuildID,
+					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 					ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 					Rules:            guildSettingsRules.Rules,
@@ -188,8 +186,6 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get rules guild settings.")
 				}
 
-				guildSettingsRules.GuildID = int64(*interaction.GuildID)
-
 				switch module {
 				case RuleModuleRules:
 					guildSettingsRules.ToggleEnabled = false
@@ -206,7 +202,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = queries.UpdateRuleGuildSettings(ctx, &database.UpdateRuleGuildSettingsParams{
-					GuildID:          guildSettingsRules.GuildID,
+					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 					ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 					Rules:            guildSettingsRules.Rules,
