@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -52,7 +51,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
-		Description: "Enable a rule module for this server.",
+		Description: "Enable autorole for this server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -70,11 +69,10 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get autoroles guild settings.")
 				}
 
-				guildSettingsAutoRoles.GuildID = int64(*interaction.GuildID)
 				guildSettingsAutoRoles.ToggleEnabled = true
 
 				_, err = queries.UpdateAutoRolesGuildSettings(ctx, &database.UpdateAutoRolesGuildSettingsParams{
-					GuildID:       guildSettingsAutoRoles.GuildID,
+					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 					Roles:         guildSettingsAutoRoles.Roles,
 				})
@@ -98,7 +96,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "disable",
-		Description: "Disables a rule module for this server.",
+		Description: "Disables autorole for this server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -116,12 +114,10 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get autoroles guild settings.")
 				}
 
-				guildSettingsAutoRoles.GuildID = int64(*interaction.GuildID)
-
 				guildSettingsAutoRoles.ToggleEnabled = false
 
 				_, err = queries.UpdateAutoRolesGuildSettings(ctx, &database.UpdateAutoRolesGuildSettingsParams{
-					GuildID:       guildSettingsAutoRoles.GuildID,
+					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 					Roles:         guildSettingsAutoRoles.Roles,
 				})
@@ -136,7 +132,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Disabled auto roles.", welcomer.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed("Disabled autoroles.", welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -166,63 +162,13 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				embeds := []*discord.Embed{}
 				embed := &discord.Embed{Title: "AutoRoles", Color: welcomer.EmbedColourInfo}
 
-				roleList := make([]int64, 0, len(guildSettingsAutoRoles.Roles))
-
-				guildRoles, err := sub.SandwichClient.FetchGuildRoles(ctx, &sandwich.FetchGuildRolesRequest{
-					GuildID: int64(*interaction.GuildID),
-				})
+				roleList, err := welcomer.FilterAssignableRoles(ctx, sub, interaction, guildSettingsAutoRoles.Roles)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch guild roles.")
+						Msg("Failed to filter assignable roles.")
 
 					return nil, err
-				}
-
-				guildMember, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
-					GuildID: int64(*interaction.GuildID),
-					UserIDs: []int64{int64(interaction.ApplicationID)},
-				})
-				if err != nil {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Int64("user_id", int64(interaction.ApplicationID)).
-						Msg("Failed to fetch application guild member.")
-				}
-
-				// Get the guild member of the application.
-				applicationUser, ok := guildMember.GuildMembers[int64(interaction.ApplicationID)]
-				if !ok {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Int64("user_id", int64(interaction.ApplicationID)).
-						Msg("Application guild member not present in response.")
-
-					return nil, welcomer.ErrMissingApplicationUser
-				}
-
-				// Get the top role position of the application user.
-				var applicationUserTopRolePosition int32
-				for _, roleID := range applicationUser.Roles {
-					role, ok := guildRoles.GuildRoles[roleID]
-					println("User Roles", roleID, ok)
-					if ok && role.Position > applicationUserTopRolePosition {
-						applicationUserTopRolePosition = role.Position
-					}
-				}
-
-				println("Top Role", applicationUserTopRolePosition)
-
-				// Filter out any roles that are not in cache or are above the application user's top role position.
-				for _, roleID := range guildSettingsAutoRoles.Roles {
-					role, ok := guildRoles.GuildRoles[roleID]
-					println("Lookup", roleID, ok)
-					if ok {
-						println(role.Name, role.Position, applicationUserTopRolePosition)
-						if role.Position < applicationUserTopRolePosition {
-							roleList = append(roleList, roleID)
-						}
-					}
 				}
 
 				if len(roleList) == 0 || !guildSettingsAutoRoles.ToggleEnabled {

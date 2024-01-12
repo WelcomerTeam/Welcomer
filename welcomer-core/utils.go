@@ -1,6 +1,7 @@
 package welcomer
 
 import (
+	"context"
 	"image/color"
 	"net"
 	"net/url"
@@ -8,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	jsoniter "github.com/json-iterator/go"
@@ -53,6 +56,11 @@ func IntToInt64Pointer(i int) *discord.Int64 {
 	v := discord.Int64(i)
 
 	return &v
+}
+
+// StringToPointer converts a string to a pointer.
+func StringToPointer(s string) *string {
+	return &s
 }
 
 func FormatTextStroke(v bool) int {
@@ -334,4 +342,61 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	}
 
 	return true
+}
+
+func FilterAssignableRoles(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, roleIDs []int64) (out []int64, err error) {
+	guildRoles, err := sub.SandwichClient.FetchGuildRoles(ctx, &protobuf.FetchGuildRolesRequest{
+		GuildID: int64(*interaction.GuildID),
+	})
+	if err != nil {
+		sub.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Msg("Failed to fetch guild roles.")
+
+		return nil, err
+	}
+
+	guildMember, err := sub.SandwichClient.FetchGuildMembers(ctx, &protobuf.FetchGuildMembersRequest{
+		GuildID: int64(*interaction.GuildID),
+		UserIDs: []int64{int64(interaction.ApplicationID)},
+	})
+	if err != nil {
+		sub.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Int64("user_id", int64(interaction.ApplicationID)).
+			Msg("Failed to fetch application guild member.")
+	}
+
+	// Get the guild member of the application.
+	applicationUser, ok := guildMember.GuildMembers[int64(interaction.ApplicationID)]
+	if !ok {
+		sub.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Int64("user_id", int64(interaction.ApplicationID)).
+			Msg("Application guild member not present in response.")
+
+		return nil, ErrMissingApplicationUser
+	}
+
+	// Get the top role position of the application user.
+	var applicationUserTopRolePosition int32
+
+	for _, roleID := range applicationUser.Roles {
+		role, ok := guildRoles.GuildRoles[roleID]
+		if ok && role.Position > applicationUserTopRolePosition {
+			applicationUserTopRolePosition = role.Position
+		}
+	}
+
+	// Filter out any roles that are not in cache or are above the application user's top role position.
+	for _, roleID := range roleIDs {
+		role, ok := guildRoles.GuildRoles[roleID]
+		if ok {
+			if role.Position < applicationUserTopRolePosition {
+				out = append(out, roleID)
+			}
+		}
+	}
+
+	return out, nil
 }
