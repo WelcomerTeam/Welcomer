@@ -43,7 +43,7 @@ func (r *AutoRolesCog) GetInteractionCommandable() *subway.InteractionCommandabl
 func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 	ruleGroup := subway.NewSubcommandGroup(
 		"autoroles",
-		"Provide autoroles for the server.",
+		"Provides autoroles for the server.",
 	)
 
 	// Disable the autoroles module for DM channels.
@@ -148,7 +148,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				queries := welcomer.GetQueriesFromContext(ctx)
 				guildSettingsAutoRoles, err := queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {

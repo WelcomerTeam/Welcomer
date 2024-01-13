@@ -33,6 +33,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.MustRegisterCog(plugins.NewAutoRolesCog())
 	sub.MustRegisterCog(plugins.NewLeaverCog())
 	sub.MustRegisterCog(plugins.NewFreeRolesCog())
+	sub.MustRegisterCog(plugins.NewTimeRolesCog())
 
 	return sub
 }

@@ -2,11 +2,13 @@ package welcomer
 
 import (
 	"context"
+	"fmt"
 	"image/color"
 	"net"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -344,6 +346,31 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	return true
 }
 
+func FilterAssignableTimeRoles(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
+	roleIDs := make([]int64, 0, len(timeRoles))
+
+	for _, timeRole := range timeRoles {
+		roleIDs = append(roleIDs, int64(timeRole.Role))
+	}
+
+	assignableRoleIDs, err := FilterAssignableRoles(ctx, sub, interaction, roleIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, timeRole := range timeRoles {
+		for _, assignableRoleID := range assignableRoleIDs {
+			if int64(timeRole.Role) == assignableRoleID {
+				out = append(out, timeRole)
+
+				break
+			}
+		}
+	}
+
+	return out, nil
+}
+
 func FilterAssignableRoles(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, roleIDs []int64) (out []int64, err error) {
 	guildRoles, err := sub.SandwichClient.FetchGuildRoles(ctx, &protobuf.FetchGuildRolesRequest{
 		GuildID: int64(*interaction.GuildID),
@@ -399,4 +426,53 @@ func FilterAssignableRoles(ctx context.Context, sub *subway.Subway, interaction 
 	}
 
 	return out, nil
+}
+
+func HumanizeDuration(seconds int) string {
+	duration := time.Duration(seconds) * time.Second
+	years := int(duration.Hours() / 24 / 365)
+	days := int(duration.Hours()/24) % 365
+	hours := int(duration.Hours()) % 24
+	minutes := int(duration.Minutes()) % 60
+
+	var result strings.Builder
+
+	if years > 0 {
+		result.WriteString(fmt.Sprintf("%d year", years))
+		if years > 1 {
+			result.WriteString("s")
+		}
+	}
+
+	if days > 0 {
+		if result.Len() > 0 {
+			result.WriteString(", ")
+		}
+		result.WriteString(fmt.Sprintf("%d day", days))
+		if days > 1 {
+			result.WriteString("s")
+		}
+	}
+
+	if hours > 0 {
+		if result.Len() > 0 {
+			result.WriteString(", ")
+		}
+		result.WriteString(fmt.Sprintf("%d hour", hours))
+		if hours > 1 {
+			result.WriteString("s")
+		}
+	}
+
+	if minutes > 0 {
+		if result.Len() > 0 {
+			result.WriteString(" and ")
+		}
+		result.WriteString(fmt.Sprintf("%d minute", minutes))
+		if minutes > 1 {
+			result.WriteString("s")
+		}
+	}
+
+	return result.String()
 }

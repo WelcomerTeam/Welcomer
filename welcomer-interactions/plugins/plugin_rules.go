@@ -48,7 +48,7 @@ func (r *RulesCog) GetInteractionCommandable() *subway.InteractionCommandable {
 func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 	ruleGroup := subway.NewSubcommandGroup(
 		"rules",
-		"Provide rules for the server.",
+		"Provides rules for the server.",
 	)
 
 	// Disable the rules module for DM channels.
