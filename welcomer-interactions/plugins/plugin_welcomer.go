@@ -90,7 +90,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer text guild settings")
+						Msg("failed to get welcomer text guild settings")
 
 					return nil, err
 				}
@@ -99,7 +99,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer image guild settings")
+						Msg("failed to get welcomer image guild settings")
 
 					return nil, err
 				}
@@ -108,7 +108,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer dm guild settings")
+						Msg("failed to get welcomer dm guild settings")
 
 					return nil, err
 				}
@@ -194,10 +194,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer text guild settings")
+						Msg("failed to get welcomer text guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -205,10 +205,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer DMs guild settings")
+						Msg("failed to get welcomer DMs guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -216,10 +216,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer images guild settings")
+						Msg("failed to get welcomer images guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -368,10 +368,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer text guild settings")
+						Msg("failed to get welcomer text guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -379,10 +379,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer DMs guild settings")
+						Msg("failed to get welcomer DMs guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -390,10 +390,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch welcomer images guild settings")
+						Msg("failed to get welcomer images guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -510,7 +510,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	welcomerGroup.AddInteractionCommand(&subway.InteractionCommandable{
+	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "channel",
 		Description: "Sets the channel to send welcome messages to.",
 
@@ -534,7 +534,11 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				queries := welcomer.GetQueriesFromContext(ctx)
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("failed to get welcomer text guild settings")
+
 					return nil, err
 				}
 
@@ -569,7 +573,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unset welcomer channel. Welcomer text and image features will not work, if they are enabled.", welcomer.EmbedColourWarn),
+							Embeds: welcomer.NewEmbed("Removed welcomer channel. Welcomer text and image features will not work, if they are enabled.", welcomer.EmbedColourWarn),
 						},
 					}, nil
 				}

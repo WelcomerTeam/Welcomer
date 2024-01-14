@@ -133,7 +133,7 @@ func (p *WelcomerCog) FetchWelcomerImage(options images.GenerateImageOptionsRaw)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
-		return nil, "", fmt.Errorf("failed to fetch welcomer image with status %s", resp.Status)
+		return nil, "", fmt.Errorf("failed to get welcomer image with status %s", resp.Status)
 	}
 
 	return resp.Body, resp.Header.Get("Content-Type"), nil
@@ -177,7 +177,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.Member.User.ID)).
-			Msg("Failed to fetch welcomer text guild settings")
+			Msg("failed to get welcomer text guild settings")
 
 		return err
 	}
@@ -187,7 +187,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.Member.User.ID)).
-			Msg("Failed to fetch welcomer image guild settings")
+			Msg("failed to get welcomer image guild settings")
 
 		return err
 	}
@@ -197,7 +197,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.Member.User.ID)).
-			Msg("Failed to fetch welcomer dm guild settings")
+			Msg("failed to get welcomer dm guild settings")
 
 		return err
 	}
@@ -230,7 +230,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			eventCtx.Logger.Warn().
 				Int64("user_id", int64(event.Member.User.ID)).
-				Msg("Failed to fetch user from state cache, falling back to event.Member.User")
+				Msg("failed to get user from state cache, falling back to event.Member.User")
 			user = event.Member.User
 		}
 	} else {
@@ -326,7 +326,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
-				Msg("Failed to fetch welcomer image")
+				Msg("failed to get welcomer image")
 		}
 
 		if imageReaderCloser != nil {

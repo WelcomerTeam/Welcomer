@@ -255,7 +255,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	borderwallGroup.AddInteractionCommand(&subway.InteractionCommandable{
+	borderwallGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "channel",
 		Description: "Sets the channel to send borderwall messages to.",
 
@@ -332,7 +332,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unset borderwall channel. Borderwall will only send direct messages to users.", welcomer.EmbedColourWarn),
+							Embeds: welcomer.NewEmbed("Removed borderwall channel. Borderwall will only send direct messages to users.", welcomer.EmbedColourWarn),
 						},
 					}, nil
 				}

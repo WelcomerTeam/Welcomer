@@ -67,14 +67,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch leaver guild settings")
-
-					if !errors.Is(err, pgx.ErrNoRows) {
-						return nil, err
-					}
+						Msg("failed to get leaver guild settings")
 				}
 
 				guildSettingsLeaver.ToggleEnabled = true
@@ -117,14 +113,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch leaver guild settings")
-
-					if !errors.Is(err, pgx.ErrNoRows) {
-						return nil, err
-					}
+						Msg("failed to get leaver guild settings")
 				}
 
 				guildSettingsLeaver.ToggleEnabled = false
@@ -153,7 +145,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	leaverGroup.AddInteractionCommand(&subway.InteractionCommandable{
+	leaverGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "channel",
 		Description: "Sets the channel to send leaver messages to.",
 
@@ -176,8 +168,9 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
 				queries := welcomer.GetQueriesFromContext(ctx)
+
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					return nil, err
 				}
 
@@ -212,7 +205,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unset leaver channel. Leaver will not work, if enabled.", welcomer.EmbedColourWarn),
+							Embeds: welcomer.NewEmbed("Removed leaver channel. Leaver will not work, if enabled.", welcomer.EmbedColourWarn),
 						},
 					}, nil
 				}
