@@ -113,6 +113,43 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	tempchannelsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "remove",
+		Description: "Removes your tempchannel.",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission: &welcomer.False,
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				// GuildID may be missing, fill it in.
+				interaction.Member.GuildID = interaction.GuildID
+
+				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeTempChannelsRemoveStructure{
+					Interaction: &interaction,
+					Member:      interaction.Member,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+					Manager: welcomer.GetManagerNameFromContext(ctx),
+					Type:    welcomer.CustomEventInvokeTempChannelsRemove,
+					Data:    data,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
+			})
+		},
+	})
+
+	tempchannelsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
 		Description: "Enables a tempchannels module for this server.",
 

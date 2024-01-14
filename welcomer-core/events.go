@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	CustomEventInvokeWelcomer     = "WELCOMER_INVOKE_WELCOMER"
-	CustomEventInvokeLeaver       = "WELCOMER_INVOKE_LEAVER"
-	CustomEventInvokeTempChannels = "WELCOMER_INVOKE_TEMPCHANNELS"
+	CustomEventInvokeWelcomer           = "WELCOMER_INVOKE_WELCOMER"
+	CustomEventInvokeLeaver             = "WELCOMER_INVOKE_LEAVER"
+	CustomEventInvokeTempChannels       = "WELCOMER_INVOKE_TEMPCHANNELS"
+	CustomEventInvokeTempChannelsRemove = "WELCOMER_INVOKE_TEMPCHANNELS_REMOVE"
 )
 
 type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
@@ -28,6 +29,13 @@ type CustomEventInvokeLeaverStructure struct {
 type OnInvokeTempChannelsFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeTempChannelsStructure) error
 
 type CustomEventInvokeTempChannelsStructure struct {
+	Interaction *discord.Interaction
+	Member      *discord.GuildMember
+}
+
+type OnInvokeTempChannelsRemoveFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeTempChannelsRemoveStructure) error
+
+type CustomEventInvokeTempChannelsRemoveStructure struct {
 	Interaction *discord.Interaction
 	Member      *discord.GuildMember
 }
