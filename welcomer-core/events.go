@@ -7,12 +7,20 @@ import (
 
 const (
 	CustomEventInvokeWelcomer     = "WELCOMER_INVOKE_WELCOMER"
+	CustomEventInvokeLeaver       = "WELCOMER_INVOKE_LEAVER"
 	CustomEventInvokeTempChannels = "WELCOMER_INVOKE_TEMPCHANNELS"
 )
 
 type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
 
 type CustomEventInvokeWelcomerStructure struct {
+	Interaction *discord.Interaction
+	Member      *discord.GuildMember
+}
+
+type OnInvokeLeaverFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
+
+type CustomEventInvokeLeaverStructure struct {
 	Interaction *discord.Interaction
 	Member      *discord.GuildMember
 }

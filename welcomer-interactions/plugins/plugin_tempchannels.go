@@ -295,7 +295,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	tempchannelsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "category",
+		Name:        "setcategory",
 		Description: "Sets the category to create tempchannels in.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
@@ -354,7 +354,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	tempchannelsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "lobby",
+		Name:        "setlobby",
 		Description: "Sets the tempchannels lobby in.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,

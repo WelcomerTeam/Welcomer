@@ -256,7 +256,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	borderwallGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "channel",
+		Name:        "setchannel",
 		Description: "Sets the channel to send borderwall messages to.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,

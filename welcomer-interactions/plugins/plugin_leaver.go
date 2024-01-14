@@ -5,10 +5,12 @@ import (
 	"errors"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func NewLeaverCog() *LeaverCog {
@@ -52,6 +54,91 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 	// Disable the leaver module for DM channels.
 	leaverGroup.DMPermission = &welcomer.False
+
+	leaverGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "test",
+		Description: "Tests the Leaver functionality.",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Required:     false,
+				ArgumentType: subway.ArgumentTypeMember,
+				Name:         "user",
+				Description:  "The user you would like to send the leaver message for.",
+			},
+		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				member := subway.MustGetArgument(ctx, "user").MustMember()
+				if member == nil {
+					member = interaction.Member
+				}
+
+				queries := welcomer.GetQueriesFromContext(ctx)
+
+				// Fetch guild settings.
+
+				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("failed to get leaver guild settings")
+				}
+
+				// If no modules are enabled, let the user know.
+				if !guildSettingsLeaver.ToggleEnabled {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Leaver is not enabled. Please use `/leaver enable`", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				// If text or images are enabled, but no channel is set, let the user know.
+				if !guildSettingsLeaver.ToggleEnabled && guildSettingsLeaver.Channel == 0 {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("No channel is set. Please use `/leaver channel`", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				// GuildID may be missing, fill it in.
+				member.GuildID = interaction.GuildID
+
+				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeLeaverStructure{
+					Interaction: &interaction,
+					Member:      member,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+					Manager: welcomer.GetManagerNameFromContext(ctx),
+					Type:    welcomer.CustomEventInvokeLeaver,
+					Data:    data,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
+			})
+		},
+	})
 
 	leaverGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -146,7 +233,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	leaverGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "channel",
+		Name:        "setchannel",
 		Description: "Sets the channel to send leaver messages to.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,

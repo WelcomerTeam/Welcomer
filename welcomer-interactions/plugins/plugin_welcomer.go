@@ -511,7 +511,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "channel",
+		Name:        "setchannel",
 		Description: "Sets the channel to send welcome messages to.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
