@@ -1,6 +1,6 @@
 -- name: CreateScienceGuildEvent :one
 INSERT INTO science_guild_events (guild_event_uuid, guild_id, created_at, event_type, data)
-    VALUES (uuid_generate_v4(), $1, now(), $2, $3)
+    VALUES (uuid_generate_v7(), $1, now(), $2, $3)
 RETURNING
     *;
 

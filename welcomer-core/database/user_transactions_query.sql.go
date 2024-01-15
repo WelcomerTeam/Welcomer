@@ -13,7 +13,7 @@ import (
 
 const CreateOrUpdateUserTransaction = `-- name: CreateOrUpdateUserTransaction :one
 INSERT INTO user_transactions (transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4, $5, $6)
 ON CONFLICT(transaction_uuid) DO UPDATE
     SET user_id = EXCLUDED.user_id,
         platform_type = EXCLUDED.platform_type,
@@ -61,7 +61,7 @@ func (q *Queries) CreateOrUpdateUserTransaction(ctx context.Context, arg *Create
 
 const CreateUserTransaction = `-- name: CreateUserTransaction :one
 INSERT INTO user_transactions (transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4, $5, $6)
 RETURNING
     transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount
 `

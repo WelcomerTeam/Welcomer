@@ -14,7 +14,7 @@ import (
 
 const CreateBorderwallRequest = `-- name: CreateBorderwallRequest :one
 INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4)
 RETURNING
     request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
 `
@@ -48,7 +48,7 @@ func (q *Queries) CreateBorderwallRequest(ctx context.Context, arg *CreateBorder
 
 const CreateOrUpdateBorderwallRequest = `-- name: CreateOrUpdateBorderwallRequest :one
 INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4)
 ON CONFLICT(request_uuid) DO UPDATE
     SET updated_at = EXCLUDED.updated_at,
         guild_id = EXCLUDED.guild_id,

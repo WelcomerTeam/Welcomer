@@ -14,7 +14,7 @@ import (
 
 const CreateScienceEvent = `-- name: CreateScienceEvent :one
 INSERT INTO science_events (event_uuid, created_at, event_type, data)
-    VALUES (uuid_generate_v4(), now(), $1, $2)
+    VALUES (uuid_generate_v7(), now(), $1, $2)
 RETURNING
     event_uuid, created_at, event_type, data
 `

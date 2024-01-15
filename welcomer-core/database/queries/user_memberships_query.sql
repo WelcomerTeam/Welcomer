@@ -1,12 +1,12 @@
 -- name: CreateNewMembership :one
 INSERT INTO user_memberships (membership_uuid, created_at, updated_at, started_at, expires_at, status, membership_type, transaction_uuid, user_id, guild_id)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6, $7)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4, $5, $6, $7)
 RETURNING
     *;
 
 -- name: CreateOrUpdateNewMembership :one
 INSERT INTO user_memberships (membership_uuid, created_at, updated_at, started_at, expires_at, status, membership_type, transaction_uuid, user_id, guild_id)
-    VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5, $6, $7)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT(membership_uuid) DO UPDATE
     SET started_at = EXCLUDED.started_at,
         expires_at = EXCLUDED.expires_at,
