@@ -265,10 +265,6 @@ func (x *ScienceEventType) UnmarshalText(text []byte) error {
 const (
 	// ScienceGuildEventTypeUnknown is a ScienceGuildEventType of type Unknown.
 	ScienceGuildEventTypeUnknown ScienceGuildEventType = iota
-	// ScienceGuildEventTypeJoin is a ScienceGuildEventType of type Join.
-	ScienceGuildEventTypeJoin
-	// ScienceGuildEventTypeLeave is a ScienceGuildEventType of type Leave.
-	ScienceGuildEventTypeLeave
 	// ScienceGuildEventTypeUserJoin is a ScienceGuildEventType of type UserJoin.
 	ScienceGuildEventTypeUserJoin
 	// ScienceGuildEventTypeUserLeave is a ScienceGuildEventType of type UserLeave.
@@ -289,21 +285,19 @@ const (
 	ScienceGuildEventTypeMembershipRemoved
 )
 
-const _ScienceGuildEventTypeName = "unknownjoinleaveuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemoved"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemoved"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeUnknown:             _ScienceGuildEventTypeName[0:7],
-	ScienceGuildEventTypeJoin:                _ScienceGuildEventTypeName[7:11],
-	ScienceGuildEventTypeLeave:               _ScienceGuildEventTypeName[11:16],
-	ScienceGuildEventTypeUserJoin:            _ScienceGuildEventTypeName[16:24],
-	ScienceGuildEventTypeUserLeave:           _ScienceGuildEventTypeName[24:33],
-	ScienceGuildEventTypeUserWelcomed:        _ScienceGuildEventTypeName[33:45],
-	ScienceGuildEventTypeTimeRoleGiven:       _ScienceGuildEventTypeName[45:58],
-	ScienceGuildEventTypeBorderwallChallenge: _ScienceGuildEventTypeName[58:77],
-	ScienceGuildEventTypeBorderwallCompleted: _ScienceGuildEventTypeName[77:96],
-	ScienceGuildEventTypeTempChannelCreated:  _ScienceGuildEventTypeName[96:114],
-	ScienceGuildEventTypeMembershipReceived:  _ScienceGuildEventTypeName[114:132],
-	ScienceGuildEventTypeMembershipRemoved:   _ScienceGuildEventTypeName[132:149],
+	ScienceGuildEventTypeUserJoin:            _ScienceGuildEventTypeName[7:15],
+	ScienceGuildEventTypeUserLeave:           _ScienceGuildEventTypeName[15:24],
+	ScienceGuildEventTypeUserWelcomed:        _ScienceGuildEventTypeName[24:36],
+	ScienceGuildEventTypeTimeRoleGiven:       _ScienceGuildEventTypeName[36:49],
+	ScienceGuildEventTypeBorderwallChallenge: _ScienceGuildEventTypeName[49:68],
+	ScienceGuildEventTypeBorderwallCompleted: _ScienceGuildEventTypeName[68:87],
+	ScienceGuildEventTypeTempChannelCreated:  _ScienceGuildEventTypeName[87:105],
+	ScienceGuildEventTypeMembershipReceived:  _ScienceGuildEventTypeName[105:123],
+	ScienceGuildEventTypeMembershipRemoved:   _ScienceGuildEventTypeName[123:140],
 }
 
 // String implements the Stringer interface.
@@ -316,17 +310,15 @@ func (x ScienceGuildEventType) String() string {
 
 var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[0:7]:     ScienceGuildEventTypeUnknown,
-	_ScienceGuildEventTypeName[7:11]:    ScienceGuildEventTypeJoin,
-	_ScienceGuildEventTypeName[11:16]:   ScienceGuildEventTypeLeave,
-	_ScienceGuildEventTypeName[16:24]:   ScienceGuildEventTypeUserJoin,
-	_ScienceGuildEventTypeName[24:33]:   ScienceGuildEventTypeUserLeave,
-	_ScienceGuildEventTypeName[33:45]:   ScienceGuildEventTypeUserWelcomed,
-	_ScienceGuildEventTypeName[45:58]:   ScienceGuildEventTypeTimeRoleGiven,
-	_ScienceGuildEventTypeName[58:77]:   ScienceGuildEventTypeBorderwallChallenge,
-	_ScienceGuildEventTypeName[77:96]:   ScienceGuildEventTypeBorderwallCompleted,
-	_ScienceGuildEventTypeName[96:114]:  ScienceGuildEventTypeTempChannelCreated,
-	_ScienceGuildEventTypeName[114:132]: ScienceGuildEventTypeMembershipReceived,
-	_ScienceGuildEventTypeName[132:149]: ScienceGuildEventTypeMembershipRemoved,
+	_ScienceGuildEventTypeName[7:15]:    ScienceGuildEventTypeUserJoin,
+	_ScienceGuildEventTypeName[15:24]:   ScienceGuildEventTypeUserLeave,
+	_ScienceGuildEventTypeName[24:36]:   ScienceGuildEventTypeUserWelcomed,
+	_ScienceGuildEventTypeName[36:49]:   ScienceGuildEventTypeTimeRoleGiven,
+	_ScienceGuildEventTypeName[49:68]:   ScienceGuildEventTypeBorderwallChallenge,
+	_ScienceGuildEventTypeName[68:87]:   ScienceGuildEventTypeBorderwallCompleted,
+	_ScienceGuildEventTypeName[87:105]:  ScienceGuildEventTypeTempChannelCreated,
+	_ScienceGuildEventTypeName[105:123]: ScienceGuildEventTypeMembershipReceived,
+	_ScienceGuildEventTypeName[123:140]: ScienceGuildEventTypeMembershipRemoved,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.
