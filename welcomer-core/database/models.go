@@ -22,6 +22,14 @@ type BorderwallRequests struct {
 	VerifiedAt  time.Time `json:"verified_at"`
 }
 
+type GuildInvites struct {
+	InviteCode string    `json:"invite_code"`
+	GuildID    int64     `json:"guild_id"`
+	CreatedBy  int64     `json:"created_by"`
+	CreatedAt  time.Time `json:"created_at"`
+	Uses       int64     `json:"uses"`
+}
+
 type GuildSettingsAutoroles struct {
 	GuildID       int64   `json:"guild_id"`
 	ToggleEnabled bool    `json:"toggle_enabled"`

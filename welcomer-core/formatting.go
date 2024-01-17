@@ -61,7 +61,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 
 	vars["User"] = StubUser{
 		ID:            member.User.ID,
-		Name:          getUserDisplayName(member.User),
+		Name:          GetUserDisplayName(member.User),
 		Username:      member.User.Username,
 		Discriminator: member.User.Discriminator,
 		GlobalName:    member.User.GlobalName,
@@ -151,7 +151,7 @@ func GetUserAvatar(user *discord.User) string {
 	return discord.EndpointCDN + "/" + discord.EndpointUserAvatar(user.ID.String(), user.Avatar)
 }
 
-func getUserDisplayName(user *discord.User) string {
+func GetUserDisplayName(user *discord.User) string {
 	if user.GlobalName != "" {
 		return user.GlobalName
 	}

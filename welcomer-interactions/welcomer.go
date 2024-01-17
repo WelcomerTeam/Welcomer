@@ -32,7 +32,6 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 		return nil, nil
 	}
 
-	sub.MustRegisterCog(plugins.NewGeneralCog())
 	sub.MustRegisterCog(plugins.NewWelcomerCog())
 	sub.MustRegisterCog(plugins.NewRulesCog())
 	sub.MustRegisterCog(plugins.NewBorderwallCog())
@@ -41,6 +40,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.MustRegisterCog(plugins.NewFreeRolesCog())
 	sub.MustRegisterCog(plugins.NewTimeRolesCog())
 	sub.MustRegisterCog(plugins.NewTempChannelsCog())
+	sub.MustRegisterCog(plugins.NewMiscellaneousCog())
 
 	sub.OnAfterInteraction = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, resp *discord.InteractionResponse, interactionError error) error {
 		queries := welcomer.GetQueriesFromContext(ctx)

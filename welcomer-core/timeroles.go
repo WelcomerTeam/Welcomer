@@ -7,7 +7,7 @@ import (
 
 type GuildSettingsTimeRolesRole struct {
 	Role    discord.Snowflake `json:"role_id"`
-	Seconds int             `json:"seconds"`
+	Seconds int               `json:"seconds"`
 }
 
 func UnmarshalTimeRolesJSON(rolesJSON []byte) (roles []GuildSettingsTimeRolesRole) {
