@@ -232,9 +232,9 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					var roleMessage string
 
 					if roleGivenAt.After(now) {
-						roleMessage = fmt.Sprintf("- <@&%d> <t:%d:R>\n", role.Role, roleGivenAt.Unix())
+						roleMessage = fmt.Sprintf(welcomer.EmojiNeutral+" <@&%d> <t:%d:R>\n", role.Role, roleGivenAt.Unix())
 					} else {
-						roleMessage = fmt.Sprintf("✅ <@&%d>\n", role.Role)
+						roleMessage = fmt.Sprintf(welcomer.EmojiCheck+" <@&%d>\n", role.Role)
 					}
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
