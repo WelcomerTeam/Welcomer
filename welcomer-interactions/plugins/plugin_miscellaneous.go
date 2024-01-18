@@ -171,7 +171,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				sort.Slice(leaderboard, func(i, j int) bool {
-					return leaderboard[i].Uses > leaderboard[j].Uses
+					return leaderboard[i].Uses > leaderboard[j].Uses || (leaderboard[i].Uses == leaderboard[j].Uses && leaderboard[i].InviterID > leaderboard[j].InviterID)
 				})
 
 				userPosition := -1
@@ -182,6 +182,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						if entry.InviterID == interaction.Member.User.ID {
 							userPosition = i + 1
 							userTotalInvites = entry.Uses
+
 							break
 						}
 					}
@@ -192,18 +193,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					guildMemberIDs = append(guildMemberIDs, int64(inviterID))
 				}
 
-				guildMembers, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
-					GuildID: int64(*interaction.GuildID),
-					UserIDs: guildMemberIDs,
-				})
-				if err != nil {
-					return nil, err
-				}
-
 				embeds := []*discord.Embed{}
 				embed := &discord.Embed{Title: "Invite Leaderboard", Color: welcomer.EmbedColourInfo}
 
-				embed.Description += fmt.Sprintf("You have invited %d user%s to this server.\n", userTotalInvites, welcomer.If(userTotalInvites == 1, "", "s"))
+				embed.Description += fmt.Sprintf(
+					"You have invited %d user%s to this server.\n",
+					userTotalInvites,
+					welcomer.If(userTotalInvites == 1, "", "s"),
+				)
 
 				if userPosition > 0 && userPosition <= 100 {
 					embed.Description += fmt.Sprintf("You are currently **#%d** on the leaderboard.\n\n", userPosition)
@@ -211,21 +208,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					embed.Description += "You are not on the leaderboard. Invite more users!\n\n"
 				}
 
-				for position, leaderboardUser := range leaderboard {
-					guildMember, ok := guildMembers.GuildMembers[int64(leaderboardUser.InviterID)]
-
-					var username string
-					if ok && guildMember.User != nil {
-						username = welcomer.GetUserDisplayName(&discord.User{
-							GlobalName:    guildMember.User.GlobalName,
-							Discriminator: guildMember.User.Discriminator,
-							Username:      guildMember.User.Username,
-						})
-					} else {
-						username = "<@" + leaderboardUser.InviterID.String() + ">"
-					}
-
-					leaderboardWithNumber := fmt.Sprintf("%d. %s – **%d** invite%s\n", position+1, username, leaderboardUser.Uses, welcomer.If(leaderboardUser.Uses == 1, "", "s"))
+				for position, leaderboardUser := range leaderboard[:20] {
+					leaderboardWithNumber := fmt.Sprintf(
+						"%d. %s – **%d** invite%s\n",
+						position+1,
+						"<@"+leaderboardUser.InviterID.String()+">",
+						leaderboardUser.Uses,
+						welcomer.If(leaderboardUser.Uses == 1, "", "s"),
+					)
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(leaderboardWithNumber) > 4000 {
