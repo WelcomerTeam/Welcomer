@@ -41,7 +41,40 @@ func (m *MiscellaneousCog) GetInteractionCommandable() *subway.InteractionComman
 }
 
 func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
-	// TODO: dashboard
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "dashboard",
+		Description: "Get a link to the Welcomer dashboard",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			if interaction.GuildID == nil {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: []*discord.Embed{
+							{
+								Description: fmt.Sprintf("Manage your guild settings and memberships at %s", welcomer.WebsiteGuildURL("")),
+								Color:       welcomer.EmbedColourInfo,
+							},
+						},
+					},
+				}, nil
+			} else {
+				return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: []*discord.Embed{
+								{
+									Description: fmt.Sprintf("Manage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteGuildURL(interaction.GuildID.String())),
+									Color:       welcomer.EmbedColourInfo,
+								},
+							},
+						},
+					}, nil
+				})
+			}
+		},
+	})
 
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "donate",
