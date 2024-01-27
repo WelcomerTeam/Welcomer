@@ -9,6 +9,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -111,6 +112,14 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						Msg("failed to get welcomer dm guild settings")
 
 					return nil, err
+				}
+
+				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
+				}
+
+				if guildSettingsWelcomerDMs.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerDMs.MessageFormat.Status = pgtype.Null
 				}
 
 				// If no modules are enabled, let the user know.
@@ -224,6 +233,14 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
+				}
+
+				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
+				}
+
+				if guildSettingsWelcomerDMs.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerDMs.MessageFormat.Status = pgtype.Null
 				}
 
 				switch module {
@@ -400,6 +417,14 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
+				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
+				}
+
+				if guildSettingsWelcomerDMs.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerDMs.MessageFormat.Status = pgtype.Null
+				}
+
 				switch module {
 				case WelcomerModuleAll:
 					guildSettingsWelcomerText.ToggleEnabled = false
@@ -540,6 +565,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						Msg("failed to get welcomer text guild settings")
 
 					return nil, err
+				}
+
+				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
 				}
 
 				if channel != nil {

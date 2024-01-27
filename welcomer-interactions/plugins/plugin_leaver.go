@@ -9,6 +9,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -160,6 +161,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						Msg("failed to get leaver guild settings")
 				}
 
+				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsLeaver.MessageFormat.Status = pgtype.Null
+				}
+
 				guildSettingsLeaver.ToggleEnabled = true
 
 				_, err = queries.UpdateLeaverGuildSettings(ctx, &database.UpdateLeaverGuildSettingsParams{
@@ -204,6 +209,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
 						Msg("failed to get leaver guild settings")
+				}
+
+				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsLeaver.MessageFormat.Status = pgtype.Null
 				}
 
 				guildSettingsLeaver.ToggleEnabled = false
@@ -259,6 +268,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					return nil, err
+				}
+
+				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
+					guildSettingsLeaver.MessageFormat.Status = pgtype.Null
 				}
 
 				if channel != nil {

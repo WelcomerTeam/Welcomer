@@ -11,6 +11,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -71,6 +72,10 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get TimeRoles guild settings.")
 				}
 
+				if guildSettingsTimeRoles.Timeroles.Status == pgtype.Undefined {
+					guildSettingsTimeRoles.Timeroles.Status = pgtype.Null
+				}
+
 				guildSettingsTimeRoles.ToggleEnabled = true
 
 				_, err = queries.UpdateTimeRolesGuildSettings(ctx, &database.UpdateTimeRolesGuildSettingsParams{
@@ -114,6 +119,10 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
 						Msg("Failed to get TimeRoles guild settings.")
+				}
+
+				if guildSettingsTimeRoles.Timeroles.Status == pgtype.Undefined {
+					guildSettingsTimeRoles.Timeroles.Status = pgtype.Null
 				}
 
 				guildSettingsTimeRoles.ToggleEnabled = false
