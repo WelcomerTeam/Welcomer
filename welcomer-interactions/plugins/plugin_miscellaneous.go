@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -241,7 +242,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					embed.Description += "You are not on the leaderboard. Invite more users!\n\n"
 				}
 
-				for position, leaderboardUser := range leaderboard[:20] {
+				if len(leaderboard) > 20 {
+					leaderboard = leaderboard[:20]
+				}
+
+				for position, leaderboardUser := range leaderboard {
 					leaderboardWithNumber := fmt.Sprintf(
 						"%d. %s – **%d** invite%s\n",
 						position+1,
@@ -260,6 +265,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embeds = append(embeds, embed)
+
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
@@ -270,9 +276,235 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	// TODO: newcreation
-	// TODO: newusers
-	// TODO: oldusers
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "newcreation",
+		Description: "Returns a list of newly created users on discord",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
+					embeds := []*discord.Embed{}
+					embed := &discord.Embed{Title: "Newly Created Users", Color: welcomer.EmbedColourInfo}
+
+					// Chunk users
+					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
+						GuildId: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to chunk guild")
+					}
+
+					guildMembersResp, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
+						GuildID: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to fetch guild members")
+					}
+
+					lastMonth := time.Now().Add(-time.Hour * 24 * 30)
+
+					guildMembers := make([]*sandwich.GuildMember, 0, len(guildMembersResp.GuildMembers))
+					for _, guildMember := range guildMembersResp.GuildMembers {
+						joinedAt, _ := time.Parse(time.RFC3339, guildMember.JoinedAt)
+						if joinedAt.After(lastMonth) {
+							guildMembers = append(guildMembers, guildMember)
+						}
+					}
+
+					sort.Slice(guildMembers, func(i, j int) bool {
+						return discord.Snowflake(guildMembers[i].User.ID).Time().After(discord.Snowflake(guildMembers[j].User.ID).Time())
+					})
+
+					if len(guildMembers) > 20 {
+						guildMembers = guildMembers[:20]
+					}
+
+					if len(guildMembers) == 0 {
+						embed.Description = "There are no newly created users."
+					}
+
+					for position, guildMember := range guildMembers {
+						newCreationWithNumber := fmt.Sprintf(
+							"%d. %s – **<t:%d:R>**\n",
+							position+1,
+							"<@"+strconv.FormatInt(guildMember.User.ID, 10)+">",
+							discord.Snowflake(guildMember.User.ID).Time().Unix(),
+						)
+
+						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
+						if len(embed.Description)+len(newCreationWithNumber) > 4000 {
+							embeds = append(embeds, embed)
+							embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						}
+
+						embed.Description += newCreationWithNumber
+					}
+
+					embeds = append(embeds, embed)
+
+					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+						Embeds: embeds,
+					})
+				}(ctx, sub, interaction)
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
+			})
+		},
+	})
+
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "newmembers",
+		Description: "Returns a list of new members on this guild",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
+					embeds := []*discord.Embed{}
+					embed := &discord.Embed{Title: "Newly Joined Members", Color: welcomer.EmbedColourInfo}
+
+					// Chunk users
+					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
+						GuildId: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to chunk guild")
+					}
+
+					guildMembersResp, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
+						GuildID: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to fetch guild members")
+					}
+
+					guildMembers := make([]*sandwich.GuildMember, 0, len(guildMembersResp.GuildMembers))
+					for _, guildMember := range guildMembersResp.GuildMembers {
+						guildMembers = append(guildMembers, guildMember)
+					}
+
+					sort.Slice(guildMembers, func(i, j int) bool {
+						return guildMembers[i].JoinedAt > guildMembers[j].JoinedAt
+					})
+
+					if len(guildMembers) > 20 {
+						guildMembers = guildMembers[:20]
+					}
+
+					for position, guildMember := range guildMembers {
+						joinedAt, _ := time.Parse(time.RFC3339, guildMember.JoinedAt)
+						newMemberWithNumber := fmt.Sprintf(
+							"%d. %s – **<t:%d:R>**\n",
+							position+1,
+							"<@"+strconv.FormatInt(guildMember.User.ID, 10)+">",
+							joinedAt.Unix(),
+						)
+
+						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
+						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
+							embeds = append(embeds, embed)
+							embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						}
+
+						embed.Description += newMemberWithNumber
+					}
+
+					embeds = append(embeds, embed)
+
+					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+						Embeds: embeds,
+					})
+				}(ctx, sub, interaction)
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
+			})
+		},
+	})
+
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "oldmembers",
+		Description: "Returns a list of the oldest members on this guild",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
+					embeds := []*discord.Embed{}
+					embed := &discord.Embed{Title: "Oldest Members", Color: welcomer.EmbedColourInfo}
+
+					// Chunk users
+					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
+						GuildId: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to chunk guild")
+					}
+
+					guildMembersResp, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
+						GuildID: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to fetch guild members")
+					}
+
+					guildMembers := make([]*sandwich.GuildMember, 0, len(guildMembersResp.GuildMembers))
+					for _, guildMember := range guildMembersResp.GuildMembers {
+						guildMembers = append(guildMembers, guildMember)
+					}
+
+					sort.Slice(guildMembers, func(i, j int) bool {
+						return guildMembers[i].JoinedAt < guildMembers[j].JoinedAt
+					})
+
+					if len(guildMembers) > 20 {
+						guildMembers = guildMembers[:20]
+					}
+
+					for position, guildMember := range guildMembers {
+						joinedAt, _ := time.Parse(time.RFC3339, guildMember.JoinedAt)
+						newMemberWithNumber := fmt.Sprintf(
+							"%d. %s – **<t:%d:R>**\n",
+							position+1,
+							"<@"+strconv.FormatInt(guildMember.User.ID, 10)+">",
+							joinedAt.Unix(),
+						)
+
+						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
+						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
+							embeds = append(embeds, embed)
+							embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						}
+
+						embed.Description += newMemberWithNumber
+					}
+
+					embeds = append(embeds, embed)
+
+					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+						Embeds: embeds,
+					})
+				}(ctx, sub, interaction)
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
+			})
+		},
+	})
 
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "ping",
