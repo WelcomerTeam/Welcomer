@@ -43,6 +43,81 @@ func (m *MiscellaneousCog) GetInteractionCommandable() *subway.InteractionComman
 
 func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "cleanup",
+		Description: "Remove messages from the bot.",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+				if err != nil {
+					return nil, err
+				}
+
+				channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+				messageHistory, err := channel.History(session, nil, nil, nil, nil)
+				if err != nil {
+					return nil, err
+				}
+
+				messagesToDelete := make([]discord.Snowflake, 0, len(messageHistory))
+				for _, message := range messageHistory {
+					// Skip message if it is over 14 days old.
+					if message.ID.Time().Before(time.Now().Add(-time.Hour * 24 * 14)) {
+						continue
+					}
+
+					if message.Author.ID == interaction.ApplicationID {
+						messagesToDelete = append(messagesToDelete, message.ID)
+					}
+				}
+
+				if len(messagesToDelete) == 0 {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				if len(messagesToDelete) == 1 {
+					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+					err = message.Delete(session, nil)
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to delete message")
+
+						return nil, err
+					}
+				} else if len(messagesToDelete) > 1 {
+					err = channel.DeleteMessages(session, messagesToDelete, nil)
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to delete messages")
+
+						return nil, err
+					}
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(
+							fmt.Sprintf(
+								"%d message%s been deleted",
+								len(messagesToDelete),
+								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
+							),
+							welcomer.EmbedColourInfo,
+						),
+					},
+				}, nil
+			})
+		},
+	})
+
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "dashboard",
 		Description: "Get a link to the Welcomer dashboard",
 
@@ -53,7 +128,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Data: &discord.InteractionCallbackData{
 						Embeds: []*discord.Embed{
 							{
-								Description: fmt.Sprintf("Manage your guild settings and memberships at %s", welcomer.WebsiteGuildURL("")),
+								Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at %s", welcomer.WebsiteURL+"/dashboard"),
 								Color:       welcomer.EmbedColourInfo,
 							},
 						},
@@ -66,7 +141,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Data: &discord.InteractionCallbackData{
 							Embeds: []*discord.Embed{
 								{
-									Description: fmt.Sprintf("Manage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteGuildURL(interaction.GuildID.String())),
+									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
 									Color:       welcomer.EmbedColourInfo,
 								},
 							},
@@ -87,7 +162,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []*discord.Embed{
 						{
-							Description: "### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.\nFind out more [**here**](https://beta-dev.welcomer.gg/premium)",
+							Description: fmt.Sprintf("### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.\nFind out more [**here**](%s)", welcomer.WebsiteURL+"/premium"),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},
@@ -544,9 +619,206 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "purge",
+		Description: "Remove messages from a channel, based on criteria.",
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Name:         "user",
+				ArgumentType: subway.ArgumentTypeUser,
+				Description:  "Remove messages from this user",
+			},
+			{
+				Name:         "limit",
+				ArgumentType: subway.ArgumentTypeInt,
+				Description:  "Limit of messages to search for",
+				MaxValue:     welcomer.ToPointer(int32(100)),
+				MinValue:     welcomer.ToPointer(int32(1)),
+			},
+			{
+				Name:         "bot",
+				ArgumentType: subway.ArgumentTypeBool,
+				Description:  "Remove messages from bots",
+			},
+			{
+				Name:         "webhooks",
+				ArgumentType: subway.ArgumentTypeBool,
+				Description:  "Removes messages from webhooks",
+			},
+			{
+				Name:         "newusers",
+				ArgumentType: subway.ArgumentTypeBool,
+				Description:  "Removes messages from new users who have joined in the last week",
+			},
+			{
+				Name:         "timeout",
+				ArgumentType: subway.ArgumentTypeInt,
+				Description:  "When supplied, the user will also be timed out for this number of hours",
+				MinValue:     welcomer.ToPointer(int32(1)),
+			},
+			{
+				Name:         "reason",
+				ArgumentType: subway.ArgumentTypeString,
+				Description:  "Reason for the purge. Included in the audit log",
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				argumentUser := subway.MustGetArgument(ctx, "user").MustUser()
+				argumentLimit := subway.MustGetArgument(ctx, "limit").MustInt()
+				argumentBot := subway.MustGetArgument(ctx, "bot").MustBool()
+				argumentWebhooks := subway.MustGetArgument(ctx, "webhooks").MustBool()
+				argumentNewUsers := subway.MustGetArgument(ctx, "newusers").MustBool()
+				argumentTimeout := subway.MustGetArgument(ctx, "timeout").MustInt()
+				argumentReason := subway.MustGetArgument(ctx, "reason").MustString()
+
+				session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+				if err != nil {
+					return nil, err
+				}
+
+				channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+				var limit *int32
+				if argumentLimit > 0 {
+					limit = welcomer.ToPointer(int32(argumentLimit))
+				}
+
+				messageHistory, err := channel.History(session, nil, nil, nil, limit)
+				if err != nil {
+					return nil, err
+				}
+
+				messagesToDelete := make([]discord.Snowflake, 0, len(messageHistory))
+				usersToTimeout := make(map[discord.Snowflake]bool)
+
+				for _, message := range messageHistory {
+					// Skip message if it is over 14 days old.
+					if message.ID.Time().Before(time.Now().Add(-time.Hour * 24 * 14)) {
+						continue
+					}
+
+					if (argumentNewUsers && message.Author.ID.Time().Before(time.Now().Add(-time.Hour*24*7))) ||
+						(argumentUser != nil && message.Author.ID == argumentUser.ID) ||
+						(argumentBot && message.Author.Bot) ||
+						(argumentWebhooks && message.WebhookID != nil) ||
+						(!argumentNewUsers && argumentUser == nil && !argumentBot && !argumentWebhooks) {
+						messagesToDelete = append(messagesToDelete, message.ID)
+
+						if argumentTimeout > 0 {
+							usersToTimeout[message.Author.ID] = true
+						}
+					}
+				}
+
+				if len(messagesToDelete) == 0 {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("No messages found to delete", welcomer.EmbedColourInfo),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				if len(messagesToDelete) == 1 {
+					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+					err = message.Delete(
+						session,
+						welcomer.ToPointer(fmt.Sprintf(
+							"Purge by %s (%d). Reason: %s",
+							welcomer.GetUserDisplayName(interaction.Member.User),
+							interaction.Member.User.ID,
+							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
+						)),
+					)
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to delete message")
+
+						return nil, err
+					}
+				} else if len(messageHistory) > 1 {
+					err = channel.DeleteMessages(
+						session,
+						messagesToDelete,
+						welcomer.ToPointer(fmt.Sprintf(
+							"Purge by %s (%d). Reason: %s",
+							welcomer.GetUserDisplayName(interaction.Member.User),
+							interaction.Member.User.ID,
+							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
+						)),
+					)
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to delete messages")
+
+						return nil, err
+					}
+				}
+
+				communicationDisabledUntil := welcomer.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)).Format(time.RFC3339))
+
+				for userID := range usersToTimeout {
+					guildMember := discord.GuildMember{GuildID: interaction.GuildID, User: &discord.User{ID: userID}}
+					err = guildMember.Edit(session,
+						discord.GuildMemberParams{
+							CommunicationDisabledUntil: communicationDisabledUntil,
+						},
+						welcomer.ToPointer(fmt.Sprintf(
+							"Timeout from purge by %s (%d). Reason: %s",
+							welcomer.GetUserDisplayName(interaction.Member.User),
+							interaction.Member.User.ID,
+							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
+						)),
+					)
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Int64("user_id", int64(userID)).
+							Msg("Failed to timeout user")
+					}
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(
+							fmt.Sprintf(
+								"%d message%s been deleted",
+								len(messagesToDelete),
+								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
+							),
+							welcomer.EmbedColourInfo,
+						),
+					},
+				}, nil
+			})
+		},
+	})
+
 	// TODO: pog
-	// TODO: purge
-	// TODO: support
+
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "support",
+		Description: "Need help with the bot?",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: []*discord.Embed{
+						{
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.SupportInvite),
+							Color:       welcomer.EmbedColourInfo,
+						},
+					},
+				},
+			}, nil
+		},
+	})
+
 	// TODO: zipemojis
 
 	return nil

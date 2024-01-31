@@ -59,7 +59,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -108,7 +108,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {

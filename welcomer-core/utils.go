@@ -53,16 +53,8 @@ func StringToJsonLiteral(s string) jsoniter.RawMessage {
 	return jsoniter.RawMessage([]byte(`"` + s + `"`))
 }
 
-// IntToInt64Pointer converts an int to a pointer.
-func IntToInt64Pointer(i int) *discord.Int64 {
-	v := discord.Int64(i)
-
-	return &v
-}
-
-// StringToPointer converts a string to a pointer.
-func StringToPointer(s string) *string {
-	return &s
+func ToPointer[K any](k K) *K {
+	return &k
 }
 
 func FormatTextStroke(v bool) int {

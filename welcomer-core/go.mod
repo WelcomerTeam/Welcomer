@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
-	github.com/WelcomerTeam/Discord v0.0.0-20240106162202-947908d7b5d6
+	github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
 	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240124170823-b08168648e21 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240130174129-68f7d7a26629 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davidmytton/url-verifier v1.0.1

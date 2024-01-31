@@ -4,6 +4,14 @@ github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/WelcomerTeam/Discord v0.0.0-20240106162202-947908d7b5d6 h1:BIFkkcG1fIFbWQL1SypDOIFk0YEirp3b7raRtrNtobM=
 github.com/WelcomerTeam/Discord v0.0.0-20240106162202-947908d7b5d6/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240131003210-58daa48acfe2 h1:zqfpDesxEvBC5kKsqk00zzqEhL7rsovkd7mJVTXd5SQ=
+github.com/WelcomerTeam/Discord v0.0.0-20240131003210-58daa48acfe2/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240131004305-24f4362d8753 h1:KLy0wVvRwnSExC183wzX2zm0vE0pP75odRZ5zUTbN7s=
+github.com/WelcomerTeam/Discord v0.0.0-20240131004305-24f4362d8753/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240131005258-778076f66b41 h1:ScmXvKtuneMLNEiSXoemzIFyYu1eHNJ6SswgmNNd514=
+github.com/WelcomerTeam/Discord v0.0.0-20240131005258-778076f66b41/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
+github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54 h1:wbUwYf1YsPCwghsL0eMKlOmhdw9u9/3K3WeE801NOFk=
+github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54/go.mod h1:75ay5tu71GCPIbiRt8ovHO53HEX+TMvvRQ/goBiQv04=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07 h1:v/14vBaVSd4dF84YETlg/RG0WrcnTao+exlbqS0GS9g=
@@ -12,6 +20,8 @@ github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942 h1:3K
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20231218145547-86221c247942/go.mod h1:cY4s0lNOCnhVDD4b5F75q0VGtpGfd93vJ6L1hdlgCcA=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240124170823-b08168648e21 h1:kVKX1P3BD8HcRl0JTl08dq2Pp38YNxbm/mhDLOb3/wc=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240124170823-b08168648e21/go.mod h1:8IGcSJuMKApw/HT1sHJ8P+OKQRl4cYWxmNwN971CEXo=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240130174129-68f7d7a26629 h1:4tLqa3RFAFg7HaO77yOXu/jTmpFCgML7LnRgW0JvP/s=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240130174129-68f7d7a26629/go.mod h1:PjGnsQPlxP8EoeMiDPtrm6gB1aVmxDai6meojSvxuoU=
 github.com/WelcomerTeam/Subway v0.0.0-20240106162927-d5b031031ff7 h1:7ht3g5oTGdR+RR8TWSaaH5AI5W+dgcXFtiW/ERkjSVQ=
 github.com/WelcomerTeam/Subway v0.0.0-20240106162927-d5b031031ff7/go.mod h1:izpHIewi2xjXBbjdkBrTGP0OAtN5/oxPprfFt40HLaQ=
 github.com/armon/go-metrics v0.4.1 h1:hR91U9KYmb6bLBYLQjyM+3j+rcd/UhE+G78SFnF8gJA=
@@ -367,6 +377,8 @@ golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac h1:ZL/Teoy/ZGnzyrqK/Optxxp2pmVh+fmJ97slxSRyzUg=
 google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac/go.mod h1:+Rvu7ElI+aLzyDQhpHMFMMltsD6m7nqpuWDd2CwJw3k=
+google.golang.org/genproto v0.0.0-20240125205218-1f4bbc51befe h1:USL2DhxfgRchafRvt/wYyyQNzwgL7ZiURcozOE/Pkvo=
+google.golang.org/genproto v0.0.0-20240125205218-1f4bbc51befe/go.mod h1:cc8bqMqtv9gMOr0zHg2Vzff5ULhhL2IXP4sbcn32Dro=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac h1:nUQEQmH/csSvFECKYRv6HWEyypysidKl2I6Qpsglq/0=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac/go.mod h1:daQN87bsDqDoe316QbbvX60nMoJQa4r6Ds0ZuoAe5yA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe h1:bQnxqljG/wqi4NTXu2+DJ3n7APcEA882QZ1JvhQAq9o=

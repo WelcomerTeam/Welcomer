@@ -7,9 +7,6 @@ const (
 )
 
 var (
-	WebsiteURL = "https://beta-dev.welcomer.gg"
-
-	WebsiteGuildURL = func(guildID string) string {
-		return WebsiteURL + "/dashboard/" + guildID
-	}
+	SupportInvite = "https://discord.gg/kQJz33ExK2"
+	WebsiteURL    = "https://beta-dev.welcomer.gg"
 )

@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-images
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240106162202-947908d7b5d6
+	github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20231207113131-173f8298d4b3
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/gg v1.3.0
@@ -23,7 +23,7 @@ require (
 
 require (
 	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07 // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240124170823-b08168648e21 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240130174129-68f7d7a26629 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/jackc/pgtype v1.14.1 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/klauspost/compress v1.17.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/leodido/go-urn v1.3.0 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect

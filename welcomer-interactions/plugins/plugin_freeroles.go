@@ -56,7 +56,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -101,7 +101,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.IntToInt64Pointer(discord.PermissionElevated),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -299,7 +299,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			// GuildID may be missing, fill it in.
 			interaction.Member.GuildID = interaction.GuildID
 
-			err = interaction.Member.AddRoles(session, []discord.Snowflake{role.ID}, welcomer.StringToPointer("Assigned with FreeRoles"), false)
+			err = interaction.Member.AddRoles(session,
+				[]discord.Snowflake{role.ID},
+				welcomer.ToPointer("Assigned with FreeRoles"),
+				false,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -414,7 +418,12 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			// GuildID may be missing, fill it in.
 			interaction.Member.GuildID = interaction.GuildID
 
-			err = interaction.Member.RemoveRoles(session, []discord.Snowflake{role.ID}, welcomer.StringToPointer("Unassigned with FreeRoles"), false)
+			err = interaction.Member.RemoveRoles(
+				session,
+				[]discord.Snowflake{role.ID},
+				welcomer.ToPointer("Unassigned with FreeRoles"),
+				false,
+			)
 			if err != nil {
 				return nil, err
 			}
