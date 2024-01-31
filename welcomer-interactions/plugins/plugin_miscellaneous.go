@@ -72,6 +72,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
+				go func() {
+					time.Sleep(time.Second * 15)
+					interaction.DeleteOriginalResponse(sub.EmptySession)
+				}()
+
 				if len(messagesToDelete) == 0 {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -798,7 +803,19 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	// TODO: pog
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "pog",
+		Description: "???",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Content: welcomer.EmojiRock + "📣 pog",
+				},
+			}, nil
+		},
+	})
 
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "support",
