@@ -62,7 +62,9 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 
 			guildBackgrounds, err := backend.Database.GetWelcomerImagesByGuildId(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images backgrounds")
+				backend.Logger.Warn().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer images backgrounds")
 			}
 
 			customIDs := make([]string, len(guildBackgrounds))

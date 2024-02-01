@@ -56,8 +56,8 @@ func JSONBToString(value pgtype.JSONB) string {
 func StringSliceToInt64(value []string) []int64 {
 	r := make([]int64, 0, len(value))
 
-	for _, value_string := range value {
-		v, e := strconv.ParseInt(value_string, int64Base, int64BitSize)
+	for _, valueString := range value {
+		v, e := strconv.ParseInt(valueString, int64Base, int64BitSize)
 		if e == nil {
 			r = append(r, v)
 		}

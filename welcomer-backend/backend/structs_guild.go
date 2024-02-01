@@ -96,25 +96,25 @@ func GuildToMinimal(guild *discord.Guild) *MinimalGuild {
 }
 
 func ChannelsToMinimal(channels []*discord.Channel) []*MinimalChannel {
-	minimalChannels := make([]*MinimalChannel, 0, len(channels))
+	minimalChannels := make([]*MinimalChannel, len(channels))
 
-	for _, channel := range channels {
-		minimalChannels = append(minimalChannels, &MinimalChannel{
+	for i, channel := range channels {
+		minimalChannels[i] = &MinimalChannel{
 			ID:       channel.ID,
 			Type:     channel.Type,
 			Position: channel.Position,
 			Name:     channel.Name,
-		})
+		}
 	}
 
 	return minimalChannels
 }
 
 func RolesToMinimal(roles []*discord.Role) []*MinimalRole {
-	minimalRoles := make([]*MinimalRole, 0, len(roles))
+	minimalRoles := make([]*MinimalRole, len(roles))
 
-	for _, role := range roles {
-		minimalRoles = append(minimalRoles, &MinimalRole{
+	for i, role := range roles {
+		minimalRoles[i] = &MinimalRole{
 			ID:       role.ID,
 			Name:     role.Name,
 			Color:    role.Color,
@@ -123,23 +123,23 @@ func RolesToMinimal(roles []*discord.Role) []*MinimalRole {
 			permissions: role.Permissions,
 			managed:     role.Managed,
 			tags:        role.Tags,
-		})
+		}
 	}
 
 	return minimalRoles
 }
 
 func EmojisToMinimal(emojis []*discord.Emoji) []*MinimalEmoji {
-	minimalEmojis := make([]*MinimalEmoji, 0, len(emojis))
+	minimalEmojis := make([]*MinimalEmoji, len(emojis))
 
-	for _, emoji := range emojis {
-		minimalEmojis = append(minimalEmojis, &MinimalEmoji{
+	for i, emoji := range emojis {
+		minimalEmojis[i] = &MinimalEmoji{
 			ID:        emoji.ID,
 			Name:      emoji.Name,
 			Managed:   emoji.Managed,
 			Animated:  emoji.Animated,
 			Available: emoji.Available,
-		})
+		}
 	}
 
 	return minimalEmojis

@@ -187,42 +187,48 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 
 		// Try get up-to-date user guilds.
 
-		if refresh {
-			guilds, err := backend.GetUserGuilds(session)
-			if err != nil {
-				var statusCode int
-				if errors.Is(err, discord.ErrUnauthorized) {
-					statusCode = http.StatusUnauthorized
-				} else {
-					statusCode = http.StatusInternalServerError
-				}
+		if !refresh {
+			ctx.JSON(http.StatusForbidden, BaseResponse{
+				Ok:    false,
+				Error: ErrWelcomerMissing.Error(),
+				Data:  nil,
+			})
+		}
 
-				ctx.JSON(statusCode, BaseResponse{
-					Ok:    false,
-					Error: err.Error(),
-				})
+		guilds, err := backend.GetUserGuilds(session)
+		if err != nil {
+			var statusCode int
+			if errors.Is(err, discord.ErrUnauthorized) {
+				statusCode = http.StatusUnauthorized
+			} else {
+				statusCode = http.StatusInternalServerError
+			}
+
+			ctx.JSON(statusCode, BaseResponse{
+				Ok:    false,
+				Error: err.Error(),
+			})
+
+			return
+		}
+
+		user.Guilds = guilds
+		user.GuildsLastRequestedAt = time.Now()
+
+		SetUserSession(session, user)
+
+		err = session.Save()
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		}
+
+		for _, guild := range user.Guilds {
+			if guild.ID == guildID {
+				ctx.Set(GuildKey, guild)
+
+				handler(ctx)
 
 				return
-			}
-
-			user.Guilds = guilds
-			user.GuildsLastRequestedAt = time.Now()
-
-			SetUserSession(session, user)
-
-			err = session.Save()
-			if err != nil {
-				backend.Logger.Warn().Err(err).Msg("Failed to save session")
-			}
-
-			for _, guild := range user.Guilds {
-				if guild.ID == guildID {
-					ctx.Set(GuildKey, guild)
-
-					handler(ctx)
-
-					return
-				}
 			}
 		}
 
