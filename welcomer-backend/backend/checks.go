@@ -78,13 +78,13 @@ func CalculateRoleValues(roles []*MinimalRole, guildMembers []*discord.GuildMemb
 		}
 	}
 
-	convertedRoles = make([]*MinimalRole, 0, len(roles))
+	convertedRoles = make([]*MinimalRole, len(roles))
 
-	for _, role := range roles {
+	for i, role := range roles {
 		role.IsAssignable = (!role.managed) && (role.Position < highestRolePosition)
 		role.IsElevated = false // TODO: Check for permissions
 
-		convertedRoles = append(convertedRoles, role)
+		convertedRoles[i] = role
 	}
 
 	return

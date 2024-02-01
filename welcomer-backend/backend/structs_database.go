@@ -66,12 +66,11 @@ func StringSliceToInt64(value []string) []int64 {
 	return r
 }
 
-func Int64SliceToString(value []int64) []string {
-	r := make([]string, 0, len(value))
+func Int64SliceToString(values []int64) []string {
+	r := make([]string, len(values))
 
-	for _, value_int64 := range value {
-		v := welcomer.Itoa(value)
-		r = append(r, v)
+	for i, value := range values {
+		r[i] = welcomer.Itoa(value)
 	}
 
 	return r

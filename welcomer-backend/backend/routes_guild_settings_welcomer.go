@@ -65,10 +65,9 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images backgrounds")
 			}
 
-			customIDs := make([]string, 0, len(guildBackgrounds))
-
-			for _, b := range guildBackgrounds {
-				customIDs = append(customIDs, b.WelcomerImageUuid.String())
+			customIDs := make([]string, len(guildBackgrounds))
+			for i, b := range guildBackgrounds {
+				customIDs[i] = b.WelcomerImageUuid.String()
 			}
 
 			partial := GuildSettingsWelcomerSettingsToPartial(welcomerText, welcomerImages, welcomerDMs, &GuildSettingsWelcomerCustom{

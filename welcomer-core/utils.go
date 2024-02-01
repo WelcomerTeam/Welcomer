@@ -343,10 +343,9 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 }
 
 func FilterAssignableTimeRoles(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
-	roleIDs := make([]int64, 0, len(timeRoles))
-
-	for _, timeRole := range timeRoles {
-		roleIDs = append(roleIDs, int64(timeRole.Role))
+	roleIDs := make([]int64, len(timeRoles))
+	for i, timeRole := range timeRoles {
+		roleIDs[i] = int64(timeRole.Role)
 	}
 
 	assignableRoleIDs, err := FilterAssignableRoles(ctx, sub, interaction, roleIDs)
