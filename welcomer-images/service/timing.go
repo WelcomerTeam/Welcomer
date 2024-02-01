@@ -1,8 +1,9 @@
 package service
 
 import (
-	"strconv"
 	"time"
+
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
 type Timing struct {
@@ -39,7 +40,7 @@ func (st *Timing) String() string {
 	res := ""
 
 	for i, entry := range st.entries {
-		res += entry.Name + ";dur=" + strconv.FormatInt(entry.Value, 10)
+		res += entry.Name + ";dur=" + welcomer.Itoa(entry.Value)
 		if i+1 < len(st.entries) {
 			res += ","
 		}

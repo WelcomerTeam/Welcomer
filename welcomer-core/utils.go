@@ -29,6 +29,10 @@ const (
 	int64BitSize = 64
 )
 
+func Itoa(v int64) string {
+	return strconv.FormatInt(v, int64Base)
+}
+
 var verifier = urlverifier.NewVerifier()
 
 func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {

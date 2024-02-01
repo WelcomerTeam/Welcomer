@@ -1,10 +1,13 @@
 package plugins
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -411,7 +414,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newCreationWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+strconv.FormatInt(guildMember.User.ID, 10)+">",
+							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
 							discord.Snowflake(guildMember.User.ID).Time().Unix(),
 						)
 
@@ -485,7 +488,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newMemberWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+strconv.FormatInt(guildMember.User.ID, 10)+">",
+							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
 							joinedAt.Unix(),
 						)
 
@@ -559,7 +562,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newMemberWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+strconv.FormatInt(guildMember.User.ID, 10)+">",
+							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
 							joinedAt.Unix(),
 						)
 
@@ -836,7 +839,88 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	// TODO: zipemojis
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "zipemojis",
+		Description: "Get all the emojis in the guild as a zip file",
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				go func() {
+					guildEmojis, err := sub.SandwichClient.FetchGuildEmojis(sub.Context, &sandwich.FetchGuildEmojisRequest{
+						GuildID: int64(*interaction.GuildID),
+					})
+					if err != nil {
+						return
+					}
+
+					var buf bytes.Buffer
+					zipWriter := zip.NewWriter(&buf)
+
+					client := http.Client{Timeout: time.Second * 5}
+
+					for _, emoji := range guildEmojis.GuildEmojis {
+						url := discord.EndpointCDN + welcomer.If(
+							emoji.Animated,
+							discord.EndpointEmojiAnimated(welcomer.Itoa(emoji.ID)),
+							discord.EndpointEmoji(welcomer.Itoa(emoji.ID)),
+						)
+						resp, err := client.Get(url)
+						if err != nil {
+							sub.Logger.Warn().Err(err).
+								Int64("emoji_id", emoji.ID).
+								Msg("Failed to get emoji")
+
+							continue
+						}
+
+						if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+							writer, err := zipWriter.Create(
+								fmt.Sprintf(
+									"%s_%d.%s",
+									emoji.Name,
+									emoji.ID,
+									welcomer.If(emoji.Animated, "gif", "png"),
+								),
+							)
+							if err != nil {
+								sub.Logger.Error().Err(err).Msg("Failed to create file in zip")
+
+								continue
+							}
+
+							_, err = io.Copy(writer, resp.Body)
+							if err != nil {
+								sub.Logger.Error().Err(err).Msg("Failed to copy file to zip")
+							}
+						}
+					}
+
+					err = zipWriter.Close()
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to close zip")
+					}
+
+					responseMessage := discord.WebhookMessageParams{
+						Embeds: welcomer.NewEmbed("Here is a list of the guild emojis!", welcomer.EmbedColourInfo),
+					}
+					responseMessage.Files = append(responseMessage.Files, &discord.File{
+						Name:        "emojis.zip",
+						ContentType: "application/zip",
+						Reader:      &buf,
+					})
+
+					_, err = interaction.EditOriginalResponse(sub.EmptySession, responseMessage)
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+					}
+				}()
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				}, nil
+			})
+		},
+	})
 
 	return nil
 }

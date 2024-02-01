@@ -50,7 +50,7 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 			suffix = "th"
 		}
 
-		return strconv.FormatInt(int64(argument), int64Base) + suffix, nil
+		return Itoa(int64(argument)) + suffix, nil
 	}
 
 	return
@@ -131,7 +131,7 @@ func GetUserAvatar(user *discord.User) string {
 	if user.Avatar == "" {
 		if user.Discriminator == "" {
 			// If a user is on the new username system, the index is (user_id >> 22) % 6
-			return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(strconv.FormatInt((int64(user.ID)>>22)%6, int64Base))
+			return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(Itoa((int64(user.ID)>>22)%6))
 		}
 
 		// If a user is on the old username system, the index is discriminator % 5
@@ -140,7 +140,7 @@ func GetUserAvatar(user *discord.User) string {
 			discriminator = 0
 		}
 
-		return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(strconv.FormatInt(discriminator%5, int64Base))
+		return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(Itoa(discriminator%5))
 	}
 
 	if strings.HasPrefix(user.Avatar, "a_") {
@@ -215,5 +215,5 @@ func (s StubTime) String() string {
 }
 
 func (s StubTime) Relative() string {
-	return "<t:" + strconv.FormatInt(time.Time(s).Unix(), int64Base) + ":R>"
+	return "<t:" + Itoa(time.Time(s).Unix()) + ":R>"
 }
