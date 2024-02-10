@@ -6,10 +6,10 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
-	github.com/WelcomerTeam/Sandwich v0.0.0-20231219232704-27bb49720b07
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240210125119-f2724555e9e4
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgconn v1.14.1
-	github.com/jackc/pgtype v1.14.1
+	github.com/jackc/pgtype v1.14.2
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/json-iterator/go v1.1.12
 )
@@ -32,7 +32,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
-	github.com/klauspost/compress v1.17.5 // indirect
+	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -46,14 +46,14 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/rs/zerolog v1.31.0 // indirect
+	github.com/rs/zerolog v1.32.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014 // indirect
 	google.golang.org/grpc v1.61.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 )

@@ -15,7 +15,6 @@ import (
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	images "github.com/WelcomerTeam/Welcomer/welcomer-images/service"
 	"github.com/jackc/pgx/v4"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/savsgio/gotils/strconv"
@@ -87,8 +86,8 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD is triggered.
-	bot.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
+	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
 		if !member.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
@@ -99,7 +98,8 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	bot.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
+	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
+	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
 		if before.Pending && !after.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
@@ -124,7 +124,7 @@ func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event welcomer.OnInvoke
 	h.RegisterEvent(eventName, nil, event)
 }
 
-func (p *WelcomerCog) FetchWelcomerImage(options images.GenerateImageOptionsRaw) (io.ReadCloser, string, error) {
+func (p *WelcomerCog) FetchWelcomerImage(options welcomer.GenerateImageOptionsRaw) (io.ReadCloser, string, error) {
 	optionsJSON, _ := jsoniter.Marshal(options)
 
 	resp, err := p.Client.Post("http://"+os.Getenv("IMAGE_HOST")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
@@ -302,7 +302,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 
 		// Fetch the welcomer image.
-		imageReaderCloser, contentType, err := p.FetchWelcomerImage(images.GenerateImageOptionsRaw{
+		imageReaderCloser, contentType, err := p.FetchWelcomerImage(welcomer.GenerateImageOptionsRaw{
 			GuildID:            int64(eventCtx.Guild.ID),
 			UserID:             int64(event.Member.User.ID),
 			AllowAnimated:      hasWelcomerPro,

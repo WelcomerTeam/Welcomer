@@ -1,7 +1,7 @@
 package backend
 
 import (
-	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -63,10 +63,10 @@ func GuildSettingsWelcomerSettingsToPartial(
 			ColourTextBorder:       images.ColourTextBorder,
 			ColourImageBorder:      images.ColourImageBorder,
 			ColourProfileBorder:    images.ColourProfileBorder,
-			ImageAlignment:         welcomer.ImageAlignment(images.ImageAlignment).String(),
-			ImageTheme:             welcomer.ImageTheme(images.ImageTheme).String(),
+			ImageAlignment:         core.ImageAlignment(images.ImageAlignment).String(),
+			ImageTheme:             core.ImageTheme(images.ImageTheme).String(),
 			ImageMessage:           images.ImageMessage,
-			ImageProfileBorderType: welcomer.ImageProfileBorderType(images.ImageProfileBorderType).String(),
+			ImageProfileBorderType: core.ImageProfileBorderType(images.ImageProfileBorderType).String(),
 		},
 		DMs: &GuildSettingsWelcomerDms{
 			ToggleEnabled:       dms.ToggleEnabled,
@@ -108,20 +108,20 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 		}
 }
 
-func ParseImageAlignment(value string) welcomer.ImageAlignment {
-	imageAlignment, _ := welcomer.ParseImageAlignment(value)
+func ParseImageAlignment(value string) core.ImageAlignment {
+	imageAlignment, _ := core.ParseImageAlignment(value)
 
 	return imageAlignment
 }
 
-func ParseImageTheme(value string) welcomer.ImageTheme {
-	imageTheme, _ := welcomer.ParseImageTheme(value)
+func ParseImageTheme(value string) core.ImageTheme {
+	imageTheme, _ := core.ParseImageTheme(value)
 
 	return imageTheme
 }
 
-func ParseImageProfileBorderType(value string) welcomer.ImageProfileBorderType {
-	imageProfileBorderType, _ := welcomer.ParseImageProfileBorderType(value)
+func ParseImageProfileBorderType(value string) core.ImageProfileBorderType {
+	imageProfileBorderType, _ := core.ParseImageProfileBorderType(value)
 
 	return imageProfileBorderType
 }

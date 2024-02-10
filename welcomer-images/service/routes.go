@@ -14,7 +14,7 @@ import (
 func (is *ImageService) generateHandler(c *gin.Context) {
 	onRequest()
 
-	var requestBody GenerateImageOptionsRaw
+	var requestBody core.GenerateImageOptionsRaw
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -42,7 +42,7 @@ func (is *ImageService) registerRoutes(g *gin.Engine) {
 	g.POST("/generate", is.generateHandler)
 }
 
-func generateImageRequestToOptions(req GenerateImageOptionsRaw) GenerateImageOptions {
+func generateImageRequestToOptions(req core.GenerateImageOptionsRaw) GenerateImageOptions {
 	return GenerateImageOptions{
 		GuildID:            discord.Snowflake(req.GuildID),
 		UserID:             discord.Snowflake(req.UserID),

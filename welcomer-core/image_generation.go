@@ -24,6 +24,27 @@ var (
 	unsplashRegex = regexp.MustCompile(`^[a-zA-Z_-]+$`)
 )
 
+type GenerateImageOptionsRaw struct {
+	GuildID            int64
+	UserID             int64
+	AllowAnimated      bool
+	AvatarURL          string
+	Theme              int32
+	Background         string
+	Text               string
+	TextFont           string
+	TextStroke         bool
+	TextAlign          int32
+	TextColor          int64
+	TextStrokeColor    int64
+	ImageBorderColor   int64
+	ImageBorderWidth   int32
+	ProfileFloat       int32
+	ProfileBorderColor int64
+	ProfileBorderWidth int32
+	ProfileBorderCurve int32
+}
+
 //go:generate go-enum -f=$GOFILE --marshal
 
 // ENUM(left, center, right, topLeft, topCenter, topRight, bottomLeft, bottomCenter, bottomRight)
