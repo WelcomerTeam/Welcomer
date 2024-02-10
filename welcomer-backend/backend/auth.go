@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -78,7 +77,7 @@ func checkToken(ctx context.Context, config *oauth2.Config, token *oauth2.Token)
 
 // Send user to OAuth2 Authorize URL.
 func doOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
-	state := RandStringBytesRmndr(StateStringLength)
+	state := welcomer.RandStringBytesRmndr(StateStringLength)
 
 	SetStateSession(session, state)
 
@@ -141,7 +140,7 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 func requireGuildIDKey(ctx *gin.Context, handler gin.HandlerFunc) {
 	rawGuildID := ctx.Param(GuildIDKey)
 
-	guildIDInt, err := strconv.ParseInt(rawGuildID, int64Base, int64BitSize)
+	guildIDInt, err := welcomer.Atoi(rawGuildID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, BaseResponse{
 			Ok:    false,

@@ -196,9 +196,12 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				// Flatten map into slice
+
+				i := 0
 				emojis := make([]*sandwich.Emoji, len(guildEmojis.GuildEmojis))
-				for i, emoji := range guildEmojis.GuildEmojis {
+				for _, emoji := range guildEmojis.GuildEmojis {
 					emojis[i] = emoji
+					i++
 				}
 
 				// Sort emojis by animated and then by name
@@ -470,9 +473,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Msg("Failed to fetch guild members")
 					}
 
+					i := 0
 					guildMembers := make([]*sandwich.GuildMember, len(guildMembersResp.GuildMembers))
-					for i, guildMember := range guildMembersResp.GuildMembers {
+					for _, guildMember := range guildMembersResp.GuildMembers {
 						guildMembers[i] = guildMember
+						i++
 					}
 
 					sort.Slice(guildMembers, func(i, j int) bool {
@@ -544,9 +549,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Msg("Failed to fetch guild members")
 					}
 
+					i := 0
 					guildMembers := make([]*sandwich.GuildMember, len(guildMembersResp.GuildMembers))
-					for i, guildMember := range guildMembersResp.GuildMembers {
+					for _, guildMember := range guildMembersResp.GuildMembers {
 						guildMembers[i] = guildMember
+						i++
 					}
 
 					sort.Slice(guildMembers, func(i, j int) bool {

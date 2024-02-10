@@ -1,5 +1,7 @@
 package welcomer
 
+import "github.com/WelcomerTeam/Discord/discord"
+
 const (
 	EmojiCheck   = "<:check:1196902761627914402>"
 	EmojiCross   = "<:cross:1196902764048031744>"
@@ -9,6 +11,9 @@ const (
 )
 
 var (
+	EmojiMessageBadge = discord.Emoji{ID: 987044175943970867, Name: "messagebadge"}
+	EmojiShieldAlert  = discord.Emoji{ID: 987044177160331322, Name: "shieldalert"}
+
 	SupportInvite = "https://discord.gg/kQJz33ExK2"
 	WebsiteURL    = "https://beta-dev.welcomer.gg"
 )

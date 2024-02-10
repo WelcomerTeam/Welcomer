@@ -1,8 +1,6 @@
 package backend
 
 import (
-	"strconv"
-
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/jackc/pgtype"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
@@ -22,7 +20,8 @@ func StringPointerToInt64(value *string) int64 {
 		return 0
 	}
 
-	v, _ := strconv.ParseInt(*value, int64Base, int64BitSize)
+	v, _ := welcomer.Atoi(*value)
+
 	return v
 }
 
@@ -57,7 +56,7 @@ func StringSliceToInt64(value []string) []int64 {
 	r := make([]int64, 0, len(value))
 
 	for _, valueString := range value {
-		v, e := strconv.ParseInt(valueString, int64Base, int64BitSize)
+		v, e := welcomer.Atoi(valueString)
 		if e == nil {
 			r = append(r, v)
 		}

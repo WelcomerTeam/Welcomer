@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"image/color"
+	"math/rand"
 	"net"
 	"net/url"
 	"strconv"
@@ -27,10 +28,25 @@ const (
 	hexBase      = 16
 	int64Base    = 10
 	int64BitSize = 64
+
+	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 func Itoa(v int64) string {
 	return strconv.FormatInt(v, int64Base)
+}
+
+func Atoi(s string) (int64, error) {
+	return strconv.ParseInt(s, int64Base, int64BitSize)
+}
+
+func RandStringBytesRmndr(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
+	}
+
+	return string(b)
 }
 
 var verifier = urlverifier.NewVerifier()

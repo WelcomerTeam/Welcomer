@@ -453,6 +453,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Send the direct message if it's not empty.
 	if directMessage != nil && !welcomer.IsMessageParamsEmpty(*directMessage) {
+		directMessage = includeButtons(guild.Name, directMessage)
+
 		_, err = user.Send(eventCtx.Session, *directMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
@@ -463,6 +465,32 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	return nil
+}
+
+func includeButtons(guildName string, messageParams *discord.MessageParams) *discord.MessageParams {
+	messageParams.AddComponent(discord.InteractionComponent{
+		Type: discord.InteractionComponentTypeActionRow,
+
+		Components: []*discord.InteractionComponent{
+			{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStylePrimary,
+				Label:    fmt.Sprintf("Sent by %s", guildName),
+				CustomID: "server",
+				Emoji:    &welcomer.EmojiMessageBadge,
+				Disabled: true,
+			},
+			{
+				Type:  discord.InteractionComponentTypeButton,
+				Style: discord.InteractionComponentStyleLink,
+				Label: "Watch out for scams",
+				URL:   "https://beta-dev.welcomer.gg/phishing",
+				Emoji: &welcomer.EmojiShieldAlert,
+			},
+		},
+	})
+
+	return messageParams
 }
 
 func tryParseColourAsInt64(str string, defaultValue *color.RGBA) int64 {
