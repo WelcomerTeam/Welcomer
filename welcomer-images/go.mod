@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-images
 go 1.21
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54
+	github.com/WelcomerTeam/Discord v0.0.0-20240210213807-c14998fabe2e
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20231207113131-173f8298d4b3
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/gg v1.3.0

@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
-	github.com/WelcomerTeam/Discord v0.0.0-20240131192013-85d1eacf2f54
+	github.com/WelcomerTeam/Discord v0.0.0-20240210213807-c14998fabe2e
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
 	github.com/WelcomerTeam/Sandwich v0.0.0-20240210125119-f2724555e9e4
 	github.com/gofrs/uuid v4.4.0+incompatible
