@@ -41,6 +41,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.MustRegisterCog(plugins.NewTimeRolesCog())
 	sub.MustRegisterCog(plugins.NewTempChannelsCog())
 	sub.MustRegisterCog(plugins.NewMiscellaneousCog())
+	sub.MustRegisterCog(plugins.NewDebugCog())
 
 	sub.OnAfterInteraction = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, resp *discord.InteractionResponse, interactionError error) error {
 		queries := welcomer.GetQueriesFromContext(ctx)
