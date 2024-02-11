@@ -13,10 +13,10 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/rs/zerolog"
 )
 
 var (
@@ -358,20 +358,20 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	return true
 }
 
-func FilterAssignableTimeRoles(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
+func FilterAssignableTimeRoles(ctx context.Context, sandwichClient protobuf.SandwichClient, logger zerolog.Logger, guildID int64, applicationID int64, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
 	roleIDs := make([]int64, len(timeRoles))
 	for i, timeRole := range timeRoles {
 		roleIDs[i] = int64(timeRole.Role)
 	}
 
-	assignableRoleIDs, err := FilterAssignableRoles(ctx, sub, interaction, roleIDs)
+	assignableRoleIDs, err := FilterAssignableRoles(ctx, sandwichClient, logger, guildID, applicationID, roleIDs)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, timeRole := range timeRoles {
 		for _, assignableRoleID := range assignableRoleIDs {
-			if int64(timeRole.Role) == assignableRoleID {
+			if timeRole.Role == assignableRoleID {
 				out = append(out, timeRole)
 
 				break
@@ -382,35 +382,35 @@ func FilterAssignableTimeRoles(ctx context.Context, sub *subway.Subway, interact
 	return out, nil
 }
 
-func FilterAssignableRoles(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, roleIDs []int64) (out []int64, err error) {
-	guildRoles, err := sub.SandwichClient.FetchGuildRoles(ctx, &protobuf.FetchGuildRolesRequest{
-		GuildID: int64(*interaction.GuildID),
+func FilterAssignableRoles(ctx context.Context, sandwichClient protobuf.SandwichClient, logger zerolog.Logger, guildID int64, applicationID int64, roleIDs []int64) (out []discord.Snowflake, err error) {
+	guildRoles, err := sandwichClient.FetchGuildRoles(ctx, &protobuf.FetchGuildRolesRequest{
+		GuildID: int64(guildID),
 	})
 	if err != nil {
-		sub.Logger.Error().Err(err).
-			Int64("guild_id", int64(*interaction.GuildID)).
+		logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
 			Msg("Failed to fetch guild roles.")
 
 		return nil, err
 	}
 
-	guildMember, err := sub.SandwichClient.FetchGuildMembers(ctx, &protobuf.FetchGuildMembersRequest{
-		GuildID: int64(*interaction.GuildID),
-		UserIDs: []int64{int64(interaction.ApplicationID)},
+	guildMember, err := sandwichClient.FetchGuildMembers(ctx, &protobuf.FetchGuildMembersRequest{
+		GuildID: int64(guildID),
+		UserIDs: []int64{int64(applicationID)},
 	})
 	if err != nil {
-		sub.Logger.Error().Err(err).
-			Int64("guild_id", int64(*interaction.GuildID)).
-			Int64("user_id", int64(interaction.ApplicationID)).
+		logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Int64("user_id", int64(applicationID)).
 			Msg("Failed to fetch application guild member.")
 	}
 
 	// Get the guild member of the application.
-	applicationUser, ok := guildMember.GuildMembers[int64(interaction.ApplicationID)]
+	applicationUser, ok := guildMember.GuildMembers[int64(applicationID)]
 	if !ok {
-		sub.Logger.Error().Err(err).
-			Int64("guild_id", int64(*interaction.GuildID)).
-			Int64("user_id", int64(interaction.ApplicationID)).
+		logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Int64("user_id", int64(applicationID)).
 			Msg("Application guild member not present in response.")
 
 		return nil, ErrMissingApplicationUser
@@ -431,7 +431,7 @@ func FilterAssignableRoles(ctx context.Context, sub *subway.Subway, interaction 
 		role, ok := guildRoles.GuildRoles[roleID]
 		if ok {
 			if role.Position < applicationUserTopRolePosition {
-				out = append(out, roleID)
+				out = append(out, discord.Snowflake(roleID))
 			}
 		}
 	}

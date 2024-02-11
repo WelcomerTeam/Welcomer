@@ -163,7 +163,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				embeds := []*discord.Embed{}
 				embed := &discord.Embed{Title: "FreeRoles", Color: welcomer.EmbedColourInfo}
 
-				roleList, err := welcomer.FilterAssignableRoles(ctx, sub, interaction, guildSettingsFreeRoles.Roles)
+				roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -262,7 +262,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRoles(ctx, sub, interaction, guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -274,7 +274,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			// Check if role.ID is in roleList
 			found := false
 			for _, roleID := range roleList {
-				if int64(role.ID) == roleID {
+				if role.ID == roleID {
 					found = true
 
 					break
@@ -381,7 +381,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRoles(ctx, sub, interaction, guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -393,7 +393,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			// Check if role.ID is in roleList
 			found := false
 			for _, roleID := range roleList {
-				if int64(role.ID) == roleID {
+				if role.ID == roleID {
 					found = true
 
 					break

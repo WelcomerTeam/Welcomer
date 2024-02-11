@@ -162,7 +162,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				embeds := []*discord.Embed{}
 				embed := &discord.Embed{Title: "AutoRoles", Color: welcomer.EmbedColourInfo}
 
-				roleList, err := welcomer.FilterAssignableRoles(ctx, sub, interaction, guildSettingsAutoRoles.Roles)
+				roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsAutoRoles.Roles)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

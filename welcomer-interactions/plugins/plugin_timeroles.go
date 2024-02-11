@@ -176,7 +176,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 
-				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub, interaction, timeRoleList)
+				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -300,7 +300,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 
-				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub, interaction, timeRoleList)
+				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
