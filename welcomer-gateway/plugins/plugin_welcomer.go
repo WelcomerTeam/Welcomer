@@ -91,7 +91,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		if !member.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
-				Member:      &member,
+				Member:      member,
 			})
 		}
 
@@ -103,7 +103,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		if before.Pending && !after.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, welcomer.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
-				Member:      &after,
+				Member:      after,
 			})
 		}
 
@@ -255,7 +255,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, *event.Member, *guild)
+	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild)
 
 	var serverMessage *discord.MessageParams
 	var directMessage *discord.MessageParams

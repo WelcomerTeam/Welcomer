@@ -90,7 +90,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeTempChannelsStructure{
 					Interaction: &interaction,
-					Member:      interaction.Member,
+					Member:      *interaction.Member,
 				})
 				if err != nil {
 					return nil, err
@@ -127,7 +127,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeTempChannelsRemoveStructure{
 					Interaction: &interaction,
-					Member:      interaction.Member,
+					Member:      *interaction.Member,
 				})
 				if err != nil {
 					return nil, err

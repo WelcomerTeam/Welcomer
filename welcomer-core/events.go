@@ -16,26 +16,27 @@ type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member Custo
 
 type CustomEventInvokeWelcomerStructure struct {
 	Interaction *discord.Interaction
-	Member      *discord.GuildMember
+	Member      discord.GuildMember
 }
 
-type OnInvokeLeaverFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
+type OnInvokeLeaverFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeLeaverStructure) error
 
 type CustomEventInvokeLeaverStructure struct {
 	Interaction *discord.Interaction
-	Member      *discord.GuildMember
+	User        discord.User
+	GuildID     discord.Snowflake
 }
 
 type OnInvokeTempChannelsFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeTempChannelsStructure) error
 
 type CustomEventInvokeTempChannelsStructure struct {
 	Interaction *discord.Interaction
-	Member      *discord.GuildMember
+	Member      discord.GuildMember
 }
 
 type OnInvokeTempChannelsRemoveFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeTempChannelsRemoveStructure) error
 
 type CustomEventInvokeTempChannelsRemoveStructure struct {
 	Interaction *discord.Interaction
-	Member      *discord.GuildMember
+	Member      discord.GuildMember
 }

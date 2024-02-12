@@ -114,12 +114,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				// GuildID may be missing, fill it in.
-				member.GuildID = interaction.GuildID
-
 				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeLeaverStructure{
 					Interaction: &interaction,
-					Member:      member,
+					User:        *member.User,
+					GuildID:     *interaction.GuildID,
 				})
 				if err != nil {
 					return nil, err

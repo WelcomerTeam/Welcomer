@@ -149,7 +149,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
 					Interaction: &interaction,
-					Member:      member,
+					Member:      *member,
 				})
 				if err != nil {
 					return nil, err
