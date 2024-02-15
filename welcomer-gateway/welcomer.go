@@ -33,13 +33,16 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 }
 
 func (w *Welcomer) Register() error {
-	w.Bot = sandwich.NewBot(w.Logger)
+	bot := sandwich.NewBot(w.Logger)
 
 	// Register cogs
-	w.Bot.MustRegisterCog(plugins.NewWelcomerCog())
-	w.Bot.MustRegisterCog(plugins.NewRulesCog())
-	w.Bot.MustRegisterCog(plugins.NewAutoRolesCog())
-	w.Bot.MustRegisterCog(plugins.NewLeaverCog())
+	bot.MustRegisterCog(plugins.NewWelcomerCog())
+	bot.MustRegisterCog(plugins.NewRulesCog())
+	bot.MustRegisterCog(plugins.NewAutoRolesCog())
+	bot.MustRegisterCog(plugins.NewLeaverCog())
+	bot.MustRegisterCog(plugins.NewTimeRolesCog())
+
+	w.Bot = bot
 
 	return nil
 }
