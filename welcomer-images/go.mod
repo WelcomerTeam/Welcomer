@@ -1,10 +1,12 @@
 module github.com/WelcomerTeam/Welcomer/welcomer-images
 
-go 1.21
+go 1.22
+
+toolchain go1.22.0
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240210213807-c14998fabe2e
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20240212215254-63b3416c5be4
+	github.com/WelcomerTeam/Discord v0.0.0-20240216234329-4788ea09b0da
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20240216082051-4aaa6c6818f0
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/gg v1.3.0
 	github.com/gin-contrib/logger v1.0.0
@@ -25,7 +27,7 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
 	github.com/WelcomerTeam/Sandwich v0.0.0-20240216081413-43d1068b9c51 // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240216080725-6e1500f17e99 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240217002816-eff5f1a34945 // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20240106162927-d5b031031ff7 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -56,20 +58,21 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
+	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/nats-io/nats.go v1.33.0 // indirect
+	github.com/nats-io/nats.go v1.33.1 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nats-io/stan.go v0.10.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_model v0.5.0 // indirect
+	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.47.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
@@ -80,6 +83,7 @@ require (
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+	google.golang.org/genproto v0.0.0-20240205150955-31a09d347014 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
