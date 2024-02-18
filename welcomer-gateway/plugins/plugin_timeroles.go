@@ -61,7 +61,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 	guildSettingsTimeRoles, timeRoles, err := p.FetchGuildInformation(eventCtx, queries, guildID)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !guildSettingsTimeRoles.ToggleEnabled || len(timeRoles) == 0 {
@@ -158,10 +158,10 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	return nil
 }
 
-func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, queries *database.Queries, guildID discord.Snowflake) (*database.GuildSettingsTimeroles, []welcomer.GuildSettingsTimeRolesRole, error) {
+func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, queries *database.Queries, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, assignableTimeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
 	// TODO: Add caching
 
-	guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
+	guildSettingsTimeRoles, err = queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
@@ -175,7 +175,7 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, qu
 		return guildSettingsTimeRoles, nil, nil
 	}
 
-	timeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Logger, int64(guildID), int64(eventCtx.Identifier.ID), timeRoles)
+	assignableTimeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Logger, int64(guildID), int64(eventCtx.Identifier.ID), timeRoles)
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
@@ -184,5 +184,5 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, qu
 		return nil, nil, err
 	}
 
-	return guildSettingsTimeRoles, timeRoles, nil
+	return guildSettingsTimeRoles, assignableTimeRoles, nil
 }

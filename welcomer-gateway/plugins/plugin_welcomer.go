@@ -111,23 +111,15 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
-	RegisterOnInvokeWelcomerEvent(bot.Handlers, p.OnInvokeWelcomerEvent)
+	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeWelcomer, nil, p.OnInvokeWelcomerEvent)
 
 	return nil
-}
-
-// RegisterOnInvokeWelcomerEvent adds a new event handler for the WELCOMER_INVOKE_WELCOMER event.
-// It does not override a handler and instead will add another handler.
-func RegisterOnInvokeWelcomerEvent(h *sandwich.Handlers, event welcomer.OnInvokeWelcomerFuncType) {
-	eventName := welcomer.CustomEventInvokeWelcomer
-
-	h.RegisterEvent(eventName, nil, event)
 }
 
 func (p *WelcomerCog) FetchWelcomerImage(options welcomer.GenerateImageOptionsRaw) (io.ReadCloser, string, error) {
 	optionsJSON, _ := jsoniter.Marshal(options)
 
-	resp, err := p.Client.Post("http://"+os.Getenv("IMAGE_HOST")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
+	resp, err := p.Client.Post(os.Getenv("IMAGE_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
 	if err != nil {
 		return nil, "", fmt.Errorf("fetch welcomer image request failed: %w", err)
 	}

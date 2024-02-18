@@ -76,18 +76,9 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 		})
 	})
 
-	// Call OnInvokeLeaverEvent when CustomEventInvokeLeaver is triggered.
-	RegisterOnInvokeLeaverEvent(bot.Handlers, p.OnInvokeLeaverEvent)
+	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeLeaver, nil, p.OnInvokeLeaverEvent)
 
 	return nil
-}
-
-// RegisterOnInvokeLeaverEvent adds a new event handler for the WELCOMER_INVOKE_WELCOMER event.
-// It does not override a handler and instead will add another handler.
-func RegisterOnInvokeLeaverEvent(h *sandwich.Handlers, event welcomer.OnInvokeLeaverFuncType) {
-	eventName := welcomer.CustomEventInvokeLeaver
-
-	h.RegisterEvent(eventName, nil, event)
 }
 
 // OnInvokeLeaverEvent is called when CustomEventInvokeLeaver is triggered.
