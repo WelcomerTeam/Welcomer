@@ -254,9 +254,11 @@ func usersGuilds(ctx *gin.Context) {
 			mappedGuilds = user.Guilds
 		}
 
+		i := 0
 		guilds := make([]*SessionGuild, len(mappedGuilds))
-		for i, guild := range mappedGuilds {
+		for _, guild := range mappedGuilds {
 			guilds[i] = guild
+			i++
 		}
 
 		ctx.JSON(http.StatusOK, BaseResponse{
