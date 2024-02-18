@@ -5,8 +5,8 @@ go 1.22
 toolchain go1.22.0
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240216234329-4788ea09b0da
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240216081413-43d1068b9c51
+	github.com/WelcomerTeam/Discord v0.0.0-20240218014753-64eb924d61b2
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240218015658-e9336f7e2117
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240217002816-eff5f1a34945
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgx/v4 v4.18.1

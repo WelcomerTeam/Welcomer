@@ -151,6 +151,14 @@ func GetUserAvatar(user *discord.User) string {
 	return discord.EndpointCDN + "/" + discord.EndpointUserAvatar(user.ID.String(), user.Avatar)
 }
 
+func GetGuildMemberDisplayName(member discord.GuildMember) string {
+	if member.Nick != "" {
+		return member.Nick
+	}
+
+	return GetUserDisplayName(member.User)
+}
+
 func GetUserDisplayName(user *discord.User) string {
 	if user.GlobalName != "" {
 		return user.GlobalName
