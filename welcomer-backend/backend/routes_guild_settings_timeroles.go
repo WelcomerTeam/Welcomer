@@ -62,8 +62,7 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 
 // Validates timerole settings
 func doValidateTimeRoles(guildSettings *GuildSettingsTimeRoles) error {
-	// validate timeroles
+	// TODO: validate timeroles
 
 	return nil
 }

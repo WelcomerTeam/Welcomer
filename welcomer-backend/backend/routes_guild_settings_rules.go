@@ -68,8 +68,7 @@ func setGuildSettingsRules(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return

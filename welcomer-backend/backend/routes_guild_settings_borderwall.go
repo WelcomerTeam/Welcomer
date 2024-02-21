@@ -62,8 +62,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 
 // Validates borderwall settings
 func doValidateBorderwall(guildSettings *GuildSettingsBorderwall) error {
-	// validate borderwall
+	// TODO: validate borderwall
 
 	return nil
 }

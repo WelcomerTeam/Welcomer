@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/gofrs/uuid"
+	"github.com/jackc/pgtype"
 )
 
 type Querier interface {
@@ -23,7 +24,6 @@ type Querier interface {
 	CreateNewMembership(ctx context.Context, arg *CreateNewMembershipParams) (*UserMemberships, error)
 	CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg *CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
-	CreateOrUpdateBorderwallRequest(ctx context.Context, arg *CreateOrUpdateBorderwallRequestParams) (*BorderwallRequests, error)
 	CreateOrUpdateFreeRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error)
 	CreateOrUpdateGuild(ctx context.Context, arg *CreateOrUpdateGuildParams) (*Guilds, error)
 	CreateOrUpdateGuildInvites(ctx context.Context, arg *CreateOrUpdateGuildInvitesParams) (*GuildInvites, error)
@@ -57,6 +57,7 @@ type Querier interface {
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error)
 	GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUID) (*BorderwallRequests, error)
 	GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg *GetBorderwallRequestsByGuildIDUserIDParams) ([]*BorderwallRequests, error)
+	GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddress pgtype.Inet) ([]*BorderwallRequests, error)
 	GetCommandError(ctx context.Context, commandUuid uuid.UUID) (*GetCommandErrorRow, error)
 	GetCommandUsage(ctx context.Context, commandUuid uuid.UUID) (*ScienceCommandUsages, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)

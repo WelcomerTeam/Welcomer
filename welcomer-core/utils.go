@@ -30,6 +30,8 @@ const (
 	int64BitSize = 64
 
 	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	UserAgent = "WelcomerService (https://github.com/WelcomerTeam/Welcomer)"
 )
 
 func Itoa(v int64) string {

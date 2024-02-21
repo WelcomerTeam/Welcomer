@@ -62,8 +62,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 
 // Validates leaver settings
 func doValidateLeaver(guildSettings *GuildSettingsLeaver) error {
-	// validate leaver
+	// TODO: validate leaver
 
 	return nil
 }

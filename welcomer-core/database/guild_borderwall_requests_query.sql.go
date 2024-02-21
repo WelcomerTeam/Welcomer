@@ -7,32 +7,26 @@ package database
 
 import (
 	"context"
-	"time"
+	"database/sql"
 
 	"github.com/gofrs/uuid"
+	"github.com/jackc/pgtype"
 )
 
 const CreateBorderwallRequest = `-- name: CreateBorderwallRequest :one
-INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4)
+INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, 0)
 RETURNING
-    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
+    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at, ip_address, recaptcha_score, ipintel_score, ua_family, ua_family_version, ua_os, ua_os_version
 `
 
 type CreateBorderwallRequestParams struct {
-	GuildID    int64     `json:"guild_id"`
-	UserID     int64     `json:"user_id"`
-	IsVerified bool      `json:"is_verified"`
-	VerifiedAt time.Time `json:"verified_at"`
+	GuildID int64 `json:"guild_id"`
+	UserID  int64 `json:"user_id"`
 }
 
 func (q *Queries) CreateBorderwallRequest(ctx context.Context, arg *CreateBorderwallRequestParams) (*BorderwallRequests, error) {
-	row := q.db.QueryRow(ctx, CreateBorderwallRequest,
-		arg.GuildID,
-		arg.UserID,
-		arg.IsVerified,
-		arg.VerifiedAt,
-	)
+	row := q.db.QueryRow(ctx, CreateBorderwallRequest, arg.GuildID, arg.UserID)
 	var i BorderwallRequests
 	err := row.Scan(
 		&i.RequestUuid,
@@ -42,52 +36,20 @@ func (q *Queries) CreateBorderwallRequest(ctx context.Context, arg *CreateBorder
 		&i.UserID,
 		&i.IsVerified,
 		&i.VerifiedAt,
-	)
-	return &i, err
-}
-
-const CreateOrUpdateBorderwallRequest = `-- name: CreateOrUpdateBorderwallRequest :one
-INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4)
-ON CONFLICT(request_uuid) DO UPDATE
-    SET updated_at = EXCLUDED.updated_at,
-        guild_id = EXCLUDED.guild_id,
-        is_verified = EXCLUDED.is_verified,
-        verified_at = EXCLUDED.verified_at
-RETURNING
-    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
-`
-
-type CreateOrUpdateBorderwallRequestParams struct {
-	GuildID    int64     `json:"guild_id"`
-	UserID     int64     `json:"user_id"`
-	IsVerified bool      `json:"is_verified"`
-	VerifiedAt time.Time `json:"verified_at"`
-}
-
-func (q *Queries) CreateOrUpdateBorderwallRequest(ctx context.Context, arg *CreateOrUpdateBorderwallRequestParams) (*BorderwallRequests, error) {
-	row := q.db.QueryRow(ctx, CreateOrUpdateBorderwallRequest,
-		arg.GuildID,
-		arg.UserID,
-		arg.IsVerified,
-		arg.VerifiedAt,
-	)
-	var i BorderwallRequests
-	err := row.Scan(
-		&i.RequestUuid,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.GuildID,
-		&i.UserID,
-		&i.IsVerified,
-		&i.VerifiedAt,
+		&i.IpAddress,
+		&i.RecaptchaScore,
+		&i.IpintelScore,
+		&i.UaFamily,
+		&i.UaFamilyVersion,
+		&i.UaOs,
+		&i.UaOsVersion,
 	)
 	return &i, err
 }
 
 const GetBorderwallRequest = `-- name: GetBorderwallRequest :one
 SELECT
-    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
+    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at, ip_address, recaptcha_score, ipintel_score, ua_family, ua_family_version, ua_os, ua_os_version
 FROM
     borderwall_requests
 WHERE
@@ -105,13 +67,20 @@ func (q *Queries) GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUI
 		&i.UserID,
 		&i.IsVerified,
 		&i.VerifiedAt,
+		&i.IpAddress,
+		&i.RecaptchaScore,
+		&i.IpintelScore,
+		&i.UaFamily,
+		&i.UaFamilyVersion,
+		&i.UaOs,
+		&i.UaOsVersion,
 	)
 	return &i, err
 }
 
 const GetBorderwallRequestsByGuildIDUserID = `-- name: GetBorderwallRequestsByGuildIDUserID :many
 SELECT
-    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at
+    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at, ip_address, recaptcha_score, ipintel_score, ua_family, ua_family_version, ua_os, ua_os_version
 FROM
     borderwall_requests
 WHERE
@@ -141,6 +110,57 @@ func (q *Queries) GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg 
 			&i.UserID,
 			&i.IsVerified,
 			&i.VerifiedAt,
+			&i.IpAddress,
+			&i.RecaptchaScore,
+			&i.IpintelScore,
+			&i.UaFamily,
+			&i.UaFamilyVersion,
+			&i.UaOs,
+			&i.UaOsVersion,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetBorderwallRequestsByIPAddress = `-- name: GetBorderwallRequestsByIPAddress :many
+SELECT
+    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at, ip_address, recaptcha_score, ipintel_score, ua_family, ua_family_version, ua_os, ua_os_version
+FROM
+    borderwall_requests
+WHERE
+    ip_address = $1
+`
+
+func (q *Queries) GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddress pgtype.Inet) ([]*BorderwallRequests, error) {
+	rows, err := q.db.Query(ctx, GetBorderwallRequestsByIPAddress, ipAddress)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*BorderwallRequests{}
+	for rows.Next() {
+		var i BorderwallRequests
+		if err := rows.Scan(
+			&i.RequestUuid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GuildID,
+			&i.UserID,
+			&i.IsVerified,
+			&i.VerifiedAt,
+			&i.IpAddress,
+			&i.RecaptchaScore,
+			&i.IpintelScore,
+			&i.UaFamily,
+			&i.UaFamilyVersion,
+			&i.UaOs,
+			&i.UaOsVersion,
 		); err != nil {
 			return nil, err
 		}
@@ -157,26 +177,44 @@ UPDATE
     borderwall_requests
 SET
     updated_at = now(),
-    guild_id = $2,
-    is_verified = $3,
-    verified_at = $4
+    is_verified = $2,
+    verified_at = $3,
+    ip_address = $4,
+    recaptcha_score = $5,
+    ipintel_score = $6,
+    ua_family = $7,
+    ua_family_version = $8,
+    ua_os = $9,
+    ua_os_version = $10
 WHERE
     request_uuid = $1
 `
 
 type UpdateBorderwallRequestParams struct {
-	RequestUuid uuid.UUID `json:"request_uuid"`
-	GuildID     int64     `json:"guild_id"`
-	IsVerified  bool      `json:"is_verified"`
-	VerifiedAt  time.Time `json:"verified_at"`
+	RequestUuid     uuid.UUID       `json:"request_uuid"`
+	IsVerified      bool            `json:"is_verified"`
+	VerifiedAt      sql.NullTime    `json:"verified_at"`
+	IpAddress       pgtype.Inet     `json:"ip_address"`
+	RecaptchaScore  sql.NullFloat64 `json:"recaptcha_score"`
+	IpintelScore    sql.NullFloat64 `json:"ipintel_score"`
+	UaFamily        sql.NullString  `json:"ua_family"`
+	UaFamilyVersion sql.NullString  `json:"ua_family_version"`
+	UaOs            sql.NullString  `json:"ua_os"`
+	UaOsVersion     sql.NullString  `json:"ua_os_version"`
 }
 
 func (q *Queries) UpdateBorderwallRequest(ctx context.Context, arg *UpdateBorderwallRequestParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateBorderwallRequest,
 		arg.RequestUuid,
-		arg.GuildID,
 		arg.IsVerified,
 		arg.VerifiedAt,
+		arg.IpAddress,
+		arg.RecaptchaScore,
+		arg.IpintelScore,
+		arg.UaFamily,
+		arg.UaFamilyVersion,
+		arg.UaOs,
+		arg.UaOsVersion,
 	)
 	if err != nil {
 		return 0, err

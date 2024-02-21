@@ -62,8 +62,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 
 // Validates autorole settings
 func doValidateAutoRoles(guildSettings *GuildSettingsAutoRoles) error {
-	// validate autoroles
+	// TODO: validate autoroles
 
 	return nil
 }

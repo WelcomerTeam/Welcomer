@@ -117,8 +117,7 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 	newToken, changed, err := checkToken(backend.ctx, OAuth2Config, &token)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok:    false,
-			Error: err.Error(),
+			Ok: false,
 		})
 
 		return

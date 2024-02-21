@@ -41,3 +41,11 @@ var (
 	ErrStringTooLong = errors.New("string is too long")
 	ErrListTooLong   = errors.New("list is too long")
 )
+
+// Borderwall errors.
+var (
+	ErrBorderwallRequestAlreadyVerified = errors.New("borderwall request already verified")
+	ErrBorderwallInvalidKey             = errors.New("invalid key")
+	ErrRecaptchaValidationFailed        = errors.New("reCAPTCHA validation failed")
+	ErrInsecureUser                     = errors.New("failed to verify your request. Please disable any proxy or VPN and try again.")
+)

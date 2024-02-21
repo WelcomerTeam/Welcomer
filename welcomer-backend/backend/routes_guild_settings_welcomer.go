@@ -145,8 +145,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -182,8 +181,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					fileOpen, err := file.Open()
 					if err != nil {
 						ctx.JSON(http.StatusInternalServerError, BaseResponse{
-							Ok:    false,
-							Error: ErrConversionFailed.Error(),
+							Ok: false,
 						})
 
 						return
@@ -196,8 +194,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					_, err = fileBytes.ReadFrom(fileOpen)
 					if err != nil {
 						ctx.JSON(http.StatusInternalServerError, BaseResponse{
-							Ok:    false,
-							Error: ErrConversionFailed.Error(),
+							Ok: false,
 						})
 
 						return
@@ -206,8 +203,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					_, err = fileOpen.Seek(0, 0)
 					if err != nil {
 						ctx.JSON(http.StatusInternalServerError, BaseResponse{
-							Ok:    false,
-							Error: ErrConversionFailed.Error(),
+							Ok: false,
 						})
 
 						return
@@ -247,23 +243,21 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 								Str("mimetype", mimeType).
 								Msg("Failed to upload custom welcomer background")
 
-							var code int
-
 							switch {
 							case errors.Is(err, ErrBackgroundTooLarge),
 								errors.Is(err, ErrFileSizeTooLarge),
 								errors.Is(err, ErrFileNotSupported),
 								errors.Is(err, ErrConversionFailed):
-								code = http.StatusBadRequest
-							default:
-								err = ErrConversionFailed
-								code = http.StatusInternalServerError
-							}
 
-							ctx.JSON(code, BaseResponse{
-								Ok:    false,
-								Error: err.Error(),
-							})
+								ctx.JSON(http.StatusBadRequest, BaseResponse{
+									Ok:    false,
+									Error: err.Error(),
+								})
+							default:
+								ctx.JSON(http.StatusInternalServerError, BaseResponse{
+									Ok: false,
+								})
+							}
 
 							return
 						}

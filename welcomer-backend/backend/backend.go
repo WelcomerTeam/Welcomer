@@ -63,8 +63,7 @@ type Backend struct {
 	DonatorBotSession *discord.Session
 }
 
-// BackendOptions represents any options passable when creating
-// the backend service
+// BackendOptions represents any options passable when creating the backend service.
 type BackendOptions struct {
 	BotToken          string
 	ClientId          string
@@ -223,6 +222,8 @@ func (b *Backend) PrepareGin() *gin.Engine {
 
 	registerSessionRoutes(router)
 	registerUserRoutes(router)
+
+	registerBorderwallRoutes(router)
 
 	registerGuildRoutes(router)
 	registerGuildSettingsRoutes(router)

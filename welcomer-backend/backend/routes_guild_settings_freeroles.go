@@ -62,8 +62,7 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 
 // Validates freerole settings
 func doValidateFreeRoles(guildSettings *GuildSettingsFreeRoles) error {
-	// validate freeroles
+	// TODO: validate freeroles
 
 	return nil
 }

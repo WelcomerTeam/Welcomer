@@ -1,17 +1,6 @@
 -- name: CreateBorderwallRequest :one
-INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4)
-RETURNING
-    *;
-
--- name: CreateOrUpdateBorderwallRequest :one
-INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at)
-    VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4)
-ON CONFLICT(request_uuid) DO UPDATE
-    SET updated_at = EXCLUDED.updated_at,
-        guild_id = EXCLUDED.guild_id,
-        is_verified = EXCLUDED.is_verified,
-        verified_at = EXCLUDED.verified_at
+INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, 0)
 RETURNING
     *;
 
@@ -32,13 +21,27 @@ WHERE
     guild_id = $1
     AND user_id = $2;
 
+-- name: GetBorderwallRequestsByIPAddress :many
+SELECT
+    *
+FROM
+    borderwall_requests
+WHERE
+    ip_address = $1;
+
 -- name: UpdateBorderwallRequest :execrows
 UPDATE
     borderwall_requests
 SET
     updated_at = now(),
-    guild_id = $2,
-    is_verified = $3,
-    verified_at = $4
+    is_verified = $2,
+    verified_at = $3,
+    ip_address = $4,
+    recaptcha_score = $5,
+    ipintel_score = $6,
+    ua_family = $7,
+    ua_family_version = $8,
+    ua_os = $9,
+    ua_os_version = $10
 WHERE
     request_uuid = $1;

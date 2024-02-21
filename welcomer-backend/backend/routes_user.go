@@ -130,9 +130,10 @@ func usersMe(ctx *gin.Context) {
 		if refresh {
 			memberships, err := backend.GetUserMemberships(session)
 			if err != nil {
+				backend.Logger.Error().Err(err).Msg("Failed to get user memberships")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: err.Error(),
+					Ok: false,
 				})
 
 				return
@@ -174,9 +175,10 @@ func usersMeMemberships(ctx *gin.Context) {
 		if refresh {
 			memberships, err = backend.GetUserMemberships(session)
 			if err != nil {
+				backend.Logger.Error().Err(err).Msg("Failed to get user memberships")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: err.Error(),
+					Ok: false,
 				})
 
 				return
@@ -226,17 +228,16 @@ func usersGuilds(ctx *gin.Context) {
 			mappedGuilds, err = backend.GetUserGuilds(session)
 
 			if err != nil {
-				var statusCode int
 				if errors.Is(err, discord.ErrUnauthorized) {
-					statusCode = http.StatusUnauthorized
+					ctx.JSON(http.StatusUnauthorized, BaseResponse{
+						Ok:    false,
+						Error: err.Error(),
+					})
 				} else {
-					statusCode = http.StatusInternalServerError
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
 				}
-
-				ctx.JSON(statusCode, BaseResponse{
-					Ok:    false,
-					Error: err.Error(),
-				})
 
 				return
 			}

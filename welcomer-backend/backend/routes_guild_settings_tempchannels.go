@@ -62,8 +62,7 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 			err = ensureGuild(ctx, guildID)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
+					Ok: false,
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 
 // Validates tempchannel settings
 func doValidateTempChannels(guildSettings *GuildSettingsTempChannels) error {
-	// validate tempchannels
+	// TODO: validate tempchannels
 
 	return nil
 }

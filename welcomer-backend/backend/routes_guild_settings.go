@@ -63,7 +63,6 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok:    false,
-					Error: ErrEnsureFailure.Error(),
 				})
 
 				return
@@ -84,7 +83,7 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 
 // Validates settings
 func doValidateSettings(guildSettings *GuildSettingsSettings) error {
-	// validate settings
+	// TODO: validate settings
 
 	return nil
 }

@@ -13,13 +13,20 @@ import (
 )
 
 type BorderwallRequests struct {
-	RequestUuid uuid.UUID `json:"request_uuid"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	GuildID     int64     `json:"guild_id"`
-	UserID      int64     `json:"user_id"`
-	IsVerified  bool      `json:"is_verified"`
-	VerifiedAt  time.Time `json:"verified_at"`
+	RequestUuid     uuid.UUID       `json:"request_uuid"`
+	CreatedAt       time.Time       `json:"created_at"`
+	UpdatedAt       time.Time       `json:"updated_at"`
+	GuildID         int64           `json:"guild_id"`
+	UserID          int64           `json:"user_id"`
+	IsVerified      bool            `json:"is_verified"`
+	VerifiedAt      sql.NullTime    `json:"verified_at"`
+	IpAddress       pgtype.Inet     `json:"ip_address"`
+	RecaptchaScore  sql.NullFloat64 `json:"recaptcha_score"`
+	IpintelScore    sql.NullFloat64 `json:"ipintel_score"`
+	UaFamily        sql.NullString  `json:"ua_family"`
+	UaFamilyVersion sql.NullString  `json:"ua_family_version"`
+	UaOs            sql.NullString  `json:"ua_os"`
+	UaOsVersion     sql.NullString  `json:"ua_os_version"`
 }
 
 type GuildInvites struct {
