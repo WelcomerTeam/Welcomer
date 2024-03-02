@@ -48,7 +48,7 @@ func (p *LeaverCog) GetEventHandlers() *sandwich.Handlers {
 func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register CustomEventInvokeLeaver event.
-	bot.RegisterEventHandler(welcomer.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var invokeLeaverPayload welcomer.CustomEventInvokeLeaverStructure
 		if err := eventCtx.DecodeContent(payload, &invokeLeaverPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -76,7 +76,8 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 		})
 	})
 
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeLeaver, nil, p.OnInvokeLeaverEvent)
+	// Call OnInvokeLeaverEvent when CustomEventInvokeLeaver is triggered.
+	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeLeaver, nil, (welcomer.OnInvokeLeaverFuncType)(p.OnInvokeLeaverEvent))
 
 	return nil
 }
@@ -151,7 +152,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 	variables := welcomer.GatherVariables(eventCtx, discord.GuildMember{
 		GuildID: &event.GuildID,
 		User:    &event.User,
-	}, *guild)
+	}, *guild, nil)
 
 	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
 	if err != nil {

@@ -44,7 +44,7 @@ func (p *TempChannelsCog) GetEventHandlers() *sandwich.Handlers {
 func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register CustomEventInvokeTempChannels event.
-	bot.RegisterEventHandler(welcomer.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var invokeTempChannelsPayload welcomer.CustomEventInvokeTempChannelsStructure
 		if err := eventCtx.DecodeContent(payload, &invokeTempChannelsPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -67,7 +67,7 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Register CustomEventInvokeTempChannelsRemove event.
-	bot.RegisterEventHandler(welcomer.CustomEventInvokeTempChannelsRemove, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeTempChannelsRemove, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var invokeTempChannelsRemovePayload welcomer.CustomEventInvokeTempChannelsRemoveStructure
 		if err := eventCtx.DecodeContent(payload, &invokeTempChannelsRemovePayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -95,10 +95,10 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Call OnInvokeTempChannelsEvent when CustomEventInvokeTempChannels is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeTempChannels, nil, p.OnInvokeTempChannelsEvent)
+	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeTempChannels, nil, (welcomer.OnInvokeTempChannelsFuncType)(p.OnInvokeTempChannelsEvent))
 
 	// Call OnInvokeTempChannelsRemoveEvent when CustomEventInvokeTempChannelsRemove is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeTempChannelsRemove, nil, p.OnInvokeTempChannelsRemoveEvent)
+	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeTempChannelsRemove, nil, (welcomer.OnInvokeTempChannelsRemoveFuncType)(p.OnInvokeTempChannelsRemoveEvent))
 
 	return nil
 }

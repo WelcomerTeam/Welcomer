@@ -64,7 +64,8 @@ func (p *WelcomerCog) GetEventHandlers() *sandwich.Handlers {
 func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register CustomEventInvokeWelcomer event.
-	bot.RegisterEventHandler(welcomer.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+
 		var invokeWelcomerPayload welcomer.CustomEventInvokeWelcomerStructure
 		if err := eventCtx.DecodeContent(payload, &invokeWelcomerPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -111,7 +112,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeWelcomer, nil, p.OnInvokeWelcomerEvent)
+	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeWelcomer, nil, (welcomer.OnInvokeWelcomerFuncType)(p.OnInvokeWelcomerEvent))
 
 	return nil
 }
@@ -168,7 +169,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.Member.User.ID)).
 			Msg("failed to get welcomer text guild settings")
 
 		return err
@@ -178,7 +178,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.Member.User.ID)).
 			Msg("failed to get welcomer image guild settings")
 
 		return err
@@ -188,7 +187,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.Member.User.ID)).
 			Msg("failed to get welcomer dm guild settings")
 
 		return err
@@ -247,7 +245,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild)
+	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil)
 
 	var serverMessage *discord.MessageParams
 	var directMessage *discord.MessageParams
@@ -430,7 +428,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	// Send the message if it's not empty.
+	// Send server message if it's not empty.
 	if serverMessage != nil && !welcomer.IsMessageParamsEmpty(*serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
@@ -443,9 +441,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	// Send the direct message if it's not empty.
+	// Send direct message if it's not empty.
 	if directMessage != nil && !welcomer.IsMessageParamsEmpty(*directMessage) {
-		directMessage = includeButtons(guild.Name, directMessage)
+		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
+		directMessage = welcomer.IncludeScamsButton(directMessage)
 
 		_, err = user.Send(eventCtx.Session, *directMessage)
 		if err != nil {
@@ -457,32 +456,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	return nil
-}
-
-func includeButtons(guildName string, messageParams *discord.MessageParams) *discord.MessageParams {
-	messageParams.AddComponent(discord.InteractionComponent{
-		Type: discord.InteractionComponentTypeActionRow,
-
-		Components: []*discord.InteractionComponent{
-			{
-				Type:     discord.InteractionComponentTypeButton,
-				Style:    discord.InteractionComponentStylePrimary,
-				Label:    fmt.Sprintf("Sent by %s", guildName),
-				CustomID: "server",
-				Emoji:    &welcomer.EmojiMessageBadge,
-				Disabled: true,
-			},
-			{
-				Type:  discord.InteractionComponentTypeButton,
-				Style: discord.InteractionComponentStyleLink,
-				Label: "Watch out for scams",
-				URL:   "https://beta-dev.welcomer.gg/phishing",
-				Emoji: &welcomer.EmojiShieldAlert,
-			},
-		},
-	})
-
-	return messageParams
 }
 
 func tryParseColourAsInt64(str string, defaultValue *color.RGBA) int64 {

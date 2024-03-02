@@ -42,6 +42,7 @@ func (w *Welcomer) Register() error {
 	bot.MustRegisterCog(plugins.NewLeaverCog())
 	bot.MustRegisterCog(plugins.NewTimeRolesCog())
 	bot.MustRegisterCog(plugins.NewTempChannelsCog())
+	bot.MustRegisterCog(plugins.NewBorderwallCog())
 
 	w.Bot = bot
 
