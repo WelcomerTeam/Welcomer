@@ -94,6 +94,8 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 
 	user, ok := GetUserSession(session)
 	if !ok {
+		backend.Logger.Warn().Msg("Failed to get user session")
+
 		ctx.JSON(http.StatusUnauthorized, BaseResponse{
 			Ok:    false,
 			Error: ErrMissingUser.Error(),
@@ -106,6 +108,8 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 
 	token, ok := GetTokenSession(session)
 	if !ok {
+		backend.Logger.Warn().Msg("Failed to get token session")
+
 		ctx.JSON(http.StatusUnauthorized, BaseResponse{
 			Ok:    false,
 			Error: ErrMissingToken.Error(),
@@ -116,8 +120,16 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 
 	newToken, changed, err := checkToken(backend.ctx, OAuth2Config, &token)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok: false,
+		ClearTokenSession(session)
+
+		err = session.Save()
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		}
+
+		ctx.JSON(http.StatusUnauthorized, BaseResponse{
+			Ok:    false,
+			Error: ErrOAuthFailure.Error(),
 		})
 
 		return
@@ -165,6 +177,8 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 
 		user, ok := GetUserSession(session)
 		if !ok {
+			backend.Logger.Warn().Msg("Failed to get user session")
+
 			ctx.JSON(http.StatusUnauthorized, BaseResponse{
 				Ok:    false,
 				Error: ErrMissingUser.Error(),
@@ -245,6 +259,8 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 
 		user, ok := GetUserSession(session)
 		if !ok {
+			backend.Logger.Warn().Msg("Failed to get user session")
+
 			ctx.JSON(http.StatusUnauthorized, BaseResponse{
 				Ok:    false,
 				Error: ErrMissingUser.Error(),
@@ -256,6 +272,11 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 		guildID := tryGetGuildID(ctx)
 
 		if !userHasElevation(guildID, user) {
+			backend.Logger.Warn().
+				Int64("user_id", int64(user.ID)).
+				Int64("guild_id", int64(guildID)).
+				Msg("User does not have elevation")
+
 			ctx.JSON(http.StatusUnauthorized, BaseResponse{
 				Ok:    false,
 				Error: ErrMissingUser.Error(),

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -30,9 +31,9 @@ const (
 	PermissionsDefault = 0o744
 	PermissionWrite    = 0o600
 
-	RequestSizeLimit = 100000000
+	RequestSizeLimit = 20_000_000
 
-	MaxAge = time.Hour * 24 * 7
+	MaxAge = time.Hour * 24 * 7 * 4 // 4 weeks
 )
 
 var backend *Backend
@@ -139,9 +140,9 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	}
 
 	store.Options(sessions.Options{
-		Path:     "",
-		Domain:   "",
-		MaxAge:   int(MaxAge),
+		Path:     "/",
+		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		MaxAge:   int(MaxAge.Seconds()),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
@@ -213,7 +214,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	router.Use(logger.SetLogger())
 	router.Use(b.PrometheusHandler.HandlerFunc())
 	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))
-	router.Use(sessions.Sessions("session", b.Store))
+	router.Use(sessions.Sessions(os.Getenv("BACKEND_SESSION_COOKIE_NAME"), b.Store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	router.Use(gin.Recovery())

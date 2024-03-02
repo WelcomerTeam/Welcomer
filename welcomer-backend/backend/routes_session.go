@@ -47,6 +47,8 @@ func callback(ctx *gin.Context) {
 
 	token, err := OAuth2Config.Exchange(backend.ctx, queryCode)
 	if err != nil {
+		backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
+
 		doOAuthAuthorize(session, ctx)
 
 		return

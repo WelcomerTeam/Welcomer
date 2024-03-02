@@ -13,6 +13,8 @@ var (
 	ErrMissingParameter = errors.New("missing parameter \"%s\" in request")
 	ErrWelcomerMissing  = errors.New("bot is missing from server")
 	ErrEnsureFailure    = errors.New("failed to ensure guild")
+
+	ErrOAuthFailure = errors.New("issue checking oauth2 token")
 )
 
 // HTTP errors.
