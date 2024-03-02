@@ -302,7 +302,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			err = interaction.Member.AddRoles(session,
 				[]discord.Snowflake{role.ID},
 				welcomer.ToPointer("Assigned with FreeRoles"),
-				false,
+				true,
 			)
 			if err != nil {
 				return nil, err
