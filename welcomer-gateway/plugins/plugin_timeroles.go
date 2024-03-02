@@ -138,12 +138,28 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		Msg("Assigning time roles for members")
 
 	for memberID, roles := range allRolesToAssign {
-		member := discord.GuildMember{
-			User: &discord.User{
-				ID: discord.Snowflake(memberID),
-			},
-			GuildID: &guildID,
+		var member *discord.GuildMember
+
+		memberPb, ok := guildMembers.GuildMembers[int64(memberID)]
+		if ok {
+			member, err = pb.GRPCToGuildMember(memberPb)
+			if err != nil {
+				return err
+			}
+		} else {
+			eventCtx.Logger.Warn().
+				Int64("guild_id", int64(guildID)).
+				Int64("user_id", int64(memberID)).
+				Msg("failed to get member from state cache, falling back to default member")
+
+			member = &discord.GuildMember{
+				User: &discord.User{
+					ID: discord.Snowflake(memberID),
+				},
+			}
 		}
+
+		member.GuildID = &guildID
 
 		err = member.AddRoles(eventCtx.Session, roles, welcomer.ToPointer("Automatically assigned with TimeRoles"), true)
 		if err != nil {
