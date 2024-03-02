@@ -6,10 +6,13 @@ import (
 )
 
 const (
-	CustomEventInvokeWelcomer             = "WELCOMER_INVOKE_WELCOMER"
-	CustomEventInvokeLeaver               = "WELCOMER_INVOKE_LEAVER"
-	CustomEventInvokeTempChannels         = "WELCOMER_INVOKE_TEMPCHANNELS"
-	CustomEventInvokeTempChannelsRemove   = "WELCOMER_INVOKE_TEMPCHANNELS_REMOVE"
+	CustomEventInvokeWelcomer = "WELCOMER_INVOKE_WELCOMER"
+	CustomEventInvokeLeaver   = "WELCOMER_INVOKE_LEAVER"
+
+	CustomEventInvokeTempChannels       = "WELCOMER_INVOKE_TEMPCHANNELS"
+	CustomEventInvokeTempChannelsRemove = "WELCOMER_INVOKE_TEMPCHANNELS_REMOVE"
+
+	CustomEventInvokeBorderwall           = "WELCOMER_INVOKE_BORDERWALL"
 	CustomEventInvokeBorderwallCompletion = "WELCOMER_INVOKE_BORDERWALL_COMPLETION"
 )
 
@@ -45,5 +48,11 @@ type CustomEventInvokeTempChannelsRemoveStructure struct {
 type OnInvokeBorderwallCompletionFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeBorderwallCompletionStructure) error
 
 type CustomEventInvokeBorderwallCompletionStructure struct {
-	UserId discord.Snowflake
+	Member discord.GuildMember
+}
+
+type OnInvokeBorderwallFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeBorderwallStructure) error
+
+type CustomEventInvokeBorderwallStructure struct {
+	Member discord.GuildMember
 }

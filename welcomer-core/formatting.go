@@ -56,7 +56,7 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 	return
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild) (vars map[string]interface{}) {
+func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, extraValues map[string]interface{}) (vars map[string]interface{}) {
 	vars = make(map[string]interface{})
 
 	vars["User"] = StubUser{
@@ -82,7 +82,13 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 		Banner:  getGuildBanner(guild),
 	}
 
-	return
+	if extraValues != nil {
+		for key, value := range extraValues {
+			vars[key] = value
+		}
+	}
+
+	return vars
 }
 
 func FormatString(funcs map[string]govaluate.ExpressionFunction, vars map[string]interface{}, message string) (string, error) {

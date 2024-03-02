@@ -1,6 +1,6 @@
 -- name: CreateBorderwallRequest :one
 INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified)
-    VALUES (uuid_generate_v7(), now(), now(), $1, $2, 0)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, FALSE)
 RETURNING
     *;
 

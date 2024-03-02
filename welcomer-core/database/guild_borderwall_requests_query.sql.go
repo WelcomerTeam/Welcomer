@@ -15,7 +15,7 @@ import (
 
 const CreateBorderwallRequest = `-- name: CreateBorderwallRequest :one
 INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified)
-    VALUES (uuid_generate_v7(), now(), now(), $1, $2, 0)
+    VALUES (uuid_generate_v7(), now(), now(), $1, $2, FALSE)
 RETURNING
     request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at, ip_address, recaptcha_score, ipintel_score, ua_family, ua_family_version, ua_os, ua_os_version
 `

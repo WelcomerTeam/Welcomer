@@ -142,7 +142,7 @@ func setBorderwall(ctx *gin.Context) {
 
 		user, ok := GetUserSession(session)
 		if !ok {
-			logger.Warn().Msg("Missing user in session")
+			backend.Logger.Warn().Msg("Failed to get user session")
 
 			ctx.JSON(http.StatusUnauthorized, BaseResponse{
 				Ok:    false,
@@ -153,7 +153,10 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if borderwallRequest.UserID != int64(user.ID) {
-			logger.Warn().Int64("userID", int64(user.ID)).Int64("borderwallRequestUserID", borderwallRequest.UserID).Msg("User ID does not match")
+			backend.Logger.Warn().
+				Int64("userID", int64(user.ID)).
+				Int64("borderwallRequestUserID", borderwallRequest.UserID).
+				Msg("User ID does not match")
 
 			ctx.JSON(http.StatusForbidden, BaseResponse{
 				Ok: false,
@@ -225,7 +228,16 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		data, err := jsoniter.Marshal(welcomer.CustomEventInvokeBorderwallCompletionStructure{
-			UserId: discord.Snowflake(borderwallRequest.UserID),
+			Member: discord.GuildMember{
+				User: &discord.User{
+					ID:            user.ID,
+					Username:      user.Username,
+					Discriminator: user.Discriminator,
+					GlobalName:    user.GlobalName,
+					Avatar:        user.Avatar,
+				},
+				GuildID: welcomer.ToPointer(discord.Snowflake(borderwallRequest.GuildID)),
+			},
 		})
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to marshal borderwall completion data")
