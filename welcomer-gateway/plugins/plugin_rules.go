@@ -55,7 +55,7 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("failed to get rule settings")
+			Msg("Failed to get rule settings")
 
 		return err
 	}
@@ -89,7 +89,7 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(member.User.ID)).
-			Msg("failed to send rules to user")
+			Msg("Failed to send rules to user")
 
 		return err
 	}

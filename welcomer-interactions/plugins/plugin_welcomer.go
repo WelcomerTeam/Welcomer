@@ -91,7 +91,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer text guild settings")
+						Msg("Failed to get welcomer text guild settings")
 
 					return nil, err
 				}
@@ -100,7 +100,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer image guild settings")
+						Msg("Failed to get welcomer image guild settings")
 
 					return nil, err
 				}
@@ -109,7 +109,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer dm guild settings")
+						Msg("Failed to get welcomer dm guild settings")
 
 					return nil, err
 				}
@@ -206,7 +206,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer text guild settings")
+						Msg("Failed to get welcomer text guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -217,7 +217,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer DMs guild settings")
+						Msg("Failed to get welcomer DMs guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -228,7 +228,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer images guild settings")
+						Msg("Failed to get welcomer images guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -388,7 +388,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer text guild settings")
+						Msg("Failed to get welcomer text guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -399,7 +399,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer DMs guild settings")
+						Msg("Failed to get welcomer DMs guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -410,7 +410,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer images guild settings")
+						Msg("Failed to get welcomer images guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -562,7 +562,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get welcomer text guild settings")
+						Msg("Failed to get welcomer text guild settings")
 
 					return nil, err
 				}

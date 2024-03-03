@@ -155,7 +155,7 @@ func (p *TempChannelsCog) FindChannelForUser(eventCtx *sandwich.EventContext, gu
 		eventCtx.Logger.Error().Err(err).
 			Str("guild_id", guildID.String()).
 			Str("user_id", member.User.ID.String()).
-			Msg("failed to fetch guild channels")
+			Msg("Failed to fetch guild channels")
 	}
 
 	for _, guildChannel := range channels.GuildChannels {
@@ -165,7 +165,7 @@ func (p *TempChannelsCog) FindChannelForUser(eventCtx *sandwich.EventContext, gu
 				eventCtx.Logger.Error().Err(err).
 					Str("guild_id", guildID.String()).
 					Int64("channel_id", guildChannel.ID).
-					Msg("failed to convert channel")
+					Msg("Failed to convert channel")
 			}
 
 			return channel, nil
@@ -195,7 +195,7 @@ func (p *TempChannelsCog) CreateChannelAndMove(eventCtx *sandwich.EventContext, 
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
-				Msg("failed to create channel")
+				Msg("Failed to create channel for tempchannels")
 
 			return err
 		}
@@ -207,7 +207,7 @@ func (p *TempChannelsCog) CreateChannelAndMove(eventCtx *sandwich.EventContext, 
 			Str("guild_id", guildID.String()).
 			Str("member_id", member.User.ID.String()).
 			Str("channel_id", channel.ID.String()).
-			Msg("failed to move member to channel")
+			Msg("Failed to move member to channel for tempchannels")
 
 		return err
 	}
@@ -226,7 +226,7 @@ func (p *TempChannelsCog) DeleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 		eventCtx.Logger.Error().Err(err).
 			Str("guild_id", guildID.String()).
 			Str("channel_id", channelID.String()).
-			Msg("failed to fetch channel")
+			Msg("Failed to fetch channel for tempchannels")
 
 		return false, err
 	}
@@ -237,7 +237,7 @@ func (p *TempChannelsCog) DeleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
 				Str("channel_id", channelID.String()).
-				Msg("failed to delete channel")
+				Msg("Failed to delete channel for tempchannels")
 
 			return false, err
 		}
@@ -282,7 +282,7 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", payload.Member.GuildID.String()).
 				Str("channel_id", channel.ID.String()).
-				Msg("failed to delete channel")
+				Msg("Failed to delete channel for tempchannels")
 		}
 	}
 
@@ -294,7 +294,7 @@ func (p *TempChannelsCog) FetchGuildInformation(eventCtx *sandwich.EventContext,
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("failed to get temp channel settings")
+			Msg("Failed to get temp channel settings")
 
 		return nil, err
 	}

@@ -89,7 +89,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get leaver guild settings")
+						Msg("Failed to get leaver guild settings")
 				}
 
 				// If no modules are enabled, let the user know.
@@ -156,7 +156,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get leaver guild settings")
+						Msg("Failed to get leaver guild settings")
 				}
 
 				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
@@ -206,7 +206,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get leaver guild settings")
+						Msg("Failed to get leaver guild settings")
 				}
 
 				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {

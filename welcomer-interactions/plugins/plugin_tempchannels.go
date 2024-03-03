@@ -72,7 +72,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get tempchannels guild settings")
+						Msg("Failed to get tempchannels guild settings")
 				}
 
 				if !guildSettingsTempChannels.ToggleEnabled || guildSettingsTempChannels.ChannelCategory == 0 {
@@ -182,7 +182,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get tempchannels guild settings")
+						Msg("Failed to get tempchannels guild settings")
 				}
 
 				switch module {
@@ -273,7 +273,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get tempchannels guild settings")
+						Msg("Failed to get tempchannels guild settings")
 				}
 
 				switch module {
@@ -359,7 +359,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get tempchannels guild settings")
+						Msg("Failed to get tempchannels guild settings")
 				}
 
 				guildSettingsTempChannels.ChannelCategory = int64(channel.ID)
@@ -418,7 +418,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("failed to get tempchannels guild settings")
+						Msg("Failed to get tempchannels guild settings")
 				}
 
 				if channel != nil {

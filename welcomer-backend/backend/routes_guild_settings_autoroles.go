@@ -71,6 +71,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 			autoroles := PartialToGuildSettingsAutoRolesSettings(int64(guildID), partial)
 
 			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(*autoroles)
+
 			_, err = backend.Database.CreateOrUpdateAutoRolesGuildSettings(ctx, &databaseAutoRolesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")

@@ -169,7 +169,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("failed to get welcomer text guild settings")
+			Msg("Failed to get welcomer text guild settings")
 
 		return err
 	}
@@ -178,7 +178,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("failed to get welcomer image guild settings")
+			Msg("Failed to get welcomer image guild settings")
 
 		return err
 	}
@@ -187,7 +187,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("failed to get welcomer dm guild settings")
+			Msg("Failed to get welcomer dm guild settings")
 
 		return err
 	}
@@ -220,7 +220,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			eventCtx.Logger.Warn().
 				Int64("user_id", int64(event.Member.User.ID)).
-				Msg("failed to get user from state cache, falling back to event.Member.User")
+				Msg("Failed to get user from state cache, falling back to event.Member.User")
 			user = event.Member.User
 		}
 	} else {
@@ -316,7 +316,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
-				Msg("failed to get welcomer image")
+				Msg("Failed to get welcomer image")
 		}
 
 		if imageReaderCloser != nil {
@@ -356,7 +356,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					eventCtx.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Msg("Failed to unmarshal messageFormat")
+						Msg("Failed to unmarshal welcomer messageFormat")
 
 					return err
 				}
@@ -397,7 +397,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					eventCtx.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Msg("Failed to unmarshal messageFormat")
+						Msg("Failed to unmarshal welcomer messageFormat")
 
 					return err
 				}
@@ -420,7 +420,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					eventCtx.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Msg("Failed to unmarshal messageFormat")
+						Msg("Failed to unmarshal welcomer dms messageFormat")
 
 					return err
 				}
@@ -437,12 +437,12 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsWelcomerText.Channel).
-				Msg("Failed to send message to channel")
+				Msg("Failed to send welcomer message to channel")
 		}
 	}
 
 	// Send direct message if it's not empty.
-	if directMessage != nil && !welcomer.IsMessageParamsEmpty(*directMessage) {
+	if directMessage != nil {
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 

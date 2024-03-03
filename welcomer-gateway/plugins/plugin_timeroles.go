@@ -75,7 +75,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("failed to request guild chunk")
+			Msg("Failed to request guild chunk")
 	}
 
 	guildMembers, err := eventCtx.Sandwich.SandwichClient.FetchGuildMembers(eventCtx.Context, &pb.FetchGuildMembersRequest{
@@ -85,7 +85,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("failed to fetch guild members")
+			Msg("Failed to fetch guild members")
 	}
 
 	allRolesToAssign := make(map[discord.Snowflake][]discord.Snowflake)
@@ -98,7 +98,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("joined_at", guildMember.JoinedAt).
-				Msg("failed to parse joined_at time for user")
+				Msg("Failed to parse joined_at time for user")
 
 			continue
 		}
@@ -150,7 +150,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 			eventCtx.Logger.Warn().
 				Int64("guild_id", int64(guildID)).
 				Int64("user_id", int64(memberID)).
-				Msg("failed to get member from state cache, falling back to default member")
+				Msg("Failed to get member from state cache, falling back to default member")
 
 			member = &discord.GuildMember{
 				User: &discord.User{
@@ -167,7 +167,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 				Int64("guild_id", int64(guildID)).
 				Int64("member_id", int64(memberID)).
 				Interface("roles", roles).
-				Msg("failed to add roles to member")
+				Msg("Failed to add roles to member for timeroles")
 		}
 	}
 
@@ -181,7 +181,7 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, qu
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("failed to get time role settings")
+			Msg("Failed to get time role settings")
 
 		return nil, nil, err
 	}
@@ -195,7 +195,7 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, qu
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("failed to filter assignable time roles")
+			Msg("Failed to filter assignable timeroles")
 
 		return nil, nil, err
 	}

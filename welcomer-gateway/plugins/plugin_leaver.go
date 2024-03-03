@@ -120,7 +120,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
-			Msg("failed to get welcomer text guild settings")
+			Msg("Failed to get leaver guild settings")
 
 		return err
 	}
@@ -172,7 +172,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
-			Msg("Failed to unmarshal messageFormat")
+			Msg("Failed to unmarshal leaver messageFormat")
 
 		return err
 	}
@@ -186,7 +186,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsLeaver.Channel).
-				Msg("Failed to send message to channel")
+				Msg("Failed to send leaver message to channel")
 		}
 	}
 

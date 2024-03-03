@@ -53,7 +53,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("failed to get auto role settings")
+			Msg("Failed to get autorole settings")
 
 		return err
 	}
@@ -67,7 +67,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).
-			Msg("failed to filter assignable roles")
+			Msg("Failed to filter assignable roles for autoroles")
 
 		return err
 	}
@@ -75,7 +75,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 	if len(assignableRoles) == 0 {
 		eventCtx.Logger.Warn().
 			Int64("guild_id", int64(*member.GuildID)).
-			Msg("no roles to assign")
+			Msg("No roles to assign for autoroles")
 
 		return nil
 	}
@@ -85,7 +85,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).
 			Int64("member_id", int64(member.User.ID)).
-			Msg("failed to add roles to member")
+			Msg("Failed to add roles to member for autoroles")
 
 		return err
 	}
