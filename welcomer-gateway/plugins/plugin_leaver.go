@@ -125,8 +125,8 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 		return err
 	}
 
-	// Quit if nothing is enabled.
-	if !guildSettingsLeaver.ToggleEnabled && guildSettingsLeaver.Channel != 0 && !welcomer.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
+	// Quit if leaver is not enabled or configured.
+	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 || welcomer.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
 		return nil
 	}
 
