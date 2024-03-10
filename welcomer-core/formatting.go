@@ -179,21 +179,17 @@ func GetUserDisplayName(user *discord.User) string {
 
 // StubUser represents a user on discord.
 type StubUser struct {
-	ID   discord.Snowflake `json:"id"`
-	Name string            `json:"name"`
-
-	Username      string `json:"username"`
-	Discriminator string `json:"discriminator"`
-	GlobalName    string `json:"global_name"`
-
-	Mention string `json:"mention"`
-
-	CreatedAt StubTime `json:"created_at"`
-	JoinedAt  StubTime `json:"joined_at"`
-
-	Avatar  string `json:"avatar"`
-	Bot     bool   `json:"bot"`
-	Pending bool   `json:"pending"`
+	CreatedAt     StubTime          `json:"created_at"`
+	JoinedAt      StubTime          `json:"joined_at"`
+	Name          string            `json:"name"`
+	Username      string            `json:"username"`
+	Discriminator string            `json:"discriminator"`
+	GlobalName    string            `json:"global_name"`
+	Mention       string            `json:"mention"`
+	Avatar        string            `json:"avatar"`
+	ID            discord.Snowflake `json:"id"`
+	Bot           bool              `json:"bot"`
+	Pending       bool              `json:"pending"`
 }
 
 func (s StubUser) String() string {
@@ -210,12 +206,12 @@ func (s StubUser) String() string {
 
 // Guild represents a guild on discord.
 type StubGuild struct {
-	ID      discord.Snowflake `json:"id"`
 	Name    string            `json:"name"`
 	Icon    string            `json:"icon"`
 	Splash  string            `json:"splash"`
-	Members int32             `json:"members"`
 	Banner  string            `json:"banner"`
+	ID      discord.Snowflake `json:"id"`
+	Members int32             `json:"members"`
 }
 
 func (s StubGuild) String() string {

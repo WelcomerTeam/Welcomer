@@ -25,24 +25,24 @@ var (
 )
 
 type GenerateImageOptionsRaw struct {
-	GuildID            int64
-	UserID             int64
-	AllowAnimated      bool
 	AvatarURL          string
-	Theme              int32
 	Background         string
 	Text               string
 	TextFont           string
-	TextStroke         bool
-	TextAlign          int32
 	TextColor          int64
-	TextStrokeColor    int64
+	UserID             int64
+	ProfileBorderColor int64
+	GuildID            int64
 	ImageBorderColor   int64
+	TextStrokeColor    int64
+	Theme              int32
+	TextAlign          int32
 	ImageBorderWidth   int32
 	ProfileFloat       int32
-	ProfileBorderColor int64
 	ProfileBorderWidth int32
 	ProfileBorderCurve int32
+	TextStroke         bool
+	AllowAnimated      bool
 }
 
 //go:generate go-enum -f=$GOFILE --marshal
@@ -63,9 +63,8 @@ type BackgroundType int32
 type ImageFileType int32
 
 type Background struct {
-	Type BackgroundType `json:"type"`
-	// Background specific values.
-	Value string `json:"value"`
+	Value string         `json:"value"`
+	Type  BackgroundType `json:"type"`
 }
 
 type UserProvidedEmbed struct {

@@ -22,12 +22,12 @@ type RecaptchaRequest struct {
 }
 
 type RecaptchaResponse struct {
-	Success            bool      `json:"success"`
-	Score              float64   `json:"score"`
-	Action             string    `json:"action"`
 	ChallengeTimestamp time.Time `json:"challenge_ts"`
+	Action             string    `json:"action"`
 	Hostname           string    `json:"hostname"`
 	ErrorCodes         []string  `json:"error-codes"`
+	Score              float64   `json:"score"`
+	Success            bool      `json:"success"`
 }
 
 func ValidateRecaptcha(logger zerolog.Logger, response string, ipAddress string) (float64, error) {
