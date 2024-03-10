@@ -35,8 +35,8 @@ type BorderwallRequest struct {
 }
 
 type BorderwallResponse struct {
-	Valid     bool   `json:"valid"`
 	GuildName string `json:"guild_name"`
+	Valid     bool   `json:"valid"`
 }
 
 // Route GET /api/borderwall/:key

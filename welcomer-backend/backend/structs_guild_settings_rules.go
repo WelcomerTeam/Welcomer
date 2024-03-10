@@ -5,9 +5,9 @@ import (
 )
 
 type GuildSettingsRules struct {
+	Rules            []string `json:"rules"`
 	ToggleEnabled    bool     `json:"enabled"`
 	ToggleDmsEnabled bool     `json:"dms_enabled"`
-	Rules            []string `json:"rules"`
 }
 
 func GuildSettingsRulesSettingsToPartial(

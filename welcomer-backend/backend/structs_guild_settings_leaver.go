@@ -5,9 +5,9 @@ import (
 )
 
 type GuildSettingsLeaver struct {
-	ToggleEnabled bool   `json:"enabled"`
-	Channel       *string  `json:"channel"`
-	MessageFormat string `json:"message_json"`
+	Channel       *string `json:"channel"`
+	MessageFormat string  `json:"message_json"`
+	ToggleEnabled bool    `json:"enabled"`
 }
 
 func GuildSettingsLeaverSettingsToPartial(

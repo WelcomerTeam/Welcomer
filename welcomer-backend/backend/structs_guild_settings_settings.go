@@ -6,8 +6,8 @@ import (
 
 type GuildSettingsSettings struct {
 	Name             string `json:"name"`
-	EmbedColour      int32  `json:"embed_colour"`
 	SiteSplashUrl    string `json:"site_splash_url"`
+	EmbedColour      int32  `json:"embed_colour"`
 	SiteStaffVisible bool   `json:"site_staff_visible"`
 	SiteGuildVisible bool   `json:"site_guild_visible"`
 	SiteAllowInvites bool   `json:"site_allow_invites"`

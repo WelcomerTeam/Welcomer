@@ -7,32 +7,27 @@ import (
 )
 
 type Guild struct {
-	Guild *PartialGuild `json:"guild,omitempty"`
-
-	HasWelcomerPro       bool `json:"has_welcomer_pro"`
-	HasCustomBackgrounds bool `json:"has_custom_backgrounds"`
-
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	EmbedColour  int       `json:"embed_colour"`
-	SplashURL    string    `json:"splash_url"`
-	StaffVisible bool      `json:"staff_visible"`
-	GuildVisible bool      `json:"guild_visible"`
-	AllowInvites bool      `json:"allow_invites"`
+	CreatedAt            time.Time     `json:"created_at"`
+	UpdatedAt            time.Time     `json:"updated_at"`
+	Guild                *PartialGuild `json:"guild,omitempty"`
+	SplashURL            string        `json:"splash_url"`
+	EmbedColour          int           `json:"embed_colour"`
+	HasWelcomerPro       bool          `json:"has_welcomer_pro"`
+	HasCustomBackgrounds bool          `json:"has_custom_backgrounds"`
+	StaffVisible         bool          `json:"staff_visible"`
+	GuildVisible         bool          `json:"guild_visible"`
+	AllowInvites         bool          `json:"allow_invites"`
 }
 
 type PartialGuild struct {
 	*MinimalGuild
-
-	MemberCount int32 `json:"member_count"`
-
-	Channels []*MinimalChannel `json:"channels"`
-	Roles    []*MinimalRole    `json:"roles"`
-	Emojis   []*MinimalEmoji   `json:"emojis"`
+	Channels    []*MinimalChannel `json:"channels"`
+	Roles       []*MinimalRole    `json:"roles"`
+	Emojis      []*MinimalEmoji   `json:"emojis"`
+	MemberCount int32             `json:"member_count"`
 }
 
 type MinimalGuild struct {
-	ID              discord.Snowflake `json:"id"`
 	Name            string            `json:"name"`
 	Icon            string            `json:"icon"`
 	IconHash        string            `json:"icon_hash"`
@@ -40,33 +35,31 @@ type MinimalGuild struct {
 	DiscoverySplash string            `json:"discovery_splash,omitempty"`
 	Description     string            `json:"description,omitempty"`
 	Banner          string            `json:"banner,omitempty"`
+	ID              discord.Snowflake `json:"id"`
 }
 
 type MinimalChannel struct {
-	ID       discord.Snowflake   `json:"id"`
-	Type     discord.ChannelType `json:"type"`
-	Position int32               `json:"position,omitempty"`
 	Name     string              `json:"name,omitempty"`
+	ID       discord.Snowflake   `json:"id"`
+	Position int32               `json:"position,omitempty"`
+	Type     discord.ChannelType `json:"type"`
 }
 
 type MinimalRole struct {
-	ID       discord.Snowflake `json:"id"`
-	Name     string            `json:"name"`
-	Color    int32             `json:"color"`
-	Position int32             `json:"position"`
-
-	IsAssignable bool `json:"is_assignable"`
-	IsElevated   bool `json:"is_elevated"`
-
-	// Attributes used for IsAssignable and IsElevated calculations
-	permissions discord.Int64
-	managed     bool
-	tags        *discord.RoleTag
+	tags         *discord.RoleTag
+	Name         string            `json:"name"`
+	ID           discord.Snowflake `json:"id"`
+	permissions  discord.Int64
+	Color        int32 `json:"color"`
+	Position     int32 `json:"position"`
+	IsAssignable bool  `json:"is_assignable"`
+	IsElevated   bool  `json:"is_elevated"`
+	managed      bool
 }
 
 type MinimalEmoji struct {
-	ID        discord.Snowflake `json:"id"`
 	Name      string            `json:"name"`
+	ID        discord.Snowflake `json:"id"`
 	Managed   bool              `json:"managed"`
 	Animated  bool              `json:"animated"`
 	Available bool              `json:"available"`

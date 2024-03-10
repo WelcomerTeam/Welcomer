@@ -5,8 +5,8 @@ import (
 )
 
 type GuildSettingsFreeRoles struct {
-	ToggleEnabled bool     `json:"enabled"`
 	Roles         []string `json:"roles"`
+	ToggleEnabled bool     `json:"enabled"`
 }
 
 func GuildSettingsFreeRolesSettingsToPartial(

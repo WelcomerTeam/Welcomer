@@ -13,14 +13,12 @@ type GuildSettingsWelcomer struct {
 }
 
 type GuildSettingsWelcomerText struct {
-	ToggleEnabled bool    `json:"enabled"`
 	Channel       *string `json:"channel"`
 	MessageFormat string  `json:"message_json"`
+	ToggleEnabled bool    `json:"enabled"`
 }
 
 type GuildSettingsWelcomerImages struct {
-	ToggleEnabled          bool   `json:"enabled"`
-	ToggleImageBorder      bool   `json:"enable_border"`
 	BackgroundName         string `json:"background"`
 	ColourText             string `json:"text_colour"`
 	ColourTextBorder       string `json:"text_colour_border"`
@@ -30,13 +28,15 @@ type GuildSettingsWelcomerImages struct {
 	ImageTheme             string `json:"image_theme"`
 	ImageMessage           string `json:"message"`
 	ImageProfileBorderType string `json:"profile_border_type"`
+	ToggleEnabled          bool   `json:"enabled"`
+	ToggleImageBorder      bool   `json:"enable_border"`
 }
 
 type GuildSettingsWelcomerDms struct {
+	MessageFormat       string `json:"message_json"`
 	ToggleEnabled       bool   `json:"enabled"`
 	ToggleUseTextFormat bool   `json:"reuse_message"`
 	ToggleIncludeImage  bool   `json:"include_image"`
-	MessageFormat       string `json:"message_json"`
 }
 
 type GuildSettingsWelcomerCustom struct {

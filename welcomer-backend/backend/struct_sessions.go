@@ -18,22 +18,22 @@ const (
 
 // SessionUser stores the user in a session.
 type SessionUser struct {
-	ID                         discord.Snowflake                   `json:"id"`
+	GuildsLastRequestedAt      time.Time                           `json:"-"`
+	MembershipsLastRequestedAt time.Time                           `json:"-"`
+	Guilds                     map[discord.Snowflake]*SessionGuild `json:"guilds"`
 	Username                   string                              `json:"username"`
 	Discriminator              string                              `json:"discriminator"`
 	GlobalName                 string                              `json:"global_name"`
 	Avatar                     string                              `json:"avatar"`
-	Guilds                     map[discord.Snowflake]*SessionGuild `json:"guilds"`
-	GuildsLastRequestedAt      time.Time                           `json:"-"`
 	Memberships                []*Membership                       `json:"memberships"`
-	MembershipsLastRequestedAt time.Time                           `json:"-"`
+	ID                         discord.Snowflake                   `json:"id"`
 }
 
 // SessionGuild represents a guild passed through /api/users/guilds and is stored in the session.
 type SessionGuild struct {
-	ID                   discord.Snowflake `json:"id"`
 	Name                 string            `json:"name"`
 	Icon                 string            `json:"icon"`
+	ID                   discord.Snowflake `json:"id"`
 	HasWelcomer          bool              `json:"has_welcomer"`
 	HasWelcomerPro       bool              `json:"has_welcomer_pro"`
 	HasCustomBackgrounds bool              `json:"has_custom_backgrounds"`

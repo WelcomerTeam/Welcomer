@@ -5,11 +5,11 @@ import (
 )
 
 type GuildSettingsTempChannels struct {
-	ToggleEnabled    bool    `json:"enabled"`
-	ToggleAutopurge  bool    `json:"autopurge"`
 	ChannelLobby     *string `json:"channel_lobby"`
 	ChannelCategory  *string `json:"channel_category"`
 	DefaultUserCount int32   `json:"default_user_count"`
+	ToggleEnabled    bool    `json:"enabled"`
+	ToggleAutopurge  bool    `json:"autopurge"`
 }
 
 func GuildSettingsTempChannelsSettingsToPartial(
