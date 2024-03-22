@@ -62,6 +62,24 @@ func getBorderwall(ctx *gin.Context) {
 		}
 
 		if borderwallRequest != nil && !borderwallRequest.RequestUuid.IsNil() {
+			session := sessions.Default(ctx)
+			user, _ := GetUserSession(session)
+
+			if borderwallRequest.UserID != int64(user.ID) {
+				backend.Logger.Error().
+					Int64("userID", int64(user.ID)).
+					Int64("borderwallRequestUserID", borderwallRequest.UserID).
+					Msg("User ID does not match")
+
+				ctx.JSON(http.StatusForbidden, BaseResponse{
+					Ok:    false,
+					Error: ErrBorderwallUserInvalid.Error(),
+					Data:  borderwallResponse,
+				})
+
+				return
+			}
+
 			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext().ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Msg("Failed to fetch guild")
@@ -153,13 +171,14 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if borderwallRequest.UserID != int64(user.ID) {
-			backend.Logger.Warn().
+			backend.Logger.Error().
 				Int64("userID", int64(user.ID)).
 				Int64("borderwallRequestUserID", borderwallRequest.UserID).
 				Msg("User ID does not match")
 
 			ctx.JSON(http.StatusForbidden, BaseResponse{
-				Ok: false,
+				Ok:    false,
+				Error: ErrBorderwallUserInvalid.Error(),
 			})
 
 			return
