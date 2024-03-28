@@ -224,9 +224,9 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 							// frame every time we try to generate the resulting welcome image.
 							// If you do not like this, get Welcomer Pro :)
 							// It helps me out.
-							res, err = welcomerCustomBackgroundsUploadPNG(ctx, guildID, file, fileOpen)
+							res, err = welcomerCustomBackgroundsUploadPNG(ctx, guildID, fileOpen)
 						case mimeType == MIMEJPEG:
-							res, err = welcomerCustomBackgroundsUploadJPG(ctx, guildID, file, fileOpen)
+							res, err = welcomerCustomBackgroundsUploadJPG(ctx, guildID, fileOpen)
 						default:
 							ctx.JSON(http.StatusBadRequest, BaseResponse{
 								Ok:    false,
@@ -385,7 +385,7 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	})
 }
 
-func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
 	// Validate file and get size
 	img, err := png.Decode(fileBytes)
 	if err != nil {
@@ -424,7 +424,7 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 	})
 }
 
-func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
 	// Validate file and get size
 	img, err := jpeg.Decode(fileBytes)
 	if err != nil {
