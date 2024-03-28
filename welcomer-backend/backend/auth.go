@@ -61,7 +61,7 @@ func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
 }
 
 func checkToken(ctx context.Context, config *oauth2.Config, token *oauth2.Token) (newToken *oauth2.Token, changed bool, err error) {
-	source := OAuth2Config.TokenSource(backend.ctx, token)
+	source := config.TokenSource(ctx, token)
 
 	newToken, err = source.Token()
 	if err != nil {

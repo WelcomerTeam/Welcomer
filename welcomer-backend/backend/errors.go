@@ -50,5 +50,5 @@ var (
 	ErrBorderwallInvalidKey             = errors.New("invalid key")
 	ErrBorderwallUserInvalid            = errors.New("user is not the owner of this request")
 	ErrRecaptchaValidationFailed        = errors.New("reCAPTCHA validation failed")
-	ErrInsecureUser                     = errors.New("failed to verify your request. Please disable any proxy or VPN and try again.")
+	ErrInsecureUser                     = errors.New("failed to verify your request. Please disable any proxy or VPN and try again")
 )
