@@ -44,7 +44,7 @@ func IncludeScamsButton(messageParams *discord.MessageParams) *discord.MessagePa
 			Type:  discord.InteractionComponentTypeButton,
 			Style: discord.InteractionComponentStyleLink,
 			Label: "Watch out for scams",
-			URL:   "https://beta-dev.welcomer.gg/phishing",
+			URL:   WebsiteURL + "/phishing",
 			Emoji: &EmojiShieldAlert,
 		},
 	)

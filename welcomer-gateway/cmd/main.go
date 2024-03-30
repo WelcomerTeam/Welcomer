@@ -34,6 +34,7 @@ func main() {
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
 	stanCluster := flag.String("stanCluster", os.Getenv("STAN_CLUSTER"), "NATs streaming Cluster")
+	stanClientName := flag.String("stanClientName", "welcomer-gateway", "NATs client name")
 
 	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
 
@@ -77,7 +78,7 @@ func main() {
 	// Setup NATs
 	stanClient := messaging.NewStanMQClient()
 
-	if err = stanClient.Connect(ctx, "sandwich", map[string]interface{}{
+	if err = stanClient.Connect(ctx, *stanClientName, map[string]interface{}{
 		"Address": *stanAddress,
 		"Cluster": *stanCluster,
 		"Channel": *stanChannel,
