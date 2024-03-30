@@ -15,6 +15,7 @@ import (
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
+	"github.com/jackc/pgtype"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/zerolog"
 )
@@ -85,6 +86,15 @@ func FormatTextStroke(v bool) int {
 	}
 
 	return 0
+}
+
+func SetupJSONB(jsonb pgtype.JSONB) pgtype.JSONB {
+	if jsonb.Status == pgtype.Undefined || len(jsonb.Bytes) == 0 {
+		jsonb.Status = pgtype.Present
+		jsonb.Bytes = []byte{123, 125} // {}
+	}
+
+	return jsonb
 }
 
 func ConvertToRGBA(int32Color int64) color.RGBA {

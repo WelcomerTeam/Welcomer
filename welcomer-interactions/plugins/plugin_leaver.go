@@ -9,7 +9,6 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -159,13 +158,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get leaver guild settings")
 				}
 
-				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
-					guildSettingsLeaver.MessageFormat.Status = pgtype.Null
-				}
-
+				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = true
 
-				_, err = queries.UpdateLeaverGuildSettings(ctx, &database.UpdateLeaverGuildSettingsParams{
+				_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, &database.CreateOrUpdateLeaverGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 					Channel:       guildSettingsLeaver.Channel,
@@ -209,13 +205,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get leaver guild settings")
 				}
 
-				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
-					guildSettingsLeaver.MessageFormat.Status = pgtype.Null
-				}
-
+				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = false
 
-				_, err = queries.UpdateLeaverGuildSettings(ctx, &database.UpdateLeaverGuildSettingsParams{
+				_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, &database.CreateOrUpdateLeaverGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 					Channel:       guildSettingsLeaver.Channel,
@@ -268,17 +261,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if guildSettingsLeaver.MessageFormat.Status == pgtype.Undefined {
-					guildSettingsLeaver.MessageFormat.Status = pgtype.Null
-				}
+				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
+				guildSettingsLeaver.Channel = welcomer.If(channel != nil, int64(channel.ID), 0)
 
-				if channel != nil {
-					guildSettingsLeaver.Channel = int64(channel.ID)
-				} else {
-					guildSettingsLeaver.Channel = 0
-				}
-
-				_, err = queries.UpdateLeaverGuildSettings(ctx, &database.UpdateLeaverGuildSettingsParams{
+				_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, &database.CreateOrUpdateLeaverGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 					Channel:       guildSettingsLeaver.Channel,

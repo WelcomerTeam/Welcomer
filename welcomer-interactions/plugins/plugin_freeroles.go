@@ -71,7 +71,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsFreeRoles.ToggleEnabled = true
 
-				_, err = queries.UpdateFreeRolesGuildSettings(ctx, &database.UpdateFreeRolesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, &database.CreateOrUpdateFreeRolesGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 					Roles:         guildSettingsFreeRoles.Roles,
@@ -116,7 +116,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsFreeRoles.ToggleEnabled = false
 
-				_, err = queries.UpdateFreeRolesGuildSettings(ctx, &database.UpdateFreeRolesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, &database.CreateOrUpdateFreeRolesGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 					Roles:         guildSettingsFreeRoles.Roles,

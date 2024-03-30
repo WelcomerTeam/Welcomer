@@ -308,11 +308,6 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildMemberIDs := []int64{}
-				for inviterID := range leaderboardMap {
-					guildMemberIDs = append(guildMemberIDs, int64(inviterID))
-				}
-
 				embeds := []*discord.Embed{}
 				embed := &discord.Embed{Title: "Invite Leaderboard", Color: welcomer.EmbedColourInfo}
 

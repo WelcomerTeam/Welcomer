@@ -115,7 +115,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.UpdateBorderwallGuildSettings(ctx, &database.UpdateBorderwallGuildSettingsParams{
+				_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, &database.CreateOrUpdateBorderwallGuildSettingsParams{
 					GuildID:         int64(*interaction.GuildID),
 					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -215,7 +215,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.UpdateBorderwallGuildSettings(ctx, &database.UpdateBorderwallGuildSettingsParams{
+				_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, &database.CreateOrUpdateBorderwallGuildSettingsParams{
 					GuildID:         int64(*interaction.GuildID),
 					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -303,7 +303,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.UpdateBorderwallGuildSettings(ctx, &database.UpdateBorderwallGuildSettingsParams{
+				_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, &database.CreateOrUpdateBorderwallGuildSettingsParams{
 					GuildID:         int64(*interaction.GuildID),
 					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,

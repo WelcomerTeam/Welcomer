@@ -229,9 +229,8 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	var directMessage *discord.MessageParams
 
 	// Fallback to default message if the message is empty.
-	if !welcomer.IsJSONBEmpty(guildSettingsBorderwall.MessageVerify.Bytes) {
-		guildSettingsBorderwall.MessageVerify.Bytes = []byte{123, 125} // {}
-	}
+	guildSettingsBorderwall.MessageVerify = welcomer.SetupJSONB(guildSettingsBorderwall.MessageVerify)
+
 
 	if guildSettingsBorderwall.Channel != 0 || guildSettingsBorderwall.ToggleSendDm {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerify.Bytes))
