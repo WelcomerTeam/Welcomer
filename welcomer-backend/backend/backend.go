@@ -12,6 +12,7 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
@@ -59,6 +60,8 @@ type Backend struct {
 
 	Database *database.Queries
 
+	IPChecker welcomer.IPChecker
+
 	EmptySession      *discord.Session
 	BotSession        *discord.Session
 	DonatorBotSession *discord.Session
@@ -102,6 +105,8 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
 
 		Database: database.New(options.Pool),
+
+		IPChecker: welcomer.NewLRUIPChecker(logger, 1024),
 	}
 
 	// Setup OAuth2

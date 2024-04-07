@@ -218,13 +218,13 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate IPIntel
-		ipIntelResponse, err := welcomer.CheckIPIntel(backend.Logger, ctx.ClientIP())
+		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to validate IPIntel")
 		}
 
-		if ipIntelResponse > IPIntelThreshold {
-			logger.Warn().Float64("score", ipIntelResponse).Float64("threshold", IPIntelThreshold).Msg("IPIntel score is too high")
+		if ipIntelResponse.Result > IPIntelThreshold {
+			logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Msg("IPIntel score is too high")
 
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
 				Ok:    false,
@@ -295,7 +295,7 @@ func setBorderwall(ctx *gin.Context) {
 		logger.Info().
 			Str("key", key).
 			Float64("recaptchaScore", recaptchaScore).
-			Float64("ipIntelResponse", ipIntelResponse).
+			Float64("ipIntelResponse", ipIntelResponse.Result).
 			Msg("Borderwall request verified")
 
 		// Update the borderwall request with the response
@@ -305,7 +305,7 @@ func setBorderwall(ctx *gin.Context) {
 			VerifiedAt:      sql.NullTime{Time: time.Now(), Valid: true},
 			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: ip, Mask: ip.DefaultMask()}, Status: pgtype.Present},
 			RecaptchaScore:  sql.NullFloat64{Float64: recaptchaScore, Valid: true},
-			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse, Valid: true},
+			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
 			UaFamily:        sql.NullString{String: family, Valid: true},
 			UaFamilyVersion: sql.NullString{String: familyVersion, Valid: true},
 			UaOs:            sql.NullString{String: os, Valid: true},
