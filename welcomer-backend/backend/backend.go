@@ -203,7 +203,7 @@ func (b *Backend) Close() error {
 func (b *Backend) SetupPrometheus() error {
 	b.Logger.Info().Msgf("Serving prometheus at %s", b.Options.PrometheusAddress)
 
-	b.PrometheusHandler.SetListenAddress(b.Options.PostgresAddress)
+	b.PrometheusHandler.SetListenAddress(b.Options.PrometheusAddress)
 	b.PrometheusHandler.SetMetricsPath(nil)
 
 	return nil
