@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS borderwall_requests (
     ip_address inet,
     recaptcha_score real,
     ipintel_score real,
+    country_code text,
     ua_family text,
     ua_family_version text,
     ua_os text,

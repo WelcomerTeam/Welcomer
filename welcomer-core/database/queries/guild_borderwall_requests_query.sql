@@ -39,9 +39,10 @@ SET
     ip_address = $4,
     recaptcha_score = $5,
     ipintel_score = $6,
-    ua_family = $7,
-    ua_family_version = $8,
-    ua_os = $9,
-    ua_os_version = $10
+    country_code = $7,
+    ua_family = $8,
+    ua_family_version = $9,
+    ua_os = $10,
+    ua_os_version = $11
 WHERE
     request_uuid = $1;
