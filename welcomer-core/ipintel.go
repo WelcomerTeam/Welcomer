@@ -174,30 +174,28 @@ func checkIPIntel(logger zerolog.Logger, ipaddress string, flags IPIntelFlags, o
 
 	defer resp.Body.Close()
 
-	var ipIntelResponse IPIntelResponse
-
-	err = json.NewDecoder(resp.Body).Decode(&ipIntelResponse)
+	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to decode IPIntel response")
 
 		return
 	}
 
-	ipIntelResponse.Result, err = strconv.ParseFloat(ipIntelResponse.ResultString, 64)
+	response.Result, err = strconv.ParseFloat(response.ResultString, 64)
 	if err != nil {
-		logger.Error().Err(err).Str("response", ipIntelResponse.ResultString).Msg("Failed to parse IPIntel response result")
+		logger.Error().Err(err).Str("response", response.ResultString).Msg("Failed to parse IPIntel response result")
 
 		return
 	}
 
-	if ipIntelResponse.Result < 0 {
-		logger.Error().Float64("result", ipIntelResponse.Result).Msg("IPIntel returned an error")
+	if response.Result < 0 {
+		logger.Error().Float64("result", response.Result).Msg("IPIntel returned an error")
 
-		if message, ok := errorCodes[ipIntelResponse.Result]; ok {
-			return response, fmt.Errorf(fmt.Sprintf("ipintel failed with code %f: %s", ipIntelResponse.Result, message))
+		if message, ok := errorCodes[response.Result]; ok {
+			return response, fmt.Errorf(fmt.Sprintf("ipintel failed with code %f: %s", response.Result, message))
 		}
 
-		return response, fmt.Errorf(fmt.Sprintf("ipintel failed with code %f: unknown error", ipIntelResponse.Result))
+		return response, fmt.Errorf(fmt.Sprintf("ipintel failed with code %f: unknown error", response.Result))
 	}
 
 	return response, nil
