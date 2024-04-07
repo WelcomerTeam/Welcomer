@@ -229,6 +229,8 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerSessionRoutes(router)
 	registerUserRoutes(router)
 
+	registerBillingRoutes(router)
+
 	registerBorderwallRoutes(router)
 
 	registerGuildRoutes(router)
