@@ -46,7 +46,8 @@ func getBorderwall(ctx *gin.Context) {
 
 		if key == "" {
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok: false,
+				Ok:    false,
+				Error: "missing key",
 			})
 
 			return
@@ -119,10 +120,10 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		// Read "response" text from the post json body
-		var response BorderwallRequest
+		// Read "request" text from the post json body.
+		var request BorderwallRequest
 
-		if err := ctx.ShouldBindJSON(&response); err != nil {
+		if err := ctx.ShouldBindJSON(&request); err != nil {
 			logger.Warn().Err(err).Msg("Failed to bind JSON")
 
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
@@ -132,7 +133,7 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		if response.Response == "" {
+		if request.Response == "" {
 			logger.Warn().Msg("Missing response")
 
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
@@ -194,7 +195,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate reCAPTCHA
-		recaptchaScore, err := welcomer.ValidateRecaptcha(backend.Logger, response.Response, ctx.ClientIP())
+		recaptchaScore, err := welcomer.ValidateRecaptcha(backend.Logger, request.Response, ctx.ClientIP())
 		if err != nil {
 			logger.Error().Err(err).Msg("Failed to validate recaptcha")
 
@@ -288,7 +289,7 @@ func setBorderwall(ctx *gin.Context) {
 
 		// If platform version is 13 or higher, we assume it's Windows 11.
 		// https://learn.microsoft.com/en-us/microsoft-edge/web-platform/how-to-detect-win11
-		if strings.ToLower(os) == "windows" && osVersion == "10" && getMajor(response.PlatformVersion) >= 13 {
+		if strings.ToLower(os) == "windows" && osVersion == "10" && getMajor(request.PlatformVersion) >= 13 {
 			osVersion = "11"
 		}
 
