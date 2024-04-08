@@ -32,7 +32,7 @@ type CreateOrUpdateUserTransactionParams struct {
 	TransactionID     string `json:"transaction_id"`
 	TransactionStatus int32  `json:"transaction_status"`
 	CurrencyCode      string `json:"currency_code"`
-	Amount            int32  `json:"amount"`
+	Amount            string `json:"amount"`
 }
 
 func (q *Queries) CreateOrUpdateUserTransaction(ctx context.Context, arg *CreateOrUpdateUserTransactionParams) (*UserTransactions, error) {
@@ -72,7 +72,7 @@ type CreateUserTransactionParams struct {
 	TransactionID     string `json:"transaction_id"`
 	TransactionStatus int32  `json:"transaction_status"`
 	CurrencyCode      string `json:"currency_code"`
-	Amount            int32  `json:"amount"`
+	Amount            string `json:"amount"`
 }
 
 func (q *Queries) CreateUserTransaction(ctx context.Context, arg *CreateUserTransactionParams) (*UserTransactions, error) {
@@ -176,25 +176,25 @@ SET
     amount = $7,
     updated_at = now()
 WHERE
-    transaction_id = $1
+    transaction_uuid = $1
 `
 
 type UpdateUserTransactionParams struct {
-	TransactionID     string `json:"transaction_id"`
-	UserID            int64  `json:"user_id"`
-	PlatformType      int32  `json:"platform_type"`
-	TransactionID_2   string `json:"transaction_id_2"`
-	TransactionStatus int32  `json:"transaction_status"`
-	CurrencyCode      string `json:"currency_code"`
-	Amount            int32  `json:"amount"`
+	TransactionUuid   uuid.UUID `json:"transaction_uuid"`
+	UserID            int64     `json:"user_id"`
+	PlatformType      int32     `json:"platform_type"`
+	TransactionID     string    `json:"transaction_id"`
+	TransactionStatus int32     `json:"transaction_status"`
+	CurrencyCode      string    `json:"currency_code"`
+	Amount            string    `json:"amount"`
 }
 
 func (q *Queries) UpdateUserTransaction(ctx context.Context, arg *UpdateUserTransactionParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateUserTransaction,
-		arg.TransactionID,
+		arg.TransactionUuid,
 		arg.UserID,
 		arg.PlatformType,
-		arg.TransactionID_2,
+		arg.TransactionID,
 		arg.TransactionStatus,
 		arg.CurrencyCode,
 		arg.Amount,

@@ -195,7 +195,7 @@ type UserTransactions struct {
 	TransactionID     string    `json:"transaction_id"`
 	TransactionStatus int32     `json:"transaction_status"`
 	CurrencyCode      string    `json:"currency_code"`
-	Amount            int32     `json:"amount"`
+	Amount            string    `json:"amount"`
 }
 
 type Users struct {

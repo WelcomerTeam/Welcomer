@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS user_transactions (
     transaction_id text NOT NULL,
     transaction_status integer NOT NULL,
     currency_code text NOT NULL,
-    amount integer NOT NULL
+    amount text NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS user_transactions_user_id ON user_transactions (user_id);

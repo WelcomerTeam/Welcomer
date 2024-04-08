@@ -46,5 +46,5 @@ SET
     amount = $7,
     updated_at = now()
 WHERE
-    transaction_id = $1;
+    transaction_uuid = $1;
 

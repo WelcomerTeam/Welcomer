@@ -136,7 +136,7 @@ type GetUserMembershipRow struct {
 	TransactionID     sql.NullString `json:"transaction_id"`
 	TransactionStatus sql.NullInt32  `json:"transaction_status"`
 	CurrencyCode      sql.NullString `json:"currency_code"`
-	Amount            sql.NullInt32  `json:"amount"`
+	Amount            sql.NullString `json:"amount"`
 }
 
 func (q *Queries) GetUserMembership(ctx context.Context, membershipUuid uuid.UUID) (*GetUserMembershipRow, error) {
@@ -195,7 +195,7 @@ type GetUserMembershipsByGuildIDRow struct {
 	TransactionID     sql.NullString `json:"transaction_id"`
 	TransactionStatus sql.NullInt32  `json:"transaction_status"`
 	CurrencyCode      sql.NullString `json:"currency_code"`
-	Amount            sql.NullInt32  `json:"amount"`
+	Amount            sql.NullString `json:"amount"`
 }
 
 func (q *Queries) GetUserMembershipsByGuildID(ctx context.Context, guildID int64) ([]*GetUserMembershipsByGuildIDRow, error) {
@@ -267,7 +267,7 @@ type GetUserMembershipsByUserIDRow struct {
 	TransactionID     sql.NullString `json:"transaction_id"`
 	TransactionStatus sql.NullInt32  `json:"transaction_status"`
 	CurrencyCode      sql.NullString `json:"currency_code"`
-	Amount            sql.NullInt32  `json:"amount"`
+	Amount            sql.NullString `json:"amount"`
 }
 
 func (q *Queries) GetUserMembershipsByUserID(ctx context.Context, userID int64) ([]*GetUserMembershipsByUserIDRow, error) {
