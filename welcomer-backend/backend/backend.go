@@ -17,6 +17,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/plutov/paypal/v4"
 	gin_prometheus "github.com/zsais/go-gin-prometheus"
 
 	"github.com/gin-contrib/gzip"
@@ -65,23 +66,29 @@ type Backend struct {
 	EmptySession      *discord.Session
 	BotSession        *discord.Session
 	DonatorBotSession *discord.Session
+
+	PaypalClient *paypal.Client
 }
 
 // BackendOptions represents any options passable when creating the backend service.
 type BackendOptions struct {
-	BotToken          string
-	ClientId          string
-	ClientSecret      string
-	Conn              grpc.ClientConnInterface
-	DonatorBotToken   string
-	Host              string
-	NginxAddress      string
-	Pool              *pgxpool.Pool
-	PostgresAddress   string
-	PrometheusAddress string
-	RedirectURL       string
-	RESTInterface     discord.RESTInterface
-	KeyPairs          string
+	BotToken            string
+	Conn                grpc.ClientConnInterface
+	DiscordClientID     string
+	DiscordClientSecret string
+	Domain              string
+	DonatorBotToken     string
+	Host                string
+	KeyPairs            string
+	NginxAddress        string
+	PaypalClientID      string
+	PaypalClientSecret  string
+	PaypalIsLive        bool
+	Pool                *pgxpool.Pool
+	PostgresAddress     string
+	PrometheusAddress   string
+	RedirectURL         string
+	RESTInterface       discord.RESTInterface
 }
 
 // NewBackend creates a new backend.
@@ -110,8 +117,8 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	}
 
 	// Setup OAuth2
-	OAuth2Config.ClientID = options.ClientId
-	OAuth2Config.ClientSecret = options.ClientSecret
+	OAuth2Config.ClientID = options.DiscordClientID
+	OAuth2Config.ClientSecret = options.DiscordClientSecret
 	OAuth2Config.RedirectURL = options.RedirectURL
 
 	// Setup sessions
@@ -141,12 +148,12 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	// Setup session store.
 	store, err := NewStore(options.Pool, keyPairs...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create session store: %w", err)
 	}
 
 	store.Options(sessions.Options{
 		Path:     "/",
-		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Domain:   options.Domain,
 		MaxAge:   int(MaxAge.Seconds()),
 		Secure:   true,
 		HttpOnly: true,
@@ -154,6 +161,13 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	})
 
 	b.Store = store
+
+	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create paypal client: %w", err)
+	}
+
+	b.PaypalClient = paypalClient
 
 	// Setup gin router.
 	b.Route = b.PrepareGin()
