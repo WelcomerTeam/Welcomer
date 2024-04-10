@@ -10,6 +10,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
@@ -39,6 +40,12 @@ func main() {
 
 	nginxAddress := flag.String("nginxProxy", os.Getenv("NGINX_PROXY"), "NGINX Proxy Address. Used to set trusted proxies.")
 	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
+
+	domain := flag.String("domain", os.Getenv("BACKEND_DOMAIN"), "Domain name for the backend")
+
+	paypalClientID := flag.String("paypalClientID", os.Getenv("PAYPAL_CLIENT_ID"), "Paypal client ID")
+	paypalClientSecret := flag.String("paypalSecretID", os.Getenv("PAYPAL_CLIENT_SECRET"), "Paypal client secret")
+	paypalIsLive := flag.Bool("paypalIsLive", welcomer.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
 
 	flag.Parse()
 
@@ -75,7 +82,7 @@ func main() {
 
 	// Setup GRPC
 	var grpcConnection *grpc.ClientConn
-	if grpcConnection, err = grpc.Dial(*sandwichGRPCHost, grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
+	if grpcConnection, err = grpc.NewClient(*sandwichGRPCHost, grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
 		panic(fmt.Sprintf(`grpc.Dial(%s): %v`, *sandwichGRPCHost, err.Error()))
 	}
 
@@ -88,19 +95,23 @@ func main() {
 	// Setup app.
 	var app *backend.Backend
 	if app, err = backend.NewBackend(ctx, logger, backend.BackendOptions{
-		Conn:              grpcConnection,
-		RESTInterface:     restInterface,
-		Pool:              pool,
-		Host:              *host,
-		BotToken:          *botToken,
-		DonatorBotToken:   *fallbackBotToken,
-		PrometheusAddress: *prometheusAddress,
-		PostgresAddress:   *postgresURL,
-		NginxAddress:      *nginxAddress,
-		ClientId:          *clientID,
-		ClientSecret:      *clientSecret,
-		RedirectURL:       *redirectURL,
-		KeyPairs:          *keyPairs,
+		BotToken:            *botToken,
+		Conn:                grpcConnection,
+		DiscordClientID:     *clientID,
+		DiscordClientSecret: *clientSecret,
+		Domain:              *domain,
+		DonatorBotToken:     *fallbackBotToken,
+		Host:                *host,
+		KeyPairs:            *keyPairs,
+		NginxAddress:        *nginxAddress,
+		PaypalClientID:      *paypalClientID,
+		PaypalClientSecret:  *paypalClientSecret,
+		PaypalIsLive:        *paypalIsLive,
+		Pool:                pool,
+		PostgresAddress:     *postgresURL,
+		PrometheusAddress:   *prometheusAddress,
+		RedirectURL:         *redirectURL,
+		RESTInterface:       restInterface,
 	}); err != nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}

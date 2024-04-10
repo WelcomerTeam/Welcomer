@@ -289,12 +289,20 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 	})
 }
 
-// tryGetGuildID returns GuildID from context. Panics if it cannot find.
+// tryGetGuildID returns GuildID from context.
 func tryGetGuildID(ctx *gin.Context) discord.Snowflake {
 	rawGuildID, _ := ctx.Get(GuildIDKey)
 	guildID, _ := rawGuildID.(discord.Snowflake)
 
 	return guildID
+}
+
+// tryGetUser returns User from context.
+func tryGetUser(ctx *gin.Context) SessionUser {
+	rawUser, _ := ctx.Get(UserKey)
+	user, _ := rawUser.(SessionUser)
+
+	return user
 }
 
 // ensureGuild will create or update a guild entry. This requires requireMutualGuild to be called.

@@ -106,16 +106,22 @@ func ConvertToRGBA(int32Color int64) color.RGBA {
 	return color.RGBA{R: red, G: green, B: blue, A: alpha}
 }
 
-func MustParseBool(str string) bool {
+func TryParseBool(str string) bool {
 	boolean, _ := strconv.ParseBool(str)
 
 	return boolean
 }
 
-func MustParseInt(str string) int {
+func TryParseInt(str string) int {
 	integer, _ := strconv.ParseInt(str, int64Base, int64BitSize)
 
 	return int(integer)
+}
+
+func TryParseFloat(str string) float64 {
+	float, _ := strconv.ParseFloat(str, int64BitSize)
+
+	return float
 }
 
 func IsValidUnsplashID(str string) bool {
@@ -506,4 +512,14 @@ func If[T any](condition bool, trueValue, falseValue T) T {
 	}
 
 	return falseValue
+}
+
+func SliceContains[T comparable](slice []T, value T) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+
+	return false
 }
