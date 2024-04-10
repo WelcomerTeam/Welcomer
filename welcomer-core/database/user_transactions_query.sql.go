@@ -125,6 +125,46 @@ func (q *Queries) GetUserTransaction(ctx context.Context, transactionUuid uuid.U
 	return &i, err
 }
 
+const GetUserTransactionsByTransactionID = `-- name: GetUserTransactionsByTransactionID :many
+SELECT
+    transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount
+FROM
+    user_transactions
+WHERE
+    transaction_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetUserTransactionsByTransactionID(ctx context.Context, transactionID string) ([]*UserTransactions, error) {
+	rows, err := q.db.Query(ctx, GetUserTransactionsByTransactionID, transactionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*UserTransactions{}
+	for rows.Next() {
+		var i UserTransactions
+		if err := rows.Scan(
+			&i.TransactionUuid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.PlatformType,
+			&i.TransactionID,
+			&i.TransactionStatus,
+			&i.CurrencyCode,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetUserTransactionsByUserID = `-- name: GetUserTransactionsByUserID :many
 SELECT
     transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount

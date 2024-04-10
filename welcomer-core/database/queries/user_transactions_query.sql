@@ -48,3 +48,11 @@ SET
 WHERE
     transaction_uuid = $1;
 
+-- name: GetUserTransactionsByTransactionID :many
+SELECT
+    *
+FROM
+    user_transactions
+WHERE
+    transaction_id = $1
+ORDER BY created_at DESC;
