@@ -44,7 +44,7 @@ func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger OnInvokeTimeRoles when ON_MESSAGE_CREATE event is received.
 	p.EventHandler.RegisterOnMessageCreateEvent(func(eventCtx *sandwich.EventContext, message discord.Message) error {
-		if message.Author.Bot {
+		if message.Author.Bot || message.GuildID == nil {
 			return nil
 		}
 
