@@ -34,7 +34,7 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 
 		argument, ok := arguments[0].(float64)
 		if !ok {
-			return nil, fmt.Errorf("Ordinal argument 1 is not supported")
+			return nil, fmt.Errorf("ordinal argument 1 is not supported")
 		}
 
 		var suffix string

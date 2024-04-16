@@ -4,9 +4,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
-var DefaultCurrency = CurrencyGBP
-
-var GlobalCurrencies = []Currency{CurrencyGBP, CurrencyUSD}
+var GlobalCurrencies = []Currency{CurrencyEUR, CurrencyGBP, CurrencyUSD}
 
 var SKUPricing = map[SKUName]PricingSKU{
 	SKUWelcomerPro: {

@@ -11,6 +11,9 @@ import (
 	"github.com/plutov/paypal/v4"
 )
 
+// ISO 3166-1 alpha-2 country codes for the Eurozone.
+var euroZone = []string{"AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"}
+
 func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer.Currency {
 	// If the IPIntel response is above the threshold, we assume the user is on a VPN.
 	if ipintelResponse.Result <= IPIntelThreshold {
@@ -23,10 +26,22 @@ func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer
 	return welcomer.GlobalCurrencies
 }
 
+func getDefaultCurrency(ipIntelResponse welcomer.IPIntelResponse) welcomer.Currency {
+	if ipIntelResponse.Country == "GB" {
+		return welcomer.CurrencyGBP
+	} else if ipIntelResponse.Country == "IN" {
+		return welcomer.CurrencyINR
+	} else if welcomer.SliceContains(euroZone, ipIntelResponse.Country) {
+		return welcomer.CurrencyEUR
+	}
+
+	return welcomer.CurrencyUSD
+}
+
 type GetSKUsResponse struct {
-	AvailableCurrencies []welcomer.Currency `json:"available_currencies"`
-	DefaultCurrency     welcomer.Currency   `json:"default_currency"`
-	SKUs                []welcomer.PricingSKU
+	AvailableCurrencies []welcomer.Currency   `json:"available_currencies"`
+	DefaultCurrency     welcomer.Currency     `json:"default_currency"`
+	SKUs                []welcomer.PricingSKU `json:"skus"`
 }
 
 // Route GET /api/billing/skus
@@ -40,7 +55,7 @@ func getSKUs(ctx *gin.Context) {
 
 	pricingStructure := GetSKUsResponse{
 		AvailableCurrencies: currencies,
-		DefaultCurrency:     welcomer.DefaultCurrency,
+		DefaultCurrency:     getDefaultCurrency(response),
 		SKUs:                make([]welcomer.PricingSKU, 0, len(welcomer.SKUPricing)),
 	}
 
@@ -100,28 +115,25 @@ func createPayment(ctx *gin.Context) {
 			return
 		}
 
-		// If no currency is specified, use the default currency.
+		response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+		if err != nil {
+			backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
+		}
+
 		if request.Currency == "" {
-			request.Currency = welcomer.DefaultCurrency
-		} else if !welcomer.SliceContains(welcomer.GlobalCurrencies, request.Currency) {
-			// If a currency is not in the global currencies, check against if they are in
-			// the list of other available currencies.
-			response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
-			if err != nil {
-				backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
-			}
+			request.Currency = getDefaultCurrency(response)
+		}
 
-			currencies := getAvailableCurrencies(response)
-			if !welcomer.SliceContains(currencies, request.Currency) {
-				backend.Logger.Warn().Str("currency", string(request.Currency)).Msg("Invalid currency")
+		currencies := getAvailableCurrencies(response)
+		if !welcomer.SliceContains(currencies, request.Currency) {
+			backend.Logger.Warn().Str("currency", string(request.Currency)).Msg("Invalid currency")
 
-				ctx.JSON(http.StatusBadRequest, BaseResponse{
-					Ok:    false,
-					Error: "currency specified is not available for this user",
-				})
+			ctx.JSON(http.StatusBadRequest, BaseResponse{
+				Ok:    false,
+				Error: "currency specified is not available for this user",
+			})
 
-				return
-			}
+			return
 		}
 
 		// Check if the currency is available for this SKU.
@@ -290,10 +302,7 @@ func paymentCancelled(ctx *gin.Context) {
 	ctx.Status(http.StatusTemporaryRedirect)
 }
 
-// << 302
-
 // Route POST /api/billing/callback?token=...&PayerID=...
-// /api/billing/callback?token=83H56682NP651951M&PayerID=CT46WL8N7YNGE
 func paymentCallback(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 
