@@ -1,6 +1,8 @@
 package welcomer
 
-import "github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+)
 
 var DefaultCurrency = CurrencyGBP
 
@@ -13,6 +15,7 @@ var SKUPricing = map[SKUName]PricingSKU{
 		Description:    "",
 		MembershipType: database.MembershipTypeWelcomerPro,
 		SoftDescriptor: "Pro",
+		MonthCount:     1,
 		Costs: map[Currency]string{
 			CurrencyEUR: "7.99",
 			CurrencyGBP: "6.99",
@@ -26,6 +29,7 @@ var SKUPricing = map[SKUName]PricingSKU{
 		Description:    "",
 		MembershipType: database.MembershipTypeCustomBackgrounds,
 		SoftDescriptor: "Backgrounds",
+		MonthCount:     -1,
 		Costs: map[Currency]string{
 			CurrencyEUR: "11.99",
 			CurrencyGBP: "9.99",
@@ -41,6 +45,7 @@ type PricingSKU struct {
 	Description    string                  `json:"-"`
 	MembershipType database.MembershipType `json:"-"`
 	SoftDescriptor string                  `json:"-"` // This should be 13 characters or less.
+	MonthCount     int                     `json:"months"`
 	Costs          map[Currency]string     `json:"costs"`
 }
 
