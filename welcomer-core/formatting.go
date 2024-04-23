@@ -82,10 +82,8 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 		Banner:  getGuildBanner(guild),
 	}
 
-	if extraValues != nil {
-		for key, value := range extraValues {
-			vars[key] = value
-		}
+	for key, value := range extraValues {
+		vars[key] = value
 	}
 
 	return vars
