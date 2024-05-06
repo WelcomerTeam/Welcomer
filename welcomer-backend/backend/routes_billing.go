@@ -444,8 +444,8 @@ func paymentCallback(ctx *gin.Context) {
 			PlatformType:      int32(database.PlatformTypePaypal),
 			TransactionID:     authorizeResponse.ID,
 			TransactionStatus: int32(database.TransactionStatusCompleted),
-			CurrencyCode:      authorizeResponse.PurchaseUnits[0].Amount.Currency,
-			Amount:            authorizeResponse.PurchaseUnits[0].Amount.Value,
+			CurrencyCode:      order.PurchaseUnits[0].Amount.Currency,
+			Amount:            order.PurchaseUnits[0].Amount.Value,
 		})
 		if err != nil {
 			backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
