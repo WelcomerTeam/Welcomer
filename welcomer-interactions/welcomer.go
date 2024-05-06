@@ -63,7 +63,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 
 		usage, err := queries.CreateCommandUsage(ctx, &database.CreateCommandUsageParams{
 			GuildID:         guildID,
-			UserID:          int64(interaction.Member.User.ID),
+			UserID:          int64(interaction.User.ID),
 			ChannelID:       channelID,
 			Command:         interactionCommandName,
 			Errored:         interactionError != nil,
