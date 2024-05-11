@@ -77,7 +77,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				go func() {
 					time.Sleep(time.Second * 15)
-					interaction.DeleteOriginalResponse(sub.EmptySession)
+
+					err = interaction.DeleteOriginalResponse(sub.EmptySession)
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to delete original response")
+					}
 				}()
 
 				if len(messagesToDelete) == 0 {
@@ -170,8 +174,21 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []*discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.\nFind out more [**here**](%s)", welcomer.WebsiteURL+"/premium"),
+							Description: "### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.",
 							Color:       welcomer.EmbedColourInfo,
+						},
+					},
+					Components: []*discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeActionRow,
+							Components: []*discord.InteractionComponent{
+								{
+									Type:  discord.InteractionComponentTypeButton,
+									Style: discord.InteractionComponentStyleLink,
+									Label: "Get Welcomer Pro",
+									URL:   welcomer.WebsiteURL + "/premium",
+								},
+							},
 						},
 					},
 				},
@@ -430,6 +447,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+					}
 				}(ctx, sub, interaction)
 
 				return &discord.InteractionResponse{
@@ -506,6 +526,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+					}
 				}(ctx, sub, interaction)
 
 				return &discord.InteractionResponse{
@@ -582,6 +605,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
+					if err != nil {
+						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+					}
 				}(ctx, sub, interaction)
 
 				return &discord.InteractionResponse{
