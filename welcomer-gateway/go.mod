@@ -6,8 +6,8 @@ toolchain go1.22.0
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240512183153-c1cea3c12cb0
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240512190355-7bf51cdfead1
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240512185213-73615e5ec7cd
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240512213401-91f7d6f764f8
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240512203318-371766fc1709
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3

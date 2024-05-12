@@ -33,7 +33,6 @@ func main() {
 
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
-	stanCluster := flag.String("stanCluster", os.Getenv("STAN_CLUSTER"), "NATs streaming Cluster")
 	jetstreamClientName := flag.String("jetstreamClientName", "welcomer-gateway", "NATs client name")
 
 	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
@@ -80,7 +79,6 @@ func main() {
 
 	if err = jetstreamClient.Connect(ctx, *jetstreamClientName, map[string]interface{}{
 		"Address": *stanAddress,
-		"Cluster": *stanCluster,
 		"Channel": *stanChannel,
 	}); err != nil {
 		panic(fmt.Sprintf(`jetstreamClient.Connect(): %v`, err.Error()))
