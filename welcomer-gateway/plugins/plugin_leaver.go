@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"encoding/json"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/jackc/pgx/v4"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/savsgio/gotils/strconv"
 )
 
@@ -167,7 +168,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 	var serverMessage discord.MessageParams
 
 	// Convert MessageFormat to MessageParams so we can send it.
-	err = jsoniter.UnmarshalFromString(messageFormat, &serverMessage)
+	err = json.Unmarshal(strconv.S2B(messageFormat), &serverMessage)
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

@@ -1,8 +1,9 @@
 package welcomer
 
 import (
+	"encoding/json"
+
 	"github.com/WelcomerTeam/Discord/discord"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type GuildSettingsTimeRolesRole struct {
@@ -11,13 +12,13 @@ type GuildSettingsTimeRolesRole struct {
 }
 
 func UnmarshalTimeRolesJSON(rolesJSON []byte) (roles []GuildSettingsTimeRolesRole) {
-	_ = jsoniter.Unmarshal(rolesJSON, &roles)
+	_ = json.Unmarshal(rolesJSON, &roles)
 
 	return
 }
 
 func MarshalTimeRolesJSON(roles []GuildSettingsTimeRolesRole) (rolesJSON []byte) {
-	rolesJSON, _ = jsoniter.Marshal(roles)
+	rolesJSON, _ = json.Marshal(roles)
 
 	return
 }

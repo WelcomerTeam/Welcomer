@@ -5,15 +5,14 @@ go 1.22
 toolchain go1.22.0
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240310114051-2a2497c4bbb8
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240218015658-e9336f7e2117
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240326184703-4a3f5b2612a6
-	github.com/WelcomerTeam/Subway v0.0.0-20240217004726-dfb58483e6ea
+	github.com/WelcomerTeam/Discord v0.0.0-20240512183153-c1cea3c12cb0
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240512190355-7bf51cdfead1
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240512185213-73615e5ec7cd
+	github.com/WelcomerTeam/Subway v0.0.0-20240512192535-eedc5ea26d74
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/jackc/pgtype v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
-	github.com/json-iterator/go v1.1.12
 	github.com/rs/zerolog v1.32.0
 	google.golang.org/grpc v1.63.2
 )
@@ -28,8 +27,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
@@ -42,28 +39,24 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nats-io/nats.go v1.34.1 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
-	github.com/nats-io/stan.go v0.10.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.19.0 // indirect
+	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
 	github.com/prometheus/procfs v0.14.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20240113215029-33f8e6d47f38 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240429193739-8cf5692501f6 // indirect
-	google.golang.org/protobuf v1.34.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240509183442-62759503f434 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 

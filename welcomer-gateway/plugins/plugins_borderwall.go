@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/savsgio/gotils/strconv"
 )
 
@@ -231,7 +231,6 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	// Fallback to default message if the message is empty.
 	guildSettingsBorderwall.MessageVerify = welcomer.SetupJSONB(guildSettingsBorderwall.MessageVerify)
 
-
 	if guildSettingsBorderwall.Channel != 0 || guildSettingsBorderwall.ToggleSendDm {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerify.Bytes))
 		if err != nil {
@@ -245,7 +244,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 
 		if guildSettingsBorderwall.Channel != 0 {
 			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &serverMessage)
+			err = json.Unmarshal(strconv.S2B(messageFormat), &serverMessage)
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -263,7 +262,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 
 		if guildSettingsBorderwall.ToggleSendDm {
 			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
+			err = json.Unmarshal(strconv.S2B(messageFormat), &directMessage)
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -517,7 +516,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 		if guildSettingsBorderwall.Channel != 0 {
 			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &serverMessage)
+			err = json.Unmarshal(strconv.S2B(messageFormat), &serverMessage)
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -530,7 +529,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 		if guildSettingsBorderwall.ToggleSendDm {
 			// Convert MessageFormat to MessageParams so we can send it.
-			err = jsoniter.UnmarshalFromString(messageFormat, &directMessage)
+			err = json.Unmarshal(strconv.S2B(messageFormat), &directMessage)
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).

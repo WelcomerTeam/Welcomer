@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image/jpeg"
@@ -19,7 +20,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/savsgio/gotils/strconv"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
 
@@ -94,17 +95,17 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			partial := &GuildSettingsWelcomer{}
 
-			var file *multipart.FileHeader
+			var fileValue *multipart.FileHeader
 			var err error
 
 			switch ctx.ContentType() {
 			case gin.MIMEMultipartPOSTForm:
 				multipart, err := ctx.MultipartForm()
 				if err == nil {
-					file = multipart.File["file"][0]
-					json := multipart.Value["json"][0]
+					fileValue = multipart.File["file"][0]
+					jsonValue := multipart.Value["json"][0]
 
-					err = jsoniter.UnmarshalFromString(json, &partial)
+					err = json.Unmarshal(strconv.S2B(jsonValue), &partial)
 					if err != nil {
 						ctx.JSON(http.StatusBadRequest, BaseResponse{
 							Ok:    false,
@@ -158,7 +159,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(int64(guildID), partial)
 
 			if welcomerImages.BackgroundName == core.CustomBackgroundPrefix+"upload" {
-				if file != nil {
+				if fileValue != nil {
 					hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(guildID)
 					if err != nil {
 						backend.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
@@ -173,7 +174,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 						return
 					}
 
-					if file.Size > MaxBackgroundSize {
+					if fileValue.Size > MaxBackgroundSize {
 						ctx.JSON(http.StatusRequestEntityTooLarge, BaseResponse{
 							Ok:    false,
 							Error: ErrBackgroundTooLarge.Error(),
@@ -182,7 +183,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 						return
 					}
 
-					fileOpen, err := file.Open()
+					fileOpen, err := fileValue.Open()
 					if err != nil {
 						ctx.JSON(http.StatusInternalServerError, BaseResponse{
 							Ok: false,
@@ -221,7 +222,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					case MIMEGIF, MIMEPNG, MIMEJPEG:
 						switch {
 						case mimeType == MIMEGIF && hasWelcomerPro:
-							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, file, fileOpen)
+							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, fileValue, fileOpen)
 						case mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
 							// We will still accept GIFs if they do not have Welcomer Pro, however
 							// they will be converted to PNG. This saves having to extract the first
@@ -243,7 +244,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 						if err != nil {
 							backend.Logger.Error().Err(err).
 								Int64("guild_id", int64(guildID)).
-								Int64("filesize", file.Size).
+								Int64("filesize", fileValue.Size).
 								Str("mimetype", mimeType).
 								Msg("Failed to upload custom welcomer background")
 
@@ -293,7 +294,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					default:
 						backend.Logger.Info().
 							Int64("guild_id", int64(guildID)).
-							Int64("filesize", file.Size).
+							Int64("filesize", fileValue.Size).
 							Str("mimetype", mimeType).
 							Msg("Rejected custom welcomer background")
 

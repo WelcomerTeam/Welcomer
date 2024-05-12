@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -11,7 +12,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func NewWelcomerCog() *WelcomerCog {
@@ -142,7 +142,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
-				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
+				data, err := json.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
 					Interaction: &interaction,
 					Member:      *member,
 				})

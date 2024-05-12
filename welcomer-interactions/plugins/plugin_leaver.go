@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -10,7 +11,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func NewLeaverCog() *LeaverCog {
@@ -113,7 +113,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeLeaverStructure{
+				data, err := json.Marshal(welcomer.CustomEventInvokeLeaverStructure{
 					Interaction: &interaction,
 					User:        *member.User,
 					GuildID:     *interaction.GuildID,

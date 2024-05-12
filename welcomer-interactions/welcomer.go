@@ -3,6 +3,7 @@ package welcomer
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	plugins "github.com/WelcomerTeam/Welcomer/welcomer-interactions/plugins"
 	"github.com/jackc/pgtype"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subway {
@@ -24,9 +24,9 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	}
 
 	sub.Commands.ErrorHandler = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, err error) (*discord.InteractionResponse, error) {
-		s, _ := jsoniter.MarshalToString(interaction)
+		s, _ := json.Marshal(interaction)
 
-		sub.Logger.Error().Err(err).Str("json", s).Msg("Exception executing interaction")
+		sub.Logger.Error().Err(err).Bytes("json", s).Msg("Exception executing interaction")
 		println(string(debug.Stack()))
 
 		return nil, nil
@@ -81,7 +81,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 		}
 
 		if interactionError != nil {
-			interactionJSON, err := jsoniter.Marshal(interaction)
+			interactionJSON, err := json.Marshal(interaction)
 			if err != nil {
 				sub.Logger.Warn().Err(err).Msg("Failed to marshal interaction")
 			}

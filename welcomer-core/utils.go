@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"image/color"
 	"math/rand"
@@ -16,8 +17,8 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	"github.com/jackc/pgtype"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/zerolog"
+	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
 
 var (
@@ -71,9 +72,9 @@ func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRo
 	return
 }
 
-// StringToJsonLiteral converts a string to a jsoniter.RawMessage.
-func StringToJsonLiteral(s string) jsoniter.RawMessage {
-	return jsoniter.RawMessage([]byte(`"` + s + `"`))
+// StringToJsonLiteral converts a string to a json.RawMessage.
+func StringToJsonLiteral(s string) json.RawMessage {
+	return json.RawMessage([]byte(`"` + s + `"`))
 }
 
 func ToPointer[K any](k K) *K {
@@ -112,10 +113,10 @@ func TryParseBool(str string) bool {
 	return boolean
 }
 
-func TryParseInt(str string) int {
+func TryParseInt(str string) int64 {
 	integer, _ := strconv.ParseInt(str, int64Base, int64BitSize)
 
-	return int(integer)
+	return integer
 }
 
 func TryParseFloat(str string) float64 {
@@ -159,7 +160,7 @@ func IsValidBackground(s string) bool {
 func IsValidEmbed(s string) bool {
 	var upe UserProvidedEmbed
 
-	err := jsoniter.UnmarshalFromString(s, &upe)
+	err := json.Unmarshal(gotils_strconv.S2B(s), &upe)
 
 	return err == nil
 }

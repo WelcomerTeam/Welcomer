@@ -2,12 +2,12 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func NewDebugCog() *DebugCog {
@@ -72,7 +72,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
-				data, err := jsoniter.Marshal(discord.GuildMemberAdd(member))
+				data, err := json.Marshal(discord.GuildMemberAdd(member))
 				if err != nil {
 					return nil, err
 				}
@@ -124,7 +124,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
-				data, err := jsoniter.Marshal(discord.GuildMemberRemove{
+				data, err := json.Marshal(discord.GuildMemberRemove{
 					User:    member.User,
 					GuildID: *member.GuildID,
 				})

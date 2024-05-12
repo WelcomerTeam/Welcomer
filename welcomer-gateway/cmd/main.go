@@ -34,7 +34,7 @@ func main() {
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
 	stanCluster := flag.String("stanCluster", os.Getenv("STAN_CLUSTER"), "NATs streaming Cluster")
-	stanClientName := flag.String("stanClientName", "welcomer-gateway", "NATs client name")
+	jetstreamClientName := flag.String("jetstreamClientName", "welcomer-gateway", "NATs client name")
 
 	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
 
@@ -76,18 +76,18 @@ func main() {
 	}
 
 	// Setup NATs
-	stanClient := messaging.NewStanMQClient()
+	jetstreamClient := messaging.NewJetstreamMQClient()
 
-	if err = stanClient.Connect(ctx, *stanClientName, map[string]interface{}{
+	if err = jetstreamClient.Connect(ctx, *jetstreamClientName, map[string]interface{}{
 		"Address": *stanAddress,
 		"Cluster": *stanCluster,
 		"Channel": *stanChannel,
 	}); err != nil {
-		panic(fmt.Sprintf(`stanClient.Connect(): %v`, err.Error()))
+		panic(fmt.Sprintf(`jetstreamClient.Connect(): %v`, err.Error()))
 	}
 
-	if err = stanClient.Subscribe(ctx, *stanChannel); err != nil {
-		panic(fmt.Sprintf(`stanClient.Subscribe(%s): %v`, *stanChannel, err.Error()))
+	if err = jetstreamClient.Subscribe(ctx, *stanChannel); err != nil {
+		panic(fmt.Sprintf(`jetstreamClient.Subscribe(%s): %v`, *stanChannel, err.Error()))
 	}
 
 	// Setup postgres pool.
@@ -113,7 +113,7 @@ func main() {
 	}
 
 	// Register message channels
-	stanMessages := stanClient.Chan()
+	stanMessages := jetstreamClient.Chan()
 
 	if err = sandwichClient.ListenToChannel(ctx, stanMessages); err != nil {
 		logger.Panic().Err(err).Msg("Failed to listen to channel")
@@ -122,7 +122,7 @@ func main() {
 	cancel()
 
 	// Close sandwich
-	stanClient.Unsubscribe()
+	jetstreamClient.Unsubscribe(ctx)
 
 	if err = grpcConnection.Close(); err != nil {
 		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")

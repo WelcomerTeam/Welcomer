@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func NewTempChannelsCog() *TempChannelsCog {
@@ -88,7 +88,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				interaction.Member.GuildID = interaction.GuildID
 
-				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeTempChannelsStructure{
+				data, err := json.Marshal(welcomer.CustomEventInvokeTempChannelsStructure{
 					Interaction: &interaction,
 					Member:      *interaction.Member,
 				})
@@ -125,7 +125,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				interaction.Member.GuildID = interaction.GuildID
 
-				data, err := jsoniter.Marshal(welcomer.CustomEventInvokeTempChannelsRemoveStructure{
+				data, err := json.Marshal(welcomer.CustomEventInvokeTempChannelsRemoveStructure{
 					Interaction: &interaction,
 					Member:      *interaction.Member,
 				})

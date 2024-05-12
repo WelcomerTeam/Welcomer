@@ -2,6 +2,7 @@ package backend
 
 import (
 	"database/sql"
+	"encoding/json"
 	"net"
 	"net/http"
 	"strconv"
@@ -16,7 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
-	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -247,7 +247,7 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		data, err := jsoniter.Marshal(welcomer.CustomEventInvokeBorderwallCompletionStructure{
+		data, err := json.Marshal(welcomer.CustomEventInvokeBorderwallCompletionStructure{
 			Member: discord.GuildMember{
 				User: &discord.User{
 					ID:            user.ID,
