@@ -22,7 +22,7 @@ type CreateFreeRolesGuildSettingsParams struct {
 	Roles         []int64 `json:"roles"`
 }
 
-func (q *Queries) CreateFreeRolesGuildSettings(ctx context.Context, arg *CreateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error) {
+func (q *Queries) CreateFreeRolesGuildSettings(ctx context.Context, arg CreateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error) {
 	row := q.db.QueryRow(ctx, CreateFreeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	var i GuildSettingsFreeroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Roles)
@@ -45,7 +45,7 @@ type CreateOrUpdateFreeRolesGuildSettingsParams struct {
 	Roles         []int64 `json:"roles"`
 }
 
-func (q *Queries) CreateOrUpdateFreeRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error) {
+func (q *Queries) CreateOrUpdateFreeRolesGuildSettings(ctx context.Context, arg CreateOrUpdateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateFreeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	var i GuildSettingsFreeroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Roles)
@@ -84,7 +84,7 @@ type UpdateFreeRolesGuildSettingsParams struct {
 	Roles         []int64 `json:"roles"`
 }
 
-func (q *Queries) UpdateFreeRolesGuildSettings(ctx context.Context, arg *UpdateFreeRolesGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateFreeRolesGuildSettings(ctx context.Context, arg UpdateFreeRolesGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateFreeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	if err != nil {
 		return 0, err

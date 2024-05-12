@@ -27,7 +27,7 @@ type CreateOrUpdateTimeRolesGuildSettingsParams struct {
 	Timeroles     pgtype.JSONB `json:"timeroles"`
 }
 
-func (q *Queries) CreateOrUpdateTimeRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateTimeRolesGuildSettingsParams) (*GuildSettingsTimeroles, error) {
+func (q *Queries) CreateOrUpdateTimeRolesGuildSettings(ctx context.Context, arg CreateOrUpdateTimeRolesGuildSettingsParams) (*GuildSettingsTimeroles, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateTimeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Timeroles)
 	var i GuildSettingsTimeroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Timeroles)
@@ -47,7 +47,7 @@ type CreateTimeRolesGuildSettingsParams struct {
 	Timeroles     pgtype.JSONB `json:"timeroles"`
 }
 
-func (q *Queries) CreateTimeRolesGuildSettings(ctx context.Context, arg *CreateTimeRolesGuildSettingsParams) (*GuildSettingsTimeroles, error) {
+func (q *Queries) CreateTimeRolesGuildSettings(ctx context.Context, arg CreateTimeRolesGuildSettingsParams) (*GuildSettingsTimeroles, error) {
 	row := q.db.QueryRow(ctx, CreateTimeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Timeroles)
 	var i GuildSettingsTimeroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Timeroles)
@@ -86,7 +86,7 @@ type UpdateTimeRolesGuildSettingsParams struct {
 	Timeroles     pgtype.JSONB `json:"timeroles"`
 }
 
-func (q *Queries) UpdateTimeRolesGuildSettings(ctx context.Context, arg *UpdateTimeRolesGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateTimeRolesGuildSettings(ctx context.Context, arg UpdateTimeRolesGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateTimeRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Timeroles)
 	if err != nil {
 		return 0, err

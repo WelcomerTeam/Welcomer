@@ -25,7 +25,7 @@ type CreateGuildInvitesParams struct {
 	Uses       int64     `json:"uses"`
 }
 
-func (q *Queries) CreateGuildInvites(ctx context.Context, arg *CreateGuildInvitesParams) (*GuildInvites, error) {
+func (q *Queries) CreateGuildInvites(ctx context.Context, arg CreateGuildInvitesParams) (*GuildInvites, error) {
 	row := q.db.QueryRow(ctx, CreateGuildInvites,
 		arg.InviteCode,
 		arg.GuildID,
@@ -64,7 +64,7 @@ type CreateOrUpdateGuildInvitesParams struct {
 	Uses       int64     `json:"uses"`
 }
 
-func (q *Queries) CreateOrUpdateGuildInvites(ctx context.Context, arg *CreateOrUpdateGuildInvitesParams) (*GuildInvites, error) {
+func (q *Queries) CreateOrUpdateGuildInvites(ctx context.Context, arg CreateOrUpdateGuildInvitesParams) (*GuildInvites, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateGuildInvites,
 		arg.InviteCode,
 		arg.GuildID,
@@ -96,7 +96,7 @@ type DeleteGuildInvitesParams struct {
 	GuildID    int64  `json:"guild_id"`
 }
 
-func (q *Queries) DeleteGuildInvites(ctx context.Context, arg *DeleteGuildInvitesParams) (int64, error) {
+func (q *Queries) DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error) {
 	result, err := q.db.Exec(ctx, DeleteGuildInvites, arg.InviteCode, arg.GuildID)
 	if err != nil {
 		return 0, err

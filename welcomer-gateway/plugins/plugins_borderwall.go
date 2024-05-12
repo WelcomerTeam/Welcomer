@@ -175,7 +175,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 
 	var existingRequestUuid uuid.UUID
 
-	borderwallRequests, err := queries.GetBorderwallRequestsByGuildIDUserID(eventCtx.Context, &database.GetBorderwallRequestsByGuildIDUserIDParams{
+	borderwallRequests, err := queries.GetBorderwallRequestsByGuildIDUserID(eventCtx.Context, database.GetBorderwallRequestsByGuildIDUserIDParams{
 		GuildID: int64(eventCtx.Guild.ID),
 		UserID:  int64(event.Member.User.ID),
 	})
@@ -195,7 +195,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	if existingRequestUuid.IsNil() {
-		borderwallRequest, err := queries.CreateBorderwallRequest(eventCtx.Context, &database.CreateBorderwallRequestParams{
+		borderwallRequest, err := queries.CreateBorderwallRequest(eventCtx.Context, database.CreateBorderwallRequestParams{
 			GuildID: int64(eventCtx.Guild.ID),
 			UserID:  int64(event.Member.User.ID),
 		})

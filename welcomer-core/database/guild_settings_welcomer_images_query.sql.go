@@ -43,7 +43,7 @@ type CreateOrUpdateWelcomerImagesGuildSettingsParams struct {
 	ImageProfileBorderType int32  `json:"image_profile_border_type"`
 }
 
-func (q *Queries) CreateOrUpdateWelcomerImagesGuildSettings(ctx context.Context, arg *CreateOrUpdateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error) {
+func (q *Queries) CreateOrUpdateWelcomerImagesGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateWelcomerImagesGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -98,7 +98,7 @@ type CreateWelcomerImagesGuildSettingsParams struct {
 	ImageProfileBorderType int32  `json:"image_profile_border_type"`
 }
 
-func (q *Queries) CreateWelcomerImagesGuildSettings(ctx context.Context, arg *CreateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error) {
+func (q *Queries) CreateWelcomerImagesGuildSettings(ctx context.Context, arg CreateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error) {
 	row := q.db.QueryRow(ctx, CreateWelcomerImagesGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -194,7 +194,7 @@ type UpdateWelcomerImagesGuildSettingsParams struct {
 	ImageProfileBorderType int32  `json:"image_profile_border_type"`
 }
 
-func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg *UpdateWelcomerImagesGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateWelcomerImagesGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,

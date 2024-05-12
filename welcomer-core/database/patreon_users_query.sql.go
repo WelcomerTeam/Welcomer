@@ -30,7 +30,7 @@ type CreateOrUpdatePatreonUserParams struct {
 	ThumbUrl      string `json:"thumb_url"`
 }
 
-func (q *Queries) CreateOrUpdatePatreonUser(ctx context.Context, arg *CreateOrUpdatePatreonUserParams) (*PatreonUsers, error) {
+func (q *Queries) CreateOrUpdatePatreonUser(ctx context.Context, arg CreateOrUpdatePatreonUserParams) (*PatreonUsers, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdatePatreonUser,
 		arg.PatreonUserID,
 		arg.UserID,
@@ -66,7 +66,7 @@ type CreatePatreonUserParams struct {
 	ThumbUrl      string `json:"thumb_url"`
 }
 
-func (q *Queries) CreatePatreonUser(ctx context.Context, arg *CreatePatreonUserParams) (*PatreonUsers, error) {
+func (q *Queries) CreatePatreonUser(ctx context.Context, arg CreatePatreonUserParams) (*PatreonUsers, error) {
 	row := q.db.QueryRow(ctx, CreatePatreonUser,
 		arg.PatreonUserID,
 		arg.UserID,
@@ -182,7 +182,7 @@ type UpdatePatreonUserParams struct {
 	ThumbUrl      string `json:"thumb_url"`
 }
 
-func (q *Queries) UpdatePatreonUser(ctx context.Context, arg *UpdatePatreonUserParams) (int64, error) {
+func (q *Queries) UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdatePatreonUser,
 		arg.PatreonUserID,
 		arg.UserID,

@@ -3,8 +3,7 @@ CREATE TABLE IF NOT EXISTS guild_invites (
     guild_id bigint NOT NULL,
     created_by bigint NOT NULL,
     created_at timestamp NOT NULL,
-    uses bigint NOT NULL,
-    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
+    uses bigint NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS guild_invites_guild_id ON guild_invites (guild_id);

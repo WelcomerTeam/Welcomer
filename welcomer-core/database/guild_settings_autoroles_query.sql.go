@@ -22,7 +22,7 @@ type CreateAutoRolesGuildSettingsParams struct {
 	Roles         []int64 `json:"roles"`
 }
 
-func (q *Queries) CreateAutoRolesGuildSettings(ctx context.Context, arg *CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error) {
+func (q *Queries) CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error) {
 	row := q.db.QueryRow(ctx, CreateAutoRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	var i GuildSettingsAutoroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Roles)
@@ -45,7 +45,7 @@ type CreateOrUpdateAutoRolesGuildSettingsParams struct {
 	Roles         []int64 `json:"roles"`
 }
 
-func (q *Queries) CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg *CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error) {
+func (q *Queries) CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateAutoRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	var i GuildSettingsAutoroles
 	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.Roles)
@@ -84,7 +84,7 @@ type UpdateAutoRolesGuildSettingsParams struct {
 	Roles         []int64 `json:"roles"`
 }
 
-func (q *Queries) UpdateAutoRolesGuildSettings(ctx context.Context, arg *UpdateAutoRolesGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateAutoRolesGuildSettings(ctx context.Context, arg UpdateAutoRolesGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateAutoRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.Roles)
 	if err != nil {
 		return 0, err

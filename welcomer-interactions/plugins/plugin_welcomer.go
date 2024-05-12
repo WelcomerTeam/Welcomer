@@ -256,7 +256,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, &database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 					Channel:       guildSettingsWelcomerText.Channel,
@@ -270,7 +270,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, &database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
 					GuildID:                int64(*interaction.GuildID),
 					ToggleEnabled:          guildSettingsWelcomerImages.ToggleEnabled,
 					ToggleImageBorder:      guildSettingsWelcomerImages.ToggleImageBorder,
@@ -292,7 +292,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, &database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
 					GuildID:             int64(*interaction.GuildID),
 					ToggleEnabled:       guildSettingsWelcomerDMs.ToggleEnabled,
 					ToggleUseTextFormat: guildSettingsWelcomerDMs.ToggleUseTextFormat,
@@ -438,7 +438,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, &database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 					Channel:       guildSettingsWelcomerText.Channel,
@@ -452,7 +452,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, &database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
 					GuildID:                int64(*interaction.GuildID),
 					ToggleEnabled:          guildSettingsWelcomerImages.ToggleEnabled,
 					ToggleImageBorder:      guildSettingsWelcomerImages.ToggleImageBorder,
@@ -474,7 +474,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, &database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
 					GuildID:             int64(*interaction.GuildID),
 					ToggleEnabled:       guildSettingsWelcomerDMs.ToggleEnabled,
 					ToggleUseTextFormat: guildSettingsWelcomerDMs.ToggleUseTextFormat,
@@ -567,7 +567,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					guildSettingsWelcomerText.Channel = 0
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, &database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 					Channel:       guildSettingsWelcomerText.Channel,

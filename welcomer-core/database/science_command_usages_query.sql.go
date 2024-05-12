@@ -28,7 +28,7 @@ type CreateCommandUsageParams struct {
 	ExecutionTimeMs int64         `json:"execution_time_ms"`
 }
 
-func (q *Queries) CreateCommandUsage(ctx context.Context, arg *CreateCommandUsageParams) (*ScienceCommandUsages, error) {
+func (q *Queries) CreateCommandUsage(ctx context.Context, arg CreateCommandUsageParams) (*ScienceCommandUsages, error) {
 	row := q.db.QueryRow(ctx, CreateCommandUsage,
 		arg.GuildID,
 		arg.UserID,

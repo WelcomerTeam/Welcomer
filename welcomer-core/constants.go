@@ -1,6 +1,8 @@
 package welcomer
 
-import "github.com/WelcomerTeam/Discord/discord"
+import (
+	"github.com/WelcomerTeam/Discord/discord"
+)
 
 const (
 	EmojiCheck   = "<:check:1196902761627914402>"

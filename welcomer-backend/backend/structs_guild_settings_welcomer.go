@@ -43,12 +43,7 @@ type GuildSettingsWelcomerCustom struct {
 	CustomBackgroundIDs []string `json:"custom_ids"`
 }
 
-func GuildSettingsWelcomerSettingsToPartial(
-	text *database.GuildSettingsWelcomerText,
-	images *database.GuildSettingsWelcomerImages,
-	dms *database.GuildSettingsWelcomerDms,
-	Custom *GuildSettingsWelcomerCustom,
-) *GuildSettingsWelcomer {
+func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerText, images database.GuildSettingsWelcomerImages, dms database.GuildSettingsWelcomerDms, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
 		Text: &GuildSettingsWelcomerText{
 			ToggleEnabled: text.ToggleEnabled,
@@ -74,7 +69,7 @@ func GuildSettingsWelcomerSettingsToPartial(
 			ToggleIncludeImage:  dms.ToggleIncludeImage,
 			MessageFormat:       JSONBToString(dms.MessageFormat),
 		},
-		Custom: Custom,
+		Custom: custom,
 	}
 
 	return partial

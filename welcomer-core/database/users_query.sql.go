@@ -28,7 +28,9 @@ type CreateOrUpdateUserParams struct {
 	AvatarHash    string `json:"avatar_hash"`
 }
 
-func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg *CreateOrUpdateUserParams) (*Users, error) {
+
+
+func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUserParams) (*Users, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateUser,
 		arg.UserID,
 		arg.Name,
@@ -61,7 +63,7 @@ type CreateUserParams struct {
 	AvatarHash    string `json:"avatar_hash"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (*Users, error) {
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*Users, error) {
 	row := q.db.QueryRow(ctx, CreateUser,
 		arg.UserID,
 		arg.Name,
@@ -122,7 +124,7 @@ type UpdateUserParams struct {
 	AvatarHash    string `json:"avatar_hash"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (int64, error) {
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateUser,
 		arg.UserID,
 		arg.Name,

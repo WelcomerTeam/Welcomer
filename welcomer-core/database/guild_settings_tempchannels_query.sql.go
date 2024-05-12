@@ -31,7 +31,7 @@ type CreateOrUpdateTempChannelsGuildSettingsParams struct {
 	DefaultUserCount int32 `json:"default_user_count"`
 }
 
-func (q *Queries) CreateOrUpdateTempChannelsGuildSettings(ctx context.Context, arg *CreateOrUpdateTempChannelsGuildSettingsParams) (*GuildSettingsTempchannels, error) {
+func (q *Queries) CreateOrUpdateTempChannelsGuildSettings(ctx context.Context, arg CreateOrUpdateTempChannelsGuildSettingsParams) (*GuildSettingsTempchannels, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateTempChannelsGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -68,7 +68,7 @@ type CreateTempChannelsGuildSettingsParams struct {
 	DefaultUserCount int32 `json:"default_user_count"`
 }
 
-func (q *Queries) CreateTempChannelsGuildSettings(ctx context.Context, arg *CreateTempChannelsGuildSettingsParams) (*GuildSettingsTempchannels, error) {
+func (q *Queries) CreateTempChannelsGuildSettings(ctx context.Context, arg CreateTempChannelsGuildSettingsParams) (*GuildSettingsTempchannels, error) {
 	row := q.db.QueryRow(ctx, CreateTempChannelsGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -134,7 +134,7 @@ type UpdateTempChannelsGuildSettingsParams struct {
 	DefaultUserCount int32 `json:"default_user_count"`
 }
 
-func (q *Queries) UpdateTempChannelsGuildSettings(ctx context.Context, arg *UpdateTempChannelsGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateTempChannelsGuildSettings(ctx context.Context, arg UpdateTempChannelsGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateTempChannelsGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,

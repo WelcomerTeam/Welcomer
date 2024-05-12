@@ -17,9 +17,10 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 			borderwall, err := backend.Database.GetBorderwallGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild borderwall settings")
+				borderwall = &database.GuildSettingsBorderwall{}
 			}
 
-			partial := GuildSettingsBorderwallSettingsToPartial(borderwall)
+			partial := GuildSettingsBorderwallSettingsToPartial(*borderwall)
 
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok:   true,
@@ -71,7 +72,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 			borderwall := PartialToGuildSettingsBorderwallSettings(int64(guildID), partial)
 
 			databaseBorderwallGuildSettings := database.CreateOrUpdateBorderwallGuildSettingsParams(*borderwall)
-			_, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, &databaseBorderwallGuildSettings)
+			_, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, databaseBorderwallGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild borderwall settings")
 			}

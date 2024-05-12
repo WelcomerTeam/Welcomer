@@ -24,7 +24,7 @@ type CreateScienceEventParams struct {
 	Data      pgtype.JSONB `json:"data"`
 }
 
-func (q *Queries) CreateScienceEvent(ctx context.Context, arg *CreateScienceEventParams) (*ScienceEvents, error) {
+func (q *Queries) CreateScienceEvent(ctx context.Context, arg CreateScienceEventParams) (*ScienceEvents, error) {
 	row := q.db.QueryRow(ctx, CreateScienceEvent, arg.EventType, arg.Data)
 	var i ScienceEvents
 	err := row.Scan(

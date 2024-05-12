@@ -74,7 +74,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = true
 
-				_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, &database.CreateOrUpdateTimeRolesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 					Timeroles:     guildSettingsTimeRoles.Timeroles,
@@ -120,7 +120,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = false
 
-				_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, &database.CreateOrUpdateTimeRolesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 					Timeroles:     guildSettingsTimeRoles.Timeroles,

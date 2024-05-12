@@ -312,7 +312,7 @@ func ensureGuild(ctx *gin.Context, guildID discord.Snowflake) error {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild")
 	}
 
-	_, err = backend.Database.CreateOrUpdateGuild(ctx, &database.CreateOrUpdateGuildParams{
+	_, err = backend.Database.CreateOrUpdateGuild(ctx, database.CreateOrUpdateGuildParams{
 		GuildID:          int64(guildID),
 		EmbedColour:      databaseGuild.EmbedColour,
 		SiteSplashUrl:    databaseGuild.SiteSplashUrl,

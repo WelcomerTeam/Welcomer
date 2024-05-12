@@ -35,7 +35,7 @@ type CreateOrUpdateUserTransactionParams struct {
 	Amount            string `json:"amount"`
 }
 
-func (q *Queries) CreateOrUpdateUserTransaction(ctx context.Context, arg *CreateOrUpdateUserTransactionParams) (*UserTransactions, error) {
+func (q *Queries) CreateOrUpdateUserTransaction(ctx context.Context, arg CreateOrUpdateUserTransactionParams) (*UserTransactions, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateUserTransaction,
 		arg.UserID,
 		arg.PlatformType,
@@ -75,7 +75,7 @@ type CreateUserTransactionParams struct {
 	Amount            string `json:"amount"`
 }
 
-func (q *Queries) CreateUserTransaction(ctx context.Context, arg *CreateUserTransactionParams) (*UserTransactions, error) {
+func (q *Queries) CreateUserTransaction(ctx context.Context, arg CreateUserTransactionParams) (*UserTransactions, error) {
 	row := q.db.QueryRow(ctx, CreateUserTransaction,
 		arg.UserID,
 		arg.PlatformType,
@@ -229,7 +229,7 @@ type UpdateUserTransactionParams struct {
 	Amount            string    `json:"amount"`
 }
 
-func (q *Queries) UpdateUserTransaction(ctx context.Context, arg *UpdateUserTransactionParams) (int64, error) {
+func (q *Queries) UpdateUserTransaction(ctx context.Context, arg UpdateUserTransactionParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateUserTransaction,
 		arg.TransactionUuid,
 		arg.UserID,

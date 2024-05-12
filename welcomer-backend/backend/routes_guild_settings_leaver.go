@@ -17,9 +17,10 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 			leaver, err := backend.Database.GetLeaverGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")
+				leaver = &database.GuildSettingsLeaver{}
 			}
 
-			partial := GuildSettingsLeaverSettingsToPartial(leaver)
+			partial := GuildSettingsLeaverSettingsToPartial(*leaver)
 
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok:   true,
@@ -71,7 +72,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			leaver := PartialToGuildSettingsLeaverSettings(int64(guildID), partial)
 
 			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
-			_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, &databaseLeaverGuildSettings)
+			_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
 			}

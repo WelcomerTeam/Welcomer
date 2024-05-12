@@ -49,15 +49,19 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 			welcomerText, err := backend.Database.GetWelcomerTextGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer text settings")
+				welcomerText = &database.GuildSettingsWelcomerText{}
 			}
 
 			welcomerImages, err := backend.Database.GetWelcomerImagesGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
+				welcomerImages = &database.GuildSettingsWelcomerImages{}
 			}
+
 			welcomerDMs, err := backend.Database.GetWelcomerDMsGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer dms settings")
+				welcomerDMs = &database.GuildSettingsWelcomerDms{}
 			}
 
 			guildBackgrounds, err := backend.Database.GetWelcomerImagesByGuildId(ctx, int64(guildID))
@@ -72,7 +76,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 				customIDs[i] = b.WelcomerImageUuid.String()
 			}
 
-			partial := GuildSettingsWelcomerSettingsToPartial(welcomerText, welcomerImages, welcomerDMs, &GuildSettingsWelcomerCustom{
+			partial := GuildSettingsWelcomerSettingsToPartial(*welcomerText, *welcomerImages, *welcomerDMs, &GuildSettingsWelcomerCustom{
 				CustomBackgroundIDs: customIDs,
 			})
 
@@ -304,19 +308,19 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			}
 
 			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(*welcomerText)
-			_, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, &databaseWelcomerTextGuildSettings)
+			_, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, databaseWelcomerTextGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer text settings")
 			}
 
 			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
-			_, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, &databaseWelcomerImagesGuildSettings)
+			_, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, databaseWelcomerImagesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
 			}
 
 			databaseWelcomerDMsGuildSettings := database.CreateOrUpdateWelcomerDMsGuildSettingsParams(*welcomerDMs)
-			_, err = backend.Database.CreateOrUpdateWelcomerDMsGuildSettings(ctx, &databaseWelcomerDMsGuildSettings)
+			_, err = backend.Database.CreateOrUpdateWelcomerDMsGuildSettings(ctx, databaseWelcomerDMsGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
 			}
@@ -376,7 +380,7 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	var welcomerImageUuid uuid.UUID
 	welcomerImageUuid, _ = gen.NewV7()
 
-	return backend.Database.CreateWelcomerImages(ctx, &database.CreateWelcomerImagesParams{
+	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
 		WelcomerImageUuid: welcomerImageUuid,
 		GuildID:           int64(guildID),
 		CreatedAt:         time.Now(),
@@ -415,7 +419,7 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 	var welcomerImageUuid uuid.UUID
 	welcomerImageUuid, _ = gen.NewV7()
 
-	return backend.Database.CreateWelcomerImages(ctx, &database.CreateWelcomerImagesParams{
+	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
 		WelcomerImageUuid: welcomerImageUuid,
 		GuildID:           int64(guildID),
 		CreatedAt:         time.Now(),
@@ -454,7 +458,7 @@ func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Sno
 	var welcomerImageUuid uuid.UUID
 	welcomerImageUuid, _ = gen.NewV7()
 
-	return backend.Database.CreateWelcomerImages(ctx, &database.CreateWelcomerImagesParams{
+	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
 		WelcomerImageUuid: welcomerImageUuid,
 		GuildID:           int64(guildID),
 		CreatedAt:         time.Now(),

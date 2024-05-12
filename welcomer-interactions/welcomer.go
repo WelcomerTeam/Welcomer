@@ -61,9 +61,16 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 		command := subway.GetInteractionCommandFromContext(ctx)
 		interactionCommandName := strings.Join(append([]string{command.Name}, commandTree...), " ")
 
-		usage, err := queries.CreateCommandUsage(ctx, &database.CreateCommandUsageParams{
+		var userID int64
+		if interaction.Member != nil {
+			userID = int64(interaction.Member.User.ID)
+		} else {
+			userID = int64(interaction.User.ID)
+		}
+
+		usage, err := queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
 			GuildID:         guildID,
-			UserID:          int64(interaction.User.ID),
+			UserID:          userID,
 			ChannelID:       channelID,
 			Command:         interactionCommandName,
 			Errored:         interactionError != nil,
@@ -79,7 +86,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 				sub.Logger.Warn().Err(err).Msg("Failed to marshal interaction")
 			}
 
-			_, err = queries.CreateCommandError(ctx, &database.CreateCommandErrorParams{
+			_, err = queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
 				CommandUuid: usage.CommandUuid,
 				Trace:       interactionError.Error(),
 				Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},

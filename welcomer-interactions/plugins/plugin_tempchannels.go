@@ -202,7 +202,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, &database.CreateOrUpdateTempChannelsGuildSettingsParams{
+				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
@@ -293,7 +293,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, &database.CreateOrUpdateTempChannelsGuildSettingsParams{
+				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
@@ -364,7 +364,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsTempChannels.ChannelCategory = int64(channel.ID)
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, &database.CreateOrUpdateTempChannelsGuildSettingsParams{
+				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
@@ -427,7 +427,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					guildSettingsTempChannels.ChannelLobby = 0
 				}
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, &database.CreateOrUpdateTempChannelsGuildSettingsParams{
+				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,

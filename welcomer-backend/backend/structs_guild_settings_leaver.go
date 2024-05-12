@@ -10,9 +10,7 @@ type GuildSettingsLeaver struct {
 	ToggleEnabled bool    `json:"enabled"`
 }
 
-func GuildSettingsLeaverSettingsToPartial(
-	leaver *database.GuildSettingsLeaver,
-) *GuildSettingsLeaver {
+func GuildSettingsLeaverSettingsToPartial(leaver database.GuildSettingsLeaver) *GuildSettingsLeaver {
 	partial := &GuildSettingsLeaver{
 		ToggleEnabled: leaver.ToggleEnabled,
 		Channel:       Int64ToStringPointer(leaver.Channel),

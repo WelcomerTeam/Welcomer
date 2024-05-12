@@ -105,7 +105,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, &database.CreateOrUpdateRulesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 					ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
@@ -201,7 +201,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, &database.CreateOrUpdateRulesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 					GuildID:          int64(*interaction.GuildID),
 					ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 					ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,

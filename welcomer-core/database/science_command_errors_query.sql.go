@@ -27,7 +27,7 @@ type CreateCommandErrorParams struct {
 	Data        pgtype.JSONB `json:"data"`
 }
 
-func (q *Queries) CreateCommandError(ctx context.Context, arg *CreateCommandErrorParams) (*ScienceCommandErrors, error) {
+func (q *Queries) CreateCommandError(ctx context.Context, arg CreateCommandErrorParams) (*ScienceCommandErrors, error) {
 	row := q.db.QueryRow(ctx, CreateCommandError, arg.CommandUuid, arg.Trace, arg.Data)
 	var i ScienceCommandErrors
 	err := row.Scan(

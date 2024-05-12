@@ -25,7 +25,7 @@ type CreateBorderwallRequestParams struct {
 	UserID  int64 `json:"user_id"`
 }
 
-func (q *Queries) CreateBorderwallRequest(ctx context.Context, arg *CreateBorderwallRequestParams) (*BorderwallRequests, error) {
+func (q *Queries) CreateBorderwallRequest(ctx context.Context, arg CreateBorderwallRequestParams) (*BorderwallRequests, error) {
 	row := q.db.QueryRow(ctx, CreateBorderwallRequest, arg.GuildID, arg.UserID)
 	var i BorderwallRequests
 	err := row.Scan(
@@ -95,7 +95,7 @@ type GetBorderwallRequestsByGuildIDUserIDParams struct {
 	UserID  int64 `json:"user_id"`
 }
 
-func (q *Queries) GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg *GetBorderwallRequestsByGuildIDUserIDParams) ([]*BorderwallRequests, error) {
+func (q *Queries) GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg GetBorderwallRequestsByGuildIDUserIDParams) ([]*BorderwallRequests, error) {
 	rows, err := q.db.Query(ctx, GetBorderwallRequestsByGuildIDUserID, arg.GuildID, arg.UserID)
 	if err != nil {
 		return nil, err
@@ -209,7 +209,7 @@ type UpdateBorderwallRequestParams struct {
 	UaOsVersion     sql.NullString  `json:"ua_os_version"`
 }
 
-func (q *Queries) UpdateBorderwallRequest(ctx context.Context, arg *UpdateBorderwallRequestParams) (int64, error) {
+func (q *Queries) UpdateBorderwallRequest(ctx context.Context, arg UpdateBorderwallRequestParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateBorderwallRequest,
 		arg.RequestUuid,
 		arg.IsVerified,

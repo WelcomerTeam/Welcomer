@@ -25,7 +25,7 @@ type CreateGuildParams struct {
 	SiteAllowInvites bool   `json:"site_allow_invites"`
 }
 
-func (q *Queries) CreateGuild(ctx context.Context, arg *CreateGuildParams) (*Guilds, error) {
+func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error) {
 	row := q.db.QueryRow(ctx, CreateGuild,
 		arg.GuildID,
 		arg.EmbedColour,
@@ -68,7 +68,7 @@ type CreateOrUpdateGuildParams struct {
 	SiteAllowInvites bool   `json:"site_allow_invites"`
 }
 
-func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg *CreateOrUpdateGuildParams) (*Guilds, error) {
+func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGuildParams) (*Guilds, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateGuild,
 		arg.GuildID,
 		arg.EmbedColour,
@@ -134,7 +134,7 @@ type UpdateGuildParams struct {
 	SiteAllowInvites bool   `json:"site_allow_invites"`
 }
 
-func (q *Queries) UpdateGuild(ctx context.Context, arg *UpdateGuildParams) (int64, error) {
+func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateGuild,
 		arg.GuildID,
 		arg.EmbedColour,

@@ -31,7 +31,7 @@ type CreateOrUpdateWelcomerDMsGuildSettingsParams struct {
 	MessageFormat       pgtype.JSONB `json:"message_format"`
 }
 
-func (q *Queries) CreateOrUpdateWelcomerDMsGuildSettings(ctx context.Context, arg *CreateOrUpdateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error) {
+func (q *Queries) CreateOrUpdateWelcomerDMsGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateWelcomerDMsGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -65,7 +65,7 @@ type CreateWelcomerDMsGuildSettingsParams struct {
 	MessageFormat       pgtype.JSONB `json:"message_format"`
 }
 
-func (q *Queries) CreateWelcomerDMsGuildSettings(ctx context.Context, arg *CreateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error) {
+func (q *Queries) CreateWelcomerDMsGuildSettings(ctx context.Context, arg CreateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error) {
 	row := q.db.QueryRow(ctx, CreateWelcomerDMsGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -126,7 +126,7 @@ type UpdateWelcomerDMsGuildSettingsParams struct {
 	MessageFormat       pgtype.JSONB `json:"message_format"`
 }
 
-func (q *Queries) UpdateWelcomerDMsGuildSettings(ctx context.Context, arg *UpdateWelcomerDMsGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateWelcomerDMsGuildSettings(ctx context.Context, arg UpdateWelcomerDMsGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateWelcomerDMsGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,

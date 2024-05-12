@@ -29,7 +29,7 @@ type CreateBorderwallGuildSettingsParams struct {
 	RolesOnVerify   []int64      `json:"roles_on_verify"`
 }
 
-func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg *CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
+func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
 	row := q.db.QueryRow(ctx, CreateBorderwallGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -80,7 +80,7 @@ type CreateOrUpdateBorderwallGuildSettingsParams struct {
 	RolesOnVerify   []int64      `json:"roles_on_verify"`
 }
 
-func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg *CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
+func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateBorderwallGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -156,7 +156,7 @@ type UpdateBorderwallGuildSettingsParams struct {
 	RolesOnVerify   []int64      `json:"roles_on_verify"`
 }
 
-func (q *Queries) UpdateBorderwallGuildSettings(ctx context.Context, arg *UpdateBorderwallGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateBorderwallGuildSettings(ctx context.Context, arg UpdateBorderwallGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateBorderwallGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,

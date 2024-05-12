@@ -59,10 +59,10 @@ func getBorderwall(ctx *gin.Context) {
 		}
 
 		borderwallResponse := BorderwallResponse{
-			Valid: borderwallRequest != nil && !borderwallRequest.RequestUuid.IsNil() && !borderwallRequest.IsVerified,
+			Valid: !borderwallRequest.RequestUuid.IsNil() && !borderwallRequest.IsVerified,
 		}
 
-		if borderwallRequest != nil && !borderwallRequest.RequestUuid.IsNil() {
+		if !borderwallRequest.RequestUuid.IsNil() {
 			session := sessions.Default(ctx)
 			user, _ := GetUserSession(session)
 
@@ -148,7 +148,7 @@ func setBorderwall(ctx *gin.Context) {
 			logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
 
-		if borderwallRequest == nil || borderwallRequest.RequestUuid.IsNil() {
+		if borderwallRequest.RequestUuid.IsNil() {
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
 				Ok:    false,
 				Error: ErrBorderwallInvalidKey.Error(),
@@ -300,7 +300,7 @@ func setBorderwall(ctx *gin.Context) {
 			Msg("Borderwall request verified")
 
 		// Update the borderwall request with the response
-		if _, err := backend.Database.UpdateBorderwallRequest(ctx, &database.UpdateBorderwallRequestParams{
+		if _, err := backend.Database.UpdateBorderwallRequest(ctx, database.UpdateBorderwallRequestParams{
 			RequestUuid:     borderwallRequest.RequestUuid,
 			IsVerified:      true,
 			VerifiedAt:      sql.NullTime{Time: time.Now(), Valid: true},

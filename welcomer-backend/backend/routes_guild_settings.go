@@ -71,7 +71,7 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			settings := PartialToGuildSettings(int64(guildID), partial)
 
 			databaseGuildSettings := database.CreateOrUpdateGuildParams(*settings)
-			_, err = backend.Database.CreateOrUpdateGuild(ctx, &databaseGuildSettings)
+			_, err = backend.Database.CreateOrUpdateGuild(ctx, databaseGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild settings settings")
 			}

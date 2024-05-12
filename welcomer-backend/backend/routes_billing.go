@@ -169,7 +169,7 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		// Create a user transaction.
-		userTransaction, err := backend.Database.CreateUserTransaction(backend.ctx, &database.CreateUserTransactionParams{
+		userTransaction, err := backend.Database.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
 			UserID:            int64(user.ID),
 			PlatformType:      int32(database.PlatformTypePaypal),
 			TransactionID:     "",
@@ -246,7 +246,7 @@ func createPayment(ctx *gin.Context) {
 		// Update the user transaction with the order ID.
 		userTransaction.TransactionID = order.ID
 
-		_, err = backend.Database.UpdateUserTransaction(backend.ctx, &database.UpdateUserTransactionParams{
+		_, err = backend.Database.UpdateUserTransaction(backend.ctx, database.UpdateUserTransactionParams{
 			TransactionUuid:   userTransaction.TransactionUuid,
 			UserID:            userTransaction.UserID,
 			PlatformType:      userTransaction.PlatformType,
@@ -419,7 +419,7 @@ func paymentCallback(ctx *gin.Context) {
 			backend.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
 
 			// Create a user transaction.
-			_, err = backend.Database.CreateUserTransaction(backend.ctx, &database.CreateUserTransactionParams{
+			_, err = backend.Database.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
 				UserID:            int64(user.ID),
 				PlatformType:      int32(database.PlatformTypePaypal),
 				TransactionID:     authorizeResponse.ID,
@@ -439,7 +439,7 @@ func paymentCallback(ctx *gin.Context) {
 		}
 
 		// Create a user transaction.
-		userTransaction, err := backend.Database.CreateUserTransaction(backend.ctx, &database.CreateUserTransactionParams{
+		userTransaction, err := backend.Database.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
 			UserID:            int64(user.ID),
 			PlatformType:      int32(database.PlatformTypePaypal),
 			TransactionID:     authorizeResponse.ID,
@@ -466,7 +466,7 @@ func paymentCallback(ctx *gin.Context) {
 		}
 
 		// Create a new membership for the user.
-		_, err = backend.Database.CreateNewMembership(backend.ctx, &database.CreateNewMembershipParams{
+		_, err = backend.Database.CreateNewMembership(backend.ctx, database.CreateNewMembershipParams{
 			StartedAt:       startedAt,
 			ExpiresAt:       expiresAt,
 			Status:          int32(database.MembershipStatusIdle),

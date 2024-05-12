@@ -27,7 +27,7 @@ type CreateOrUpdateRulesGuildSettingsParams struct {
 	Rules            []string `json:"rules"`
 }
 
-func (q *Queries) CreateOrUpdateRulesGuildSettings(ctx context.Context, arg *CreateOrUpdateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
+func (q *Queries) CreateOrUpdateRulesGuildSettings(ctx context.Context, arg CreateOrUpdateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateRulesGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -58,7 +58,7 @@ type CreateRulesGuildSettingsParams struct {
 	Rules            []string `json:"rules"`
 }
 
-func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg *CreateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
+func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg CreateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
 	row := q.db.QueryRow(ctx, CreateRulesGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -114,7 +114,7 @@ type UpdateRuleGuildSettingsParams struct {
 	Rules            []string `json:"rules"`
 }
 
-func (q *Queries) UpdateRuleGuildSettings(ctx context.Context, arg *UpdateRuleGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateRuleGuildSettings(ctx context.Context, arg UpdateRuleGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateRuleGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,

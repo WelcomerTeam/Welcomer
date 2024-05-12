@@ -14,9 +14,7 @@ type GuildSettingsBorderwall struct {
 	ToggleSendDm    bool     `json:"send_dm"`
 }
 
-func GuildSettingsBorderwallSettingsToPartial(
-	borderwall *database.GuildSettingsBorderwall,
-) *GuildSettingsBorderwall {
+func GuildSettingsBorderwallSettingsToPartial(borderwall database.GuildSettingsBorderwall) *GuildSettingsBorderwall {
 	partial := &GuildSettingsBorderwall{
 		ToggleEnabled:   borderwall.ToggleEnabled,
 		ToggleSendDm:    borderwall.ToggleSendDm,

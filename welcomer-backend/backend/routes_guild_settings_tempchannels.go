@@ -71,7 +71,7 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 			tempchannels := PartialToGuildSettingsTempChannelsSettings(int64(guildID), partial)
 
 			databaseTempChannelsGuildSettings := database.CreateOrUpdateTempChannelsGuildSettingsParams(*tempchannels)
-			_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, &databaseTempChannelsGuildSettings)
+			_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild tempchannels settings")
 			}

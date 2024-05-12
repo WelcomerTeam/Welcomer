@@ -25,7 +25,7 @@ type CreateLeaverGuildSettingsParams struct {
 	MessageFormat pgtype.JSONB `json:"message_format"`
 }
 
-func (q *Queries) CreateLeaverGuildSettings(ctx context.Context, arg *CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error) {
+func (q *Queries) CreateLeaverGuildSettings(ctx context.Context, arg CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error) {
 	row := q.db.QueryRow(ctx, CreateLeaverGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -60,7 +60,7 @@ type CreateOrUpdateLeaverGuildSettingsParams struct {
 	MessageFormat pgtype.JSONB `json:"message_format"`
 }
 
-func (q *Queries) CreateOrUpdateLeaverGuildSettings(ctx context.Context, arg *CreateOrUpdateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error) {
+func (q *Queries) CreateOrUpdateLeaverGuildSettings(ctx context.Context, arg CreateOrUpdateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateLeaverGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,
@@ -116,7 +116,7 @@ type UpdateLeaverGuildSettingsParams struct {
 	MessageFormat pgtype.JSONB `json:"message_format"`
 }
 
-func (q *Queries) UpdateLeaverGuildSettings(ctx context.Context, arg *UpdateLeaverGuildSettingsParams) (int64, error) {
+func (q *Queries) UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateLeaverGuildSettings,
 		arg.GuildID,
 		arg.ToggleEnabled,

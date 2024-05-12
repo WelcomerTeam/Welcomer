@@ -71,7 +71,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsAutoRoles.ToggleEnabled = true
 
-				_, err = queries.CreateOrUpdateAutoRolesGuildSettings(ctx, &database.CreateOrUpdateAutoRolesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 					Roles:         guildSettingsAutoRoles.Roles,
@@ -116,7 +116,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsAutoRoles.ToggleEnabled = false
 
-				_, err = queries.CreateOrUpdateAutoRolesGuildSettings(ctx, &database.CreateOrUpdateAutoRolesGuildSettingsParams{
+				_, err = queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 					GuildID:       int64(*interaction.GuildID),
 					ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 					Roles:         guildSettingsAutoRoles.Roles,

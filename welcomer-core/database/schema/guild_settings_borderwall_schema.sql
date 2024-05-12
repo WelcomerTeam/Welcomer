@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS guild_settings_borderwall (
     message_verify jsonb NOT NULL,
     message_verified jsonb NOT NULL,
     roles_on_join bigint[] NOT NULL,
-    roles_on_verify bigint[] NOT NULL,
-    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
+    roles_on_verify bigint[] NOT NULL
 );
 

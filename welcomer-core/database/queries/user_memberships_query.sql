@@ -33,6 +33,7 @@ SELECT
 FROM
     user_memberships
     LEFT JOIN user_transactions ON (user_memberships.transaction_uuid = user_transactions.transaction_uuid)
+    LEFT JOIN guilds ON (user_memberships.guild_id = guilds.guild_id)
 WHERE
     user_memberships.user_id = $1;
 

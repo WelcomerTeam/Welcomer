@@ -30,7 +30,7 @@ type CreateNewMembershipParams struct {
 	GuildID         int64     `json:"guild_id"`
 }
 
-func (q *Queries) CreateNewMembership(ctx context.Context, arg *CreateNewMembershipParams) (*UserMemberships, error) {
+func (q *Queries) CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error) {
 	row := q.db.QueryRow(ctx, CreateNewMembership,
 		arg.StartedAt,
 		arg.ExpiresAt,
@@ -81,7 +81,7 @@ type CreateOrUpdateNewMembershipParams struct {
 	GuildID         int64     `json:"guild_id"`
 }
 
-func (q *Queries) CreateOrUpdateNewMembership(ctx context.Context, arg *CreateOrUpdateNewMembershipParams) (*UserMemberships, error) {
+func (q *Queries) CreateOrUpdateNewMembership(ctx context.Context, arg CreateOrUpdateNewMembershipParams) (*UserMemberships, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateNewMembership,
 		arg.StartedAt,
 		arg.ExpiresAt,
@@ -240,10 +240,11 @@ func (q *Queries) GetUserMembershipsByGuildID(ctx context.Context, guildID int64
 
 const GetUserMembershipsByUserID = `-- name: GetUserMembershipsByUserID :many
 SELECT
-    membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount
+    membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, user_memberships.guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount, guilds.guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites
 FROM
     user_memberships
     LEFT JOIN user_transactions ON (user_memberships.transaction_uuid = user_transactions.transaction_uuid)
+    LEFT JOIN guilds ON (user_memberships.guild_id = guilds.guild_id)
 WHERE
     user_memberships.user_id = $1
 `
@@ -268,6 +269,12 @@ type GetUserMembershipsByUserIDRow struct {
 	TransactionStatus sql.NullInt32  `json:"transaction_status"`
 	CurrencyCode      sql.NullString `json:"currency_code"`
 	Amount            sql.NullString `json:"amount"`
+	GuildID_2         sql.NullInt64  `json:"guild_id_2"`
+	EmbedColour       sql.NullInt32  `json:"embed_colour"`
+	SiteSplashUrl     sql.NullString `json:"site_splash_url"`
+	SiteStaffVisible  sql.NullBool   `json:"site_staff_visible"`
+	SiteGuildVisible  sql.NullBool   `json:"site_guild_visible"`
+	SiteAllowInvites  sql.NullBool   `json:"site_allow_invites"`
 }
 
 func (q *Queries) GetUserMembershipsByUserID(ctx context.Context, userID int64) ([]*GetUserMembershipsByUserIDRow, error) {
@@ -299,6 +306,12 @@ func (q *Queries) GetUserMembershipsByUserID(ctx context.Context, userID int64) 
 			&i.TransactionStatus,
 			&i.CurrencyCode,
 			&i.Amount,
+			&i.GuildID_2,
+			&i.EmbedColour,
+			&i.SiteSplashUrl,
+			&i.SiteStaffVisible,
+			&i.SiteGuildVisible,
+			&i.SiteAllowInvites,
 		); err != nil {
 			return nil, err
 		}
@@ -335,7 +348,7 @@ type UpdateUserMembershipParams struct {
 	GuildID         int64     `json:"guild_id"`
 }
 
-func (q *Queries) UpdateUserMembership(ctx context.Context, arg *UpdateUserMembershipParams) (int64, error) {
+func (q *Queries) UpdateUserMembership(ctx context.Context, arg UpdateUserMembershipParams) (int64, error) {
 	result, err := q.db.Exec(ctx, UpdateUserMembership,
 		arg.MembershipUuid,
 		arg.StartedAt,

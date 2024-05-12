@@ -27,7 +27,7 @@ type CreateWelcomerImagesParams struct {
 	Data              []byte    `json:"data"`
 }
 
-func (q *Queries) CreateWelcomerImages(ctx context.Context, arg *CreateWelcomerImagesParams) (*WelcomerImages, error) {
+func (q *Queries) CreateWelcomerImages(ctx context.Context, arg CreateWelcomerImagesParams) (*WelcomerImages, error) {
 	row := q.db.QueryRow(ctx, CreateWelcomerImages,
 		arg.WelcomerImageUuid,
 		arg.GuildID,
