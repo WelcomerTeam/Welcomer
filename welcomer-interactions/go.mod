@@ -8,13 +8,14 @@ require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
 	github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef
-	github.com/WelcomerTeam/Subway v0.0.0-20240512192535-eedc5ea26d74
+	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgtype v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/zerolog v1.32.0
-	google.golang.org/grpc v1.63.2
+	google.golang.org/grpc v1.64.0
 )
 
 require (
@@ -26,7 +27,6 @@ require (
 	github.com/davidmytton/url-verifier v1.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
@@ -55,7 +55,7 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
