@@ -52,6 +52,7 @@ type UserMembership struct {
 	MembershipUUID   uuid.UUID
 	GuildID          int64
 	GuildName        string
+	ExpiresAt        time.Time
 	MembershipStatus database.MembershipStatus
 	MembershipType   database.MembershipType
 }
@@ -114,6 +115,7 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 			MembershipUUID:   membership.MembershipUuid,
 			GuildID:          membership.GuildID,
 			GuildName:        guildName,
+			ExpiresAt:        membership.ExpiresAt,
 			MembershipStatus: database.MembershipStatus(membership.Status),
 			MembershipType:   database.MembershipType(membership.MembershipType),
 		})
@@ -189,7 +191,16 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embed.Fields = append(embed.Fields, &discord.EmbedField{
-					Name:   fmt.Sprintf("%s – %s", membership.MembershipType.Label(), membership.MembershipStatus.Label()),
+					Name: fmt.Sprintf(
+						"%s – %s%s",
+						membership.MembershipType.Label(),
+						membership.MembershipStatus.Label(),
+						welcomer.If(
+							membership.ExpiresAt.After(time.Now()),
+							fmt.Sprintf(" (Expires **<t:%d:R>**)", membership.ExpiresAt.Unix()),
+							"",
+						),
+					),
 					Value:  welcomer.If(membership.GuildID != 0, fmt.Sprintf("%s `%d`", membership.GuildName, membership.GuildID), "Unassigned"),
 					Inline: false,
 				})
@@ -250,7 +261,16 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				choices = append(choices, &discord.ApplicationCommandOptionChoice{
-					Name:  fmt.Sprintf("%s – %s", membership.MembershipType.Label(), membership.MembershipStatus.Label()),
+					Name: fmt.Sprintf(
+						"%s – %s%s",
+						membership.MembershipType.Label(),
+						membership.MembershipStatus.Label(),
+						welcomer.If(
+							membership.GuildID != 0,
+							" (Assigned to "+membership.GuildName+")",
+							"",
+						),
+					),
 					Value: welcomer.StringToJsonLiteral(membership.MembershipUUID.String()),
 				})
 			}
@@ -408,8 +428,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 							},
 						}, nil
 					case database.MembershipStatusActive,
-						database.MembershipStatusIdle,
-						database.MembershipStatusRemoved:
+						database.MembershipStatusIdle:
 
 						queries := welcomer.GetQueriesFromContext(ctx)
 
@@ -490,6 +509,200 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 							}, nil
 						}
 					}
+				}
+			}
+
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: welcomer.NewEmbed("Invalid membership.", welcomer.EmbedColourError),
+					Flags:  uint32(discord.MessageFlagEphemeral),
+				},
+			}, nil
+		},
+	})
+
+	membershipGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "remove",
+		Description: "Removes a membership from a server.",
+
+		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]*discord.ApplicationCommandOptionChoice, error) {
+			var userID discord.Snowflake
+			if interaction.Member != nil {
+				userID = interaction.Member.User.ID
+			} else {
+				userID = interaction.User.ID
+			}
+
+			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
+			if err != nil {
+				sub.Logger.Error().Err(err).
+					Int64("user_id", int64(interaction.User.ID)).
+					Msg("Failed to get user memberships.")
+			}
+
+			choices := make([]*discord.ApplicationCommandOptionChoice, 0, len(memberships))
+
+			for _, membership := range memberships {
+				if membership.GuildID == 0 {
+					continue
+				}
+
+				switch membership.MembershipStatus {
+				case database.MembershipStatusUnknown,
+					database.MembershipStatusRefunded,
+					database.MembershipStatusRemoved,
+					database.MembershipStatusExpired:
+					continue
+				}
+
+				choices = append(choices, &discord.ApplicationCommandOptionChoice{
+					Name: fmt.Sprintf(
+						"%s – %s (Assigned to %s)",
+						membership.MembershipType.Label(),
+						membership.MembershipStatus.Label(),
+						membership.GuildName,
+					),
+					Value: welcomer.StringToJsonLiteral(membership.MembershipUUID.String()),
+				})
+			}
+
+			if len(choices) == 0 {
+				choices = append(choices, &discord.ApplicationCommandOptionChoice{
+					Name:  "No active memberships are available",
+					Value: welcomer.StringToJsonLiteral(NoMembershipsAvailable),
+				})
+			}
+
+			return choices, nil
+		},
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Required:     true,
+				ArgumentType: subway.ArgumentTypeString,
+				Name:         "membership",
+				Description:  "The membership to remove.",
+				Autocomplete: &welcomer.True,
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			membershipUuidString := subway.MustGetArgument(ctx, "membership").MustString()
+
+			if membershipUuidString == NoMembershipsAvailable {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("You do not have any active memberships available.", welcomer.EmbedColourError),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+						Components: []*discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeActionRow,
+								Components: []*discord.InteractionComponent{
+									{
+										Type:  discord.InteractionComponentTypeButton,
+										Style: discord.InteractionComponentStyleLink,
+										Label: "Get Welcomer Pro",
+										URL:   welcomer.WebsiteURL + "/premium",
+									},
+								},
+							},
+						},
+					},
+				}, nil
+			}
+
+			membershipUuid := uuid.UUID{}
+
+			err := membershipUuid.Parse(membershipUuidString)
+			if err != nil {
+				sub.Logger.Error().Err(err).
+					Str("membership_uuid", membershipUuidString).
+					Msg("Failed to parse membership UUID.")
+
+				return nil, err
+			}
+
+			var userID discord.Snowflake
+			if interaction.Member != nil {
+				userID = interaction.Member.User.ID
+			} else {
+				userID = interaction.User.ID
+			}
+
+			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
+			if err != nil {
+				sub.Logger.Error().Err(err).
+					Int64("user_id", int64(interaction.User.ID)).
+					Msg("Failed to get user memberships.")
+
+				return nil, err
+			}
+
+			for _, membership := range memberships {
+				if membership.MembershipUUID.String() == membershipUuidString {
+					if membership.GuildID == 0 {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed("This membership is not currently in use.", welcomer.EmbedColourInfo),
+								Flags:  uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					switch membership.MembershipStatus {
+					case database.MembershipStatusUnknown,
+						database.MembershipStatusIdle,
+						database.MembershipStatusActive,
+						database.MembershipStatusExpired,
+						database.MembershipStatusRefunded,
+						database.MembershipStatusRemoved:
+					}
+					queries := welcomer.GetQueriesFromContext(ctx)
+
+					membership, err := queries.GetUserMembership(ctx, membershipUuid)
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Str("membership_uuid", membershipUuid.String()).
+							Msg("Failed to get user membership.")
+
+						return nil, err
+					}
+
+					membership.UpdatedAt = time.Now()
+
+					// Only set the status to Idle if the membership is currently Active.
+					membership.Status = welcomer.If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
+					membership.GuildID = 0
+
+					_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
+						MembershipUuid:  membership.MembershipUuid,
+						StartedAt:       membership.StartedAt,
+						ExpiresAt:       membership.ExpiresAt,
+						Status:          membership.Status,
+						TransactionUuid: membership.TransactionUuid,
+						UserID:          membership.UserID,
+						GuildID:         membership.GuildID,
+					})
+					if err != nil {
+						sub.Logger.Error().Err(err).
+							Str("membership_uuid", membershipUuid.String()).
+							Msg("Failed to update user membership.")
+
+						return nil, err
+					}
+
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf("Your membership has been removed. This membership expires **<t:%d:R>**.", membership.ExpiresAt.Unix()),
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
 				}
 			}
 
