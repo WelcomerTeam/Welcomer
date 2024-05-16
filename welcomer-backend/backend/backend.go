@@ -190,7 +190,7 @@ func (b *Backend) GetBasicEventContext() (client *sandwich.EventContext) {
 
 // Open sets up any services and starts the web server.
 func (b *Backend) Open() error {
-	b.StartTime = time.Now().UTC()
+	b.StartTime = time.Now()
 	b.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
 
 	// Setup Prometheus

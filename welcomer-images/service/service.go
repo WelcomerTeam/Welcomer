@@ -64,7 +64,7 @@ func NewImageService(ctx context.Context, logger zerolog.Logger, options ImageSe
 }
 
 func (is *ImageService) Open() {
-	is.StartTime = time.Now().UTC()
+	is.StartTime = time.Now()
 	is.Logger.Info().Msgf("Starting image service. Version %s", VERSION)
 
 	// Setup HTTP

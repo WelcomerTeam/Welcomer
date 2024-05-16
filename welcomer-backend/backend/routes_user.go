@@ -253,6 +253,16 @@ func usersGuilds(ctx *gin.Context) {
 			}
 		} else {
 			mappedGuilds = user.Guilds
+
+			for _, guild := range mappedGuilds {
+				hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(guild.ID)
+				if err != nil {
+					backend.Logger.Warn().Err(err).Int("guildID", int(guild.ID)).Msg("Exception getting welcomer membership")
+				}
+
+				guild.HasCustomBackgrounds = hasCustomBackgrounds
+				guild.HasWelcomerPro = hasWelcomerPro
+			}
 		}
 
 		i := 0
