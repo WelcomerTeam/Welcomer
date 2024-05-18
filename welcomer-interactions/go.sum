@@ -10,8 +10,6 @@ github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584 h1:3bvRnE2we
 github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584/go.mod h1:dItxIeOr3dCwW8S9mJ05+2AmThDoNLN2ySKve4Vp9xQ=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef h1:5/xr4Fp6yCbBCU/D/DmLcaMLbw77AHluId5phlGwPcw=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef/go.mod h1:B65CN063hYjy5Yp8R+STlBWiiScmAFzBpj97TnuilWU=
-github.com/WelcomerTeam/Subway v0.0.0-20240514225139-76f227573232 h1:VR7epprJYJgATdtF9g9aqVtajzeZI8mjQqqT+LXvpFI=
-github.com/WelcomerTeam/Subway v0.0.0-20240514225139-76f227573232/go.mod h1:QGmUWQqffCc3+gWWRRDOOVrrsaIcw8UTiCj3vCVkx9Y=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac h1:nJKIPfpF/wN7bZiLtreMvrQDak46YknBlNG3jzQKfFw=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac/go.mod h1:QGmUWQqffCc3+gWWRRDOOVrrsaIcw8UTiCj3vCVkx9Y=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
@@ -137,8 +135,8 @@ github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/nats-io/nats.go v1.34.1 h1:syWey5xaNHZgicYBemv0nohUPPmaLteiBEUT6Q5+F/4=
-github.com/nats-io/nats.go v1.34.1/go.mod h1:Ubdu4Nh9exXdSz0RVWRFBbRfrbSxOYd26oF0wkWclB8=
+github.com/nats-io/nats.go v1.35.0 h1:XFNqNM7v5B+MQMKqVGAyHwYhyKb48jrenXNxIU20ULk=
+github.com/nats-io/nats.go v1.35.0/go.mod h1:Ubdu4Nh9exXdSz0RVWRFBbRfrbSxOYd26oF0wkWclB8=
 github.com/nats-io/nkeys v0.4.7 h1:RwNJbbIdYCoClSDNY7QVKZlyb/wfT6ugvFCiKy6vDvI=
 github.com/nats-io/nkeys v0.4.7/go.mod h1:kqXRgRDPlGy7nGaEDMuYzmiJCIAAWDK0IMBtDmGD0nc=
 github.com/nats-io/nuid v1.0.1 h1:5iA8DT8V7q8WK2EScv2padNa/rTESc1KdnPw4TC2paw=

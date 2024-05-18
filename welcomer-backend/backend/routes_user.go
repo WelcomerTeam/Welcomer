@@ -70,7 +70,7 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 
 			HasWelcomerPro:       hasWelcomerPro,
 			HasCustomBackgrounds: hasCustomBackgrounds,
-			HasElevation:         hasElevation(discordGuild, user),
+			HasElevation:         hasElevation(*discordGuild, user),
 			IsOwner:              discordGuild.Owner,
 		}
 	}

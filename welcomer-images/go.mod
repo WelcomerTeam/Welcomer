@@ -6,7 +6,7 @@ toolchain go1.22.0
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20240512214459-c509a05a54fa
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20240515220606-32d05b73aade
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/gg v1.3.0
 	github.com/gin-contrib/logger v1.1.2
@@ -19,7 +19,7 @@ require (
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
 	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
 	golang.org/x/image v0.16.0
-	google.golang.org/grpc v1.63.2
+	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.1
 )
 
@@ -28,7 +28,7 @@ require (
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
 	github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584 // indirect
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef // indirect
-	github.com/WelcomerTeam/Subway v0.0.0-20240512192535-eedc5ea26d74 // indirect
+	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/nats-io/nats.go v1.34.1 // indirect
+	github.com/nats-io/nats.go v1.35.0 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
@@ -82,7 +82,7 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
