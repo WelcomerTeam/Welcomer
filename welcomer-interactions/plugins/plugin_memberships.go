@@ -196,7 +196,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						membership.MembershipType.Label(),
 						membership.MembershipStatus.Label(),
 						welcomer.If(
-							membership.ExpiresAt.After(time.Now()),
+							membership.ExpiresAt.After(time.Now()) && !welcomer.IsCustomBackgroundsMembership(membership.MembershipType),
 							fmt.Sprintf(" (Expires **<t:%d:R>**)", membership.ExpiresAt.Unix()),
 							"",
 						),
@@ -492,7 +492,18 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
 									Embeds: welcomer.NewEmbed(
-										fmt.Sprintf("🎉 Your membership has now been applied to `%s`. Your membership expires **<t:%d:R>**.", guild.Name, membership.ExpiresAt.Unix()),
+										fmt.Sprintf(
+											"🎉 Your membership has now been applied to `%s`.%s",
+											guild.Name,
+											welcomer.If(
+												!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
+												fmt.Sprintf(
+													" Your membership expires **<t:%d:R>**.",
+													membership.ExpiresAt.Unix(),
+												),
+												"",
+											),
+										),
 										welcomer.EmbedColourSuccess,
 									),
 								},
@@ -502,7 +513,18 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
 									Embeds: welcomer.NewEmbed(
-										fmt.Sprintf("🎉 Your membership has now been applied to `%s`. You have used this membership previously and expires **<t:%d:R>**.", guild.Name, membership.ExpiresAt.Unix()),
+										fmt.Sprintf(
+											"🎉 Your membership has now been applied to `%s`.%s",
+											guild.Name,
+											welcomer.If(
+												!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
+												fmt.Sprintf(
+													" You have used this membership previously and expires **<t:%d:R>**.",
+													membership.ExpiresAt.Unix(),
+												),
+												"",
+											),
+										),
 										welcomer.EmbedColourSuccess,
 									),
 								},
@@ -698,7 +720,17 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
 							Embeds: welcomer.NewEmbed(
-								fmt.Sprintf("Your membership has been removed. This membership expires **<t:%d:R>**.", membership.ExpiresAt.Unix()),
+								fmt.Sprintf(
+									"Your membership has been removed.%s",
+									welcomer.If(
+										!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
+										fmt.Sprintf(
+											" This membership expires **<t:%d:R>**.",
+											membership.ExpiresAt.Unix(),
+										),
+										"",
+									),
+								),
 								welcomer.EmbedColourSuccess,
 							),
 						},

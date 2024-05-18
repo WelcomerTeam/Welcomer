@@ -57,19 +57,26 @@ var verifier = urlverifier.NewVerifier()
 
 func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
 	for _, membership := range memberships {
-		switch database.MembershipType(membership.MembershipType) {
-		case database.MembershipTypeLegacyCustomBackgrounds,
-			database.MembershipTypeCustomBackgrounds:
+		if IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)) {
 			hasCustomBackgrounds = true
-		case database.MembershipTypeLegacyWelcomerPro1,
-			database.MembershipTypeLegacyWelcomerPro3,
-			database.MembershipTypeLegacyWelcomerPro5,
-			database.MembershipTypeWelcomerPro:
+		} else if IsWelcomerProMembership(database.MembershipType(membership.MembershipType)) {
 			hasWelcomerPro = true
 		}
 	}
 
 	return
+}
+
+func IsCustomBackgroundsMembership(membershipType database.MembershipType) bool {
+	return membershipType == database.MembershipTypeLegacyCustomBackgrounds ||
+		membershipType == database.MembershipTypeCustomBackgrounds
+}
+
+func IsWelcomerProMembership(membershipType database.MembershipType) bool {
+	return membershipType == database.MembershipTypeLegacyWelcomerPro1 ||
+		membershipType == database.MembershipTypeLegacyWelcomerPro3 ||
+		membershipType == database.MembershipTypeLegacyWelcomerPro5 ||
+		membershipType == database.MembershipTypeWelcomerPro
 }
 
 // StringToJsonLiteral converts a string to a json.RawMessage.
