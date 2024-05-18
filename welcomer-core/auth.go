@@ -9,8 +9,12 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 )
 
-func MemberHasElevation(discordGuild *discord.Guild, member discord.GuildMember) bool {
-	if discordGuild.OwnerID == &member.User.ID {
+func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) bool {
+	if discordGuild.Owner {
+		return True
+	}
+
+	if discordGuild.OwnerID != nil && *discordGuild.OwnerID == member.User.ID {
 		return true
 	}
 
@@ -72,7 +76,11 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 			}
 		}
 
-		if !MemberHasElevation(guild, *interaction.Member) {
+		if guild == nil {
+			return nil, ErrMissingGuild
+		}
+
+		if !MemberHasElevation(*guild, *interaction.Member) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
