@@ -461,8 +461,8 @@ func paymentCallback(ctx *gin.Context) {
 		startedAt := time.Time{}
 
 		expiresAt := startedAt
-		if sku.MonthCount >= 0 {
-			expiresAt = startedAt.AddDate(0, sku.MonthCount, 0)
+		if sku.MonthCount <= 0 {
+			expiresAt = startedAt.AddDate(0, welcomer.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
 		}
 
 		// Create a new membership for the user.
