@@ -26,6 +26,8 @@ var (
 	False = false
 )
 
+var verifier = urlverifier.NewVerifier()
+
 const (
 	hexBase      = 16
 	int64Base    = 10
@@ -44,6 +46,21 @@ func Atoi(s string) (int64, error) {
 	return strconv.ParseInt(s, int64Base, int64BitSize)
 }
 
+// RetryWithFallback will attempt to run a function. If the function fails, it will run a fallback function.
+// predictate is a function that will determine if the error is retryable and is optional.
+// When the fallback function succeeds, the original function will be called again.
+func RetryWithFallback(function func() error, fallbackFunction func() error, predictate func(error) bool) (err error) {
+	err = function()
+	if err != nil && (predictate == nil || predictate(err)) {
+		err = fallbackFunction()
+		if err == nil {
+			return function()
+		}
+	}
+
+	return
+}
+
 func RandStringBytesRmndr(n int) string {
 	b := make([]byte, n)
 	for i := range b {
@@ -52,8 +69,6 @@ func RandStringBytesRmndr(n int) string {
 
 	return string(b)
 }
-
-var verifier = urlverifier.NewVerifier()
 
 func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
 	for _, membership := range memberships {

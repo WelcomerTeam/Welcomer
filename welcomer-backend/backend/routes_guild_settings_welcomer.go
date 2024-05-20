@@ -16,6 +16,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
@@ -146,15 +147,6 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			}
 
 			guildID := tryGetGuildID(ctx)
-
-			err = ensureGuild(ctx, guildID)
-			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
-
-				return
-			}
 
 			welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(int64(guildID), partial)
 
@@ -309,21 +301,51 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			}
 
 			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(*welcomerText)
-			_, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, databaseWelcomerTextGuildSettings)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, databaseWelcomerTextGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer text settings")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return
 			}
 
 			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
+
 			_, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, databaseWelcomerImagesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return
 			}
 
 			databaseWelcomerDMsGuildSettings := database.CreateOrUpdateWelcomerDMsGuildSettingsParams(*welcomerDMs)
+
 			_, err = backend.Database.CreateOrUpdateWelcomerDMsGuildSettings(ctx, databaseWelcomerDMsGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return
 			}
 
 			getGuildSettingsWelcomer(ctx)
@@ -470,7 +492,7 @@ func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Sno
 
 // Validates welcomer guild settings
 func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
-	if guildSettings.DMs.MessageFormat != "" {
+	if guildSettings.Text.MessageFormat != "" {
 		if !core.IsValidEmbed(guildSettings.Text.MessageFormat) {
 			return fmt.Errorf("text message is invalid: %w", ErrInvalidJSON)
 		}

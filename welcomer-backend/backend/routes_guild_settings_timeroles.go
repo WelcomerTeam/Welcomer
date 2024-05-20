@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
@@ -59,21 +61,28 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			err = ensureGuild(ctx, guildID)
+			timeroles := PartialToGuildSettingsTimeRolesSettings(int64(guildID), partial)
+
+			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(*timeroles)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateTimeRolesGuildSettings(ctx, databaseTimeRolesGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild timeroles settings")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
 				})
 
 				return
-			}
-
-			timeroles := PartialToGuildSettingsTimeRolesSettings(int64(guildID), partial)
-
-			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(*timeroles)
-			_, err = backend.Database.CreateOrUpdateTimeRolesGuildSettings(ctx, databaseTimeRolesGuildSettings)
-			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild timeroles settings")
 			}
 
 			getGuildSettingsTimeRoles(ctx)

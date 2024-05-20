@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
@@ -60,21 +62,28 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			err = ensureGuild(ctx, guildID)
+			leaver := PartialToGuildSettingsLeaverSettings(int64(guildID), partial)
+
+			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
 				})
 
 				return
-			}
-
-			leaver := PartialToGuildSettingsLeaverSettings(int64(guildID), partial)
-
-			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
-			_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
-			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
 			}
 
 			getGuildSettingsLeaver(ctx)

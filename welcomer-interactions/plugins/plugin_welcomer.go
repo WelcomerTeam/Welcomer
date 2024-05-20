@@ -256,12 +256,21 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
-					Channel:       guildSettingsWelcomerText.Channel,
-					MessageFormat: guildSettingsWelcomerText.MessageFormat,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
+							Channel:       guildSettingsWelcomerText.Channel,
+							MessageFormat: guildSettingsWelcomerText.MessageFormat,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

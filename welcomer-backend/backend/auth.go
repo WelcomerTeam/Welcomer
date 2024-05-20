@@ -10,7 +10,6 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -303,30 +302,4 @@ func tryGetUser(ctx *gin.Context) SessionUser {
 	user, _ := rawUser.(SessionUser)
 
 	return user
-}
-
-// ensureGuild will create or update a guild entry. This requires requireMutualGuild to be called.
-func ensureGuild(ctx *gin.Context, guildID discord.Snowflake) error {
-	databaseGuild, err := backend.Database.GetGuild(ctx, int64(guildID))
-	if err != nil {
-		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild")
-	}
-
-	_, err = backend.Database.CreateOrUpdateGuild(ctx, database.CreateOrUpdateGuildParams{
-		GuildID:          int64(guildID),
-		EmbedColour:      databaseGuild.EmbedColour,
-		SiteSplashUrl:    databaseGuild.SiteSplashUrl,
-		SiteStaffVisible: databaseGuild.SiteStaffVisible,
-		SiteGuildVisible: databaseGuild.SiteGuildVisible,
-		SiteAllowInvites: databaseGuild.SiteAllowInvites,
-	})
-	if err != nil {
-		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild")
-	}
-
-	if err != nil {
-		return fmt.Errorf("failed to ensure guild: %w", err)
-	}
-
-	return nil
 }

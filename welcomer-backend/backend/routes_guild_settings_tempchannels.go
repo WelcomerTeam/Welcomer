@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
@@ -59,21 +61,28 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			err = ensureGuild(ctx, guildID)
+			tempchannels := PartialToGuildSettingsTempChannelsSettings(int64(guildID), partial)
+
+			databaseTempChannelsGuildSettings := database.CreateOrUpdateTempChannelsGuildSettingsParams(*tempchannels)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild tempchannels settings")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
 				})
 
 				return
-			}
-
-			tempchannels := PartialToGuildSettingsTempChannelsSettings(int64(guildID), partial)
-
-			databaseTempChannelsGuildSettings := database.CreateOrUpdateTempChannelsGuildSettingsParams(*tempchannels)
-			_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
-			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild tempchannels settings")
 			}
 
 			getGuildSettingsTempChannels(ctx)

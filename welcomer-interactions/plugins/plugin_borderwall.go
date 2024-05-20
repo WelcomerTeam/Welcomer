@@ -115,16 +115,25 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-					GuildID:         int64(*interaction.GuildID),
-					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-					Channel:         guildSettingsBorderwall.Channel,
-					MessageVerify:   guildSettingsBorderwall.MessageVerify,
-					MessageVerified: guildSettingsBorderwall.MessageVerified,
-					RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-					RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+							Channel:         guildSettingsBorderwall.Channel,
+							MessageVerify:   guildSettingsBorderwall.MessageVerify,
+							MessageVerified: guildSettingsBorderwall.MessageVerified,
+							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -215,16 +224,25 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-					GuildID:         int64(*interaction.GuildID),
-					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-					Channel:         guildSettingsBorderwall.Channel,
-					MessageVerify:   guildSettingsBorderwall.MessageVerify,
-					MessageVerified: guildSettingsBorderwall.MessageVerified,
-					RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-					RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+							Channel:         guildSettingsBorderwall.Channel,
+							MessageVerify:   guildSettingsBorderwall.MessageVerify,
+							MessageVerified: guildSettingsBorderwall.MessageVerified,
+							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -303,16 +321,25 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-					GuildID:         int64(*interaction.GuildID),
-					ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-					ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-					Channel:         guildSettingsBorderwall.Channel,
-					MessageVerify:   guildSettingsBorderwall.MessageVerify,
-					MessageVerified: guildSettingsBorderwall.MessageVerified,
-					RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-					RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+							Channel:         guildSettingsBorderwall.Channel,
+							MessageVerify:   guildSettingsBorderwall.MessageVerify,
+							MessageVerified: guildSettingsBorderwall.MessageVerified,
+							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 
+	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
@@ -59,22 +61,28 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			err = ensureGuild(ctx, guildID)
+			autoroles := PartialToGuildSettingsAutoRolesSettings(int64(guildID), partial)
+
+			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(*autoroles)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateAutoRolesGuildSettings(ctx, databaseAutoRolesGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
 				})
 
 				return
-			}
-
-			autoroles := PartialToGuildSettingsAutoRolesSettings(int64(guildID), partial)
-
-			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(*autoroles)
-
-			_, err = backend.Database.CreateOrUpdateAutoRolesGuildSettings(ctx, databaseAutoRolesGuildSettings)
-			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")
 			}
 
 			getGuildSettingsAutoRoles(ctx)

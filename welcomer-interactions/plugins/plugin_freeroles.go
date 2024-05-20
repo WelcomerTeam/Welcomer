@@ -71,11 +71,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsFreeRoles.ToggleEnabled = true
 
-				_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
-					Roles:         guildSettingsFreeRoles.Roles,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+							Roles:         guildSettingsFreeRoles.Roles,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -116,11 +125,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsFreeRoles.ToggleEnabled = false
 
-				_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
-					Roles:         guildSettingsFreeRoles.Roles,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+							Roles:         guildSettingsFreeRoles.Roles,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

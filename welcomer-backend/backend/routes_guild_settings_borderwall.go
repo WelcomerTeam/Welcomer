@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
@@ -60,21 +62,28 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			err = ensureGuild(ctx, guildID)
+			borderwall := PartialToGuildSettingsBorderwallSettings(int64(guildID), partial)
+
+			databaseBorderwallGuildSettings := database.CreateOrUpdateBorderwallGuildSettingsParams(*borderwall)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, databaseBorderwallGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild borderwall settings")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
 				})
 
 				return
-			}
-
-			borderwall := PartialToGuildSettingsBorderwallSettings(int64(guildID), partial)
-
-			databaseBorderwallGuildSettings := database.CreateOrUpdateBorderwallGuildSettingsParams(*borderwall)
-			_, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, databaseBorderwallGuildSettings)
-			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild borderwall settings")
 			}
 
 			getGuildSettingsBorderwall(ctx)

@@ -202,14 +202,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
-					GuildID:          int64(*interaction.GuildID),
-					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
-					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
-					ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
-					ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
-					DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
+							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
+							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
+							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
+							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -293,14 +302,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
-					GuildID:          int64(*interaction.GuildID),
-					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
-					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
-					ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
-					ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
-					DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
+							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
+							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
+							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
+							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -364,14 +382,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsTempChannels.ChannelCategory = int64(channel.ID)
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
-					GuildID:          int64(*interaction.GuildID),
-					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
-					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
-					ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
-					ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
-					DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
+							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
+							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
+							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
+							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -427,14 +454,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					guildSettingsTempChannels.ChannelLobby = 0
 				}
 
-				_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
-					GuildID:          int64(*interaction.GuildID),
-					ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
-					ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
-					ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
-					ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
-					DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
+							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
+							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
+							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
+							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

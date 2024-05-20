@@ -74,11 +74,20 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = true
 
-				_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
-					Timeroles:     guildSettingsTimeRoles.Timeroles,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
+							Timeroles:     guildSettingsTimeRoles.Timeroles,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -120,11 +129,20 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = false
 
-				_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
-					Timeroles:     guildSettingsTimeRoles.Timeroles,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
+							Timeroles:     guildSettingsTimeRoles.Timeroles,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

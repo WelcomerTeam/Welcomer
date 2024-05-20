@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
@@ -65,21 +67,28 @@ func setGuildSettingsRules(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			err = ensureGuild(ctx, guildID)
+			rules := PartialToGuildSettingsRulesSettings(int64(guildID), partial)
+
+			databaseRulesGuildSettings := database.CreateOrUpdateRulesGuildSettingsParams(*rules)
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = backend.Database.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild rules settings")
+
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
 				})
 
 				return
-			}
-
-			rules := PartialToGuildSettingsRulesSettings(int64(guildID), partial)
-
-			databaseRulesGuildSettings := database.CreateOrUpdateRulesGuildSettingsParams(*rules)
-			_, err = backend.Database.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)
-			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild rules settings")
 			}
 
 			getGuildSettingsRules(ctx)

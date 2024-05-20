@@ -161,12 +161,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = true
 
-				_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
-					Channel:       guildSettingsLeaver.Channel,
-					MessageFormat: guildSettingsLeaver.MessageFormat,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
+							Channel:       guildSettingsLeaver.Channel,
+							MessageFormat: guildSettingsLeaver.MessageFormat,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -208,12 +217,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = false
 
-				_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
-					Channel:       guildSettingsLeaver.Channel,
-					MessageFormat: guildSettingsLeaver.MessageFormat,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
+							Channel:       guildSettingsLeaver.Channel,
+							MessageFormat: guildSettingsLeaver.MessageFormat,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -264,12 +282,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.Channel = welcomer.If(channel != nil, int64(channel.ID), 0)
 
-				_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-					GuildID:       int64(*interaction.GuildID),
-					ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
-					Channel:       guildSettingsLeaver.Channel,
-					MessageFormat: guildSettingsLeaver.MessageFormat,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
+							Channel:       guildSettingsLeaver.Channel,
+							MessageFormat: guildSettingsLeaver.MessageFormat,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

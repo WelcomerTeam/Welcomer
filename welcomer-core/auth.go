@@ -2,11 +2,13 @@ package welcomer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) bool {
@@ -92,6 +94,29 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 
 		return handler()
 	})
+}
+
+// EnsureGuild will create or update a guild entry. This requires RequireMutualGuild to be called.
+func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord.Snowflake) error {
+	guild, _ := queries.GetGuild(ctx, int64(guildID))
+	if guild.GuildID != 0 {
+		return nil
+	}
+
+	_, err := queries.CreateGuild(ctx, database.CreateGuildParams{
+		GuildID:          int64(guildID),
+		EmbedColour:      0,
+		SiteSplashUrl:    "",
+		SiteStaffVisible: False,
+		SiteGuildVisible: False,
+		SiteAllowInvites: False,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to ensure guild: %w", err)
+	}
+
+	return nil
 }
 
 func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string) (session *discord.Session, err error) {

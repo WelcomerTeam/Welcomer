@@ -105,12 +105,21 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
-					GuildID:          int64(*interaction.GuildID),
-					ToggleEnabled:    guildSettingsRules.ToggleEnabled,
-					ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
-					Rules:            guildSettingsRules.Rules,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
+							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
+							Rules:            guildSettingsRules.Rules,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -201,12 +210,21 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
-					GuildID:          int64(*interaction.GuildID),
-					ToggleEnabled:    guildSettingsRules.ToggleEnabled,
-					ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
-					Rules:            guildSettingsRules.Rules,
-				})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
+							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
+							Rules:            guildSettingsRules.Rules,
+						})
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
