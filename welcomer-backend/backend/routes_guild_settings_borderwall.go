@@ -2,12 +2,14 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/borderwall
@@ -18,8 +20,26 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 
 			borderwall, err := backend.Database.GetBorderwallGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild borderwall settings")
-				borderwall = &database.GuildSettingsBorderwall{}
+				if errors.Is(err, pgx.ErrNoRows) {
+					borderwall = &database.GuildSettingsBorderwall{
+						GuildID:         int64(guildID),
+						ToggleEnabled:   database.DefaultBorderwall.ToggleEnabled,
+						ToggleSendDm:    database.DefaultBorderwall.ToggleSendDm,
+						Channel:         database.DefaultBorderwall.Channel,
+						MessageVerify:   database.DefaultBorderwall.MessageVerify,
+						MessageVerified: database.DefaultBorderwall.MessageVerified,
+						RolesOnJoin:     database.DefaultBorderwall.RolesOnJoin,
+						RolesOnVerify:   database.DefaultBorderwall.RolesOnVerify,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild borderwall settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsBorderwallSettingsToPartial(*borderwall)

@@ -2,10 +2,12 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/settings
@@ -16,7 +18,25 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 
 			settings, err := backend.Database.GetGuild(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
+				if errors.Is(err, pgx.ErrNoRows) {
+					settings = &database.Guilds{
+						GuildID:          int64(guildID),
+						EmbedColour:      database.DefaultGuild.EmbedColour,
+						SiteSplashUrl:    database.DefaultGuild.SiteSplashUrl,
+						SiteStaffVisible: database.DefaultGuild.SiteStaffVisible,
+						SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
+						SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
+
 			}
 
 			partial := GuildSettingsToPartial(settings)

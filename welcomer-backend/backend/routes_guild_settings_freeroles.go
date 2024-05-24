@@ -2,12 +2,14 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/freeroles
@@ -18,7 +20,21 @@ func getGuildSettingsFreeRoles(ctx *gin.Context) {
 
 			freeroles, err := backend.Database.GetFreeRolesGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild freeroles settings")
+				if errors.Is(err, pgx.ErrNoRows) {
+					freeroles = &database.GuildSettingsFreeroles{
+						GuildID:       int64(guildID),
+						ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
+						Roles:         database.DefaultFreeRoles.Roles,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild freeroles settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsFreeRolesSettingsToPartial(freeroles)

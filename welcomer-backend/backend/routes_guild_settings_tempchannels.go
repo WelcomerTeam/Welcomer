@@ -2,12 +2,14 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/tempchannels
@@ -18,7 +20,24 @@ func getGuildSettingsTempChannels(ctx *gin.Context) {
 
 			tempchannels, err := backend.Database.GetTempChannelsGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild tempchannels settings")
+				if errors.Is(err, pgx.ErrNoRows) {
+					tempchannels = &database.GuildSettingsTempchannels{
+						GuildID:          int64(guildID),
+						ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+						ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+						ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+						ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+						DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild tempchannels settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsTempChannelsSettingsToPartial(tempchannels)

@@ -2,6 +2,7 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 const (
@@ -24,7 +26,22 @@ func getGuildSettingsRules(ctx *gin.Context) {
 
 			rules, err := backend.Database.GetRulesGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild rules settings")
+				if errors.Is(err, pgx.ErrNoRows) {
+					rules = &database.GuildSettingsRules{
+						GuildID:          int64(guildID),
+						ToggleEnabled:    database.DefaultRules.ToggleEnabled,
+						ToggleDmsEnabled: database.DefaultRules.ToggleDmsEnabled,
+						Rules:            database.DefaultRules.Rules,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild rules settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsRulesSettingsToPartial(rules)

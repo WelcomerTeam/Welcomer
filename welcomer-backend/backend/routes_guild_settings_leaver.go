@@ -2,12 +2,14 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/leaver
@@ -18,8 +20,22 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 
 			leaver, err := backend.Database.GetLeaverGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")
-				leaver = &database.GuildSettingsLeaver{}
+				if errors.Is(err, pgx.ErrNoRows) {
+					leaver = &database.GuildSettingsLeaver{
+						GuildID:       int64(guildID),
+						ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
+						Channel:       database.DefaultLeaver.Channel,
+						MessageFormat: database.DefaultLeaver.MessageFormat,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsLeaverSettingsToPartial(*leaver)

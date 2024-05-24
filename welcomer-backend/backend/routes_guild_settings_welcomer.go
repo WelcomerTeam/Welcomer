@@ -21,6 +21,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
@@ -50,20 +51,53 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomerText, err := backend.Database.GetWelcomerTextGuildSettings(ctx, int64(guildID))
 			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					welcomerText = &database.GuildSettingsWelcomerText{
+						GuildID:       int64(guildID),
+						ToggleEnabled: database.DefaultWelcomerText.ToggleEnabled,
+						Channel:       database.DefaultWelcomerText.Channel,
+						MessageFormat: database.DefaultWelcomerText.MessageFormat,
+					}
+				}
+
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer text settings")
-				welcomerText = &database.GuildSettingsWelcomerText{}
 			}
 
 			welcomerImages, err := backend.Database.GetWelcomerImagesGuildSettings(ctx, int64(guildID))
 			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					welcomerImages = &database.GuildSettingsWelcomerImages{
+						GuildID:                int64(guildID),
+						ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
+						ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+						BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
+						ColourText:             database.DefaultWelcomerImages.ColourText,
+						ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
+						ColourImageBorder:      database.DefaultWelcomerImages.ColourImageBorder,
+						ColourProfileBorder:    database.DefaultWelcomerImages.ColourProfileBorder,
+						ImageAlignment:         database.DefaultWelcomerImages.ImageAlignment,
+						ImageTheme:             database.DefaultWelcomerImages.ImageTheme,
+						ImageMessage:           database.DefaultWelcomerImages.ImageMessage,
+						ImageProfileBorderType: database.DefaultWelcomerImages.ImageProfileBorderType,
+					}
+				}
+
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
-				welcomerImages = &database.GuildSettingsWelcomerImages{}
 			}
 
 			welcomerDMs, err := backend.Database.GetWelcomerDMsGuildSettings(ctx, int64(guildID))
 			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					welcomerDMs = &database.GuildSettingsWelcomerDms{
+						GuildID:             int64(guildID),
+						ToggleEnabled:       database.DefaultWelcomerDms.ToggleEnabled,
+						ToggleUseTextFormat: database.DefaultWelcomerDms.ToggleUseTextFormat,
+						ToggleIncludeImage:  database.DefaultWelcomerDms.ToggleIncludeImage,
+						MessageFormat:       database.DefaultWelcomerDms.MessageFormat,
+					}
+				}
+
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer dms settings")
-				welcomerDMs = &database.GuildSettingsWelcomerDms{}
 			}
 
 			guildBackgrounds, err := backend.Database.GetWelcomerImagesByGuildId(ctx, int64(guildID))

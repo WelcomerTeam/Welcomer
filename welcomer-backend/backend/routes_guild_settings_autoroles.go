@@ -2,12 +2,14 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/autoroles
@@ -18,7 +20,21 @@ func getGuildSettingsAutoRoles(ctx *gin.Context) {
 
 			autoroles, err := backend.Database.GetAutoRolesGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild autoroles settings")
+				if errors.Is(err, pgx.ErrNoRows) {
+					autoroles = &database.GuildSettingsAutoroles{
+						GuildID:       int64(guildID),
+						ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
+						Roles:         database.DefaultAutoroles.Roles,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild autoroles settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsAutoRolesSettingsToPartial(autoroles)

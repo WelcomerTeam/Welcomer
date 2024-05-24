@@ -2,12 +2,14 @@ package backend
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // Route GET /api/guild/:guildID/timeroles
@@ -18,7 +20,21 @@ func getGuildSettingsTimeRoles(ctx *gin.Context) {
 
 			timeroles, err := backend.Database.GetTimeRolesGuildSettings(ctx, int64(guildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild timeroles settings")
+				if errors.Is(err, pgx.ErrNoRows) {
+					timeroles = &database.GuildSettingsTimeroles{
+						GuildID:       int64(guildID),
+						ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
+						Timeroles:     database.DefaultTimeRoles.Timeroles,
+					}
+				} else {
+					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild timeroles settings")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok: false,
+					})
+
+					return
+				}
 			}
 
 			partial := GuildSettingsTimeRolesSettingsToPartial(timeroles)
