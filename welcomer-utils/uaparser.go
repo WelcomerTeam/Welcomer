@@ -1,4 +1,4 @@
-package welcomer
+package utils
 
 import (
 	"github.com/ua-parser/uap-go/uaparser"

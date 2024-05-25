@@ -1,4 +1,4 @@
-module github.com/WelcomerTeam/Welcomer/welcomer-images
+module github.com/WelcomerTeam/Welcomer/utils.images
 
 go 1.22
 
@@ -6,7 +6,8 @@ toolchain go1.22.0
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20240515220606-32d05b73aade
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20240520214118-3bf9bc0e6f47
+	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/gg v1.3.0
 	github.com/gin-contrib/logger v1.1.2
@@ -15,12 +16,10 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.19.1
-	github.com/rs/zerolog v1.32.0
+	github.com/rs/zerolog v1.33.0
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
 	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
 	golang.org/x/image v0.16.0
-	google.golang.org/grpc v1.64.0
-	google.golang.org/protobuf v1.34.1
 )
 
 require (
@@ -31,20 +30,20 @@ require (
 	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bytedance/sonic v1.11.6 // indirect
+	github.com/bytedance/sonic v1.11.7 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/davidmytton/url-verifier v1.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -82,7 +81,11 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240521202816-d264139d666e // indirect
+	google.golang.org/grpc v1.64.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0 => ../welcomer-utils

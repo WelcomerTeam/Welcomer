@@ -1,7 +1,6 @@
-package welcomer
+package utils
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"image/color"
@@ -13,11 +12,8 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	"github.com/jackc/pgtype"
-	"github.com/rs/zerolog"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
 
@@ -68,30 +64,6 @@ func RandStringBytesRmndr(n int) string {
 	}
 
 	return string(b)
-}
-
-func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
-	for _, membership := range memberships {
-		if IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)) {
-			hasCustomBackgrounds = true
-		} else if IsWelcomerProMembership(database.MembershipType(membership.MembershipType)) {
-			hasWelcomerPro = true
-		}
-	}
-
-	return
-}
-
-func IsCustomBackgroundsMembership(membershipType database.MembershipType) bool {
-	return membershipType == database.MembershipTypeLegacyCustomBackgrounds ||
-		membershipType == database.MembershipTypeCustomBackgrounds
-}
-
-func IsWelcomerProMembership(membershipType database.MembershipType) bool {
-	return membershipType == database.MembershipTypeLegacyWelcomerPro1 ||
-		membershipType == database.MembershipTypeLegacyWelcomerPro3 ||
-		membershipType == database.MembershipTypeLegacyWelcomerPro5 ||
-		membershipType == database.MembershipTypeWelcomerPro
 }
 
 // StringToJsonLiteral converts a string to a json.RawMessage.
@@ -397,87 +369,6 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	}
 
 	return true
-}
-
-func FilterAssignableTimeRoles(ctx context.Context, sandwichClient protobuf.SandwichClient, logger zerolog.Logger, guildID int64, applicationID int64, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
-	roleIDs := make([]int64, len(timeRoles))
-	for i, timeRole := range timeRoles {
-		roleIDs[i] = int64(timeRole.Role)
-	}
-
-	assignableRoleIDs, err := FilterAssignableRoles(ctx, sandwichClient, logger, guildID, applicationID, roleIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, timeRole := range timeRoles {
-		for _, assignableRoleID := range assignableRoleIDs {
-			if timeRole.Role == assignableRoleID {
-				out = append(out, timeRole)
-
-				break
-			}
-		}
-	}
-
-	return out, nil
-}
-
-func FilterAssignableRoles(ctx context.Context, sandwichClient protobuf.SandwichClient, logger zerolog.Logger, guildID int64, applicationID int64, roleIDs []int64) (out []discord.Snowflake, err error) {
-	guildRoles, err := sandwichClient.FetchGuildRoles(ctx, &protobuf.FetchGuildRolesRequest{
-		GuildID: int64(guildID),
-	})
-	if err != nil {
-		logger.Error().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Msg("Failed to fetch guild roles.")
-
-		return nil, err
-	}
-
-	guildMember, err := sandwichClient.FetchGuildMembers(ctx, &protobuf.FetchGuildMembersRequest{
-		GuildID: int64(guildID),
-		UserIDs: []int64{int64(applicationID)},
-	})
-	if err != nil {
-		logger.Error().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Int64("user_id", int64(applicationID)).
-			Msg("Failed to fetch application guild member.")
-	}
-
-	// Get the guild member of the application.
-	applicationUser, ok := guildMember.GuildMembers[int64(applicationID)]
-	if !ok {
-		logger.Error().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Int64("user_id", int64(applicationID)).
-			Msg("Application guild member not present in response.")
-
-		return nil, ErrMissingApplicationUser
-	}
-
-	// Get the top role position of the application user.
-	var applicationUserTopRolePosition int32
-
-	for _, roleID := range applicationUser.Roles {
-		role, ok := guildRoles.GuildRoles[roleID]
-		if ok && role.Position > applicationUserTopRolePosition {
-			applicationUserTopRolePosition = role.Position
-		}
-	}
-
-	// Filter out any roles that are not in cache or are above the application user's top role position.
-	for _, roleID := range roleIDs {
-		role, ok := guildRoles.GuildRoles[roleID]
-		if ok {
-			if role.Position < applicationUserTopRolePosition {
-				out = append(out, discord.Snowflake(roleID))
-			}
-		}
-	}
-
-	return out, nil
 }
 
 func HumanizeDuration(seconds int) string {

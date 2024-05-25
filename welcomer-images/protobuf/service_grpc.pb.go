@@ -4,7 +4,7 @@
 // - protoc             v3.21.4
 // source: service.proto
 
-package welcomer_image
+package utils.image
 
 import (
 	context "context"

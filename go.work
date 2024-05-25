@@ -6,6 +6,6 @@ use (
 	./welcomer-backend
 	./welcomer-core
 	./welcomer-gateway
-	./welcomer-images
 	./welcomer-interactions
+	./welcomer-utils
 )

@@ -9,8 +9,9 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -54,7 +55,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the tempchannels module for DM channels.
-	tempchannelsGroup.DMPermission = &welcomer.False
+	tempchannelsGroup.DMPermission = &utils.False
 
 	tempchannelsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "give",
@@ -62,11 +63,11 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: &utils.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
+			return core.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -79,7 +80,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Tempchannels is not enabled on this server.", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Tempchannels is not enabled on this server.", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -88,7 +89,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				interaction.Member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(welcomer.CustomEventInvokeTempChannelsStructure{
+				data, err := json.Marshal(core.CustomEventInvokeTempChannelsStructure{
 					Interaction: &interaction,
 					Member:      *interaction.Member,
 				})
@@ -97,8 +98,8 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    welcomer.CustomEventInvokeTempChannels,
+					Manager: core.GetManagerNameFromContext(ctx),
+					Type:    core.CustomEventInvokeTempChannels,
 					Data:    data,
 				})
 				if err != nil {
@@ -118,14 +119,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: &utils.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				// GuildID may be missing, fill it in.
 				interaction.Member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(welcomer.CustomEventInvokeTempChannelsRemoveStructure{
+				data, err := json.Marshal(core.CustomEventInvokeTempChannelsRemoveStructure{
 					Interaction: &interaction,
 					Member:      *interaction.Member,
 				})
@@ -134,8 +135,8 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    welcomer.CustomEventInvokeTempChannelsRemove,
+					Manager: core.GetManagerNameFromContext(ctx),
+					Type:    core.CustomEventInvokeTempChannelsRemove,
 					Data:    data,
 				})
 				if err != nil {
@@ -163,20 +164,20 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: TempChannelsModuleTempChannels, Value: welcomer.StringToJsonLiteral(TempChannelsModuleTempChannels)},
-					{Name: TempChannelsModuleAutoPurge, Value: welcomer.StringToJsonLiteral(TempChannelsModuleAutoPurge)},
+					{Name: TempChannelsModuleTempChannels, Value: utils.StringToJsonLiteral(TempChannelsModuleTempChannels)},
+					{Name: TempChannelsModuleAutoPurge, Value: utils.StringToJsonLiteral(TempChannelsModuleAutoPurge)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -194,7 +195,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -202,7 +203,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
@@ -215,7 +216,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -232,14 +233,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled tempchannels. Users can now use `/tempchannels give` or join the lobby channel, if set.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled tempchannels. Users can now use `/tempchannels give` or join the lobby channel, if set.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case TempChannelsModuleAutoPurge:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled autopurge. Tempchannels will now be cleared when they are left empty.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled autopurge. Tempchannels will now be cleared when they are left empty.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				default:
@@ -263,20 +264,20 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: TempChannelsModuleTempChannels, Value: welcomer.StringToJsonLiteral(TempChannelsModuleTempChannels)},
-					{Name: TempChannelsModuleAutoPurge, Value: welcomer.StringToJsonLiteral(TempChannelsModuleAutoPurge)},
+					{Name: TempChannelsModuleTempChannels, Value: utils.StringToJsonLiteral(TempChannelsModuleTempChannels)},
+					{Name: TempChannelsModuleAutoPurge, Value: utils.StringToJsonLiteral(TempChannelsModuleAutoPurge)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -294,7 +295,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -302,7 +303,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
@@ -315,7 +316,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -332,14 +333,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled tempchannels.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled tempchannels.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case TempChannelsModuleAutoPurge:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled autopurge.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled autopurge.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				default:
@@ -364,14 +365,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				channel := subway.MustGetArgument(ctx, "category").MustChannel()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -382,7 +383,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsTempChannels.ChannelCategory = int64(channel.ID)
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
@@ -395,7 +396,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -410,7 +411,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Set tempchannels category to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
+						Embeds: utils.NewEmbed("Set tempchannels category to: <#"+channel.ID.String()+">.", utils.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -432,14 +433,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -454,7 +455,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					guildSettingsTempChannels.ChannelLobby = 0
 				}
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
@@ -467,7 +468,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -483,17 +484,17 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed(fmt.Sprintf(
+							Embeds: utils.NewEmbed(fmt.Sprintf(
 								"Set tempchannels lobby to: <#%d>.\n\nWhen tempchannels is enabled, users will be able to join <#%d> to be automatically moved to a tempchannel, without running `/tempchannels give`.",
 								channel.ID, channel.ID,
-							), welcomer.EmbedColourSuccess),
+							), utils.EmbedColourSuccess),
 						},
 					}, nil
 				} else {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed tempchannels lobby.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Removed tempchannels lobby.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				}

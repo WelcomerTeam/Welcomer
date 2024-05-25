@@ -14,6 +14,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 func NewMiscellaneousCog() *MiscellaneousCog {
@@ -88,7 +89,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
+							Embeds: utils.NewEmbed("No messages to delete", utils.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -115,13 +116,13 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(
+						Embeds: utils.NewEmbed(
 							fmt.Sprintf(
 								"%d message%s been deleted",
 								len(messagesToDelete),
-								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
+								utils.If(len(messagesToDelete) == 1, " has", "s have"),
 							),
-							welcomer.EmbedColourInfo,
+							utils.EmbedColourInfo,
 						),
 					},
 				}, nil
@@ -141,7 +142,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Embeds: []*discord.Embed{
 							{
 								Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at %s", welcomer.WebsiteURL+"/dashboard"),
-								Color:       welcomer.EmbedColourInfo,
+								Color:       utils.EmbedColourInfo,
 							},
 						},
 					},
@@ -154,7 +155,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Embeds: []*discord.Embed{
 								{
 									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
-									Color:       welcomer.EmbedColourInfo,
+									Color:       utils.EmbedColourInfo,
 								},
 							},
 						},
@@ -175,7 +176,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Embeds: []*discord.Embed{
 						{
 							Description: "### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.",
-							Color:       welcomer.EmbedColourInfo,
+							Color:       utils.EmbedColourInfo,
 						},
 					},
 					Components: []*discord.InteractionComponent{
@@ -203,7 +204,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "Emojis", Color: welcomer.EmbedColourInfo}
+				embed := &discord.Embed{Title: "Emojis", Color: utils.EmbedColourInfo}
 
 				guildEmojis, err := sub.SandwichClient.FetchGuildEmojis(sub.Context, &sandwich.FetchGuildEmojisRequest{
 					GuildID: int64(*interaction.GuildID),
@@ -242,7 +243,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(emojiLine) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						embed = &discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += emojiLine
@@ -326,12 +327,12 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "Invite Leaderboard", Color: welcomer.EmbedColourInfo}
+				embed := &discord.Embed{Title: "Invite Leaderboard", Color: utils.EmbedColourInfo}
 
 				embed.Description += fmt.Sprintf(
 					"You have invited %d user%s to this server.\n",
 					userTotalInvites,
-					welcomer.If(userTotalInvites == 1, "", "s"),
+					utils.If(userTotalInvites == 1, "", "s"),
 				)
 
 				if userPosition > 0 && userPosition <= 100 {
@@ -350,13 +351,13 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						position+1,
 						"<@"+leaderboardUser.InviterID.String()+">",
 						leaderboardUser.Uses,
-						welcomer.If(leaderboardUser.Uses == 1, "", "s"),
+						utils.If(leaderboardUser.Uses == 1, "", "s"),
 					)
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(leaderboardWithNumber) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						embed = &discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += leaderboardWithNumber
@@ -382,7 +383,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
 					embeds := []*discord.Embed{}
-					embed := &discord.Embed{Title: "Newly Created Users", Color: welcomer.EmbedColourInfo}
+					embed := &discord.Embed{Title: "Newly Created Users", Color: utils.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
@@ -429,14 +430,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newCreationWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
+							"<@"+utils.Itoa(guildMember.User.ID)+">",
 							discord.Snowflake(guildMember.User.ID).Time().Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newCreationWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+							embed = &discord.Embed{Color: utils.EmbedColourInfo}
 						}
 
 						embed.Description += newCreationWithNumber
@@ -467,7 +468,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
 					embeds := []*discord.Embed{}
-					embed := &discord.Embed{Title: "Newly Joined Members", Color: welcomer.EmbedColourInfo}
+					embed := &discord.Embed{Title: "Newly Joined Members", Color: utils.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
@@ -508,14 +509,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newMemberWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
+							"<@"+utils.Itoa(guildMember.User.ID)+">",
 							joinedAt.Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+							embed = &discord.Embed{Color: utils.EmbedColourInfo}
 						}
 
 						embed.Description += newMemberWithNumber
@@ -546,7 +547,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
 					embeds := []*discord.Embed{}
-					embed := &discord.Embed{Title: "Oldest Members", Color: welcomer.EmbedColourInfo}
+					embed := &discord.Embed{Title: "Oldest Members", Color: utils.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
@@ -587,14 +588,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newMemberWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
+							"<@"+utils.Itoa(guildMember.User.ID)+">",
 							joinedAt.Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+							embed = &discord.Embed{Color: utils.EmbedColourInfo}
 						}
 
 						embed.Description += newMemberWithNumber
@@ -669,8 +670,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "limit",
 				ArgumentType: subway.ArgumentTypeInt,
 				Description:  "Limit of messages to search for",
-				MaxValue:     welcomer.ToPointer(int32(100)),
-				MinValue:     welcomer.ToPointer(int32(1)),
+				MaxValue:     utils.ToPointer(int32(100)),
+				MinValue:     utils.ToPointer(int32(1)),
 			},
 			{
 				Name:         "bot",
@@ -691,7 +692,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "timeout",
 				ArgumentType: subway.ArgumentTypeInt,
 				Description:  "When supplied, the user will also be timed out for this number of hours",
-				MinValue:     welcomer.ToPointer(int32(1)),
+				MinValue:     utils.ToPointer(int32(1)),
 			},
 			{
 				Name:         "reason",
@@ -719,7 +720,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				var limit *int32
 				if argumentLimit > 0 {
-					limit = welcomer.ToPointer(int32(argumentLimit))
+					limit = utils.ToPointer(int32(argumentLimit))
 				}
 
 				messageHistory, err := channel.History(session, nil, nil, nil, limit)
@@ -753,7 +754,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No messages found to delete", welcomer.EmbedColourInfo),
+							Embeds: utils.NewEmbed("No messages found to delete", utils.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -764,11 +765,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					err = message.Delete(
 						session,
-						welcomer.ToPointer(fmt.Sprintf(
+						utils.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
 							interaction.Member.User.ID,
-							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
+							utils.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
 					if err != nil {
@@ -780,11 +781,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					err = channel.DeleteMessages(
 						session,
 						messagesToDelete,
-						welcomer.ToPointer(fmt.Sprintf(
+						utils.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
 							interaction.Member.User.ID,
-							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
+							utils.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
 					if err != nil {
@@ -794,7 +795,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				communicationDisabledUntil := welcomer.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)).Format(time.RFC3339))
+				communicationDisabledUntil := utils.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)).Format(time.RFC3339))
 
 				for userID := range usersToTimeout {
 					guildMember := discord.GuildMember{GuildID: interaction.GuildID, User: &discord.User{ID: userID}}
@@ -802,11 +803,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						discord.GuildMemberParams{
 							CommunicationDisabledUntil: communicationDisabledUntil,
 						},
-						welcomer.ToPointer(fmt.Sprintf(
+						utils.ToPointer(fmt.Sprintf(
 							"Timeout from purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
 							interaction.Member.User.ID,
-							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
+							utils.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
 					if err != nil {
@@ -820,13 +821,13 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(
+						Embeds: utils.NewEmbed(
 							fmt.Sprintf(
 								"%d message%s been deleted",
 								len(messagesToDelete),
-								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
+								utils.If(len(messagesToDelete) == 1, " has", "s have"),
 							),
-							welcomer.EmbedColourInfo,
+							utils.EmbedColourInfo,
 						),
 					},
 				}, nil
@@ -859,7 +860,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Embeds: []*discord.Embed{
 						{
 							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.SupportInvite),
-							Color:       welcomer.EmbedColourInfo,
+							Color:       utils.EmbedColourInfo,
 						},
 					},
 				},
@@ -887,10 +888,10 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					client := http.Client{Timeout: time.Second * 5}
 
 					for _, emoji := range guildEmojis.GuildEmojis {
-						url := discord.EndpointCDN + welcomer.If(
+						url := discord.EndpointCDN + utils.If(
 							emoji.Animated,
-							discord.EndpointEmojiAnimated(welcomer.Itoa(emoji.ID)),
-							discord.EndpointEmoji(welcomer.Itoa(emoji.ID)),
+							discord.EndpointEmojiAnimated(utils.Itoa(emoji.ID)),
+							discord.EndpointEmoji(utils.Itoa(emoji.ID)),
 						)
 						resp, err := client.Get(url)
 						if err != nil {
@@ -907,7 +908,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 									"%s_%d.%s",
 									emoji.Name,
 									emoji.ID,
-									welcomer.If(emoji.Animated, "gif", "png"),
+									utils.If(emoji.Animated, "gif", "png"),
 								),
 							)
 							if err != nil {
@@ -929,7 +930,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					responseMessage := discord.WebhookMessageParams{
-						Embeds: welcomer.NewEmbed("Here is a list of the guild emojis!", welcomer.EmbedColourInfo),
+						Embeds: utils.NewEmbed("Here is a list of the guild emojis!", utils.EmbedColourInfo),
 					}
 					responseMessage.Files = append(responseMessage.Files, &discord.File{
 						Name:        "emojis.zip",

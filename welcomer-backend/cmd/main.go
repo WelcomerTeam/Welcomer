@@ -10,7 +10,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
@@ -45,7 +45,7 @@ func main() {
 
 	paypalClientID := flag.String("paypalClientID", os.Getenv("PAYPAL_CLIENT_ID"), "Paypal client ID")
 	paypalClientSecret := flag.String("paypalSecretID", os.Getenv("PAYPAL_CLIENT_SECRET"), "Paypal client secret")
-	paypalIsLive := flag.Bool("paypalIsLive", welcomer.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
+	paypalIsLive := flag.Bool("paypalIsLive", utils.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
 
 	flag.Parse()
 

@@ -3,7 +3,7 @@ package service
 import (
 	"image"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
@@ -22,10 +22,10 @@ func CreateRegularImage(
 	textPoint := image.Point{}
 
 	switch args.ImageOptions.ProfileFloat {
-	case core.ImageAlignmentLeft: // left
+	case utils.ImageAlignmentLeft: // left
 		imagePoint = image.Point{0, 0}
 		textPoint = image.Point{268, 0}
-	case core.ImageAlignmentRight: // right
+	case utils.ImageAlignmentRight: // right
 		imagePoint = image.Point{700, 0}
 		textPoint = image.Point{0, 0}
 	default:
@@ -83,5 +83,5 @@ func CreateRegularImage(
 }
 
 func init() {
-	registerThemeFunc(core.ImageThemeDefault, CreateRegularImage)
+	registerThemeFunc(utils.ImageThemeDefault, CreateRegularImage)
 }

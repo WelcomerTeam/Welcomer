@@ -10,6 +10,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -76,7 +77,7 @@ func checkToken(ctx context.Context, config *oauth2.Config, token *oauth2.Token)
 
 // Send user to OAuth2 Authorize URL.
 func doOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
-	state := welcomer.RandStringBytesRmndr(StateStringLength)
+	state := utils.RandStringBytesRmndr(StateStringLength)
 
 	SetStateSession(session, state)
 
@@ -150,7 +151,7 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 func requireGuildIDKey(ctx *gin.Context, handler gin.HandlerFunc) {
 	rawGuildID := ctx.Param(GuildIDKey)
 
-	guildIDInt, err := welcomer.Atoi(rawGuildID)
+	guildIDInt, err := utils.Atoi(rawGuildID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, BaseResponse{
 			Ok:    false,

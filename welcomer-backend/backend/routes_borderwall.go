@@ -11,8 +11,9 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -195,7 +196,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate reCAPTCHA
-		recaptchaScore, err := welcomer.ValidateRecaptcha(backend.Logger, request.Response, ctx.ClientIP())
+		recaptchaScore, err := utils.ValidateRecaptcha(backend.Logger, request.Response, ctx.ClientIP())
 		if err != nil {
 			logger.Error().Err(err).Msg("Failed to validate recaptcha")
 
@@ -219,7 +220,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate IPIntel
-		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to validate IPIntel")
 		}
@@ -247,7 +248,7 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		data, err := json.Marshal(welcomer.CustomEventInvokeBorderwallCompletionStructure{
+		data, err := json.Marshal(core.CustomEventInvokeWelcomerStructure{
 			Member: discord.GuildMember{
 				User: &discord.User{
 					ID:            user.ID,
@@ -256,7 +257,7 @@ func setBorderwall(ctx *gin.Context) {
 					GlobalName:    user.GlobalName,
 					Avatar:        user.Avatar,
 				},
-				GuildID: welcomer.ToPointer(discord.Snowflake(borderwallRequest.GuildID)),
+				GuildID: utils.ToPointer(discord.Snowflake(borderwallRequest.GuildID)),
 			},
 		})
 		if err != nil {
@@ -271,7 +272,7 @@ func setBorderwall(ctx *gin.Context) {
 
 		_, err = backend.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
 			Manager: managers[0],
-			Type:    welcomer.CustomEventInvokeBorderwallCompletion,
+			Type:    core.CustomEventInvokeBorderwallCompletion,
 			Data:    data,
 		})
 		if err != nil {
@@ -285,7 +286,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		ip := net.ParseIP(ctx.ClientIP())
-		family, familyVersion, os, osVersion := welcomer.ParseUserAgent(userAgent)
+		family, familyVersion, os, osVersion := utils.ParseUserAgent(userAgent)
 
 		// If platform version is 13 or higher, we assume it's Windows 11.
 		// https://learn.microsoft.com/en-us/microsoft-edge/web-platform/how-to-detect-win11

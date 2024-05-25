@@ -8,6 +8,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -51,7 +52,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the borderwall module for DM channels.
-	borderwallGroup.DMPermission = &welcomer.False
+	borderwallGroup.DMPermission = &utils.False
 
 	borderwallGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -67,14 +68,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallModuleBorderwall, Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall)},
-					{Name: BorderwallModuleDMs, Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs)},
+					{Name: BorderwallModuleBorderwall, Value: utils.StringToJsonLiteral(BorderwallModuleBorderwall)},
+					{Name: BorderwallModuleDMs, Value: utils.StringToJsonLiteral(BorderwallModuleDMs)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -98,7 +99,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -109,13 +110,13 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("A channel must be selected if you are not sending borderwall messages via direct message. Please set a channel with `/borderwall channel` before enabling borderwall.", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("A channel must be selected if you are not sending borderwall messages via direct message. Please set a channel with `/borderwall channel` before enabling borderwall.", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
@@ -147,7 +148,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled borderwall. Users will now have to verify when joining the server.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled borderwall. Users will now have to verify when joining the server.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case BorderwallModuleDMs:
@@ -155,14 +156,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled borderwall direct messages. Users will now receive instructions on how to verify with borderwall when joining the server.", welcomer.EmbedColourSuccess),
+								Embeds: utils.NewEmbed("Enabled borderwall direct messages. Users will now receive instructions on how to verify with borderwall when joining the server.", utils.EmbedColourSuccess),
 							},
 						}, nil
 					} else {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled borderwall direct messages. Borderwall is not enabled, users won't have to verify when joining the server.", welcomer.EmbedColourWarn),
+								Embeds: utils.NewEmbed("Enabled borderwall direct messages. Borderwall is not enabled, users won't have to verify when joining the server.", utils.EmbedColourWarn),
 							},
 						}, nil
 					}
@@ -187,14 +188,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallModuleBorderwall, Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall)},
-					{Name: BorderwallModuleDMs, Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs)},
+					{Name: BorderwallModuleBorderwall, Value: utils.StringToJsonLiteral(BorderwallModuleBorderwall)},
+					{Name: BorderwallModuleDMs, Value: utils.StringToJsonLiteral(BorderwallModuleDMs)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -218,13 +219,13 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
@@ -256,14 +257,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled borderwall.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled borderwall.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case BorderwallModuleDMs:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled borderwall direct messages.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled borderwall direct messages.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				}
@@ -288,8 +289,8 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -315,13 +316,13 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("A channel must be selected if you are not sending borderwall messages via direct message.", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("A channel must be selected if you are not sending borderwall messages via direct message.", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
@@ -352,14 +353,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set borderwall channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Set borderwall channel to: <#"+channel.ID.String()+">.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				} else {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed borderwall channel. Borderwall will only send direct messages to users.", welcomer.EmbedColourWarn),
+							Embeds: utils.NewEmbed("Removed borderwall channel. Borderwall will only send direct messages to users.", utils.EmbedColourWarn),
 						},
 					}, nil
 				}

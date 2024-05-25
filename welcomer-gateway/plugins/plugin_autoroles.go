@@ -4,6 +4,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type AutoRolesCog struct {
@@ -80,7 +81,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return nil
 	}
 
-	err = member.AddRoles(eventCtx.Session, assignableRoles, welcomer.ToPointer("Automatically assigned with AutoRoles"), true)
+	err = member.AddRoles(eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with AutoRoles"), true)
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).

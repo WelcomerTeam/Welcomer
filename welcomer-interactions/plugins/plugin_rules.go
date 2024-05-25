@@ -9,6 +9,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -52,7 +53,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the rules module for DM channels.
-	ruleGroup.DMPermission = &welcomer.False
+	ruleGroup.DMPermission = &utils.False
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -68,14 +69,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: RuleModuleRules, Value: welcomer.StringToJsonLiteral(RuleModuleRules)},
-					{Name: RuleModuleDMs, Value: welcomer.StringToJsonLiteral(RuleModuleDMs)},
+					{Name: RuleModuleRules, Value: utils.StringToJsonLiteral(RuleModuleRules)},
+					{Name: RuleModuleDMs, Value: utils.StringToJsonLiteral(RuleModuleDMs)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -99,13 +100,13 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
@@ -133,7 +134,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled rules. Run `/rules list` to see the list of rules configured.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled rules. Run `/rules list` to see the list of rules configured.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case RuleModuleDMs:
@@ -141,14 +142,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled rule direct messages. Users will now receive a list of rules when joining the server.", welcomer.EmbedColourSuccess),
+								Embeds: utils.NewEmbed("Enabled rule direct messages. Users will now receive a list of rules when joining the server.", utils.EmbedColourSuccess),
 							},
 						}, nil
 					} else {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled rule direct messages. Rules are not enabled, users will not receive a list of rules when joining the server.", welcomer.EmbedColourWarn),
+								Embeds: utils.NewEmbed("Enabled rule direct messages. Rules are not enabled, users will not receive a list of rules when joining the server.", utils.EmbedColourWarn),
 							},
 						}, nil
 					}
@@ -173,14 +174,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: RuleModuleRules, Value: welcomer.StringToJsonLiteral(RuleModuleRules)},
-					{Name: RuleModuleDMs, Value: welcomer.StringToJsonLiteral(RuleModuleDMs)},
+					{Name: RuleModuleRules, Value: utils.StringToJsonLiteral(RuleModuleRules)},
+					{Name: RuleModuleDMs, Value: utils.StringToJsonLiteral(RuleModuleDMs)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -204,13 +205,13 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
@@ -238,14 +239,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled rules.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled rules.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case RuleModuleDMs:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled rule direct messages.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled rule direct messages.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				}
@@ -261,7 +262,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: &utils.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -279,14 +280,14 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no rules set for this server.", welcomer.EmbedColourInfo),
+							Embeds: utils.NewEmbed("There are no rules set for this server.", utils.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
 				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "Rules", Color: welcomer.EmbedColourInfo}
+				embed := &discord.Embed{Title: "Rules", Color: utils.EmbedColourInfo}
 
 				for ruleNumber, rule := range guildSettingsRules.Rules {
 					ruleWithNumber := fmt.Sprintf("%d. %s\n", ruleNumber, rule)
@@ -294,7 +295,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(ruleWithNumber) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						embed = &discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += ruleWithNumber

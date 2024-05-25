@@ -9,6 +9,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -80,7 +81,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 	guildMembers, err := eventCtx.Sandwich.SandwichClient.FetchGuildMembers(eventCtx.Context, &pb.FetchGuildMembersRequest{
 		GuildID: int64(guildID),
-		UserIDs: welcomer.If(memberID != nil, []int64{int64(*memberID)}, nil),
+		UserIDs: utils.If(memberID != nil, []int64{int64(*memberID)}, nil),
 	})
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
@@ -161,7 +162,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		member.GuildID = &guildID
 
-		err = member.AddRoles(eventCtx.Session, roles, welcomer.ToPointer("Automatically assigned with TimeRoles"), true)
+		err = member.AddRoles(eventCtx.Session, roles, utils.ToPointer("Automatically assigned with TimeRoles"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).

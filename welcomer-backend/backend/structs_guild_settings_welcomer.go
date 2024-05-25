@@ -1,8 +1,8 @@
 package backend
 
 import (
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type GuildSettingsWelcomer struct {
@@ -58,10 +58,10 @@ func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerT
 			ColourTextBorder:       images.ColourTextBorder,
 			ColourImageBorder:      images.ColourImageBorder,
 			ColourProfileBorder:    images.ColourProfileBorder,
-			ImageAlignment:         core.ImageAlignment(images.ImageAlignment).String(),
-			ImageTheme:             core.ImageTheme(images.ImageTheme).String(),
+			ImageAlignment:         utils.ImageAlignment(images.ImageAlignment).String(),
+			ImageTheme:             utils.ImageTheme(images.ImageTheme).String(),
 			ImageMessage:           images.ImageMessage,
-			ImageProfileBorderType: core.ImageProfileBorderType(images.ImageProfileBorderType).String(),
+			ImageProfileBorderType: utils.ImageProfileBorderType(images.ImageProfileBorderType).String(),
 		},
 		DMs: &GuildSettingsWelcomerDms{
 			ToggleEnabled:       dms.ToggleEnabled,
@@ -103,20 +103,20 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 		}
 }
 
-func ParseImageAlignment(value string) core.ImageAlignment {
-	imageAlignment, _ := core.ParseImageAlignment(value)
+func ParseImageAlignment(value string) utils.ImageAlignment {
+	imageAlignment, _ := utils.ParseImageAlignment(value)
 
 	return imageAlignment
 }
 
-func ParseImageTheme(value string) core.ImageTheme {
-	imageTheme, _ := core.ParseImageTheme(value)
+func ParseImageTheme(value string) utils.ImageTheme {
+	imageTheme, _ := utils.ParseImageTheme(value)
 
 	return imageTheme
 }
 
-func ParseImageProfileBorderType(value string) core.ImageProfileBorderType {
-	imageProfileBorderType, _ := core.ParseImageProfileBorderType(value)
+func ParseImageProfileBorderType(value string) utils.ImageProfileBorderType {
+	imageProfileBorderType, _ := utils.ParseImageProfileBorderType(value)
 
 	return imageProfileBorderType
 }

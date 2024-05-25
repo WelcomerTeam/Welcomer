@@ -38,7 +38,7 @@ func isUserMembershipValid(userMembership *GetUserMembershipsByGuildIDRow, time 
 	}
 
 	if !userMembership.TransactionUuid.IsNil() {
-		// Validate transaction is in database if referenced.
+		// Validate transaction is in utils.if referenced.
 		if !userMembership.TransactionUuid_2.Valid {
 			return false
 		}

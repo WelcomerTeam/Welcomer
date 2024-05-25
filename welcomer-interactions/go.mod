@@ -10,11 +10,12 @@ require (
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef
 	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
+	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgtype v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
-	github.com/rs/zerolog v1.32.0
+	github.com/rs/zerolog v1.33.0
 	google.golang.org/grpc v1.64.0
 )
 
@@ -55,9 +56,11 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240521202816-d264139d666e // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core
+
+replace github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0 => ../welcomer-utils

@@ -8,7 +8,7 @@ import (
 	"image/png"
 	"sync"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 	"github.com/ultimate-guitar/go-imagequant"
 )
@@ -17,9 +17,9 @@ var (
 	attr, _ = imagequant.NewAttributes()
 )
 
-func encodeFrames(frames []image.Image, background *FullImage) ([]byte, core.ImageFileType, error) {
+func encodeFrames(frames []image.Image, background *FullImage) ([]byte, utils.ImageFileType, error) {
 	if len(frames) == 0 {
-		return nil, core.ImageFileTypeUnknown, ErrMissingFrames
+		return nil, utils.ImageFileTypeUnknown, ErrMissingFrames
 	}
 
 	if len(frames) > 1 {
@@ -29,18 +29,18 @@ func encodeFrames(frames []image.Image, background *FullImage) ([]byte, core.Ima
 	return encodeFramesAsPng(frames, background)
 }
 
-func encodeFramesAsPng(frames []image.Image, background *FullImage) ([]byte, core.ImageFileType, error) {
+func encodeFramesAsPng(frames []image.Image, background *FullImage) ([]byte, utils.ImageFileType, error) {
 	b := bytes.NewBuffer(nil)
 
 	err := png.Encode(b, frames[0])
 	if err != nil {
-		return nil, core.ImageFileTypeUnknown, err
+		return nil, utils.ImageFileTypeUnknown, err
 	}
 
-	return b.Bytes(), core.ImageFileTypeImagePng, nil
+	return b.Bytes(), utils.ImageFileTypeImagePng, nil
 }
 
-func encodeFramesAsGif(frames []image.Image, background *FullImage) ([]byte, core.ImageFileType, error) {
+func encodeFramesAsGif(frames []image.Image, background *FullImage) ([]byte, utils.ImageFileType, error) {
 	_frames := make([]*image.Paletted, len(frames))
 
 	wg := sync.WaitGroup{}
@@ -68,10 +68,10 @@ func encodeFramesAsGif(frames []image.Image, background *FullImage) ([]byte, cor
 		BackgroundIndex: background.BackgroundIndex,
 	})
 	if err != nil {
-		return nil, core.ImageFileTypeUnknown, err
+		return nil, utils.ImageFileTypeUnknown, err
 	}
 
-	return b.Bytes(), core.ImageFileTypeImageGif, nil
+	return b.Bytes(), utils.ImageFileTypeImageGif, nil
 }
 
 // quantizeImage converts an image.Image to image.Paletted via imagequant.

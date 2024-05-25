@@ -7,6 +7,7 @@ import (
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/plutov/paypal/v4"
 )
@@ -14,7 +15,7 @@ import (
 // ISO 3166-1 alpha-2 country codes for the Eurozone.
 var euroZone = []string{"AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"}
 
-func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer.Currency {
+func getAvailableCurrencies(ipintelResponse utils.IPIntelResponse) []welcomer.Currency {
 	// If the IPIntel response is above the threshold, we assume the user is on a VPN.
 	if ipintelResponse.Result <= IPIntelThreshold {
 		mapping, ok := welcomer.CountryMapping[ipintelResponse.Country]
@@ -26,12 +27,12 @@ func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer
 	return welcomer.GlobalCurrencies
 }
 
-func getDefaultCurrency(ipIntelResponse welcomer.IPIntelResponse) welcomer.Currency {
+func getDefaultCurrency(ipIntelResponse utils.IPIntelResponse) welcomer.Currency {
 	if ipIntelResponse.Country == "GB" {
 		return welcomer.CurrencyGBP
 	} else if ipIntelResponse.Country == "IN" {
 		return welcomer.CurrencyINR
-	} else if welcomer.SliceContains(euroZone, ipIntelResponse.Country) {
+	} else if utils.SliceContains(euroZone, ipIntelResponse.Country) {
 		return welcomer.CurrencyEUR
 	}
 
@@ -46,7 +47,7 @@ type GetSKUsResponse struct {
 
 // Route GET /api/billing/skus
 func getSKUs(ctx *gin.Context) {
-	response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+	response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 	if err != nil {
 		backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
 	}
@@ -115,7 +116,7 @@ func createPayment(ctx *gin.Context) {
 			return
 		}
 
-		response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+		response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 		if err != nil {
 			backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
 		}
@@ -125,7 +126,7 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		currencies := getAvailableCurrencies(response)
-		if !welcomer.SliceContains(currencies, request.Currency) {
+		if !utils.SliceContains(currencies, request.Currency) {
 			backend.Logger.Warn().Str("currency", string(request.Currency)).Msg("Invalid currency")
 
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
@@ -150,7 +151,7 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		// Check if the cost is valid.
-		if welcomer.TryParseFloat(skuCost) <= 0 {
+		if utils.TryParseFloat(skuCost) <= 0 {
 			backend.Logger.Warn().Str("currency", string(request.Currency)).Str("sku", string(request.SKU)).Msg("Invalid cost")
 
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
@@ -462,7 +463,7 @@ func paymentCallback(ctx *gin.Context) {
 
 		expiresAt := startedAt
 		if sku.MonthCount <= 0 {
-			expiresAt = startedAt.AddDate(0, welcomer.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
+			expiresAt = startedAt.AddDate(0, utils.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
 		}
 
 		// Create a new membership for the user.

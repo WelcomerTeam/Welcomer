@@ -12,8 +12,8 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -61,7 +61,7 @@ type Backend struct {
 
 	Database *database.Queries
 
-	IPChecker welcomer.IPChecker
+	IPChecker utils.IPChecker
 
 	EmptySession      *discord.Session
 	BotSession        *discord.Session
@@ -113,7 +113,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 
 		Database: database.New(options.Pool),
 
-		IPChecker: welcomer.NewLRUIPChecker(logger, 1024),
+		IPChecker: utils.NewLRUIPChecker(logger, 1024),
 	}
 
 	// Setup OAuth2
@@ -162,7 +162,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 
 	b.Store = store
 
-	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
+	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, utils.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create paypal client: %w", err)
 	}

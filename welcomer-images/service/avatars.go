@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 )
@@ -21,7 +21,7 @@ const (
 )
 
 func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) (image.Image, error) {
-	url, isValidURL := core.IsValidURL(avatarURL)
+	url, isValidURL := utils.IsValidURL(avatarURL)
 	if !isValidURL {
 		return nil, ErrInvalidURL
 	}
@@ -109,7 +109,7 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 	var avatarImage image.Image
 
 	switch generateImageOptions.ProfileBorderCurve {
-	case core.ImageProfileBorderTypeCircular:
+	case utils.ImageProfileBorderTypeCircular:
 		rounding = 1000
 
 		if canCrop, cropPix := hasImageTransparentBorder(avatar, width, height); canCrop {
@@ -131,10 +131,10 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 		} else {
 			avatarImage = roundImage(avatar, 1000)
 		}
-	case core.ImageProfileBorderTypeRounded:
+	case utils.ImageProfileBorderTypeRounded:
 		rounding = 16 + float64(generateImageOptions.ProfileBorderWidth)
 		avatarImage = roundImage(avatar, 16)
-	case core.ImageProfileBorderTypeSquared:
+	case utils.ImageProfileBorderTypeSquared:
 		avatarImage = avatar
 	default:
 		err = ErrUnknownProfileBorderType

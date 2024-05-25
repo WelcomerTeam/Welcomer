@@ -12,6 +12,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
 )
@@ -159,7 +160,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 							{
 								Title:       "Memberships",
 								Description: "You don't have any memberships.",
-								Color:       welcomer.EmbedColourInfo,
+								Color:       utils.EmbedColourInfo,
 							},
 						},
 						Components: []*discord.InteractionComponent{
@@ -180,7 +181,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			embeds := []*discord.Embed{}
-			embed := &discord.Embed{Title: "Your Memberships", Color: welcomer.EmbedColourInfo}
+			embed := &discord.Embed{Title: "Your Memberships", Color: utils.EmbedColourInfo}
 
 			for _, membership := range memberships {
 				switch membership.MembershipStatus {
@@ -195,13 +196,13 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						"%s – %s%s",
 						membership.MembershipType.Label(),
 						membership.MembershipStatus.Label(),
-						welcomer.If(
+						utils.If(
 							membership.ExpiresAt.After(time.Now()) && !welcomer.IsCustomBackgroundsMembership(membership.MembershipType),
 							fmt.Sprintf(" (Expires **<t:%d:R>**)", membership.ExpiresAt.Unix()),
 							"",
 						),
 					),
-					Value:  welcomer.If(membership.GuildID != 0, fmt.Sprintf("%s `%d`", membership.GuildName, membership.GuildID), "Unassigned"),
+					Value:  utils.If(membership.GuildID != 0, fmt.Sprintf("%s `%d`", membership.GuildName, membership.GuildID), "Unassigned"),
 					Inline: false,
 				})
 			}
@@ -265,20 +266,20 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						"%s – %s%s",
 						membership.MembershipType.Label(),
 						membership.MembershipStatus.Label(),
-						welcomer.If(
+						utils.If(
 							membership.GuildID != 0,
 							" (Assigned to "+membership.GuildName+")",
 							"",
 						),
 					),
-					Value: welcomer.StringToJsonLiteral(membership.MembershipUUID.String()),
+					Value: utils.StringToJsonLiteral(membership.MembershipUUID.String()),
 				})
 			}
 
 			if len(choices) == 0 {
 				choices = append(choices, &discord.ApplicationCommandOptionChoice{
 					Name:  "No memberships are available",
-					Value: welcomer.StringToJsonLiteral(NoMembershipsAvailable),
+					Value: utils.StringToJsonLiteral(NoMembershipsAvailable),
 				})
 			}
 
@@ -291,7 +292,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "membership",
 				Description:  "The membership to add.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: &utils.True,
 			},
 			{
 				Required:     false,
@@ -308,7 +309,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("You do not have any memberships available.", welcomer.EmbedColourError),
+						Embeds: utils.NewEmbed("You do not have any memberships available.", utils.EmbedColourError),
 						Flags:  uint32(discord.MessageFlagEphemeral),
 						Components: []*discord.InteractionComponent{
 							{
@@ -338,7 +339,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("You must specify a guild ID or run the command in the guild you would like to add the membership to.", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("You must specify a guild ID or run the command in the guild you would like to add the membership to.", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -393,7 +394,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This membership is already in use by this server.", welcomer.EmbedColourInfo),
+								Embeds: utils.NewEmbed("This membership is already in use by this server.", utils.EmbedColourInfo),
 								Flags:  uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
@@ -403,7 +404,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This membership is already in use by `"+membership.GuildName+"`. Please use `/membership remove` to remove the existing membership before re-assigning it.", welcomer.EmbedColourWarn),
+								Embeds: utils.NewEmbed("This membership is already in use by `"+membership.GuildName+"`. Please use `/membership remove` to remove the existing membership before re-assigning it.", utils.EmbedColourWarn),
 								Flags:  uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
@@ -415,7 +416,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This membership is no longer valid.", welcomer.EmbedColourError),
+								Embeds: utils.NewEmbed("This membership is no longer valid.", utils.EmbedColourError),
 								Flags:  uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
@@ -423,7 +424,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This membership has expired.", welcomer.EmbedColourWarn),
+								Embeds: utils.NewEmbed("This membership has expired.", utils.EmbedColourWarn),
 								Flags:  uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
@@ -448,7 +449,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 								Int32("transaction_status", membership.TransactionStatus.Int32).
 								Msg("Membership transaction is not completed.")
 
-							return nil, welcomer.ErrTransactionNotComplete
+							return nil, utils.ErrTransactionNotComplete
 						}
 
 						membership.UpdatedAt = time.Now()
@@ -491,11 +492,11 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 							return &discord.InteractionResponse{
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
-									Embeds: welcomer.NewEmbed(
+									Embeds: utils.NewEmbed(
 										fmt.Sprintf(
 											"🎉 Your membership has now been applied to `%s`.%s",
 											guild.Name,
-											welcomer.If(
+											utils.If(
 												!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
 												fmt.Sprintf(
 													" Your membership expires **<t:%d:R>**.",
@@ -504,7 +505,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 												"",
 											),
 										),
-										welcomer.EmbedColourSuccess,
+										utils.EmbedColourSuccess,
 									),
 								},
 							}, nil
@@ -512,11 +513,11 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 							return &discord.InteractionResponse{
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
-									Embeds: welcomer.NewEmbed(
+									Embeds: utils.NewEmbed(
 										fmt.Sprintf(
 											"🎉 Your membership has now been applied to `%s`.%s",
 											guild.Name,
-											welcomer.If(
+											utils.If(
 												!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
 												fmt.Sprintf(
 													" You have used this membership previously and expires **<t:%d:R>**.",
@@ -525,7 +526,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 												"",
 											),
 										),
-										welcomer.EmbedColourSuccess,
+										utils.EmbedColourSuccess,
 									),
 								},
 							}, nil
@@ -537,7 +538,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed("Invalid membership.", welcomer.EmbedColourError),
+					Embeds: utils.NewEmbed("Invalid membership.", utils.EmbedColourError),
 					Flags:  uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
@@ -585,14 +586,14 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						membership.MembershipStatus.Label(),
 						membership.GuildName,
 					),
-					Value: welcomer.StringToJsonLiteral(membership.MembershipUUID.String()),
+					Value: utils.StringToJsonLiteral(membership.MembershipUUID.String()),
 				})
 			}
 
 			if len(choices) == 0 {
 				choices = append(choices, &discord.ApplicationCommandOptionChoice{
 					Name:  "No active memberships are available",
-					Value: welcomer.StringToJsonLiteral(NoMembershipsAvailable),
+					Value: utils.StringToJsonLiteral(NoMembershipsAvailable),
 				})
 			}
 
@@ -605,7 +606,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "membership",
 				Description:  "The membership to remove.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: &utils.True,
 			},
 		},
 
@@ -616,7 +617,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("You do not have any active memberships available.", welcomer.EmbedColourError),
+						Embeds: utils.NewEmbed("You do not have any active memberships available.", utils.EmbedColourError),
 						Flags:  uint32(discord.MessageFlagEphemeral),
 						Components: []*discord.InteractionComponent{
 							{
@@ -668,7 +669,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This membership is not currently in use.", welcomer.EmbedColourInfo),
+								Embeds: utils.NewEmbed("This membership is not currently in use.", utils.EmbedColourInfo),
 								Flags:  uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
@@ -696,7 +697,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					membership.UpdatedAt = time.Now()
 
 					// Only set the status to Idle if the membership is currently Active.
-					membership.Status = welcomer.If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
+					membership.Status = utils.If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
 					membership.GuildID = 0
 
 					_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
@@ -719,10 +720,10 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed(
+							Embeds: utils.NewEmbed(
 								fmt.Sprintf(
 									"Your membership has been removed.%s",
-									welcomer.If(
+									utils.If(
 										!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
 										fmt.Sprintf(
 											" This membership expires **<t:%d:R>**.",
@@ -731,7 +732,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 										"",
 									),
 								),
-								welcomer.EmbedColourSuccess,
+								utils.EmbedColourSuccess,
 							),
 						},
 					}, nil
@@ -741,7 +742,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed("Invalid membership.", welcomer.EmbedColourError),
+					Embeds: utils.NewEmbed("Invalid membership.", utils.EmbedColourError),
 					Flags:  uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil

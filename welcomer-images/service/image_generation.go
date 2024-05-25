@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 )
@@ -15,7 +15,7 @@ import (
 // FullImage stores the image and any extra information.
 type FullImage struct {
 	// The image format that is represented
-	Format core.ImageFileType
+	Format utils.ImageFileType
 
 	Frames []image.Image
 
@@ -44,26 +44,26 @@ type GenerateImageOptions struct {
 	UserID             discord.Snowflake
 	AllowAnimated      bool
 	AvatarURL          string
-	Theme              core.ImageTheme
+	Theme              utils.ImageTheme
 	Background         string
 	Text               string
 	TextFont           string
 	TextStroke         int
-	TextAlign          core.ImageAlignment
+	TextAlign          utils.ImageAlignment
 	TextColor          color.RGBA
 	TextStrokeColor    color.RGBA
 	ImageBorderColor   color.RGBA
 	ImageBorderWidth   int
-	ProfileFloat       core.ImageAlignment
+	ProfileFloat       utils.ImageAlignment
 	ProfileBorderColor color.RGBA
 	ProfileBorderWidth int
-	ProfileBorderCurve core.ImageProfileBorderType
+	ProfileBorderCurve utils.ImageProfileBorderType
 }
 
-func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte, core.ImageFileType, *Timing, error) {
+func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte, utils.ImageFileType, *Timing, error) {
 	theme, ok := themes[imageOptions.Theme]
 	if !ok {
-		theme = themes[core.ImageThemeDefault]
+		theme = themes[utils.ImageThemeDefault]
 	}
 
 	timing := NewTiming()
@@ -100,7 +100,7 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 	if err != nil {
 		is.Logger.Error().Err(err).Msg("Failed to generate theme overlay")
 
-		return nil, core.ImageFileTypeUnknown, timing, err
+		return nil, utils.ImageFileTypeUnknown, timing, err
 	}
 
 	timing.Track("theme")

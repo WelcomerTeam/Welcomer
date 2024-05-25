@@ -8,6 +8,7 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -82,7 +83,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 
 			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
 
-			err = welcomer.RetryWithFallback(
+			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
 					return err

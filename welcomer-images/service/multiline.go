@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"strings"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -25,7 +25,7 @@ type MultilineArguments struct {
 	Width  int
 	Height int
 
-	Alignment core.ImageAlignment
+	Alignment utils.ImageAlignment
 
 	StrokeWeight int
 	StrokeColor  color.Color
@@ -102,22 +102,22 @@ func drawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 		var Dy int
 
 		switch args.Alignment {
-		case core.ImageAlignmentTopLeft, core.ImageAlignmentLeft, core.ImageAlignmentBottomLeft:
+		case utils.ImageAlignmentTopLeft, utils.ImageAlignmentLeft, utils.ImageAlignmentBottomLeft:
 			Dx = 0
-		case core.ImageAlignmentTopCenter, core.ImageAlignmentCenter, core.ImageAlignmentBottomCenter:
+		case utils.ImageAlignmentTopCenter, utils.ImageAlignmentCenter, utils.ImageAlignmentBottomCenter:
 			Dx = int((args.Width - adv.Ceil()) / 2)
-		case core.ImageAlignmentTopRight, core.ImageAlignmentRight, core.ImageAlignmentBottomRight:
+		case utils.ImageAlignmentTopRight, utils.ImageAlignmentRight, utils.ImageAlignmentBottomRight:
 			Dx = args.Width - adv.Ceil()
 		default:
 			return ErrInvalidHorizontalAlignment
 		}
 
 		switch args.Alignment {
-		case core.ImageAlignmentTopLeft, core.ImageAlignmentTopCenter, core.ImageAlignmentTopRight:
+		case utils.ImageAlignmentTopLeft, utils.ImageAlignmentTopCenter, utils.ImageAlignmentTopRight:
 			Dy = lineNo * fh
-		case core.ImageAlignmentLeft, core.ImageAlignmentCenter, core.ImageAlignmentRight:
+		case utils.ImageAlignmentLeft, utils.ImageAlignmentCenter, utils.ImageAlignmentRight:
 			Dy = (lineNo * fh) + (args.Height / 2) - (th / 2)
-		case core.ImageAlignmentBottomLeft, core.ImageAlignmentBottomCenter, core.ImageAlignmentBottomRight:
+		case utils.ImageAlignmentBottomLeft, utils.ImageAlignmentBottomCenter, utils.ImageAlignmentBottomRight:
 			Dy = args.Height - th + (lineNo * fh)
 		default:
 			return ErrInvalidVerticalAlignment

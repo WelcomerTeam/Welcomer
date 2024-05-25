@@ -9,7 +9,9 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -53,7 +55,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the leaver module for DM channels.
-	leaverGroup.DMPermission = &welcomer.False
+	leaverGroup.DMPermission = &utils.False
 
 	leaverGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "test",
@@ -70,8 +72,8 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -96,7 +98,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Leaver is not enabled. Please use `/leaver enable`", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Leaver is not enabled. Please use `/leaver enable`", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -107,13 +109,13 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No channel is set. Please use `/leaver channel`", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("No channel is set. Please use `/leaver channel`", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
 
-				data, err := json.Marshal(welcomer.CustomEventInvokeLeaverStructure{
+				data, err := json.Marshal(core.CustomEventInvokeLeaverStructure{
 					Interaction: &interaction,
 					User:        *member.User,
 					GuildID:     *interaction.GuildID,
@@ -124,7 +126,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
 					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    welcomer.CustomEventInvokeLeaver,
+					Type:    core.CustomEventInvokeLeaver,
 					Data:    data,
 				})
 				if err != nil {
@@ -144,8 +146,8 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -158,10 +160,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get leaver guild settings")
 				}
 
-				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
+				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = true
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -187,7 +189,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Enabled leaver direct messages.", welcomer.EmbedColourSuccess),
+						Embeds: utils.NewEmbed("Enabled leaver direct messages.", utils.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -200,8 +202,8 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -214,10 +216,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						Msg("Failed to get leaver guild settings")
 				}
 
-				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
+				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = false
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -243,7 +245,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Disabled leaver direct messages.", welcomer.EmbedColourSuccess),
+						Embeds: utils.NewEmbed("Disabled leaver direct messages.", utils.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -265,8 +267,8 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -279,10 +281,10 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
-				guildSettingsLeaver.Channel = welcomer.If(channel != nil, int64(channel.ID), 0)
+				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)
+				guildSettingsLeaver.Channel = utils.If(channel != nil, int64(channel.ID), 0)
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -309,14 +311,14 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set leaver channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Set leaver channel to: <#"+channel.ID.String()+">.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				} else {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed leaver channel. Leaver will not work, if enabled.", welcomer.EmbedColourWarn),
+							Embeds: utils.NewEmbed("Removed leaver channel. Leaver will not work, if enabled.", utils.EmbedColourWarn),
 						},
 					}, nil
 				}

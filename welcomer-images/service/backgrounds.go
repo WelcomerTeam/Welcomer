@@ -8,6 +8,7 @@ import (
 	"image/gif"
 
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gofrs/uuid"
 )
 
@@ -19,15 +20,15 @@ func (is *ImageService) FetchBackground(background string, allowAnimated bool, a
 	backgroundType, _ := core.ParseBackground(background)
 
 	switch backgroundType.Type {
-	case core.BackgroundTypeWelcomer:
-		return is.FetchBackgroundWelcomer(backgroundType.Value, allowAnimated)
-	case core.BackgroundTypeSolid:
+	case utils.BackgroundTypeWelcomer:
+		return is.FetchBackgroundutils.backgroundType.Value, allowAnimated)
+	case utils.BackgroundTypeSolid:
 		return is.FetchBackgroundSolid(backgroundType.Value)
-	case core.BackgroundTypeSolidProfile:
+	case utils.BackgroundTypeSolidProfile:
 		return is.FetchBackgroundSolidProfile(avatar)
-	case core.BackgroundTypeUnsplash:
+	case utils.BackgroundTypeUnsplash:
 		return is.FetchBackgroundUnsplash(backgroundType.Value)
-	case core.BackgroundTypeUrl:
+	case utils.BackgroundTypeUrl:
 		return is.FetchBackgroundURL(backgroundType.Value, allowAnimated)
 	default:
 		return is.FetchBackgroundDefault(backgroundType.Value)
@@ -82,7 +83,7 @@ func getFullImageForColour(colour color.RGBA) *FullImage {
 
 	// Generate a FullImage structure representing the single-pixel image
 	return &FullImage{
-		Format: core.ImageFileTypeImagePng,
+		Format: utils.ImageFileTypeImagePng,
 		Frames: []image.Image{im},
 		Config: image.Config{
 			Width:  1,
@@ -202,7 +203,7 @@ func openImage(src []byte, format string) (fullImage *FullImage, err error) {
 	fileFormat, err := core.ParseImageFileType(format)
 	if err != nil {
 		// Set a default format to PNG if unable to parse
-		fileFormat = core.ImageFileTypeImagePng
+		fileFormat = utils.ImageFileTypeImagePng
 	}
 
 	// Create a buffer with the image data
@@ -210,7 +211,7 @@ func openImage(src []byte, format string) (fullImage *FullImage, err error) {
 
 	// Decode the image based on its format
 	switch fileFormat {
-	case core.ImageFileTypeImageGif:
+	case utils.ImageFileTypeImageGif:
 		// Decode GIF images
 		gif, err := gif.DecodeAll(b)
 		if err != nil {
@@ -219,7 +220,7 @@ func openImage(src []byte, format string) (fullImage *FullImage, err error) {
 
 		// Populate FullImage structure for GIF images
 		fullImage = &FullImage{
-			Format:          core.ImageFileTypeImageGif,
+			Format:          utils.ImageFileTypeImageGif,
 			Frames:          make([]image.Image, len(gif.Image)),
 			Config:          gif.Config,
 			Delay:           gif.Delay,

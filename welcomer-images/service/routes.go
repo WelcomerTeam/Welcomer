@@ -7,6 +7,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +15,7 @@ import (
 func (is *ImageService) generateHandler(c *gin.Context) {
 	onRequest()
 
-	var requestBody core.GenerateImageOptionsRaw
+	var requestBody utils.GenerateImageOptionsRaw
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -48,19 +49,19 @@ func generateImageRequestToOptions(req core.GenerateImageOptionsRaw) GenerateIma
 		UserID:             discord.Snowflake(req.UserID),
 		AllowAnimated:      req.AllowAnimated,
 		AvatarURL:          req.AvatarURL,
-		Theme:              core.ImageTheme(req.Theme),
+		Theme:              utils.ImageTheme(req.Theme),
 		Background:         req.Background,
 		Text:               req.Text,
 		TextFont:           req.TextFont,
 		TextStroke:         core.FormatTextStroke(req.TextStroke),
-		TextAlign:          core.ImageAlignment(req.TextAlign),
+		TextAlign:          utils.ImageAlignment(req.TextAlign),
 		TextColor:          core.ConvertToRGBA(req.TextColor),
 		TextStrokeColor:    core.ConvertToRGBA(req.TextStrokeColor),
 		ImageBorderColor:   core.ConvertToRGBA(req.ImageBorderColor),
 		ImageBorderWidth:   int(req.ImageBorderWidth),
-		ProfileFloat:       core.ImageAlignment(req.ProfileFloat),
+		ProfileFloat:       utils.ImageAlignment(req.ProfileFloat),
 		ProfileBorderColor: core.ConvertToRGBA(req.ProfileBorderColor),
 		ProfileBorderWidth: int(req.ProfileBorderWidth),
-		ProfileBorderCurve: core.ImageProfileBorderType(req.ProfileBorderCurve),
+		ProfileBorderCurve: utils.ImageProfileBorderType(req.ProfileBorderCurve),
 	}
 }

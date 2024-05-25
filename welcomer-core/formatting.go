@@ -11,6 +11,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	mustache "github.com/WelcomerTeam/Mustachvulate"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 // ordinal takes 1 argument but 0 was given
@@ -50,7 +51,7 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 			suffix = "th"
 		}
 
-		return Itoa(int64(argument)) + suffix, nil
+		return utils.Itoa(int64(argument)) + suffix, nil
 	}
 
 	return
@@ -135,16 +136,16 @@ func GetUserAvatar(user *discord.User) string {
 	if user.Avatar == "" {
 		if user.Discriminator == "" {
 			// If a user is on the new username system, the index is (user_id >> 22) % 6
-			return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(Itoa((int64(user.ID)>>22)%6))
+			return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(utils.Itoa((int64(user.ID)>>22)%6))
 		}
 
 		// If a user is on the old username system, the index is discriminator % 5
-		discriminator, err := strconv.ParseInt(user.Discriminator, int64Base, int64BitSize)
+		discriminator, err := strconv.ParseInt(user.Discriminator, 10, 64)
 		if err != nil {
 			discriminator = 0
 		}
 
-		return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(Itoa(discriminator%5))
+		return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(utils.Itoa(discriminator%5))
 	}
 
 	if strings.HasPrefix(user.Avatar, "a_") {
@@ -223,5 +224,5 @@ func (s StubTime) String() string {
 }
 
 func (s StubTime) Relative() string {
-	return "<t:" + Itoa(time.Time(s).Unix()) + ":R>"
+	return "<t:" + utils.Itoa(time.Time(s).Unix()) + ":R>"
 }

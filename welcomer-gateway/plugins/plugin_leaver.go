@@ -12,6 +12,8 @@ import (
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
 )
@@ -49,8 +51,8 @@ func (p *LeaverCog) GetEventHandlers() *sandwich.Handlers {
 func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register CustomEventInvokeLeaver event.
-	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
-		var invokeLeaverPayload welcomer.CustomEventInvokeLeaverStructure
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+		var invokeLeaverPayload core.CustomEventInvokeLeaverStructure
 		if err := eventCtx.DecodeContent(payload, &invokeLeaverPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
@@ -71,21 +73,21 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeLeaver when ON_GUILD_MEMBER_REMOVE event is received.
 	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, user discord.User) error {
-		return p.OnInvokeLeaverEvent(eventCtx, welcomer.CustomEventInvokeLeaverStructure{
+		return p.OnInvokeLeaverEvent(eventCtx, core.CustomEventInvokeLeaverStructure{
 			Interaction: nil,
 			User:        user,
 		})
 	})
 
 	// Call OnInvokeLeaverEvent when CustomEventInvokeLeaver is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeLeaver, nil, (welcomer.OnInvokeLeaverFuncType)(p.OnInvokeLeaverEvent))
+	p.EventHandler.RegisterEvent(core.CustomEventInvokeLeaver, nil, (welcomer.OnInvokeLeaverFuncType)(p.OnInvokeLeaverEvent))
 
 	return nil
 }
 
 // OnInvokeLeaverEvent is called when CustomEventInvokeLeaver is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
-func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeLeaverStructure) (err error) {
+func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeLeaverStructure) (err error) {
 	defer func() {
 		// Send follow-up if present.
 		if event.Interaction != nil && event.Interaction.Token != "" {
@@ -93,11 +95,11 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 
 			if err == nil {
 				message = discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed("Executed successfully", welcomer.EmbedColourSuccess),
+					Embeds: utils.NewEmbed("Executed successfully", utils.EmbedColourSuccess),
 				}
 			} else {
 				message = discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
+					Embeds: utils.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), utils.EmbedColourError),
 				}
 			}
 
@@ -127,7 +129,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 	}
 
 	// Quit if leaver is not enabled or configured.
-	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 || welcomer.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
+	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 || utils.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
 		return nil
 	}
 
@@ -179,7 +181,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event w
 	}
 
 	// Send the message if it's not empty.
-	if !welcomer.IsMessageParamsEmpty(serverMessage) {
+	if !utils.IsMessageParamsEmpty(serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
 
 		_, err = channel.Send(eventCtx.Session, serverMessage)

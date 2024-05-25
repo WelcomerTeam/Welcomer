@@ -9,11 +9,36 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
+
+func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
+	for _, membership := range memberships {
+		if IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)) {
+			hasCustomBackgrounds = true
+		} else if IsWelcomerProMembership(database.MembershipType(membership.MembershipType)) {
+			hasWelcomerPro = true
+		}
+	}
+
+	return
+}
+
+func IsCustomBackgroundsMembership(membershipType database.MembershipType) bool {
+	return membershipType == database.MembershipTypeLegacyCustomBackgrounds ||
+		membershipType == database.MembershipTypeCustomBackgrounds
+}
+
+func IsWelcomerProMembership(membershipType database.MembershipType) bool {
+	return membershipType == database.MembershipTypeLegacyWelcomerPro1 ||
+		membershipType == database.MembershipTypeLegacyWelcomerPro3 ||
+		membershipType == database.MembershipTypeLegacyWelcomerPro5 ||
+		membershipType == database.MembershipTypeWelcomerPro
+}
 
 func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) bool {
 	if discordGuild.Owner {
-		return True
+		return utils.True
 	}
 
 	if discordGuild.OwnerID != nil && *discordGuild.OwnerID == member.User.ID {
@@ -50,7 +75,7 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 		return &discord.InteractionResponse{
 			Type: discord.InteractionCallbackTypeChannelMessageSource,
 			Data: &discord.InteractionCallbackData{
-				Embeds: NewEmbed("This command can only be used in a guild.", EmbedColourError),
+				Embeds: utils.NewEmbed("This command can only be used in a guild.", utils.EmbedColourError),
 				Flags:  uint32(discord.MessageFlagEphemeral),
 			},
 		}, nil
@@ -79,14 +104,14 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 		}
 
 		if guild == nil {
-			return nil, ErrMissingGuild
+			return nil, utils.ErrMissingGuild
 		}
 
 		if !MemberHasElevation(*guild, *interaction.Member) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: NewEmbed("You do not have the required permissions to use this command.", EmbedColourError),
+					Embeds: utils.NewEmbed("You do not have the required permissions to use this command.", utils.EmbedColourError),
 					Flags:  uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
@@ -105,11 +130,11 @@ func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord
 
 	_, err := queries.CreateGuild(ctx, database.CreateGuildParams{
 		GuildID:          int64(guildID),
-		EmbedColour:      0,
-		SiteSplashUrl:    "",
-		SiteStaffVisible: False,
-		SiteGuildVisible: False,
-		SiteAllowInvites: False,
+		EmbedColour:      database.DefaultGuild.EmbedColour,
+		SiteSplashUrl:    database.DefaultGuild.SiteSplashUrl,
+		SiteStaffVisible: database.DefaultGuild.SiteStaffVisible,
+		SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
+		SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
 	})
 
 	if err != nil {
@@ -130,7 +155,7 @@ func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string)
 
 	configuration, ok := configurations.Identifiers[managerName]
 	if !ok {
-		return nil, ErrMissingApplicationUser
+		return nil, utils.ErrMissingApplicationUser
 	}
 
 	return discord.NewSession(ctx, "Bot "+configuration.Token, sub.RESTInterface), nil

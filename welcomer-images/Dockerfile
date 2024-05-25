@@ -1,7 +1,7 @@
 FROM golang:1.22 AS build_base
 COPY . /tmp
-WORKDIR /tmp/welcomer-images
-RUN cd /tmp/welcomer-images
+WORKDIR /tmp/utils.images
+RUN cd /tmp/utils.images
 RUN go mod tidy; exit 0
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 LD_LIBRARY_PATH='/usr/local/lib' \
     go build -a --trimpath -o ./out/images ./cmd/main.go
@@ -9,7 +9,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 LD_LIBRARY_PATH='/usr/local/lib' \
 FROM alpine:3
 RUN apk add ca-certificates libc6-compat
 COPY --from=build_base /usr/local/lib /usr/local/lib
-COPY --from=build_base /tmp/welcomer-images/out/images /app/images
+COPY --from=build_base /tmp/utils.images/out/images /app/images
 CMD ["/app/images"]
 
 LABEL org.opencontainers.image.source https://github.com/WelcomerTeam/Welcomer

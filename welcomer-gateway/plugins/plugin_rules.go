@@ -6,6 +6,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type RulesCog struct {
@@ -66,7 +67,7 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 	}
 
 	embeds := []*discord.Embed{}
-	embed := &discord.Embed{Title: "Rules", Color: welcomer.EmbedColourInfo}
+	embed := &discord.Embed{Title: "Rules", Color: utils.EmbedColourInfo}
 
 	for ruleNumber, rule := range guildSettingsRules.Rules {
 		ruleWithNumber := fmt.Sprintf("%d. %s\n", ruleNumber, rule)
@@ -74,7 +75,7 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 		// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 		if len(embed.Description)+len(ruleWithNumber) > 4000 {
 			embeds = append(embeds, embed)
-			embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+			embed = &discord.Embed{Color: utils.EmbedColourInfo}
 		}
 
 		embed.Description += ruleWithNumber

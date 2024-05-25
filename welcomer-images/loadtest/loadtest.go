@@ -11,6 +11,7 @@ import (
 	"time"
 
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -132,10 +133,10 @@ func getImageRequest() core.GenerateImageOptionsRaw {
 		TextStrokeColor:    0xFF000000,
 		ImageBorderColor:   0xFFFFFFFF,
 		ImageBorderWidth:   rand.Int31n(8) + 8,
-		ProfileFloat:       int32(core.ImageAlignmentLeft),
+		ProfileFloat:       int32(utils.ImageAlignmentLeft),
 		ProfileBorderColor: 0xFFFFFFFF,
 		ProfileBorderWidth: rand.Int31n(8) + 8,
-		ProfileBorderCurve: int32(core.ImageProfileBorderTypeRounded),
+		ProfileBorderCurve: int32(utils.ImageProfileBorderTypeRounded),
 	}
 }
 

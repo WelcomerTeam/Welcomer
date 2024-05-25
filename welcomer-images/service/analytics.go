@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -45,7 +45,7 @@ func onRequest() {
 	imgenRequests.Inc()
 }
 
-func onGenerationComplete(start time.Time, guildID int64, background string, format core.ImageFileType) {
+func onGenerationComplete(start time.Time, guildID int64, background string, format utils.ImageFileType) {
 	guildIDstring := welcomer.Itoa(guildID)
 	dur := time.Since(start).Seconds()
 

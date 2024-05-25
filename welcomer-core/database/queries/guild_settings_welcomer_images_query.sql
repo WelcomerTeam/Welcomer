@@ -1,11 +1,11 @@
 -- name: CreateWelcomerImagesGuildSettings :one
-INSERT INTO guild_settings_Welcomer_images (guild_id, toggle_enabled, toggle_image_border, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
+INSERT INTO guild_settings_utils.images (guild_id, toggle_enabled, toggle_image_border, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING
     *;
 
 -- name: CreateOrUpdateWelcomerImagesGuildSettings :one
-INSERT INTO guild_settings_Welcomer_images (guild_id, toggle_enabled, toggle_image_border, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
+INSERT INTO guild_settings_utils.images (guild_id, toggle_enabled, toggle_image_border, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
@@ -26,13 +26,13 @@ RETURNING
 SELECT
     *
 FROM
-    guild_settings_Welcomer_images
+    guild_settings_utils.images
 WHERE
     guild_id = $1;
 
 -- name: UpdateWelcomerImagesGuildSettings :execrows
 UPDATE
-    guild_settings_Welcomer_images
+    guild_settings_utils.images
 SET
     toggle_enabled = $2,
     toggle_image_border = $3,

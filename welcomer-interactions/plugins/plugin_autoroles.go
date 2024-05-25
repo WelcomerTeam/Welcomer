@@ -9,6 +9,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -47,7 +48,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the autoroles module for DM channels.
-	ruleGroup.DMPermission = &welcomer.False
+	ruleGroup.DMPermission = &utils.False
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -55,8 +56,8 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -71,7 +72,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsAutoRoles.ToggleEnabled = true
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -96,7 +97,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Enabled autoroles. Run `/autoroles list` to see the list of autoroles configured.", welcomer.EmbedColourSuccess),
+						Embeds: utils.NewEmbed("Enabled autoroles. Run `/autoroles list` to see the list of autoroles configured.", utils.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -109,8 +110,8 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -125,7 +126,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				guildSettingsAutoRoles.ToggleEnabled = false
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -150,7 +151,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Disabled autoroles.", welcomer.EmbedColourSuccess),
+						Embeds: utils.NewEmbed("Disabled autoroles.", utils.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -163,7 +164,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: &utils.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -178,7 +179,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "AutoRoles", Color: welcomer.EmbedColourInfo}
+				embed := &discord.Embed{Title: "AutoRoles", Color: utils.EmbedColourInfo}
 
 				roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsAutoRoles.Roles)
 				if err != nil {
@@ -193,7 +194,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no autoroles set for this server.", welcomer.EmbedColourInfo),
+							Embeds: utils.NewEmbed("There are no autoroles set for this server.", utils.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -205,7 +206,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: welcomer.EmbedColourInfo}
+						embed = &discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += roleMessage

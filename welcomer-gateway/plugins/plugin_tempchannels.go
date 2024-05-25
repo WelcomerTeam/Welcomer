@@ -9,7 +9,9 @@ import (
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -44,8 +46,8 @@ func (p *TempChannelsCog) GetEventHandlers() *sandwich.Handlers {
 func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register CustomEventInvokeTempChannels event.
-	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
-		var invokeTempChannelsPayload welcomer.CustomEventInvokeTempChannelsStructure
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+		var invokeTempChannelsPayload core.CustomEventInvokeTempChannelsStructure
 		if err := eventCtx.DecodeContent(payload, &invokeTempChannelsPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
@@ -67,8 +69,8 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Register CustomEventInvokeTempChannelsRemove event.
-	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeTempChannelsRemove, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
-		var invokeTempChannelsRemovePayload welcomer.CustomEventInvokeTempChannelsRemoveStructure
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannelsRemove, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+		var invokeTempChannelsRemovePayload core.CustomEventInvokeTempChannelsRemoveStructure
 		if err := eventCtx.DecodeContent(payload, &invokeTempChannelsRemovePayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
@@ -95,10 +97,10 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Call OnInvokeTempChannelsEvent when CustomEventInvokeTempChannels is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeTempChannels, nil, (welcomer.OnInvokeTempChannelsFuncType)(p.OnInvokeTempChannelsEvent))
+	p.EventHandler.RegisterEvent(core.CustomEventInvokeTempChannels, nil, (welcomer.OnInvokeTempChannelsFuncType)(p.OnInvokeTempChannelsEvent))
 
 	// Call OnInvokeTempChannelsRemoveEvent when CustomEventInvokeTempChannelsRemove is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeTempChannelsRemove, nil, (welcomer.OnInvokeTempChannelsRemoveFuncType)(p.OnInvokeTempChannelsRemoveEvent))
+	p.EventHandler.RegisterEvent(core.CustomEventInvokeTempChannelsRemove, nil, (welcomer.OnInvokeTempChannelsRemoveFuncType)(p.OnInvokeTempChannelsRemoveEvent))
 
 	return nil
 }
@@ -130,7 +132,7 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 
 	// If user is moving to lobby, create channel and move user.
 	if after.ChannelID == discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
-		return p.CreateChannelAndMove(eventCtx, guildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), member)
+		return p.CreateChannelAndMove(eventCtx, guildID, utils.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), member)
 	}
 
 	// If user is leaving or moving to a different channel, delete channel if empty.
@@ -191,7 +193,7 @@ func (p *TempChannelsCog) CreateChannelAndMove(eventCtx *sandwich.EventContext, 
 			Name:     p.FormatChannelName(member),
 			Type:     discord.ChannelTypeGuildVoice,
 			ParentID: category,
-		}, welcomer.ToPointer("Automatically created by TempChannels"))
+		}, utils.ToPointer("Automatically created by TempChannels"))
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
@@ -201,7 +203,7 @@ func (p *TempChannelsCog) CreateChannelAndMove(eventCtx *sandwich.EventContext, 
 		}
 	}
 
-	err = member.MoveTo(eventCtx.Session, &channel.ID, welcomer.ToPointer("Automatically move by TempChannels"))
+	err = member.MoveTo(eventCtx.Session, &channel.ID, utils.ToPointer("Automatically move by TempChannels"))
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Str("guild_id", guildID.String()).
@@ -232,7 +234,7 @@ func (p *TempChannelsCog) DeleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 	}
 
 	if (channel.ParentID != nil && *channel.ParentID == category) && channel.MemberCount == 0 && channel.ID != lobby {
-		err = channel.Delete(eventCtx.Session, welcomer.ToPointer("Automatically deleted by TempChannels"))
+		err = channel.Delete(eventCtx.Session, utils.ToPointer("Automatically deleted by TempChannels"))
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
@@ -248,7 +250,7 @@ func (p *TempChannelsCog) DeleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 	return false, nil
 }
 
-func (p *TempChannelsCog) OnInvokeTempChannelsEvent(eventCtx *sandwich.EventContext, payload welcomer.CustomEventInvokeTempChannelsStructure) error {
+func (p *TempChannelsCog) OnInvokeTempChannelsEvent(eventCtx *sandwich.EventContext, payload core.CustomEventInvokeTempChannelsStructure) error {
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	// Fetch guild settings.
@@ -258,10 +260,10 @@ func (p *TempChannelsCog) OnInvokeTempChannelsEvent(eventCtx *sandwich.EventCont
 		return err
 	}
 
-	return p.CreateChannelAndMove(eventCtx, *payload.Member.GuildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), payload.Member)
+	return p.CreateChannelAndMove(eventCtx, *payload.Member.GuildID, utils.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), payload.Member)
 }
 
-func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.EventContext, payload welcomer.CustomEventInvokeTempChannelsRemoveStructure) error {
+func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.EventContext, payload core.CustomEventInvokeTempChannelsRemoveStructure) error {
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	// Fetch guild settings.
@@ -271,13 +273,13 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 		return err
 	}
 
-	channel, err := p.FindChannelForUser(eventCtx, *payload.Interaction.GuildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), payload.Member)
+	channel, err := p.FindChannelForUser(eventCtx, *payload.Interaction.GuildID, utils.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), payload.Member)
 	if err != nil {
 		return err
 	}
 
 	if channel != nil && channel.ID != discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
-		err = channel.Delete(eventCtx.Session, welcomer.ToPointer("Automatically deleted by TempChannels"))
+		err = channel.Delete(eventCtx.Session, utils.ToPointer("Automatically deleted by TempChannels"))
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", payload.Member.GuildID.String()).

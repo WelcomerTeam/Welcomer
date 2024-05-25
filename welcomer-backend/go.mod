@@ -10,6 +10,7 @@ require (
 	github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
+	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gin-contrib/cache v1.3.0
 	github.com/gin-contrib/gzip v1.0.1
 	github.com/gin-contrib/logger v1.1.2
@@ -21,7 +22,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/plutov/paypal/v4 v4.7.1
-	github.com/rs/zerolog v1.32.0
+	github.com/rs/zerolog v1.33.0
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
 	github.com/zsais/go-gin-prometheus v0.1.0
@@ -101,3 +102,5 @@ require (
 )
 
 replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core
+
+replace github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0 => ../welcomer-utils

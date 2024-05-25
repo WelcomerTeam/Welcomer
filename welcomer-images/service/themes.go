@@ -3,14 +3,14 @@ package service
 import (
 	"image"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 var (
-	themes = make(map[core.ImageTheme]func(*ImageService, GenerateImageArguments) (GenerateThemeResponse, error))
+	themes = make(map[utils.ImageTheme]func(*ImageService, GenerateImageArguments) (GenerateThemeResponse, error))
 )
 
-func registerThemeFunc(theme core.ImageTheme, f func(*ImageService, GenerateImageArguments) (GenerateThemeResponse, error)) {
+func registerThemeFunc(theme utils.ImageTheme, f func(*ImageService, GenerateImageArguments) (GenerateThemeResponse, error)) {
 	themes[theme] = f
 }
 

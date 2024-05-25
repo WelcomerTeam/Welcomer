@@ -3,7 +3,7 @@ package service
 import (
 	"image"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
@@ -66,5 +66,5 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp Ge
 }
 
 func init() {
-	registerThemeFunc(core.ImageThemeVertical, CreateVerticalImage)
+	registerThemeFunc(utils.ImageThemeVertical, CreateVerticalImage)
 }

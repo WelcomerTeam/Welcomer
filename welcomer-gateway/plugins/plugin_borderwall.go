@@ -10,7 +10,9 @@ import (
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
@@ -49,8 +51,8 @@ func (p *BorderwallCog) GetEventHandlers() *sandwich.Handlers {
 func (p *BorderwallCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register CustomEventInvokeBorderwallCompletion event.
-	p.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeBorderwallCompletion, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
-		var invokeBorderwallCompletionPayload welcomer.CustomEventInvokeBorderwallCompletionStructure
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeBorderwallCompletion, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+		var invokeBorderwallCompletionPayload core.CustomEventInvokeBorderwallCompletionStructure
 		if err := eventCtx.DecodeContent(payload, &invokeBorderwallCompletionPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
@@ -71,18 +73,18 @@ func (p *BorderwallCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger OnInvokeBorderwallEvent when ON_GUILD_MEMBER_ADD event is triggered.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		return p.OnInvokeBorderwallEvent(eventCtx, welcomer.CustomEventInvokeBorderwallStructure{
+		return p.OnInvokeBorderwallEvent(eventCtx, core.CustomEventInvokeBorderwallStructure{
 			Member: member,
 		})
 	})
 
 	// Call OnInvokeBorderwallCompletionEvent when CustomEventInvokeBorderwallCompletion event is triggered.
-	p.EventHandler.RegisterEvent(welcomer.CustomEventInvokeBorderwallCompletion, nil, (welcomer.OnInvokeBorderwallCompletionFuncType)(p.OnInvokeBorderwallCompletionEvent))
+	p.EventHandler.RegisterEvent(core.CustomEventInvokeBorderwallCompletion, nil, (welcomer.OnInvokeBorderwallCompletionFuncType)(p.OnInvokeBorderwallCompletionEvent))
 
 	return nil
 }
 
-func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeBorderwallStructure) (err error) {
+func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeBorderwallStructure) (err error) {
 
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
@@ -112,7 +114,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	if len(assignableRoles) > 0 {
 		member := sandwich.NewGuildMember(&eventCtx.Guild.ID, event.Member.User.ID)
 
-		err = member.AddRoles(eventCtx.Session, assignableRoles, welcomer.ToPointer("Automatically assigned with BorderWall"), true)
+		err = member.AddRoles(eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with BorderWall"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -229,7 +231,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	var directMessage *discord.MessageParams
 
 	// Fallback to default message if the message is empty.
-	guildSettingsBorderwall.MessageVerify = welcomer.SetupJSONB(guildSettingsBorderwall.MessageVerify)
+	guildSettingsBorderwall.MessageVerify = utils.SetupJSONB(guildSettingsBorderwall.MessageVerify)
 
 	if guildSettingsBorderwall.Channel != 0 || guildSettingsBorderwall.ToggleSendDm {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerify.Bytes))
@@ -255,7 +257,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			}
 
 			// Fallback to default message if the message is empty.
-			if welcomer.IsMessageParamsEmpty(*serverMessage) {
+			if utils.IsMessageParamsEmpty(*serverMessage) {
 				serverMessage.Content, _ = welcomer.FormatString(functions, variables, FallbackBorderwallMessage)
 			}
 		}
@@ -273,7 +275,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			}
 
 			// Fallback to default message if the message is empty.
-			if welcomer.IsMessageParamsEmpty(*directMessage) {
+			if utils.IsMessageParamsEmpty(*directMessage) {
 				directMessage.Content, _ = welcomer.FormatString(functions, variables, FallbackBorderwallMessage)
 			}
 		}
@@ -313,7 +315,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	return nil
 }
 
-func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeBorderwallCompletionStructure) (err error) {
+func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeBorderwallCompletionStructure) (err error) {
 
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
@@ -421,7 +423,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	if len(assignableJoinRoles) > 0 {
-		err = member.RemoveRoles(eventCtx.Session, assignableJoinRoles, welcomer.ToPointer("Automatically removed with BorderWall"), true)
+		err = member.RemoveRoles(eventCtx.Session, assignableJoinRoles, utils.ToPointer("Automatically removed with BorderWall"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -435,7 +437,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	if len(assignableVerifyRoles) > 0 {
-		err = member.AddRoles(eventCtx.Session, assignableVerifyRoles, welcomer.ToPointer("Automatically assigned with BorderWall"), true)
+		err = member.AddRoles(eventCtx.Session, assignableVerifyRoles, utils.ToPointer("Automatically assigned with BorderWall"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -503,7 +505,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 	var directMessage *discord.MessageParams
 
-	if !welcomer.IsJSONBEmpty(guildSettingsBorderwall.MessageVerified.Bytes) {
+	if !utils.IsJSONBEmpty(guildSettingsBorderwall.MessageVerified.Bytes) {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerified.Bytes))
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
@@ -542,7 +544,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	// Send server message if it's not empty.
-	if serverMessage != nil && !welcomer.IsMessageParamsEmpty(*serverMessage) {
+	if serverMessage != nil && !utils.IsMessageParamsEmpty(*serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsBorderwall.Channel)}
 
 		_, err = channel.Send(eventCtx.Session, *serverMessage)

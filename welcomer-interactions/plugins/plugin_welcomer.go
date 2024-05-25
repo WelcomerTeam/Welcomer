@@ -8,8 +8,9 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
@@ -56,7 +57,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the welcomer module for DM channels.
-	welcomerGroup.DMPermission = &welcomer.False
+	welcomerGroup.DMPermission = &utils.False
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "test",
@@ -73,17 +74,17 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				member := subway.MustGetArgument(ctx, "user").MustMember()
 				if member == nil {
 					member = interaction.Member
 				}
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				// Fetch guild settings.
 
@@ -100,7 +101,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer image guild settings")
+						Msg("Failed to get utils.image guild settings")
 
 					return nil, err
 				}
@@ -114,15 +115,15 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
-				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
+				guildSettingsWelcomerText.MessageFormat = utils.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
+				guildSettingsWelcomerDMs.MessageFormat = utils.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
 
 				// If no modules are enabled, let the user know.
 				if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No modules are enabled. Please use `/welcomer enable`", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("No modules are enabled. Please use `/welcomer enable`", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -133,7 +134,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No channel is set. Please use `/welcomer channel`", welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("No channel is set. Please use `/welcomer channel`", utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -142,7 +143,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
+				data, err := json.Marshal(core.CustomEventInvokeWelcomerStructure{
 					Interaction: &interaction,
 					Member:      *member,
 				})
@@ -151,8 +152,8 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    welcomer.CustomEventInvokeWelcomer,
+					Manager: core.GetManagerNameFromContext(ctx),
+					Type:    core.CustomEventInvokeWelcomer,
 					Data:    data,
 				})
 				if err != nil {
@@ -180,22 +181,22 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: WelcomerModuleAll, Value: welcomer.StringToJsonLiteral(WelcomerModuleAll)},
-					{Name: WelcomerModuleText, Value: welcomer.StringToJsonLiteral(WelcomerModuleText)},
-					{Name: WelcomerModuleImages, Value: welcomer.StringToJsonLiteral(WelcomerModuleImages)},
-					{Name: WelcomerModuleDMs, Value: welcomer.StringToJsonLiteral(WelcomerModuleDMs)},
+					{Name: WelcomerModuleAll, Value: utils.StringToJsonLiteral(WelcomerModuleAll)},
+					{Name: WelcomerModuleText, Value: utils.StringToJsonLiteral(WelcomerModuleText)},
+					{Name: WelcomerModuleImages, Value: utils.StringToJsonLiteral(WelcomerModuleImages)},
+					{Name: WelcomerModuleDMs, Value: utils.StringToJsonLiteral(WelcomerModuleDMs)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -223,15 +224,15 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer images guild settings")
+						Msg("Failed to get utils.images guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
 
-				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
-				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
+				guildSettingsWelcomerText.MessageFormat = utils.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
+				guildSettingsWelcomerDMs.MessageFormat = utils.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
 
 				switch module {
 				case WelcomerModuleAll:
@@ -248,7 +249,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -256,7 +257,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
-				err = welcomer.RetryWithFallback(
+				err = utils.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -267,7 +268,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -296,7 +297,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update welcomer images guild settings")
+						Msg("Failed to update utils.images guild settings")
 
 					return nil, err
 				}
@@ -321,28 +322,28 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled all modules.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled all modules.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleText:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled welcomer text messages.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled welcomer text messages.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleImages:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled welcomer images.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled utils.images.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled welcomer direct messages.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled welcomer direct messages.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				default:
@@ -366,22 +367,22 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []*discord.ApplicationCommandOptionChoice{
-					{Name: WelcomerModuleAll, Value: welcomer.StringToJsonLiteral(WelcomerModuleAll)},
-					{Name: WelcomerModuleText, Value: welcomer.StringToJsonLiteral(WelcomerModuleText)},
-					{Name: WelcomerModuleImages, Value: welcomer.StringToJsonLiteral(WelcomerModuleImages)},
-					{Name: WelcomerModuleDMs, Value: welcomer.StringToJsonLiteral(WelcomerModuleDMs)},
+					{Name: WelcomerModuleAll, Value: utils.StringToJsonLiteral(WelcomerModuleAll)},
+					{Name: WelcomerModuleText, Value: utils.StringToJsonLiteral(WelcomerModuleText)},
+					{Name: WelcomerModuleImages, Value: utils.StringToJsonLiteral(WelcomerModuleImages)},
+					{Name: WelcomerModuleDMs, Value: utils.StringToJsonLiteral(WelcomerModuleDMs)},
 				},
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -409,7 +410,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer images guild settings")
+						Msg("Failed to get utils.images guild settings")
 
 					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
@@ -439,7 +440,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
+							Embeds: utils.NewEmbed("Unknown module: "+module, utils.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -478,7 +479,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update welcomer images guild settings")
+						Msg("Failed to update utils.images guild settings")
 
 					return nil, err
 				}
@@ -503,28 +504,28 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled all modules.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled all modules.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleText:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled welcomer text messages.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled welcomer text messages.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleImages:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled welcomer images", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled utils.images", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled welcomer direct messages", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled welcomer direct messages", utils.EmbedColourSuccess),
 						},
 					}, nil
 				default:
@@ -549,14 +550,14 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &utils.False,
+		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
+				queries := core.GetQueriesFromContext(ctx)
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					sub.Logger.Error().Err(err).
@@ -594,14 +595,14 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set welcomer channel to: <#"+channel.ID.String()+">.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Set welcomer channel to: <#"+channel.ID.String()+">.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				} else {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed welcomer channel. Welcomer text and image features will not work, if they are enabled.", welcomer.EmbedColourWarn),
+							Embeds: utils.NewEmbed("Removed welcomer channel. Welcomer text and image features will not work, if they are enabled.", utils.EmbedColourWarn),
 						},
 					}, nil
 				}
