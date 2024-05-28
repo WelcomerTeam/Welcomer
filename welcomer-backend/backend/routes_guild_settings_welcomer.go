@@ -82,7 +82,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 					}
 				}
 
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild utils.images settings")
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
 			}
 
 			welcomerDMs, err := backend.Database.GetWelcomerDMsGuildSettings(ctx, int64(guildID))
@@ -104,12 +104,12 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 			if err != nil {
 				backend.Logger.Warn().Err(err).
 					Int64("guild_id", int64(guildID)).
-					Msg("Failed to get guild utils.images backgrounds")
+					Msg("Failed to get guild welcomer images backgrounds")
 			}
 
 			customIDs := make([]string, len(guildBackgrounds))
 			for i, b := range guildBackgrounds {
-				customIDs[i] = b.WelcomerImageUuid.String()
+				customIDs[i] = b.ImageUuid.String()
 			}
 
 			partial := GuildSettingsWelcomerSettingsToPartial(*welcomerText, *welcomerImages, *welcomerDMs, &GuildSettingsWelcomerCustom{
@@ -295,22 +295,22 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 						// Set background name from custom:upload to custom:00000000-0000-0000-0000-000000000000
 						// depending on uploaded file.
-						welcomerImages.BackgroundName = utils.CustomBackgroundPrefix + res.WelcomerImageUuid.String()
+						welcomerImages.BackgroundName = utils.CustomBackgroundPrefix + res.ImageUuid.String()
 
 						// Remove previous welcome images
 						backgrounds, err := backend.Database.GetWelcomerImagesByGuildId(ctx, int64(guildID))
 						if err == nil {
 							for _, background := range backgrounds {
-								if background.WelcomerImageUuid == res.WelcomerImageUuid {
+								if background.ImageUuid == res.ImageUuid {
 									continue
 								}
 
-								_, err = backend.Database.DeleteWelcomerImage(ctx, background.WelcomerImageUuid)
+								_, err = backend.Database.DeleteWelcomerImage(ctx, background.ImageUuid)
 								if err != nil {
 									backend.Logger.Warn().
 										Err(err).
 										Int64("guild_id", int64(guildID)).
-										Str("uuid", background.WelcomerImageUuid.String()).
+										Str("uuid", background.ImageUuid.String()).
 										Msg("Failed to remove background database entry")
 
 									continue
@@ -360,7 +360,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			_, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, databaseWelcomerImagesGuildSettings)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild utils.images settings")
+				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
@@ -438,11 +438,11 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	welcomerImageUuid, _ = gen.NewV7()
 
 	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-		WelcomerImageUuid: welcomerImageUuid,
-		GuildID:           int64(guildID),
-		CreatedAt:         time.Now(),
-		ImageType:         utils.ImageFileTypeImageGif.String(),
-		Data:              buf.Bytes(),
+		ImageUuid: welcomerImageUuid,
+		GuildID:   int64(guildID),
+		CreatedAt: time.Now(),
+		ImageType: utils.ImageFileTypeImageGif.String(),
+		Data:      buf.Bytes(),
 	})
 }
 
@@ -477,11 +477,11 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 	welcomerImageUuid, _ = gen.NewV7()
 
 	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-		WelcomerImageUuid: welcomerImageUuid,
-		GuildID:           int64(guildID),
-		CreatedAt:         time.Now(),
-		ImageType:         utils.ImageFileTypeImagePng.String(),
-		Data:              buf.Bytes(),
+		ImageUuid: welcomerImageUuid,
+		GuildID:   int64(guildID),
+		CreatedAt: time.Now(),
+		ImageType: utils.ImageFileTypeImagePng.String(),
+		Data:      buf.Bytes(),
 	})
 }
 
@@ -516,11 +516,11 @@ func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Sno
 	welcomerImageUuid, _ = gen.NewV7()
 
 	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-		WelcomerImageUuid: welcomerImageUuid,
-		GuildID:           int64(guildID),
-		CreatedAt:         time.Now(),
-		ImageType:         utils.ImageFileTypeImageJpeg.String(),
-		Data:              buf.Bytes(),
+		ImageUuid: welcomerImageUuid,
+		GuildID:   int64(guildID),
+		CreatedAt: time.Now(),
+		ImageType: utils.ImageFileTypeImageJpeg.String(),
+		Data:      buf.Bytes(),
 	})
 }
 

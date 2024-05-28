@@ -361,7 +361,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update utils.images guild settings")
+						Msg("Failed to update welcomer images guild settings")
 
 					return nil, err
 				}
@@ -400,7 +400,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: utils.NewEmbed("Enabled utils.images.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Enabled welcomer images.  Run `/welcomer test` to see the message that is sent.", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:
@@ -573,7 +573,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update utils.images guild settings")
+						Msg("Failed to update welcomer images guild settings")
 
 					return nil, err
 				}
@@ -612,7 +612,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: utils.NewEmbed("Disabled utils.images", utils.EmbedColourSuccess),
+							Embeds: utils.NewEmbed("Disabled welcomer images", utils.EmbedColourSuccess),
 						},
 					}, nil
 				case WelcomerModuleDMs:

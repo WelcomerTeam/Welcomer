@@ -208,9 +208,9 @@ type Users struct {
 }
 
 type WelcomerImages struct {
-	WelcomerImageUuid uuid.UUID `json:"utils.image_uuid"`
-	GuildID           int64     `json:"guild_id"`
-	CreatedAt         time.Time `json:"created_at"`
-	ImageType         string    `json:"image_type"`
-	Data              []byte    `json:"data"`
+	ImageUuid uuid.UUID `json:"image_uuid"`
+	GuildID   int64     `json:"guild_id"`
+	CreatedAt time.Time `json:"created_at"`
+	ImageType string    `json:"image_type"`
+	Data      []byte    `json:"data"`
 }

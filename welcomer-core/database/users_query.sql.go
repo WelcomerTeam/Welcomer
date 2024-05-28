@@ -28,8 +28,6 @@ type CreateOrUpdateUserParams struct {
 	AvatarHash    string `json:"avatar_hash"`
 }
 
-
-
 func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUserParams) (*Users, error) {
 	row := q.db.QueryRow(ctx, CreateOrUpdateUser,
 		arg.UserID,

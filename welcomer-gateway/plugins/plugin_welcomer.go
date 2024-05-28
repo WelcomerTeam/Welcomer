@@ -293,7 +293,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	var file *discord.File
 
-	// If utils.images are enabled, prepare an image.
+	// If welcomer images are enabled, prepare an image.
 	if guildSettingsWelcomerImages.ToggleEnabled {
 		messageFormat, err := welcomer.FormatString(functions, variables, guildSettingsWelcomerImages.ImageMessage)
 		if err != nil {
