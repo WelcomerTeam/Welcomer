@@ -7,8 +7,7 @@ import (
 	"image/color"
 	"image/gif"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 )
 
@@ -17,11 +16,11 @@ const (
 )
 
 func (is *ImageService) FetchBackground(background string, allowAnimated bool, avatar image.Image) (*FullImage, error) {
-	backgroundType, _ := core.ParseBackground(background)
+	backgroundType, _ := utils.ParseBackground(background)
 
 	switch backgroundType.Type {
 	case utils.BackgroundTypeWelcomer:
-		return is.FetchBackgroundutils.backgroundType.Value, allowAnimated)
+		return is.FetchBackgroundWelcomer(backgroundType.Value, allowAnimated)
 	case utils.BackgroundTypeSolid:
 		return is.FetchBackgroundSolid(backgroundType.Value)
 	case utils.BackgroundTypeSolidProfile:
@@ -94,7 +93,7 @@ func getFullImageForColour(colour color.RGBA) *FullImage {
 
 // FetchBackgroundSolid returns an image using the color provided as the value.
 func (is *ImageService) FetchBackgroundSolid(value string) (*FullImage, error) {
-	background, err := core.ParseColour(value, "")
+	background, err := utils.ParseColour(value, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse colour %s: %v", value, err)
 	}
@@ -200,7 +199,7 @@ func (is *ImageService) FetchBackgroundURL(value string, allowAnimated bool) (*F
 // It returns a FullImage structure representing the decoded image and an error if the decoding process encounters any issues.
 func openImage(src []byte, format string) (fullImage *FullImage, err error) {
 	// Attempt to parse the image file format
-	fileFormat, err := core.ParseImageFileType(format)
+	fileFormat, err := utils.ParseImageFileType(format)
 	if err != nil {
 		// Set a default format to PNG if unable to parse
 		fileFormat = utils.ImageFileTypeImagePng

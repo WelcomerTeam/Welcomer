@@ -10,8 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -117,8 +116,8 @@ func doLoadTest() {
 	}
 }
 
-func getImageRequest() core.GenerateImageOptionsRaw {
-	return core.GenerateImageOptionsRaw{
+func getImageRequest() utils.GenerateImageOptionsRaw {
+	return utils.GenerateImageOptionsRaw{
 		GuildID:            341685098468343822,
 		UserID:             143090142360371200,
 		AllowAnimated:      randomBool(),

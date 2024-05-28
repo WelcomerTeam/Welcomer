@@ -8,7 +8,7 @@ import (
 	"image/png"
 	"sync"
 
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 	"github.com/ultimate-guitar/go-imagequant"
 )

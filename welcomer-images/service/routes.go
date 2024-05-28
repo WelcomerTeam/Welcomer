@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 )
@@ -43,7 +42,7 @@ func (is *ImageService) registerRoutes(g *gin.Engine) {
 	g.POST("/generate", is.generateHandler)
 }
 
-func generateImageRequestToOptions(req core.GenerateImageOptionsRaw) GenerateImageOptions {
+func generateImageRequestToOptions(req utils.GenerateImageOptionsRaw) GenerateImageOptions {
 	return GenerateImageOptions{
 		GuildID:            discord.Snowflake(req.GuildID),
 		UserID:             discord.Snowflake(req.UserID),
@@ -53,14 +52,14 @@ func generateImageRequestToOptions(req core.GenerateImageOptionsRaw) GenerateIma
 		Background:         req.Background,
 		Text:               req.Text,
 		TextFont:           req.TextFont,
-		TextStroke:         core.FormatTextStroke(req.TextStroke),
+		TextStroke:         utils.FormatTextStroke(req.TextStroke),
 		TextAlign:          utils.ImageAlignment(req.TextAlign),
-		TextColor:          core.ConvertToRGBA(req.TextColor),
-		TextStrokeColor:    core.ConvertToRGBA(req.TextStrokeColor),
-		ImageBorderColor:   core.ConvertToRGBA(req.ImageBorderColor),
+		TextColor:          utils.ConvertToRGBA(req.TextColor),
+		TextStrokeColor:    utils.ConvertToRGBA(req.TextStrokeColor),
+		ImageBorderColor:   utils.ConvertToRGBA(req.ImageBorderColor),
 		ImageBorderWidth:   int(req.ImageBorderWidth),
 		ProfileFloat:       utils.ImageAlignment(req.ProfileFloat),
-		ProfileBorderColor: core.ConvertToRGBA(req.ProfileBorderColor),
+		ProfileBorderColor: utils.ConvertToRGBA(req.ProfileBorderColor),
 		ProfileBorderWidth: int(req.ProfileBorderWidth),
 		ProfileBorderCurve: utils.ImageProfileBorderType(req.ProfileBorderCurve),
 	}

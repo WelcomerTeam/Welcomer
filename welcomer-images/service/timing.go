@@ -3,7 +3,7 @@ package service
 import (
 	"time"
 
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type Timing struct {
@@ -40,7 +40,7 @@ func (st *Timing) String() string {
 	res := ""
 
 	for i, entry := range st.entries {
-		res += entry.Name + ";dur=" + welcomer.Itoa(entry.Value)
+		res += entry.Name + ";dur=" + utils.Itoa(entry.Value)
 		if i+1 < len(st.entries) {
 			res += ","
 		}

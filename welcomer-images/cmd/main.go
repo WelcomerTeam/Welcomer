@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/WelcomerTeam/Welcomer/utils.images/service"
+	"github.com/WelcomerTeam/Welcomer/welcomer-images/service"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
