@@ -1,10 +1,14 @@
 package plugins
 
 import (
+	"errors"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/jackc/pgx/v4"
 )
 
 type AutoRolesCog struct {
@@ -52,11 +56,19 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 
 	guildSettingsAutoRoles, err := queries.GetAutoRolesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get autorole settings")
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+				GuildID:       int64(eventCtx.Guild.ID),
+				ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
+				Roles:         database.DefaultAutoroles.Roles,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get autorole settings")
 
-		return err
+			return err
+		}
 	}
 
 	// Quit if not enabled or no roles are set.

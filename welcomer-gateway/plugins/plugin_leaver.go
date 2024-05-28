@@ -13,6 +13,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
@@ -119,13 +120,22 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 	// Fetch guild settings.
 
 	guildSettingsLeaver, err := queries.GetLeaverGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(event.User.ID)).
-			Msg("Failed to get leaver guild settings")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsLeaver = &database.GuildSettingsLeaver{
+				GuildID:       int64(eventCtx.Guild.ID),
+				ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
+				Channel:       database.DefaultLeaver.Channel,
+				MessageFormat: database.DefaultLeaver.MessageFormat,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(event.User.ID)).
+				Msg("Failed to get leaver guild settings")
 
-		return err
+			return err
+		}
 	}
 
 	// Quit if leaver is not enabled or configured.

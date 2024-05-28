@@ -1,12 +1,15 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/jackc/pgx/v4"
 )
 
 type RulesCog struct {
@@ -54,11 +57,20 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 
 	guildSettingsRules, err := queries.GetRulesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get rule settings")
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsRules = &database.GuildSettingsRules{
+				GuildID:          int64(eventCtx.Guild.ID),
+				ToggleEnabled:    database.DefaultRules.ToggleEnabled,
+				ToggleDmsEnabled: database.DefaultRules.ToggleDmsEnabled,
+				Rules:            database.DefaultRules.Rules,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get rule settings")
 
-		return err
+			return err
+		}
 	}
 
 	// Quit if not enabled or no rules are set.

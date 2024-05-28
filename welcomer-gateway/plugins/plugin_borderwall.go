@@ -89,12 +89,25 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guildID", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get borderwall settings for guild")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+				GuildID:         int64(eventCtx.Guild.ID),
+				ToggleEnabled:   database.DefaultBorderwall.ToggleEnabled,
+				ToggleSendDm:    database.DefaultBorderwall.ToggleSendDm,
+				Channel:         database.DefaultBorderwall.Channel,
+				MessageVerify:   database.DefaultBorderwall.MessageVerify,
+				MessageVerified: database.DefaultBorderwall.MessageVerified,
+				RolesOnJoin:     database.DefaultBorderwall.RolesOnJoin,
+				RolesOnVerify:   database.DefaultBorderwall.RolesOnVerify,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guildID", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get borderwall settings for guild")
 
-		return err
+			return err
+		}
 	}
 
 	// Quit if nothing is enabled.
@@ -186,6 +199,8 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.Member.User.ID)).
 			Msg("Failed to check existing borderwall request")
+
+		return err
 	}
 
 	for _, request := range borderwallRequests {
@@ -320,12 +335,25 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guildID", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get borderwall settings for guild")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+				GuildID:         int64(eventCtx.Guild.ID),
+				ToggleEnabled:   database.DefaultBorderwall.ToggleEnabled,
+				ToggleSendDm:    database.DefaultBorderwall.ToggleSendDm,
+				Channel:         database.DefaultBorderwall.Channel,
+				MessageVerify:   database.DefaultBorderwall.MessageVerify,
+				MessageVerified: database.DefaultBorderwall.MessageVerified,
+				RolesOnJoin:     database.DefaultBorderwall.RolesOnJoin,
+				RolesOnVerify:   database.DefaultBorderwall.RolesOnVerify,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guildID", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get borderwall settings for guild")
 
-		return err
+			return err
+		}
 	}
 
 	// Quit if nothing is enabled.

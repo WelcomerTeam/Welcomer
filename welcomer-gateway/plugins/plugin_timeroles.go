@@ -179,12 +179,20 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, qu
 	// TODO: Add caching
 
 	guildSettingsTimeRoles, err = queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Msg("Failed to get time role settings")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+				GuildID:       int64(guildID),
+				ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
+				Timeroles:     database.DefaultTimeRoles.Timeroles,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(guildID)).
+				Msg("Failed to get time role settings")
 
-		return nil, nil, err
+			return nil, nil, err
+		}
 	}
 
 	timeRoles := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)

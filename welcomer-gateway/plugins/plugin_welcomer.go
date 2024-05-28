@@ -18,6 +18,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 
 	"github.com/jackc/pgx/v4"
@@ -170,30 +171,66 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	// Fetch guild settings.
 
 	guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get welcomer text guild settings")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+				GuildID:       int64(eventCtx.Guild.ID),
+				ToggleEnabled: database.DefaultWelcomerText.ToggleEnabled,
+				Channel:       database.DefaultWelcomerText.Channel,
+				MessageFormat: database.DefaultWelcomerText.MessageFormat,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get welcomer text guild settings")
 
-		return err
+			return err
+		}
 	}
 
 	guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get utils.image guild settings")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
+				GuildID:                int64(eventCtx.Guild.ID),
+				ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
+				ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+				BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
+				ColourText:             database.DefaultWelcomerImages.ColourText,
+				ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
+				ColourImageBorder:      database.DefaultWelcomerImages.ColourImageBorder,
+				ColourProfileBorder:    database.DefaultWelcomerImages.ColourProfileBorder,
+				ImageAlignment:         database.DefaultWelcomerImages.ImageAlignment,
+				ImageTheme:             database.DefaultWelcomerImages.ImageTheme,
+				ImageMessage:           database.DefaultWelcomerImages.ImageMessage,
+				ImageProfileBorderType: database.DefaultWelcomerImages.ImageProfileBorderType,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get utils.image guild settings")
 
-		return err
+			return err
+		}
 	}
 
 	guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get welcomer dm guild settings")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+				GuildID:             int64(eventCtx.Guild.ID),
+				ToggleEnabled:       database.DefaultWelcomerDms.ToggleEnabled,
+				ToggleUseTextFormat: database.DefaultWelcomerDms.ToggleUseTextFormat,
+				ToggleIncludeImage:  database.DefaultWelcomerDms.ToggleIncludeImage,
+				MessageFormat:       database.DefaultWelcomerDms.MessageFormat,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get welcomer dm guild settings")
 
-		return err
+			return err
+		}
 	}
 
 	// Quit if nothing is enabled.
@@ -274,6 +311,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Msg("Failed to get welcomer memberships")
+
+			return err
 		}
 
 		hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)

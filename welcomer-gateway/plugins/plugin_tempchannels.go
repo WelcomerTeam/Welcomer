@@ -293,12 +293,23 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 
 func (p *TempChannelsCog) FetchGuildInformation(eventCtx *sandwich.EventContext, queries *database.Queries, guildID discord.Snowflake) (guildSettingsTempChannels *database.GuildSettingsTempchannels, err error) {
 	guildSettingsTempChannels, err = queries.GetTempChannelsGuildSettings(eventCtx.Context, int64(guildID))
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		eventCtx.Logger.Error().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Msg("Failed to get temp channel settings")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettingsTempChannels = &database.GuildSettingsTempchannels{
+				GuildID:          int64(guildID),
+				ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+				ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+				ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+				ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+				DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+			}
+		} else {
+			eventCtx.Logger.Error().Err(err).
+				Int64("guild_id", int64(guildID)).
+				Msg("Failed to get temp channel settings")
 
-		return nil, err
+			return nil, err
+		}
 	}
 
 	return guildSettingsTempChannels, nil
