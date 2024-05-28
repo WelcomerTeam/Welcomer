@@ -64,10 +64,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get freeroles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
+							Roles:         database.DefaultFreeRoles.Roles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get freeroles guild settings.")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsFreeRoles.ToggleEnabled = true
@@ -118,10 +128,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get freeroles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
+							Roles:         database.DefaultFreeRoles.Roles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get freeroles guild settings.")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsFreeRoles.ToggleEnabled = false
@@ -171,12 +191,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get freeroles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
+							Roles:         database.DefaultFreeRoles.Roles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get freeroles guild settings.")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				embeds := []*discord.Embed{}
@@ -262,12 +290,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			queries := welcomer.GetQueriesFromContext(ctx)
 
 			guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				sub.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Msg("Failed to get freeroles guild settings.")
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+						GuildID:       int64(*interaction.GuildID),
+						ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
+						Roles:         database.DefaultFreeRoles.Roles,
+					}
+				} else {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to get freeroles guild settings.")
 
-				return nil, err
+					return nil, err
+				}
 			}
 
 			// Check if freeroles are enabled.
@@ -381,12 +417,20 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			queries := welcomer.GetQueriesFromContext(ctx)
 
 			guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				sub.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Msg("Failed to get freeroles guild settings.")
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+						GuildID:       int64(*interaction.GuildID),
+						ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
+						Roles:         database.DefaultFreeRoles.Roles,
+					}
+				} else {
+					sub.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to get freeroles guild settings.")
 
-				return nil, err
+					return nil, err
+				}
 			}
 
 			// Check if freeroles are enabled.

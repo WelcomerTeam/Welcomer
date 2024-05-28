@@ -64,10 +64,20 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsAutoRoles, err := queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get autoroles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
+							Roles:         database.DefaultAutoroles.Roles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get autoroles guild settings.")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsAutoRoles.ToggleEnabled = true
@@ -118,10 +128,20 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsAutoRoles, err := queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get autoroles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
+							Roles:         database.DefaultAutoroles.Roles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get autoroles guild settings.")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsAutoRoles.ToggleEnabled = false
@@ -170,12 +190,20 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				queries := welcomer.GetQueriesFromContext(ctx)
 				guildSettingsAutoRoles, err := queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get autoroles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
+							Roles:         database.DefaultAutoroles.Roles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get autoroles guild settings.")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				embeds := []*discord.Embed{}

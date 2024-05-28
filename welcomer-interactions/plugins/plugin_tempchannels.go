@@ -70,10 +70,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get tempchannels guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTempChannels = &database.GuildSettingsTempchannels{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+							ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+							ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+							ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+							DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get tempchannels guild settings")
+
+						return nil, err
+					}
 				}
 
 				if !guildSettingsTempChannels.ToggleEnabled || guildSettingsTempChannels.ChannelCategory == 0 {
@@ -180,12 +193,24 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get tempchannels guild settings")
-				}
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTempChannels = &database.GuildSettingsTempchannels{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+							ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+							ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+							ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+							DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get tempchannels guild settings")
 
+						return nil, err
+					}
+				}
 				switch module {
 				case TempChannelsModuleTempChannels:
 					guildSettingsTempChannels.ToggleEnabled = true
@@ -280,10 +305,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get tempchannels guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTempChannels = &database.GuildSettingsTempchannels{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+							ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+							ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+							ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+							DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get tempchannels guild settings")
+
+						return nil, err
+					}
 				}
 
 				switch module {
@@ -375,10 +413,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get tempchannels guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTempChannels = &database.GuildSettingsTempchannels{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+							ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+							ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+							ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+							DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get tempchannels guild settings")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsTempChannels.ChannelCategory = int64(channel.ID)
@@ -443,10 +494,23 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsTempChannels, err := queries.GetTempChannelsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get tempchannels guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTempChannels = &database.GuildSettingsTempchannels{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
+							ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
+							ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
+							ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
+							DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get tempchannels guild settings")
+
+						return nil, err
+					}
 				}
 
 				if channel != nil {

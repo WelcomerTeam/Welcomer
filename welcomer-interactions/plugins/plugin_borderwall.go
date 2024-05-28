@@ -84,10 +84,25 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get borderwall guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   database.DefaultBorderwall.ToggleEnabled,
+							ToggleSendDm:    database.DefaultBorderwall.ToggleSendDm,
+							Channel:         database.DefaultBorderwall.Channel,
+							MessageVerify:   database.DefaultBorderwall.MessageVerify,
+							MessageVerified: database.DefaultBorderwall.MessageVerified,
+							RolesOnJoin:     database.DefaultBorderwall.RolesOnJoin,
+							RolesOnVerify:   database.DefaultBorderwall.RolesOnVerify,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get borderwall guild settings.")
+
+						return nil, err
+					}
 				}
 
 				switch module {
@@ -204,10 +219,25 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get borderwall guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   database.DefaultBorderwall.ToggleEnabled,
+							ToggleSendDm:    database.DefaultBorderwall.ToggleSendDm,
+							Channel:         database.DefaultBorderwall.Channel,
+							MessageVerify:   database.DefaultBorderwall.MessageVerify,
+							MessageVerified: database.DefaultBorderwall.MessageVerified,
+							RolesOnJoin:     database.DefaultBorderwall.RolesOnJoin,
+							RolesOnVerify:   database.DefaultBorderwall.RolesOnVerify,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get borderwall guild settings.")
+
+						return nil, err
+					}
 				}
 
 				switch module {
@@ -299,10 +329,25 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get borderwall guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   database.DefaultBorderwall.ToggleEnabled,
+							ToggleSendDm:    database.DefaultBorderwall.ToggleSendDm,
+							Channel:         database.DefaultBorderwall.Channel,
+							MessageVerify:   database.DefaultBorderwall.MessageVerify,
+							MessageVerified: database.DefaultBorderwall.MessageVerified,
+							RolesOnJoin:     database.DefaultBorderwall.RolesOnJoin,
+							RolesOnVerify:   database.DefaultBorderwall.RolesOnVerify,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get borderwall guild settings.")
+
+						return nil, err
+					}
 				}
 
 				if channel != nil {

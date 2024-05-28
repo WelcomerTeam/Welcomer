@@ -85,10 +85,21 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get rules guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsRules = &database.GuildSettingsRules{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultRules.ToggleEnabled,
+							ToggleDmsEnabled: database.DefaultRules.ToggleDmsEnabled,
+							Rules:            database.DefaultRules.Rules,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get rules guild settings.")
+
+						return nil, err
+					}
 				}
 
 				switch module {
@@ -190,10 +201,21 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get rules guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsRules = &database.GuildSettingsRules{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultRules.ToggleEnabled,
+							ToggleDmsEnabled: database.DefaultRules.ToggleDmsEnabled,
+							Rules:            database.DefaultRules.Rules,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get rules guild settings.")
+
+						return nil, err
+					}
 				}
 
 				switch module {
@@ -267,13 +289,23 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				queries := welcomer.GetQueriesFromContext(ctx)
-				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get rules guild settings.")
 
-					return nil, err
+				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsRules = &database.GuildSettingsRules{
+							GuildID:          int64(*interaction.GuildID),
+							ToggleEnabled:    database.DefaultRules.ToggleEnabled,
+							ToggleDmsEnabled: database.DefaultRules.ToggleDmsEnabled,
+							Rules:            database.DefaultRules.Rules,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get rules guild settings.")
+
+						return nil, err
+					}
 				}
 
 				if len(guildSettingsRules.Rules) == 0 || !guildSettingsRules.ToggleEnabled {

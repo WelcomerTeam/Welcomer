@@ -66,10 +66,20 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get TimeRoles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     database.DefaultTimeRoles.Timeroles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get TimeRoles guild settings.")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsTimeRoles.Timeroles = utils.SetupJSONB(guildSettingsTimeRoles.Timeroles)
@@ -121,12 +131,21 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get TimeRoles guild settings.")
-				}
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     database.DefaultTimeRoles.Timeroles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get TimeRoles guild settings.")
 
+						return nil, err
+					}
+				}
 				guildSettingsTimeRoles.Timeroles = utils.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = false
 
@@ -175,12 +194,20 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get TimeRoles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     database.DefaultTimeRoles.Timeroles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get TimeRoles guild settings.")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				embeds := []*discord.Embed{}
@@ -299,12 +326,20 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get TimeRoles guild settings.")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     database.DefaultTimeRoles.Timeroles,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get TimeRoles guild settings.")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				embeds := []*discord.Embed{}

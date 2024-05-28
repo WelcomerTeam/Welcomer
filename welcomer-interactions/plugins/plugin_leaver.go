@@ -87,10 +87,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				// Fetch guild settings.
 
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get leaver guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsLeaver = &database.GuildSettingsLeaver{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
+							Channel:       database.DefaultLeaver.Channel,
+							MessageFormat: database.DefaultLeaver.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get leaver guild settings")
+
+						return nil, err
+					}
 				}
 
 				// If no modules are enabled, let the user know.
@@ -154,10 +165,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get leaver guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsLeaver = &database.GuildSettingsLeaver{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
+							Channel:       database.DefaultLeaver.Channel,
+							MessageFormat: database.DefaultLeaver.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get leaver guild settings")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)
@@ -210,10 +232,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get leaver guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsLeaver = &database.GuildSettingsLeaver{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
+							Channel:       database.DefaultLeaver.Channel,
+							MessageFormat: database.DefaultLeaver.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get leaver guild settings")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)
@@ -277,8 +310,21 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				queries := welcomer.GetQueriesFromContext(ctx)
 
 				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					return nil, err
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsLeaver = &database.GuildSettingsLeaver{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
+							Channel:       database.DefaultLeaver.Channel,
+							MessageFormat: database.DefaultLeaver.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get leaver guild settings")
+
+						return nil, err
+					}
 				}
 
 				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)

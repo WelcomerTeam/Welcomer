@@ -86,33 +86,67 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				queries := core.GetQueriesFromContext(ctx)
 
-				// Fetch guild settings.
-
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer text guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultWelcomerText.ToggleEnabled,
+							Channel:       database.DefaultWelcomerText.Channel,
+							MessageFormat: database.DefaultWelcomerText.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer text guild settings")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get utils.image guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
+							GuildID:                int64(*interaction.GuildID),
+							ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
+							ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+							BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
+							ColourText:             database.DefaultWelcomerImages.ColourText,
+							ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
+							ColourImageBorder:      database.DefaultWelcomerImages.ColourImageBorder,
+							ColourProfileBorder:    database.DefaultWelcomerImages.ColourProfileBorder,
+							ImageAlignment:         database.DefaultWelcomerImages.ImageAlignment,
+							ImageTheme:             database.DefaultWelcomerImages.ImageTheme,
+							ImageMessage:           database.DefaultWelcomerImages.ImageMessage,
+							ImageProfileBorderType: database.DefaultWelcomerImages.ImageProfileBorderType,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get utils.image guild settings")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer dm guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+							GuildID:             int64(*interaction.GuildID),
+							ToggleEnabled:       database.DefaultWelcomerDms.ToggleEnabled,
+							ToggleUseTextFormat: database.DefaultWelcomerDms.ToggleUseTextFormat,
+							ToggleIncludeImage:  database.DefaultWelcomerDms.ToggleIncludeImage,
+							MessageFormat:       database.DefaultWelcomerDms.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer DMs guild settings")
 
-					return nil, err
+						return nil, err
+					}
 				}
 
 				guildSettingsWelcomerText.MessageFormat = utils.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
@@ -199,34 +233,64 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer text guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultWelcomerText.ToggleEnabled,
+							Channel:       database.DefaultWelcomerText.Channel,
+							MessageFormat: database.DefaultWelcomerText.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer text guild settings")
 
-					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
 
 				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer DMs guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+							GuildID:             int64(*interaction.GuildID),
+							ToggleEnabled:       database.DefaultWelcomerDms.ToggleEnabled,
+							ToggleUseTextFormat: database.DefaultWelcomerDms.ToggleUseTextFormat,
+							ToggleIncludeImage:  database.DefaultWelcomerDms.ToggleIncludeImage,
+							MessageFormat:       database.DefaultWelcomerDms.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer DMs guild settings")
 
-					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
 
 				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get utils.images guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
+							GuildID:                int64(*interaction.GuildID),
+							ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
+							ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+							BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
+							ColourText:             database.DefaultWelcomerImages.ColourText,
+							ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
+							ColourImageBorder:      database.DefaultWelcomerImages.ColourImageBorder,
+							ColourProfileBorder:    database.DefaultWelcomerImages.ColourProfileBorder,
+							ImageAlignment:         database.DefaultWelcomerImages.ImageAlignment,
+							ImageTheme:             database.DefaultWelcomerImages.ImageTheme,
+							ImageMessage:           database.DefaultWelcomerImages.ImageMessage,
+							ImageProfileBorderType: database.DefaultWelcomerImages.ImageProfileBorderType,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get utils.image guild settings")
 
-					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
@@ -385,34 +449,64 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				queries := core.GetQueriesFromContext(ctx)
 
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer text guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultWelcomerText.ToggleEnabled,
+							Channel:       database.DefaultWelcomerText.Channel,
+							MessageFormat: database.DefaultWelcomerText.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer text guild settings")
 
-					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
 
 				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer DMs guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+							GuildID:             int64(*interaction.GuildID),
+							ToggleEnabled:       database.DefaultWelcomerDms.ToggleEnabled,
+							ToggleUseTextFormat: database.DefaultWelcomerDms.ToggleUseTextFormat,
+							ToggleIncludeImage:  database.DefaultWelcomerDms.ToggleIncludeImage,
+							MessageFormat:       database.DefaultWelcomerDms.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer DMs guild settings")
 
-					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
 
 				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get utils.images guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
+							GuildID:                int64(*interaction.GuildID),
+							ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
+							ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+							BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
+							ColourText:             database.DefaultWelcomerImages.ColourText,
+							ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
+							ColourImageBorder:      database.DefaultWelcomerImages.ColourImageBorder,
+							ColourProfileBorder:    database.DefaultWelcomerImages.ColourProfileBorder,
+							ImageAlignment:         database.DefaultWelcomerImages.ImageAlignment,
+							ImageTheme:             database.DefaultWelcomerImages.ImageTheme,
+							ImageMessage:           database.DefaultWelcomerImages.ImageMessage,
+							ImageProfileBorderType: database.DefaultWelcomerImages.ImageProfileBorderType,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get utils.image guild settings")
 
-					if !errors.Is(err, pgx.ErrNoRows) {
 						return nil, err
 					}
 				}
@@ -558,15 +652,24 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
 				queries := core.GetQueriesFromContext(ctx)
+
 				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					sub.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer text guild settings")
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: database.DefaultWelcomerText.ToggleEnabled,
+							Channel:       database.DefaultWelcomerText.Channel,
+							MessageFormat: database.DefaultWelcomerText.MessageFormat,
+						}
+					} else {
+						sub.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get welcomer text guild settings")
 
-					return nil, err
+						return nil, err
+					}
 				}
-
 				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
 					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
 				}
