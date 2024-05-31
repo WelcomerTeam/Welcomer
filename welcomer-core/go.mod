@@ -8,8 +8,8 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177
 	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -46,7 +46,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
-	github.com/prometheus/procfs v0.15.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20240113215029-33f8e6d47f38 // indirect
@@ -54,7 +54,7 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

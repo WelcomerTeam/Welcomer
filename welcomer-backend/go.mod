@@ -7,8 +7,8 @@ toolchain go1.22.0
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gin-contrib/cache v1.3.0
@@ -21,7 +21,7 @@ require (
 	github.com/jackc/pgtype v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
-	github.com/plutov/paypal/v4 v4.7.1
+	github.com/plutov/paypal/v4 v4.8.0
 	github.com/rs/zerolog v1.33.0
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
@@ -37,20 +37,20 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874 // indirect
-	github.com/bytedance/sonic v1.11.6 // indirect
+	github.com/bytedance/sonic v1.11.8 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/davidmytton/url-verifier v1.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
@@ -82,7 +82,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
-	github.com/prometheus/procfs v0.15.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
@@ -95,7 +95,7 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -6,10 +6,10 @@ github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5 h1:GN9M+iZKFm
 github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584 h1:3bvRnE2wejHLTlGGH+d1r+io/BMzg6tPKDfKMVGZJbo=
-github.com/WelcomerTeam/Sandwich v0.0.0-20240514164351-e3ca44e54584/go.mod h1:dItxIeOr3dCwW8S9mJ05+2AmThDoNLN2ySKve4Vp9xQ=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef h1:5/xr4Fp6yCbBCU/D/DmLcaMLbw77AHluId5phlGwPcw=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240514164006-080cbecea1ef/go.mod h1:B65CN063hYjy5Yp8R+STlBWiiScmAFzBpj97TnuilWU=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0 h1:WTSG39+mlpIl/Gk8l9nE3EhjagFecU4PqLbyGeuGFyo=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0/go.mod h1:2RJaSlUqG7CxY21Z9eQG2uPAyfShGyEgv7qskfNc7bw=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177 h1:4xqGJmTJUTR4t3OYAPXDrhtCHAXJmDcgffwGTa3NZo4=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177/go.mod h1:B65CN063hYjy5Yp8R+STlBWiiScmAFzBpj97TnuilWU=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac h1:nJKIPfpF/wN7bZiLtreMvrQDak46YknBlNG3jzQKfFw=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac/go.mod h1:QGmUWQqffCc3+gWWRRDOOVrrsaIcw8UTiCj3vCVkx9Y=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
@@ -161,8 +161,8 @@ github.com/prometheus/client_model v0.6.1 h1:ZKSh/rekM+n3CeS952MLRAdFwIKqeY8b62p
 github.com/prometheus/client_model v0.6.1/go.mod h1:OrxVMOVHjw3lKMa8+x6HeMGkHMQyHDk9E3jmP2AmGiY=
 github.com/prometheus/common v0.53.0 h1:U2pL9w9nmJwJDa4qqLQ3ZaePJ6ZTwt7cMD3AG3+aLCE=
 github.com/prometheus/common v0.53.0/go.mod h1:BrxBKv3FWBIGXw89Mg1AeBq7FSyRzXWI3l3e7W3RN5U=
-github.com/prometheus/procfs v0.15.0 h1:A82kmvXJq2jTu5YUhSGNlYoxh85zLnKgPz4bMZgI5Ek=
-github.com/prometheus/procfs v0.15.0/go.mod h1:Y0RJ/Y5g5wJpkTisOtqwDSo4HwhGmLB4VQSw2sQJLHk=
+github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
+github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
 github.com/rogpeppe/go-internal v1.10.0/go.mod h1:UQnix2H7Ngw/k4C5ijL5+65zddjncjaFoBhdsK/akog=
@@ -312,8 +312,8 @@ golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240521202816-d264139d666e h1:Elxv5MwEkCI9f5SkoL6afed6NTdxaGoAo39eANBwHL8=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240521202816-d264139d666e/go.mod h1:EfXuqaE1J41VCDicxHzUDm+8rk+7ZdXzHV0IhO/I6s0=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 h1:Zy9XzmMEflZ/MAaA7vNcoebnRAld7FsPW1EeBB7V0m8=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157/go.mod h1:EfXuqaE1J41VCDicxHzUDm+8rk+7ZdXzHV0IhO/I6s0=
 google.golang.org/grpc v1.64.0 h1:KH3VH9y/MgNQg1dE7b3XfVK0GsPSIzJwdF617gUSbvY=
 google.golang.org/grpc v1.64.0/go.mod h1:oxjF8E3FBnjp+/gVFYdWacaLDx9na1aqy9oovLpxQYg=
 google.golang.org/protobuf v1.34.1 h1:9ddQBjfCyZPOHPUiPxpYESBLc+T8P3E+Vo4IbKZgFWg=
