@@ -6,7 +6,7 @@ toolchain go1.22.0
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240601135330-5f473f439a42
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
