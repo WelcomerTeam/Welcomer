@@ -99,7 +99,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings.")
+							Msg("Failed to get borderwall guild settings")
 
 						return nil, err
 					}
@@ -153,7 +153,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings.")
+						Msg("Failed to update borderwall guild settings")
 
 					return nil, err
 				}
@@ -234,7 +234,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings.")
+							Msg("Failed to get borderwall guild settings")
 
 						return nil, err
 					}
@@ -277,7 +277,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings.")
+						Msg("Failed to update borderwall guild settings")
 
 					return nil, err
 				}
@@ -344,7 +344,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings.")
+							Msg("Failed to get borderwall guild settings")
 
 						return nil, err
 					}
@@ -389,7 +389,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings.")
+						Msg("Failed to update borderwall guild settings")
 
 					return nil, err
 				}

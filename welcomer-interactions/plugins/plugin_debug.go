@@ -47,7 +47,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 
 	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "testjoin",
-		Description: "Tests a user joining the server",
+		Description: "Relays an GUILD_MEMBER_ADD event to consumers",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -99,7 +99,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 
 	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "testleave",
-		Description: "Tests a user leaving the server",
+		Description: "Relays an GUILD_MEMBER_REMOVE event to consumers",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 

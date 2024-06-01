@@ -34,7 +34,7 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 	if err != nil {
 		logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("Failed to fetch guild roles.")
+			Msg("Failed to fetch guild roles")
 
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 		logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Int64("user_id", int64(applicationID)).
-			Msg("Failed to fetch application guild member.")
+			Msg("Failed to fetch application guild member")
 	}
 
 	// Get the guild member of the application.
@@ -56,7 +56,7 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 		logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Int64("user_id", int64(applicationID)).
-			Msg("Application guild member not present in response.")
+			Msg("Application guild member not present in response")
 
 		return nil, utils.ErrMissingApplicationUser
 	}

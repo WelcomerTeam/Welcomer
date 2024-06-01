@@ -65,7 +65,7 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		sub.Logger.Error().Err(err).
 			Int64("user_id", int64(userID)).
-			Msg("Failed to get user memberships.")
+			Msg("Failed to get user memberships")
 
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 		})
 		if err != nil {
 			sub.Logger.Error().Err(err).
-				Msg("Failed to fetch guilds via GRPC.")
+				Msg("Failed to fetch guilds via GRPC")
 
 			guilds = map[int64]*pb.Guild{}
 		} else {
@@ -147,7 +147,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(userID)).
-					Msg("Failed to get user memberships.")
+					Msg("Failed to get user memberships")
 
 				return nil, err
 			}
@@ -248,7 +248,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
-					Msg("Failed to get user memberships.")
+					Msg("Failed to get user memberships")
 			}
 
 			choices := make([]*discord.ApplicationCommandOptionChoice, 0, len(memberships))
@@ -355,7 +355,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Warn().Err(err).
 						Int64("guild_id", int64(guild.ID)).
-						Msg("Failed to fetch guild.")
+						Msg("Failed to fetch guild")
 				}
 			}
 
@@ -367,7 +367,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Str("membership_uuid", membershipUuidString).
-					Msg("Failed to parse membership UUID.")
+					Msg("Failed to parse membership UUID")
 
 				return nil, err
 			}
@@ -383,7 +383,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
-					Msg("Failed to get user memberships.")
+					Msg("Failed to get user memberships")
 
 				return nil, err
 			}
@@ -437,7 +437,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						if err != nil {
 							sub.Logger.Error().Err(err).
 								Str("membership_uuid", membershipUuid.String()).
-								Msg("Failed to get user membership.")
+								Msg("Failed to get user membership")
 
 							return nil, err
 						}
@@ -447,7 +447,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 							sub.Logger.Error().
 								Str("membership_uuid", membershipUuid.String()).
 								Int32("transaction_status", membership.TransactionStatus.Int32).
-								Msg("Membership transaction is not completed.")
+								Msg("Membership transaction is not completed")
 
 							return nil, utils.ErrTransactionNotComplete
 						}
@@ -483,7 +483,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						if err != nil {
 							sub.Logger.Error().Err(err).
 								Str("membership_uuid", membershipUuid.String()).
-								Msg("Failed to update user membership.")
+								Msg("Failed to update user membership")
 
 							return nil, err
 						}
@@ -561,7 +561,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
-					Msg("Failed to get user memberships.")
+					Msg("Failed to get user memberships")
 			}
 
 			choices := make([]*discord.ApplicationCommandOptionChoice, 0, len(memberships))
@@ -642,7 +642,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Str("membership_uuid", membershipUuidString).
-					Msg("Failed to parse membership UUID.")
+					Msg("Failed to parse membership UUID")
 
 				return nil, err
 			}
@@ -658,7 +658,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
-					Msg("Failed to get user memberships.")
+					Msg("Failed to get user memberships")
 
 				return nil, err
 			}
@@ -689,7 +689,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					if err != nil {
 						sub.Logger.Error().Err(err).
 							Str("membership_uuid", membershipUuid.String()).
-							Msg("Failed to get user membership.")
+							Msg("Failed to get user membership")
 
 						return nil, err
 					}
@@ -712,7 +712,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					if err != nil {
 						sub.Logger.Error().Err(err).
 							Str("membership_uuid", membershipUuid.String()).
-							Msg("Failed to update user membership.")
+							Msg("Failed to update user membership")
 
 						return nil, err
 					}

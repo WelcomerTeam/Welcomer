@@ -96,7 +96,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings.")
+							Msg("Failed to get rules guild settings")
 
 						return nil, err
 					}
@@ -135,7 +135,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update rules guild settings.")
+						Msg("Failed to update rules guild settings")
 
 					return nil, err
 				}
@@ -212,7 +212,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings.")
+							Msg("Failed to get rules guild settings")
 
 						return nil, err
 					}
@@ -251,7 +251,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update rules guild settings.")
+						Msg("Failed to update rules guild settings")
 
 					return nil, err
 				}
@@ -302,7 +302,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings.")
+							Msg("Failed to get rules guild settings")
 
 						return nil, err
 					}

@@ -76,7 +76,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get TimeRoles guild settings.")
+							Msg("Failed to get TimeRoles guild settings")
 
 						return nil, err
 					}
@@ -102,7 +102,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update TimeRoles guild settings.")
+						Msg("Failed to update TimeRoles guild settings")
 
 					return nil, err
 				}
@@ -141,7 +141,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get TimeRoles guild settings.")
+							Msg("Failed to get TimeRoles guild settings")
 
 						return nil, err
 					}
@@ -166,7 +166,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update TimeRoles guild settings.")
+						Msg("Failed to update TimeRoles guild settings")
 
 					return nil, err
 				}
@@ -204,7 +204,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get TimeRoles guild settings.")
+							Msg("Failed to get TimeRoles guild settings")
 
 						return nil, err
 					}
@@ -219,7 +219,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to filter assignable roles.")
+						Msg("Failed to filter assignable roles")
 
 					return nil, err
 				}
@@ -336,7 +336,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					} else {
 						sub.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get TimeRoles guild settings.")
+							Msg("Failed to get TimeRoles guild settings")
 
 						return nil, err
 					}
@@ -351,7 +351,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					sub.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to filter assignable roles.")
+						Msg("Failed to filter assignable roles")
 
 					return nil, err
 				}
