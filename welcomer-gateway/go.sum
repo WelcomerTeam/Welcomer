@@ -10,6 +10,8 @@ github.com/WelcomerTeam/Sandwich v0.0.0-20240601133641-830fe81e74d5 h1:0CWZJRLrh
 github.com/WelcomerTeam/Sandwich v0.0.0-20240601133641-830fe81e74d5/go.mod h1:2RJaSlUqG7CxY21Z9eQG2uPAyfShGyEgv7qskfNc7bw=
 github.com/WelcomerTeam/Sandwich v0.0.0-20240601135330-5f473f439a42 h1:ibN2oGt5hwcmT3apzUfsoQF8F6tqEuBVEUYLBm8Bnys=
 github.com/WelcomerTeam/Sandwich v0.0.0-20240601135330-5f473f439a42/go.mod h1:2RJaSlUqG7CxY21Z9eQG2uPAyfShGyEgv7qskfNc7bw=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a h1:b99bvmrowJ7BDlQcBebv9xv6C7bQRxg9c/BnrDyeyco=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a/go.mod h1:Sicaes09aierp/MBlXZ5fYZxEOzSLH1PnTpE22H+QMI=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177 h1:4xqGJmTJUTR4t3OYAPXDrhtCHAXJmDcgffwGTa3NZo4=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177/go.mod h1:B65CN063hYjy5Yp8R+STlBWiiScmAFzBpj97TnuilWU=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac h1:nJKIPfpF/wN7bZiLtreMvrQDak46YknBlNG3jzQKfFw=
