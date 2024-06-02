@@ -35,16 +35,23 @@ var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
 	ToggleSendDm:  true,
 	Channel:       0,
 	MessageVerify: MustConvertToJSONB(discord.MessageParams{
-		Content: "Hello world!",
 		Embeds: []*discord.Embed{
 			{
-				Title: "Welcome to the server!",
+				Description: "This server is protected by Borderwall. Please verify at {{Borderwall.Link}}.",
+				Color:       utils.EmbedColourInfo,
 			},
 		},
 	}),
-	MessageVerified: pgtype.JSONB{Status: pgtype.Null},
-	RolesOnJoin:     []int64{},
-	RolesOnVerify:   []int64{},
+	MessageVerified: MustConvertToJSONB(discord.MessageParams{
+		Embeds: []*discord.Embed{
+			{
+				Description: "Thank you for verifying! You now have access to the server.",
+				Color:       utils.EmbedColourSuccess,
+			},
+		},
+	}),
+	RolesOnJoin:   []int64{},
+	RolesOnVerify: []int64{},
 }
 
 var DefaultFreeRoles GuildSettingsFreeroles = GuildSettingsFreeroles{
@@ -109,7 +116,7 @@ var DefaultWelcomerDms GuildSettingsWelcomerDms = GuildSettingsWelcomerDms{
 }
 
 var DefaultGuild Guilds = Guilds{
-	EmbedColour:      0x2F80ED,
+	EmbedColour:      utils.EmbedColourInfo,
 	SiteSplashUrl:    "",
 	SiteStaffVisible: false,
 	SiteGuildVisible: false,
