@@ -41,7 +41,7 @@ func (q *Queries) CreateCommandError(ctx context.Context, arg CreateCommandError
 
 const GetCommandError = `-- name: GetCommandError :one
 SELECT
-    science_command_usages.command_uuid, science_command_usages.created_at, updated_at, guild_id, user_id, channel_id, command, errored, execution_time_ms, science_command_errors.command_uuid, science_command_errors.created_at, trace, data
+    science_command_usages.command_uuid, science_command_usages.created_at, guild_id, user_id, channel_id, command, errored, execution_time_ms, science_command_errors.command_uuid, science_command_errors.created_at, trace, data
 FROM
     science_command_usages
     LEFT JOIN science_command_errors ON (science_command_errors.command_uuid = science_command_usages.command_uuid)
@@ -52,7 +52,6 @@ WHERE
 type GetCommandErrorRow struct {
 	CommandUuid     uuid.UUID      `json:"command_uuid"`
 	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
 	GuildID         int64          `json:"guild_id"`
 	UserID          int64          `json:"user_id"`
 	ChannelID       sql.NullInt64  `json:"channel_id"`
@@ -71,7 +70,6 @@ func (q *Queries) GetCommandError(ctx context.Context, commandUuid uuid.UUID) (*
 	err := row.Scan(
 		&i.CommandUuid,
 		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.GuildID,
 		&i.UserID,
 		&i.ChannelID,

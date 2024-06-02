@@ -8,7 +8,7 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177
 	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0

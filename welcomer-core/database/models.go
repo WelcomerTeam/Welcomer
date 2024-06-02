@@ -149,7 +149,6 @@ type ScienceCommandErrors struct {
 type ScienceCommandUsages struct {
 	CommandUuid     uuid.UUID     `json:"command_uuid"`
 	CreatedAt       time.Time     `json:"created_at"`
-	UpdatedAt       time.Time     `json:"updated_at"`
 	GuildID         int64         `json:"guild_id"`
 	UserID          int64         `json:"user_id"`
 	ChannelID       sql.NullInt64 `json:"channel_id"`

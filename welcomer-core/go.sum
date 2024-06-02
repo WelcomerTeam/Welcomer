@@ -6,8 +6,8 @@ github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5 h1:GN9M+iZKFm
 github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0 h1:WTSG39+mlpIl/Gk8l9nE3EhjagFecU4PqLbyGeuGFyo=
-github.com/WelcomerTeam/Sandwich v0.0.0-20240531221916-fda9519a7dc0/go.mod h1:2RJaSlUqG7CxY21Z9eQG2uPAyfShGyEgv7qskfNc7bw=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a h1:b99bvmrowJ7BDlQcBebv9xv6C7bQRxg9c/BnrDyeyco=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a/go.mod h1:Sicaes09aierp/MBlXZ5fYZxEOzSLH1PnTpE22H+QMI=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177 h1:4xqGJmTJUTR4t3OYAPXDrhtCHAXJmDcgffwGTa3NZo4=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177/go.mod h1:B65CN063hYjy5Yp8R+STlBWiiScmAFzBpj97TnuilWU=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac h1:nJKIPfpF/wN7bZiLtreMvrQDak46YknBlNG3jzQKfFw=
