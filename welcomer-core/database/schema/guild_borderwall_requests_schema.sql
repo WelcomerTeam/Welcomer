@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS borderwall_requests (
     ua_family text,
     ua_family_version text,
     ua_os text,
-    ua_os_version text
+    ua_os_version text,
+    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS borderwall_requests_guild_id_user_id ON borderwall_requests (guild_id, user_id);

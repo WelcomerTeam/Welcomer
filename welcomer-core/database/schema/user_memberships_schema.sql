@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS user_memberships (
     transaction_uuid uuid NOT NULL,
     user_id bigint NOT NULL,
     guild_id bigint NOT NULL,
-    FOREIGN KEY (transaction_uuid) REFERENCES user_transactions (transaction_uuid) ON DELETE RESTRICT ON UPDATE CASCADE
+    FOREIGN KEY (transaction_uuid) REFERENCES user_transactions (transaction_uuid),
+    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id)
 );
 
 CREATE INDEX IF NOT EXISTS user_memberships_guild_id ON user_memberships (guild_id);

@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS science_command_usages (
     channel_id bigint NULL,
     command text NOT NULL,
     errored boolean NOT NULL,
-    execution_time_ms bigint NOT NULL
+    execution_time_ms bigint NOT NULL,
+    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id)
 );
 
 CREATE INDEX IF NOT EXISTS science_command_usages_user_id ON science_command_usages (user_id);
