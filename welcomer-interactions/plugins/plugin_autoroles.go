@@ -89,6 +89,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
 						})
+
 						return err
 					},
 					func() error {
@@ -153,6 +154,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
 						})
+
 						return err
 					},
 					func() error {

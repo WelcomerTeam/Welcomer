@@ -143,6 +143,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
 						})
+
 						return err
 					},
 					func() error {
@@ -267,6 +268,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
 						})
+
 						return err
 					},
 					func() error {
@@ -379,6 +381,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
 						})
+
 						return err
 					},
 					func() error {

@@ -89,6 +89,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
 						})
+
 						return err
 					},
 					func() error {
@@ -153,6 +154,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
 						})
+
 						return err
 					},
 					func() error {

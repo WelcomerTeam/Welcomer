@@ -329,6 +329,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							Channel:       guildSettingsWelcomerText.Channel,
 							MessageFormat: guildSettingsWelcomerText.MessageFormat,
 						})
+
 						return err
 					},
 					func() error {

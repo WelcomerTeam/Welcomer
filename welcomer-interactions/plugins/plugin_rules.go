@@ -125,6 +125,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 							Rules:            guildSettingsRules.Rules,
 						})
+
 						return err
 					},
 					func() error {
@@ -241,6 +242,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 							Rules:            guildSettingsRules.Rules,
 						})
+
 						return err
 					},
 					func() error {

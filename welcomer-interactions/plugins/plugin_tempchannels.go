@@ -238,6 +238,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
 						})
+
 						return err
 					},
 					func() error {
@@ -351,6 +352,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
 						})
+
 						return err
 					},
 					func() error {
@@ -444,6 +446,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
 						})
+
 						return err
 					},
 					func() error {
@@ -529,6 +532,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
 						})
+
 						return err
 					},
 					func() error {

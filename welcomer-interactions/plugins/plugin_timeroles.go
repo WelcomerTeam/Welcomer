@@ -92,6 +92,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
 						})
+
 						return err
 					},
 					func() error {
@@ -156,6 +157,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
 						})
+
 						return err
 					},
 					func() error {

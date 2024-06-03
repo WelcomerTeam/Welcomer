@@ -193,6 +193,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
 						})
+
 						return err
 					},
 					func() error {
@@ -260,6 +261,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
 						})
+
 						return err
 					},
 					func() error {
@@ -338,6 +340,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
 						})
+
 						return err
 					},
 					func() error {
