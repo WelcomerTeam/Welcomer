@@ -1,6 +1,8 @@
 package welcomer
 
 import (
+	"os"
+
 	"github.com/WelcomerTeam/Discord/discord"
 )
 
@@ -18,5 +20,5 @@ var (
 	EmojiCheckMark    = discord.Emoji{ID: 586907765662941185, Name: "checkboxmarkedoutline"}
 
 	SupportInvite = "https://discord.gg/kQJz33ExK2"
-	WebsiteURL    = "https://welcomer.gg"
+	WebsiteURL    = "https://" + os.Getenv("BACKEND_DOMAIN") // https://welcomer.gg
 )
