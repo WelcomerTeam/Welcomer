@@ -60,6 +60,7 @@ type Backend struct {
 	Store Store
 
 	Database *database.Queries
+	Pool     *pgxpool.Pool
 
 	IPChecker utils.IPChecker
 
@@ -112,6 +113,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
 
 		Database: database.New(options.Pool),
+		Pool:     options.Pool,
 
 		IPChecker: utils.NewLRUIPChecker(logger, 1024),
 	}

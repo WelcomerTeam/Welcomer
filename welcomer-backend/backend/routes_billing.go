@@ -9,6 +9,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 	"github.com/plutov/paypal/v4"
 )
 
@@ -306,189 +307,201 @@ func paymentCancelled(ctx *gin.Context) {
 // Route POST /api/billing/callback?token=...&PayerID=...
 func paymentCallback(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		err := backend.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			queries := backend.Database.WithTx(tx)
 
-		// Read "token" and "PayerID" from the query string.
-		token := ctx.Query("token")
-		payerID := ctx.Query("PayerID")
+			// Read "token" and "PayerID" from the query string.
+			token := ctx.Query("token")
+			payerID := ctx.Query("PayerID")
 
-		if token == "" {
-			backend.Logger.Warn().Str("PayerID", payerID).Msg("Missing token")
+			if token == "" {
+				backend.Logger.Warn().Str("PayerID", payerID).Msg("Missing token")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: "missing token",
-			})
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
+					Ok:    false,
+					Error: "missing token",
+				})
 
-			return
-		}
+				return ErrMissingParameter
+			}
 
-		if payerID == "" {
-			backend.Logger.Warn().Str("token", token).Msg("Missing PayerID")
+			if payerID == "" {
+				backend.Logger.Warn().Str("token", token).Msg("Missing PayerID")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: "missing PayerID",
-			})
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
+					Ok:    false,
+					Error: "missing PayerID",
+				})
 
-			return
-		}
+				return ErrMissingParameter
+			}
 
-		transactions, err := backend.Database.GetUserTransactionsByTransactionID(backend.ctx, token)
-		if err != nil {
-			backend.Logger.Error().Err(err).Str("token", token).Msg("Failed to get user transactions by transaction ID")
+			transactions, err := queries.GetUserTransactionsByTransactionID(backend.ctx, token)
+			if err != nil {
+				backend.Logger.Error().Err(err).Str("token", token).Msg("Failed to get user transactions by transaction ID")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
 
-			return
-		}
+				return err
+			}
 
-		if len(transactions) == 0 {
-			backend.Logger.Warn().Str("token", token).Msg("No user transactions found")
+			if len(transactions) == 0 {
+				backend.Logger.Warn().Str("token", token).Msg("No user transactions found")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
 
-			return
-		}
+				return err
+			}
 
-		user := tryGetUser(ctx)
-		transaction := transactions[0]
+			user := tryGetUser(ctx)
+			transaction := transactions[0]
 
-		if transaction.UserID != int64(user.ID) {
-			backend.Logger.Warn().Str("token", token).Int64("userID", transaction.UserID).Int64("user.ID", int64(user.ID)).Msg("User ID does not match")
+			if transaction.UserID != int64(user.ID) {
+				backend.Logger.Warn().Str("token", token).Int64("userID", transaction.UserID).Int64("user.ID", int64(user.ID)).Msg("User ID does not match")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
 
-			return
-		}
+				return err
+			}
 
-		if transaction.TransactionStatus != int32(database.TransactionStatusPending) {
-			backend.Logger.Warn().Str("token", token).Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).Msg("Transaction is not pending")
+			if transaction.TransactionStatus != int32(database.TransactionStatusPending) {
+				backend.Logger.Warn().Str("token", token).Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).Msg("Transaction is not pending")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
 
-			return
-		}
+				return err
+			}
 
-		// Get order
-		order, err := backend.PaypalClient.GetOrder(backend.ctx, token)
-		if err != nil {
-			backend.Logger.Error().Err(err).Str("token", token).Msg("Failed to get order")
+			// Get order
+			order, err := backend.PaypalClient.GetOrder(backend.ctx, token)
+			if err != nil {
+				backend.Logger.Error().Err(err).Str("token", token).Msg("Failed to get order")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
 
-			return
-		}
+				return err
+			}
 
-		if len(order.PurchaseUnits) == 0 || len(order.PurchaseUnits[0].Items) == 0 {
-			backend.Logger.Warn().Str("token", token).Msg("No purchase units or items found")
+			if len(order.PurchaseUnits) == 0 || len(order.PurchaseUnits[0].Items) == 0 {
+				backend.Logger.Warn().Str("token", token).Msg("No purchase units or items found")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
 
-			return
-		}
+				return err
+			}
 
-		// Fetch SKU from the order.
-		skuName := order.PurchaseUnits[0].Items[0].SKU
+			// Fetch SKU from the order.
+			skuName := order.PurchaseUnits[0].Items[0].SKU
 
-		sku, ok := welcomer.SKUPricing[welcomer.SKUName(skuName)]
-		if !ok {
-			backend.Logger.Warn().Str("sku", skuName).Msg("Invalid SKU")
+			sku, ok := welcomer.SKUPricing[welcomer.SKUName(skuName)]
+			if !ok {
+				backend.Logger.Warn().Str("sku", skuName).Msg("Invalid SKU")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: "invalid sku",
-			})
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
+					Ok:    false,
+					Error: "invalid sku",
+				})
 
-			return
-		}
+				return err
+			}
 
-		// Capture the order
-		authorizeResponse, err := backend.PaypalClient.AuthorizeOrder(backend.ctx, token, paypal.AuthorizeOrderRequest{})
-		if err != nil || authorizeResponse.Status != paypal.OrderStatusCompleted {
-			backend.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
+			// Capture the order
+			authorizeResponse, err := backend.PaypalClient.AuthorizeOrder(backend.ctx, token, paypal.AuthorizeOrderRequest{})
+			if err != nil || authorizeResponse.Status != paypal.OrderStatusCompleted {
+				backend.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
+
+				// Create a user transaction.
+				_, err = queries.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
+					UserID:            int64(user.ID),
+					PlatformType:      int32(database.PlatformTypePaypal),
+					TransactionID:     authorizeResponse.ID,
+					TransactionStatus: int32(database.TransactionStatusPending),
+					CurrencyCode:      transaction.CurrencyCode,
+					Amount:            transaction.Amount,
+				})
+				if err != nil {
+					backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
+				}
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return err
+			}
 
 			// Create a user transaction.
-			_, err = backend.Database.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
+			userTransaction, err := queries.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
 				UserID:            int64(user.ID),
 				PlatformType:      int32(database.PlatformTypePaypal),
 				TransactionID:     authorizeResponse.ID,
-				TransactionStatus: int32(database.TransactionStatusPending),
-				CurrencyCode:      transaction.CurrencyCode,
-				Amount:            transaction.Amount,
+				TransactionStatus: int32(database.TransactionStatusCompleted),
+				CurrencyCode:      order.PurchaseUnits[0].Amount.Currency,
+				Amount:            order.PurchaseUnits[0].Amount.Value,
 			})
 			if err != nil {
 				backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok:    false,
+					Error: "Failed to create new transaction. Please contact support.",
+				})
+
+				return err
 			}
+
+			startedAt := time.Time{}
+
+			expiresAt := startedAt
+			if sku.MonthCount <= 0 {
+				expiresAt = startedAt.AddDate(0, utils.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
+			}
+
+			// Create a new membership for the user.
+			_, err = queries.CreateNewMembership(backend.ctx, database.CreateNewMembershipParams{
+				StartedAt:       startedAt,
+				ExpiresAt:       expiresAt,
+				Status:          int32(database.MembershipStatusIdle),
+				MembershipType:  int32(sku.MembershipType),
+				TransactionUuid: userTransaction.TransactionUuid,
+				UserID:          int64(user.ID),
+				GuildID:         0,
+			})
+			if err != nil {
+				backend.Logger.Error().Err(err).Msg("Failed to create new membership")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok:    false,
+					Error: "Failed to create new membership. Please contact support.",
+				})
+
+				return err
+			}
+
+			ctx.Header("Location", "https://"+backend.Options.Domain+"/premium#success")
+			ctx.Status(http.StatusTemporaryRedirect)
+
+			return nil
+		})
+		if err != nil && !ctx.Writer.Written() {
+			backend.Logger.Error().Err(err).Msg("Failed to process payment")
 
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
 			})
-
-			return
 		}
-
-		// Create a user transaction.
-		userTransaction, err := backend.Database.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
-			UserID:            int64(user.ID),
-			PlatformType:      int32(database.PlatformTypePaypal),
-			TransactionID:     authorizeResponse.ID,
-			TransactionStatus: int32(database.TransactionStatusCompleted),
-			CurrencyCode:      order.PurchaseUnits[0].Amount.Currency,
-			Amount:            order.PurchaseUnits[0].Amount.Value,
-		})
-		if err != nil {
-			backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
-
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok:    false,
-				Error: "Failed to create new transaction. Please contact support.",
-			})
-
-			return
-		}
-
-		startedAt := time.Time{}
-
-		expiresAt := startedAt
-		if sku.MonthCount <= 0 {
-			expiresAt = startedAt.AddDate(0, utils.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
-		}
-
-		// Create a new membership for the user.
-		_, err = backend.Database.CreateNewMembership(backend.ctx, database.CreateNewMembershipParams{
-			StartedAt:       startedAt,
-			ExpiresAt:       expiresAt,
-			Status:          int32(database.MembershipStatusIdle),
-			MembershipType:  int32(sku.MembershipType),
-			TransactionUuid: userTransaction.TransactionUuid,
-			UserID:          int64(user.ID),
-			GuildID:         0,
-		})
-		if err != nil {
-			backend.Logger.Error().Err(err).Msg("Failed to create new membership")
-
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok:    false,
-				Error: "Failed to create new membership. Please contact support.",
-			})
-
-			return
-		}
-
-		ctx.Header("Location", "https://"+backend.Options.Domain+"/premium#success")
-		ctx.Status(http.StatusTemporaryRedirect)
 	})
 }
 
