@@ -8,63 +8,54 @@ import (
 )
 
 var backgrounds = map[string]image.Image{
-    "aesthetics": backgroundsAestheticsImage,
-    "afterwork": backgroundsAfterworkImage,
-    "airship": backgroundsAirshipImage,
-    "alone": backgroundsAloneImage,
-    "autumn": backgroundsAutumnImage,
-    "blue": backgroundsBlueImage,
-    "blurple": backgroundsBlurpleImage,
-    "clouds": backgroundsCloudsImage,
-    "collision": backgroundsCollisionImage,
-    "cyan": backgroundsCyanImage,
-    "cybergeek": backgroundsCybergeekImage,
-    "default": backgroundsDefaultImage,
-    "fall": backgroundsFallImage,
-    "garden": backgroundsGardenImage,
-    "glare": backgroundsGlareImage,
-    "green": backgroundsGreenImage,
-    "lime": backgroundsLimeImage,
-    "lodge": backgroundsLodgeImage,
-    "meteorshower": backgroundsMeteorshowerImage,
-    "midnightride": backgroundsMidnightrideImage,
-    "mountains": backgroundsMountainsImage,
-    "neko": backgroundsNekoImage,
-    "nightview": backgroundsNightviewImage,
-    "paint": backgroundsPaintImage,
-    "peace": backgroundsPeaceImage,
-    "pika": backgroundsPikaImage,
-    "pink": backgroundsPinkImage,
-    "purple": backgroundsPurpleImage,
-    "rainbow": backgroundsRainbowImage,
-    "red": backgroundsRedImage,
-    "rem": backgroundsRemImage,
-    "ribbons": backgroundsRibbonsImage,
-    "riot": backgroundsRiotImage,
-    "riversource": backgroundsRiversourceImage,
-    "sea": backgroundsSeaImage,
-    "shards": backgroundsShardsImage,
-    "solarglare": backgroundsSolarglareImage,
-    "spots": backgroundsSpotsImage,
-    "squares": backgroundsSquaresImage,
-    "stacks": backgroundsStacksImage,
-    "summer": backgroundsSummerImage,
-    "sun": backgroundsSunImage,
-    "sunrise": backgroundsSunriseImage,
-    "sunset": backgroundsSunsetImage,
-    "tanya": backgroundsTanyaImage,
-    "unova": backgroundsUnovaImage,
-    "upland": backgroundsUplandImage,
-    "utopia": backgroundsUtopiaImage,
-    "vampire": backgroundsVampireImage,
-    "vectors": backgroundsVectorsImage,
-    "wood": backgroundsWoodImage,
-    "yellow": backgroundsYellowImage,
+	"aesthetics":   backgroundsAestheticsImage,
+	"afterwork":    backgroundsAfterworkImage,
+	"airship":      backgroundsAirshipImage,
+	"alone":        backgroundsAloneImage,
+	"autumn":       backgroundsAutumnImage,
+	"clouds":       backgroundsCloudsImage,
+	"collision":    backgroundsCollisionImage,
+	"cybergeek":    backgroundsCybergeekImage,
+	"default":      backgroundsDefaultImage,
+	"fall":         backgroundsFallImage,
+	"garden":       backgroundsGardenImage,
+	"glare":        backgroundsGlareImage,
+	"lodge":        backgroundsLodgeImage,
+	"meteorshower": backgroundsMeteorshowerImage,
+	"midnightride": backgroundsMidnightrideImage,
+	"mountains":    backgroundsMountainsImage,
+	"neko":         backgroundsNekoImage,
+	"nightview":    backgroundsNightviewImage,
+	"paint":        backgroundsPaintImage,
+	"peace":        backgroundsPeaceImage,
+	"pika":         backgroundsPikaImage,
+	"rainbow":      backgroundsRainbowImage,
+	"rem":          backgroundsRemImage,
+	"ribbons":      backgroundsRibbonsImage,
+	"riot":         backgroundsRiotImage,
+	"riversource":  backgroundsRiversourceImage,
+	"sea":          backgroundsSeaImage,
+	"shards":       backgroundsShardsImage,
+	"solarglare":   backgroundsSolarglareImage,
+	"spots":        backgroundsSpotsImage,
+	"squares":      backgroundsSquaresImage,
+	"stacks":       backgroundsStacksImage,
+	"summer":       backgroundsSummerImage,
+	"sun":          backgroundsSunImage,
+	"sunrise":      backgroundsSunriseImage,
+	"sunset":       backgroundsSunsetImage,
+	"tanya":        backgroundsTanyaImage,
+	"unova":        backgroundsUnovaImage,
+	"upland":       backgroundsUplandImage,
+	"utopia":       backgroundsUtopiaImage,
+	"vampire":      backgroundsVampireImage,
+	"vectors":      backgroundsVectorsImage,
+	"wood":         backgroundsWoodImage,
 }
 
 var assets = map[string]image.Image{
-    "brokeimage": assetsBrokeImageImage,
-    "defaultavatar": assetsDefaultAvatarImage,
+	"brokeimage":    assetsBrokeImageImage,
+	"defaultavatar": assetsDefaultAvatarImage,
 }
 
 func mustDecodeBytes(n string, src []byte) image.Image {
@@ -96,14 +87,6 @@ var backgroundsAloneImage = mustDecodeBytes("backgroundsAloneImage", backgrounds
 var backgroundsAutumnImageBytes []byte
 var backgroundsAutumnImage = mustDecodeBytes("backgroundsAutumnImage", backgroundsAutumnImageBytes)
 
-//go:embed backgrounds/blue.png
-var backgroundsBlueImageBytes []byte
-var backgroundsBlueImage = mustDecodeBytes("backgroundsBlueImage", backgroundsBlueImageBytes)
-
-//go:embed backgrounds/blurple.png
-var backgroundsBlurpleImageBytes []byte
-var backgroundsBlurpleImage = mustDecodeBytes("backgroundsBlurpleImage", backgroundsBlurpleImageBytes)
-
 //go:embed backgrounds/clouds.png
 var backgroundsCloudsImageBytes []byte
 var backgroundsCloudsImage = mustDecodeBytes("backgroundsCloudsImage", backgroundsCloudsImageBytes)
@@ -111,10 +94,6 @@ var backgroundsCloudsImage = mustDecodeBytes("backgroundsCloudsImage", backgroun
 //go:embed backgrounds/collision.png
 var backgroundsCollisionImageBytes []byte
 var backgroundsCollisionImage = mustDecodeBytes("backgroundsCollisionImage", backgroundsCollisionImageBytes)
-
-//go:embed backgrounds/cyan.png
-var backgroundsCyanImageBytes []byte
-var backgroundsCyanImage = mustDecodeBytes("backgroundsCyanImage", backgroundsCyanImageBytes)
 
 //go:embed backgrounds/cybergeek.png
 var backgroundsCybergeekImageBytes []byte
@@ -135,14 +114,6 @@ var backgroundsGardenImage = mustDecodeBytes("backgroundsGardenImage", backgroun
 //go:embed backgrounds/glare.png
 var backgroundsGlareImageBytes []byte
 var backgroundsGlareImage = mustDecodeBytes("backgroundsGlareImage", backgroundsGlareImageBytes)
-
-//go:embed backgrounds/green.png
-var backgroundsGreenImageBytes []byte
-var backgroundsGreenImage = mustDecodeBytes("backgroundsGreenImage", backgroundsGreenImageBytes)
-
-//go:embed backgrounds/lime.png
-var backgroundsLimeImageBytes []byte
-var backgroundsLimeImage = mustDecodeBytes("backgroundsLimeImage", backgroundsLimeImageBytes)
 
 //go:embed backgrounds/lodge.png
 var backgroundsLodgeImageBytes []byte
@@ -180,21 +151,9 @@ var backgroundsPeaceImage = mustDecodeBytes("backgroundsPeaceImage", backgrounds
 var backgroundsPikaImageBytes []byte
 var backgroundsPikaImage = mustDecodeBytes("backgroundsPikaImage", backgroundsPikaImageBytes)
 
-//go:embed backgrounds/pink.png
-var backgroundsPinkImageBytes []byte
-var backgroundsPinkImage = mustDecodeBytes("backgroundsPinkImage", backgroundsPinkImageBytes)
-
-//go:embed backgrounds/purple.png
-var backgroundsPurpleImageBytes []byte
-var backgroundsPurpleImage = mustDecodeBytes("backgroundsPurpleImage", backgroundsPurpleImageBytes)
-
 //go:embed backgrounds/rainbow.png
 var backgroundsRainbowImageBytes []byte
 var backgroundsRainbowImage = mustDecodeBytes("backgroundsRainbowImage", backgroundsRainbowImageBytes)
-
-//go:embed backgrounds/red.png
-var backgroundsRedImageBytes []byte
-var backgroundsRedImage = mustDecodeBytes("backgroundsRedImage", backgroundsRedImageBytes)
 
 //go:embed backgrounds/rem.png
 var backgroundsRemImageBytes []byte
@@ -280,11 +239,6 @@ var backgroundsVectorsImage = mustDecodeBytes("backgroundsVectorsImage", backgro
 var backgroundsWoodImageBytes []byte
 var backgroundsWoodImage = mustDecodeBytes("backgroundsWoodImage", backgroundsWoodImageBytes)
 
-//go:embed backgrounds/yellow.png
-var backgroundsYellowImageBytes []byte
-var backgroundsYellowImage = mustDecodeBytes("backgroundsYellowImage", backgroundsYellowImageBytes)
-
-
 //go:embed assets/broke_image.png
 var assetsBrokeImageImageBytes []byte
 var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBrokeImageImageBytes)
@@ -292,5 +246,3 @@ var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBroke
 //go:embed assets/default_avatar.png
 var assetsDefaultAvatarImageBytes []byte
 var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)
-
-
