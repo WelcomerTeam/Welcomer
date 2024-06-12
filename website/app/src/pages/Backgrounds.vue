@@ -117,7 +117,6 @@ export default {
     Footer,
   },
   setup() {
-    console.log(backgrounds);
     return {
       backgrounds,
     };

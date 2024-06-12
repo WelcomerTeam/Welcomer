@@ -88,22 +88,31 @@
         </div>
 
         <div class="overflow-auto p-4">
-          <div class="max-h-72 grid grid-cols-2 gap-2" v-if="this.page == 1">
-            <button as="template" v-for="image in images" :key="image" @click="updateValue(image.id)">
-              <img v-lazy="backgroundRoot(image.id)" :class="[
-                $props.modelValue == image.id
-                  ? 'border-primary ring-primary ring-4'
-                  : '',
-                'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary',
-              ]" />
-            </button>
+          <div class="space-y-12 max-h-72" v-if="this.page == 1">
+            <div v-for="category in backgrounds" :key="category" :id="category.id">
+              <div class="text-xs font-bold uppercase my-4 text-gray-500 dark:text-gray-100">
+                {{ category.name }}
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button as="template" v-for="image in category.images" :key="image" @click="updateValue(image.name)">
+                  <img :title="image.name" v-lazy="{
+                    src: `/assets/backgrounds/${image.name}.webp`,
+                  }" :class="[
+                    $props.modelValue == image.name
+                      ? 'border-primary ring-primary ring-4'
+                      : '',
+                    'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
+                  ]" />
+                </button>
+              </div>
+            </div>
           </div>
           <div v-if="this.page == 2" class="space-y-4">
             <div
               class="lg:max-w-lg flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-secondary-light border-dashed rounded-md relative mx-auto mb-4"
               v-if="$store.getters.guildHasWelcomerPro ||
                 $store.getters.guildHasCustomBackgrounds
-                ">
+              ">
               <input id="file-upload" name="file-upload" type="file" accept="image/*"
                 class="absolute top-0 left-0 w-full h-full opacity-0" @change="onFileUpdate" />
               <div class="space-y-1 text-center" v-if="$props.files.length == 0">
@@ -116,7 +125,8 @@
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-100">
                   a
-                  <span v-if="$store.getters.guildHasWelcomerPro"><span class="text-primary">GIF</span>, PNG or JPG</span>
+                  <span v-if="$store.getters.guildHasWelcomerPro"><span class="text-primary">GIF</span>, PNG or
+                    JPG</span>
                   <span v-else>PNG or JPG</span>
                   up to 20MB
                 </p>
@@ -140,7 +150,8 @@
             <div v-else class="border-donate border-2 p-4 grid grid-cols-6 gap-4">
               <div class="col-span-6 items-center grid">
                 <span class="font-bold leading-6">Looking for more?</span>
-                With Welcomer Pro, you can unlock custom backgrounds on your server. You can upload PNG, JPG and even animated GIFs!
+                With Welcomer Pro, you can unlock custom backgrounds on your server. You can upload PNG, JPG and even
+                animated GIFs!
               </div>
               <a href="/premium" target="_blank" class="col-span-6 items-center grid">
                 <button type="button" class="cta-button bg-primary hover:bg-primary-dark w-full">
@@ -170,18 +181,18 @@
                 <Switch :modelValue="$props.modelValue ==
                   solidColourPrefix + solidColourProfileBased
                   " @update:modelValue="
-    updateValue(
-      $event
-        ? solidColourPrefix + solidColourProfileBased
-        : 'default'
-    )
-    " :class="[
-    $props.modelValue ==
-      solidColourPrefix + solidColourProfileBased
-      ? 'bg-green-500 focus:ring-green-500'
-      : 'bg-gray-400 focus:ring-gray-400',
-    'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
-  ]">
+                    updateValue(
+                      $event
+                        ? solidColourPrefix + solidColourProfileBased
+                        : 'default'
+                    )
+                    " :class="[
+                      $props.modelValue ==
+                        solidColourPrefix + solidColourProfileBased
+                        ? 'bg-green-500 focus:ring-green-500'
+                        : 'bg-gray-400 focus:ring-gray-400',
+                      'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+                    ]">
                   <span :class="[
                     $props.modelValue ==
                       solidColourPrefix + solidColourProfileBased
@@ -242,8 +253,8 @@
                 <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
                   leave-to-class="opacity-0">
                   <ListboxOptions class="absolute z-10 mt-1">
-                    <ColorPicker theme="dark" :color="parseCSSValue(trimPrefix(modelValue))" @changeColor="SetRGBIntToRGB"
-                      :sucker-hide="true" />
+                    <ColorPicker theme="dark" :color="parseCSSValue(trimPrefix(modelValue))"
+                      @changeColor="SetRGBIntToRGB" :sucker-hide="true" />
                   </ListboxOptions>
                 </transition>
               </div>
@@ -279,6 +290,7 @@ import {
   PopoverButton,
   PopoverPanel,
 } from "@headlessui/vue";
+
 import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { XIcon } from "@heroicons/vue/outline";
 
@@ -289,66 +301,13 @@ import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
 import parse from "parse-css-color";
 
+import backgrounds from "@/backgrounds.json";
+
 const tabs = [
   { name: "Welcomer", value: 1, enabled: true },
   { name: "Solid Colour", value: 4, enabled: true },
   { name: "Custom", value: 2, enabled: true },
   // { name: "Unsplash", icon: ["fab", "unsplash"], value: 3, enabled: true },
-];
-
-const images = [
-  { id: "aesthetics", animated: false },
-  { id: "afterwork", animated: false },
-  { id: "airship", animated: false },
-  { id: "alone", animated: false },
-  { id: "autumn", animated: false },
-  { id: "blue", animated: false },
-  { id: "blurple", animated: false },
-  { id: "clouds", animated: false },
-  { id: "collision", animated: false },
-  { id: "cyan", animated: false },
-  { id: "cybergeek", animated: false },
-  { id: "default", animated: false },
-  { id: "fall", animated: false },
-  { id: "garden", animated: false },
-  { id: "glare", animated: false },
-  { id: "green", animated: false },
-  { id: "lime", animated: false },
-  { id: "lodge", animated: false },
-  { id: "meteorshower", animated: false },
-  { id: "midnightride", animated: false },
-  { id: "mountains", animated: false },
-  { id: "neko", animated: false },
-  { id: "nightview", animated: false },
-  { id: "paint", animated: false },
-  { id: "peace", animated: false },
-  { id: "pika", animated: false },
-  { id: "pink", animated: false },
-  { id: "purple", animated: false },
-  { id: "rainbow", animated: false },
-  { id: "red", animated: false },
-  { id: "rem", animated: false },
-  { id: "ribbons", animated: false },
-  { id: "riot", animated: false },
-  { id: "riversource", animated: false },
-  { id: "sea", animated: false },
-  { id: "shards", animated: false },
-  { id: "solarglare", animated: false },
-  { id: "spots", animated: false },
-  { id: "squares", animated: false },
-  { id: "stacks", animated: false },
-  { id: "summer", animated: false },
-  { id: "sun", animated: false },
-  { id: "sunrise", animated: false },
-  { id: "sunset", animated: false },
-  { id: "tanya", animated: false },
-  { id: "unova", animated: false },
-  { id: "upland", animated: false },
-  { id: "utopia", animated: false },
-  { id: "vampire", animated: false },
-  { id: "vectors", animated: false },
-  { id: "wood", animated: false },
-  { id: "yellow", animated: false },
 ];
 
 const backgroundRoot = (id) => `/assets/backgrounds/${id}.webp`;
@@ -431,7 +390,6 @@ export default {
     return {
       tabs,
       page,
-      images,
       displayEmbed,
 
       solidColourIsProfileBased,
@@ -443,6 +401,8 @@ export default {
 
       backgroundRoot,
       customRoot,
+
+      backgrounds,
     };
   },
 
