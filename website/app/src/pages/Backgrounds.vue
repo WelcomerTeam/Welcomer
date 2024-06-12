@@ -52,16 +52,16 @@
                 </div> -->
 
                 <div class="space-y-12">
-                  <div v-for="group in groups" :key="group" :id="group.id">
+                  <div v-for="category in backgrounds" :key="category" :id="category.id">
                     <div class="text-xs font-bold uppercase my-4 text-gray-900">
-                      {{ group.name }}
+                      {{ category.name }}
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      <button as="template" v-for="image in group.images" :key="image">
-                        <img :title="image.id" v-lazy="{
-                          src: `/assets/backgrounds/${image.id}.webp`,
+                      <button as="template" v-for="image in category.images" :key="image">
+                        <img :title="image.name" v-lazy="{
+                          src: `/assets/backgrounds/${image.name}.webp`,
                         }" :class="[
-                          $props.modelValue == image.id
+                          $props.modelValue == image.name
                             ? 'border-primary ring-primary ring-4'
                             : '',
                           'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
@@ -86,7 +86,7 @@
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 
-import { rgbaToDataURL, thumbHashToRGBA } from "thumbhash";
+import backgrounds from "@/backgrounds.json";
 
 import {
   Listbox,
@@ -100,159 +100,6 @@ import { SelectorIcon } from "@heroicons/vue/solid";
 
 import BackgroundCarousel from "@/components/BackgroundCarousel.vue";
 import BackgroundPreview from "@/components/BackgroundPreview.vue";
-
-const groups = [
-  {
-    id: "misc",
-    name: "Miscellaneous",
-    images: [
-      {
-        "id": "solarglare",
-      },
-      {
-        "id": "unova",
-      },
-      {
-        "id": "nightview",
-      },
-      {
-        "id": "collision",
-      },
-      {
-        "id": "midnightride",
-      },
-      {
-        "id": "paint",
-      },
-      {
-        "id": "utopia",
-      },
-      {
-        "id": "riot",
-      },
-      {
-        "id": "alone",
-      },
-      {
-        "id": "cybergeek",
-      },
-    ],
-  },
-  {
-    id: "nature",
-    name: "Nature",
-    images: [
-      {
-        "id": "sunset",
-      },
-      {
-        "id": "garden",
-      },
-      {
-        "id": "sea",
-      },
-      {
-        "id": "clouds",
-      },
-      {
-        "id": "mountains",
-      },
-      {
-        "id": "lodge",
-      },
-      {
-        "id": "riversource",
-      },
-      {
-        "id": "wood",
-      },
-      {
-        "id": "summer",
-      },
-      {
-        "id": "peace",
-      },
-      {
-        "id": "autumn",
-      },
-      {
-        "id": "upland",
-      },
-    ],
-  },
-  {
-    id: "patterns",
-    name: "Patterns",
-    images: [
-      {
-        "id": "rainbow",
-      },
-      {
-        "id": "shards",
-      },
-      {
-        "id": "stacks",
-      },
-      {
-        "id": "sun",
-      },
-      {
-        "id": "glare",
-      },
-      {
-        "id": "vectors",
-      },
-      {
-        "id": "aesthetics",
-      },
-      {
-        "id": "squares",
-      },
-      {
-        "id": "fall",
-      },
-      {
-        "id": "spots",
-      },
-      {
-        "id": "sunrise",
-      },
-      {
-        "id": "ribbons",
-      },
-    ]
-  },
-  {
-    id: "anime",
-    name: "Anime",
-    images: [
-      {
-        "id": "neko",
-      },
-      {
-        "id": "tanya",
-      },
-      {
-        "id": "afterwork",
-      },
-      {
-        "id": "rem",
-      },
-      {
-        "id": "vampire",
-      },
-      {
-        "id": "pika",
-      },
-      {
-        "id": "meteorshower",
-      },
-      {
-        "id": "airship",
-      },
-    ]
-  },
-];
 
 export default {
   components: {
@@ -270,8 +117,9 @@ export default {
     Footer,
   },
   setup() {
+    console.log(backgrounds);
     return {
-      groups,
+      backgrounds,
     };
   },
   methods: {

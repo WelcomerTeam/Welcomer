@@ -2,8 +2,8 @@
   "name": "welcomer-website",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite build --mode development --watch --outDir /home/rock/Welcomer-Devops/data/nginx/website-dev --emptyOutDir false",
-    "build": "vite build --mode production --outDir /home/rock/Welcomer-Devops/data/nginx/website"
+    "dev": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website-dev/assets/backgrounds/ && vite build --mode development --watch --outDir /home/rock/Welcomer-Devops/data/nginx/website-dev --emptyOutDir false",
+    "build": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website/assets/backgrounds/ && vite build --mode production --outDir /home/rock/Welcomer-Devops/data/nginx/website"
   },
   "dependencies": {
     "@adapttive/vue-markdown": "git+https://github.com/adapttive/vue-markdown.git",
