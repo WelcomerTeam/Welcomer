@@ -1,0 +1,158 @@
+/*! @import */
+@tailwind base;
+@tailwind utilities;
+@tailwind components;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer components {
+  .custom-scroll::-webkit-scrollbar {
+    @apply w-3;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-secondary-light border-4 border-solid border-transparent bg-clip-content;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb:hover {
+    @apply brightness-125;
+  }
+
+  /* Header */
+  .popover-panel-icon {
+    @apply bg-secondary-light flex-shrink-0 group-hover:bg-primary h-10 inline-flex items-center justify-center rounded-md sm:h-12 sm:w-12 text-white w-10;
+  }
+
+  .popover-panel-icon-sm {
+    @apply bg-secondary-light flex-shrink-0 group-hover:bg-primary h-6 inline-flex items-center justify-center rounded-md sm:h-8 sm:w-8 text-white w-6;
+  }
+
+  .hero-buttons {
+    @apply lg:justify-start mt-5 sm:flex sm:justify-center sm:space-x-6;
+  }
+  .hero-primary {
+    @apply my-auto rounded-md shadow;
+  }
+  .hero-copytext {
+    @apply mt-5 text-white;
+  }
+
+  .hero-preview {
+    @apply max-w-7xl mx-auto py-6 px-6 lg:px-7 lg:py-20;
+  }
+  .hero-preview-item {
+    @apply grid grid-cols-1 my-4 sm:grid-cols-2 space-y-4;
+  }
+
+  .hero-features {
+    @apply max-w-7xl md:px-24 mx-auto px-12 py-16 text-white;
+  }
+  .hero-features-item {
+    @apply grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2;
+  }
+
+  /* Main */
+
+  .cta-button {
+    @apply focus:ring-primary focus:border-primary focus:outline-none border border-transparent font-semibold inline-flex items-center justify-center px-4 py-2 rounded-md shadow-sm text-sm text-white;
+  }
+
+  .footer-anchor {
+    @apply absolute bottom-0 w-full;
+  }
+
+  .section-hero {
+    @apply flex font-bold justify-center text-4xl text-center;
+  }
+  .section-subtitle {
+    // @apply flex justify-center text-center;
+    @apply text-center;
+  }
+
+  /* Dashboard page styling */
+  .dashboard-container {
+    @apply max-w-6xl px-4 sm:px-6 mx-auto mt-8;
+  }
+  .dashboard-title-container {
+    @apply mb-8 flex justify-between;
+  }
+  .dashboard-title {
+    @apply text-2xl font-bold leading-6 text-gray-900 dark:text-gray-50;
+  }
+  .dashboard-heading {
+    @apply font-semibold text-xl py-4 dark:text-gray-200 dark:border-secondary-light;
+  }
+  .dashboard-inputs {
+    @apply mb-12;
+  }
+
+  /* Hero */
+  .hero {
+    @apply lg:py-48 lg:text-left max-w-7xl mx-auto py-16 text-center w-full;
+  }
+  .hero-title {
+    @apply bg-clip-text bg-gradient-to-br font-black from-primary lg:text-6xl md:text-6xl pb-1 sm:text-5xl text-3xl text-transparent to-dace xl:text-6xl;
+  }
+  .hero-subtitle {
+    @apply max-w-md md:max-w-3xl md:mt-5 mt-3 mx-auto sm:text-xl text-lg text-white;
+  }
+
+  .hero-buttons {
+    @apply lg:justify-start mt-5 sm:flex sm:justify-center sm:space-x-10;
+  }
+  .hero-primary {
+    @apply my-auto rounded-md shadow;
+  }
+  .hero-primary > a {
+    @apply bg-primary border border-transparent flex font-medium hover:bg-primary-dark items-center justify-center md:px-10 md:py-3 md:text-lg px-8 py-2 rounded-md text-base text-white w-full;
+  }
+  .hero-secondary {
+    @apply my-auto py-4;
+  }
+  .hero-secondary > a {
+    @apply hover:text-gray-200 text-lg text-white underline;
+  }
+  .hero-copytext {
+    @apply mt-5 text-white;
+  }
+  .hero-accompany {
+    @apply h-full m-auto lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 relative w-full;
+  }
+
+  /* Styling for mobile only popover */
+  .navbar-mobile-panel {
+    @apply absolute inset-x-0 md:hidden origin-top-right p-2 top-0 transform transition z-10;
+  }
+  .navbar-mobile-menu {
+    @apply bg-secondary-dark divide-secondary-light divide-y-2 ring-1 ring-black ring-opacity-5 rounded-lg shadow-sm;
+  }
+  .navbar-mobile-menu-item {
+    @apply flex hover:bg-secondary items-center m-1 p-2 rounded-md;
+  }
+  .navbar-mobile-menu-item-icon {
+    @apply flex-shrink-0 h-6 text-white w-6;
+  }
+  .navbar-mobile-menu-item-text {
+    @apply font-medium ml-3 text-base text-white;
+  }
+  .navbar-mobile-close {
+    @apply focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary-dark hover:text-gray-400 inline-flex items-center justify-center p-2 rounded-md text-gray-300;
+  }
+  .navbar-mobile-text {
+    @apply font-medium hover:text-gray-200 text-base text-white;
+  }
+
+  /* Embed Builder */
+  .embed-builder-title {
+    @apply font-bold text-sm sm:block text-gray-800 dark:text-gray-50;
+  }
+
+  /* Validation */
+  .errors {
+    @apply text-red-500 text-sm;
+  }
+
+  .form-value-slot {
+    @apply text-gray-600 dark:text-gray-400 text-sm mt-2;
+  }
+}
