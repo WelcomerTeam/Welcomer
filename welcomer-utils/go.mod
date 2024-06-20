@@ -8,7 +8,7 @@ require (
 	github.com/jackc/pgtype v1.14.3
 	github.com/rs/zerolog v1.33.0
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
-	github.com/ua-parser/uap-go v0.0.0-20240113215029-33f8e6d47f38
+	github.com/ua-parser/uap-go v0.0.0-20240611065828-3a4781585db6
 )
 
 require (
@@ -17,6 +17,6 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
