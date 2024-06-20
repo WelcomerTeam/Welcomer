@@ -12,6 +12,8 @@ import (
 
 // Route POST /generate
 func (is *ImageService) generateHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	onRequest()
 
 	var requestBody utils.GenerateImageOptionsRaw
@@ -22,7 +24,7 @@ func (is *ImageService) generateHandler(c *gin.Context) {
 
 	start := time.Now()
 
-	file, format, timing, err := is.GenerateImage(generateImageRequestToOptions(requestBody))
+	file, format, timing, err := is.GenerateImage(ctx, generateImageRequestToOptions(requestBody))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -31,7 +33,7 @@ func (is *ImageService) generateHandler(c *gin.Context) {
 	onGenerationComplete(start, requestBody.GuildID, requestBody.Background, format)
 
 	if is.Options.Debug {
-		os.WriteFile("output.png", file, 0o644)
+		_ = os.WriteFile("output.png", file, 0o644)
 	}
 
 	c.Header("Server-Timing", timing.String())

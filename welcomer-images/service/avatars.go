@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"image"
 	"image/color"
 	"math"
@@ -20,7 +21,7 @@ const (
 	UserAgent = "WelcomerImageService (https://github.com/WelcomerTeam/Welcomer, " + VERSION + ")"
 )
 
-func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) (image.Image, error) {
+func (is *ImageService) FetchAvatar(ctx context.Context, userID discord.Snowflake, avatarURL string) (image.Image, error) {
 	url, isValidURL := utils.IsValidURL(avatarURL)
 	if !isValidURL {
 		return nil, ErrInvalidURL
@@ -34,7 +35,7 @@ func (is *ImageService) FetchAvatar(userID discord.Snowflake, avatarURL string) 
 		avatarURL = url.String()
 	}
 
-	req, err := http.NewRequest(http.MethodGet, avatarURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, avatarURL, nil)
 	if err != nil {
 		is.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to create new request for avatar")
 

@@ -17,7 +17,7 @@ var (
 	attr, _ = imagequant.NewAttributes()
 )
 
-func encodeFrames(frames []image.Image, background *FullImage) ([]byte, utils.ImageFileType, error) {
+func encodeFrames(frames []image.Image, background FullImage) ([]byte, utils.ImageFileType, error) {
 	if len(frames) == 0 {
 		return nil, utils.ImageFileTypeUnknown, ErrMissingFrames
 	}
@@ -26,13 +26,13 @@ func encodeFrames(frames []image.Image, background *FullImage) ([]byte, utils.Im
 		return encodeFramesAsGif(frames, background)
 	}
 
-	return encodeFramesAsPng(frames, background)
+	return encodeFramesAsPng(frames[0])
 }
 
-func encodeFramesAsPng(frames []image.Image, background *FullImage) ([]byte, utils.ImageFileType, error) {
+func encodeFramesAsPng(frame image.Image) ([]byte, utils.ImageFileType, error) {
 	b := bytes.NewBuffer(nil)
 
-	err := png.Encode(b, frames[0])
+	err := png.Encode(b, frame)
 	if err != nil {
 		return nil, utils.ImageFileTypeUnknown, err
 	}
@@ -40,19 +40,19 @@ func encodeFramesAsPng(frames []image.Image, background *FullImage) ([]byte, uti
 	return b.Bytes(), utils.ImageFileTypeImagePng, nil
 }
 
-func encodeFramesAsGif(frames []image.Image, background *FullImage) ([]byte, utils.ImageFileType, error) {
-	_frames := make([]*image.Paletted, len(frames))
+func encodeFramesAsGif(frames []image.Image, background FullImage) ([]byte, utils.ImageFileType, error) {
+	quantized_frames := make([]*image.Paletted, len(frames))
 
 	wg := sync.WaitGroup{}
-	for frameNumber, frame := range frames {
+	for frame_index := range frames {
 		wg.Add(1)
 
-		go func(_frameNumber int, frame image.Image) {
-			p, _ := quantizeImage(frame)
-			_frames[_frameNumber] = p
+		go func(index int) {
+			p, _ := quantizeImage(frames[index])
+			quantized_frames[index] = p
 
 			wg.Done()
-		}(frameNumber, frame)
+		}(frame_index)
 	}
 
 	wg.Wait()
@@ -60,7 +60,7 @@ func encodeFramesAsGif(frames []image.Image, background *FullImage) ([]byte, uti
 	b := bytes.NewBuffer(nil)
 
 	err := gif.EncodeAll(b, &gif.GIF{
-		Image:           _frames,
+		Image:           quantized_frames,
 		Delay:           background.Delay,
 		LoopCount:       background.LoopCount,
 		Disposal:        background.Disposal,

@@ -10,7 +10,7 @@
  * Domain Dedication along with this software. If not, see
  * <https://creativecommons.org/publicdomain/zero/1.0/>.
  */
-package welcomer
+package utils
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ func isIPv4Reserved(address net.IP) bool {
 	return false
 }
 
-func isPublicIPAddress(address net.IP) bool {
+func IsPublicIPAddress(address net.IP) bool {
 	if address.To4() != nil {
 		return !isIPv4Reserved(address)
 	} else {
@@ -78,7 +78,7 @@ func safeSocketControl(network string, address string, conn syscall.RawConn) err
 		return fmt.Errorf("%s is not a valid IP address", host)
 	}
 
-	if !isPublicIPAddress(ipaddress) {
+	if !IsPublicIPAddress(ipaddress) {
 		return fmt.Errorf("%s is not a public IP address", ipaddress)
 	}
 

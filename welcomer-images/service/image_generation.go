@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"image"
 	"image/color"
 	"image/draw"
@@ -60,15 +61,15 @@ type GenerateImageOptions struct {
 	ProfileBorderCurve utils.ImageProfileBorderType
 }
 
-func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte, utils.ImageFileType, *Timing, error) {
+func (is *ImageService) GenerateImage(ctx context.Context, imageOptions GenerateImageOptions) ([]byte, utils.ImageFileType, *utils.Timing, error) {
 	theme, ok := themes[imageOptions.Theme]
 	if !ok {
 		theme = themes[utils.ImageThemeDefault]
 	}
 
-	timing := NewTiming()
+	timing := utils.NewTiming()
 
-	avatar, err := is.FetchAvatar(imageOptions.UserID, imageOptions.AvatarURL)
+	avatar, err := is.FetchAvatar(ctx, imageOptions.UserID, imageOptions.AvatarURL)
 	if err != nil {
 		is.Logger.Error().Err(err).Msg("Failed to fetch avatar")
 
@@ -81,7 +82,7 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 	if err != nil {
 		is.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
 
-		background = &FullImage{Frames: []image.Image{backgroundsDefaultImage}}
+		background = FullImage{Frames: []image.Image{backgroundsDefaultImage}}
 	}
 
 	timing.Track("fetchBackground")
@@ -106,12 +107,12 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 	timing.Track("theme")
 
 	if imageOptions.ImageBorderWidth > 0 {
-		applyImageBorder(&themeResponse, imageOptions)
+		applyImageBorder(themeResponse, imageOptions)
 
 		timing.Track("applyImageBorder")
 	}
 
-	frames := overlayFrames(&themeResponse, background)
+	frames := overlayFrames(themeResponse, background)
 
 	timing.Track("overlayFrames")
 
@@ -134,7 +135,7 @@ func (is *ImageService) GenerateImage(imageOptions GenerateImageOptions) ([]byte
 }
 
 // overlay frames
-func overlayFrames(themeResponse *GenerateThemeResponse, background *FullImage) []image.Image {
+func overlayFrames(themeResponse GenerateThemeResponse, background FullImage) []image.Image {
 	wg := sync.WaitGroup{}
 
 	frames := make([]image.Image, len(background.Frames))
@@ -175,7 +176,7 @@ func overlayFrames(themeResponse *GenerateThemeResponse, background *FullImage) 
 }
 
 // apply image border
-func applyImageBorder(themeResponse *GenerateThemeResponse, imageOptions GenerateImageOptions) {
+func applyImageBorder(themeResponse GenerateThemeResponse, imageOptions GenerateImageOptions) {
 	border := image.Point{imageOptions.ImageBorderWidth, imageOptions.ImageBorderWidth}
 	d := border.Add(border)
 
