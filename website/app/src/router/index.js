@@ -53,6 +53,16 @@ const routes = [
     component: () => import("@/pages/Borderwall.vue"),
   },
   {
+    path: "/terms",
+    name: "terms",
+    component: () => import("@/pages/Terms.vue"),
+  },
+  {
+    path: "/privacy",
+    name: "privacy",
+    component: () => import("@/pages/Privacy.vue"),
+  },
+  {
     path: "/dashboard",
     name: "dashboard",
     component: Dashboard,
