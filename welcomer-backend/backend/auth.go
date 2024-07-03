@@ -60,8 +60,8 @@ func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
 	return guild.IsOwner || guild.HasElevation
 }
 
-func checkToken(ctx context.Context, config *oauth2.Config, token *oauth2.Token) (newToken *oauth2.Token, changed bool, err error) {
-	source := config.TokenSource(ctx, token)
+func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) (newToken *oauth2.Token, changed bool, err error) {
+	source := config.TokenSource(ctx, &token)
 
 	newToken, err = source.Token()
 	if err != nil {
@@ -118,7 +118,7 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 		return
 	}
 
-	newToken, changed, err := checkToken(backend.ctx, OAuth2Config, &token)
+	newToken, changed, err := checkToken(backend.ctx, OAuth2Config, token)
 	if err != nil {
 		ClearTokenSession(session)
 

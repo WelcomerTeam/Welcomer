@@ -404,10 +404,10 @@ func getGuildWelcomerPreview(ctx *gin.Context) {
 	}
 
 	background, err := backend.Database.GetWelcomerImages(ctx, uuid)
-	if err != nil {
+	if err != nil || background == nil {
 		backend.Logger.Info().Str("key", key).Msg("Failed to find utils.background with key")
 
-		ctx.Data(http.StatusNotFound, background.ImageType, imageFailure)
+		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
 
 		return
 	}

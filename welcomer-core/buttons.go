@@ -6,7 +6,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 )
 
-func includeActionRow(messageParams *discord.MessageParams) *discord.MessageParams {
+func includeActionRow(messageParams discord.MessageParams) discord.MessageParams {
 	if len(messageParams.Components) == 0 {
 		messageParams.AddComponent(discord.InteractionComponent{
 			Type:       discord.InteractionComponentTypeActionRow,
@@ -17,7 +17,7 @@ func includeActionRow(messageParams *discord.MessageParams) *discord.MessagePara
 	return messageParams
 }
 
-func IncludeSentByButton(messageParams *discord.MessageParams, guildName string) *discord.MessageParams {
+func IncludeSentByButton(messageParams discord.MessageParams, guildName string) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
 	messageParams.Components[0].Components = append(
@@ -35,7 +35,7 @@ func IncludeSentByButton(messageParams *discord.MessageParams, guildName string)
 	return messageParams
 }
 
-func IncludeScamsButton(messageParams *discord.MessageParams) *discord.MessageParams {
+func IncludeScamsButton(messageParams discord.MessageParams) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
 	messageParams.Components[0].Components = append(
@@ -52,7 +52,7 @@ func IncludeScamsButton(messageParams *discord.MessageParams) *discord.MessagePa
 	return messageParams
 }
 
-func IncludeBorderwallVerifyButton(messageParams *discord.MessageParams, borderwallLink string) *discord.MessageParams {
+func IncludeBorderwallVerifyButton(messageParams discord.MessageParams, borderwallLink string) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
 	messageParams.Components[0].Components = append(

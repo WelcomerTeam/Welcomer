@@ -126,7 +126,7 @@ func (p *WelcomerCog) FetchWelcomerImage(options utils.GenerateImageOptionsRaw) 
 	optionsJSON, _ := json.Marshal(options)
 
 	resp, err := p.Client.Post(os.Getenv("IMAGE_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
-	if err != nil {
+	if err != nil || resp == nil {
 		return nil, "", fmt.Errorf("fetch utils.image request failed: %w", err)
 	}
 
@@ -288,8 +288,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	functions := welcomer.GatherFunctions()
 	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil)
 
-	var serverMessage *discord.MessageParams
-	var directMessage *discord.MessageParams
+	var serverMessage discord.MessageParams
+	var directMessage discord.MessageParams
 
 	var file *discord.File
 
@@ -406,10 +406,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			}
 
 			if file != nil {
-				if serverMessage == nil {
-					serverMessage = &discord.MessageParams{}
-				}
-
 				serverMessage.AddFile(*file)
 
 				if len(serverMessage.Embeds) == 0 {
@@ -472,10 +468,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	// Send server message if it's not empty.
-	if serverMessage != nil && !utils.IsMessageParamsEmpty(*serverMessage) {
+	if !utils.IsMessageParamsEmpty(serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
-		_, err = channel.Send(eventCtx.Session, *serverMessage)
+		_, err = channel.Send(eventCtx.Session, serverMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -485,11 +481,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	// Send direct message if it's not empty.
-	if directMessage != nil {
+	if !utils.IsMessageParamsEmpty(directMessage) {
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, err = user.Send(eventCtx.Session, *directMessage)
+		_, err = user.Send(eventCtx.Session, directMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

@@ -124,7 +124,7 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 // EnsureGuild will create or update a guild entry. This requires RequireMutualGuild to be called.
 func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord.Snowflake) error {
 	guild, _ := queries.GetGuild(ctx, int64(guildID))
-	if guild.GuildID != 0 {
+	if guild == nil || guild.GuildID != 0 {
 		return nil
 	}
 

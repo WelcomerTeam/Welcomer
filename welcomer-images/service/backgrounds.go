@@ -157,6 +157,10 @@ func isLightColorLuminance(r, g, b uint32, threshold float64) bool {
 // It returns a FullImage structure representing the identified primary color as the background,
 // or an error if the process encounters an issue.
 func (is *ImageService) FetchBackgroundSolidProfile(src image.Image) (FullImage, error) {
+	if src == nil {
+		return FullImage{}, fmt.Errorf("source image is nil")
+	}
+
 	// Initial threshold for solid profile luminance
 	threshold := SolidProfileLuminance
 
@@ -235,7 +239,7 @@ func openImage(src []byte, format string) (fullImage FullImage, err error) {
 	default:
 		// Decode non-GIF images (e.g., PNG, JPEG, etc.)
 		im, _, err := image.Decode(b)
-		if err != nil {
+		if err != nil || im == nil {
 			return FullImage{}, err
 		}
 

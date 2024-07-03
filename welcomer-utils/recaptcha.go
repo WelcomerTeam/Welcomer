@@ -47,6 +47,10 @@ func ValidateRecaptcha(logger zerolog.Logger, response string, ipAddress string)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := http.DefaultClient.Do(req)
+	if resp == nil {
+		return -1, nil
+	}
+
 	if err != nil {
 		logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send reCAPTCHA request")
 

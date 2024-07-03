@@ -43,16 +43,18 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 		GuildID: int64(guildID),
 		UserIDs: []int64{int64(applicationID)},
 	})
-	if err != nil {
+	if err != nil || guildMember == nil {
 		logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Int64("user_id", int64(applicationID)).
 			Msg("Failed to fetch application guild member")
+
+		return nil, utils.ErrMissingApplicationUser
 	}
 
 	// Get the guild member of the application.
 	applicationUser, ok := guildMember.GuildMembers[int64(applicationID)]
-	if !ok {
+	if !ok || applicationUser == nil {
 		logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Int64("user_id", int64(applicationID)).

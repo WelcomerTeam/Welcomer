@@ -153,11 +153,13 @@ func (p *TempChannelsCog) FindChannelForUser(eventCtx *sandwich.EventContext, gu
 		GuildID: int64(guildID),
 		Query:   "[" + member.User.ID.String() + "]",
 	})
-	if err != nil {
+	if err != nil || channels == nil {
 		eventCtx.Logger.Error().Err(err).
 			Str("guild_id", guildID.String()).
 			Str("user_id", member.User.ID.String()).
 			Msg("Failed to fetch guild channels")
+
+		return nil, err
 	}
 
 	for _, guildChannel := range channels.GuildChannels {
@@ -194,7 +196,7 @@ func (p *TempChannelsCog) CreateChannelAndMove(eventCtx *sandwich.EventContext, 
 			Type:     discord.ChannelTypeGuildVoice,
 			ParentID: category,
 		}, utils.ToPointer("Automatically created by TempChannels"))
-		if err != nil {
+		if err != nil || channel == nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
 				Msg("Failed to create channel for tempchannels")

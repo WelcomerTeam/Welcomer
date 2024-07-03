@@ -238,10 +238,16 @@ func ParseColour(str string, defaultValue string) (*color.RGBA, error) {
 				str = strings.TrimSuffix(str, ")")        // 255, 255, 255, 0.1
 				values := strings.Split(str, ",")         // ["255", " 255", " 255, " 0.1"]
 
-				alphaString := strings.TrimSpace(values[3]) // 0.1
-				alphaFloat, err := strconv.ParseFloat(alphaString, int64BitSize)
+				var alphaFloat float64
+				var err error
 
-				if err == nil {
+				if len(values) >= 4 {
+					alphaFloat, err = strconv.ParseFloat(strings.TrimSpace(values[3]), int64BitSize) // 0.1
+				} else {
+					alphaFloat = 1
+				}
+
+				if err == nil && len(values) >= 3 {
 					var alphaInt uint8
 
 					// If our float is above one, we will assume alpha max is 255 instead of 1.
@@ -279,6 +285,10 @@ func ParseColour(str string, defaultValue string) (*color.RGBA, error) {
 				str = strings.TrimPrefix(str, "(")       // 255, 255, 255)
 				str = strings.TrimSuffix(str, ")")       // 255, 255, 255
 				values := strings.Split(str, ",")        // ["255", " 255", " 255]
+
+				if values == nil {
+					return nil, ErrInvalidColour
+				}
 
 				// We can assume these values are ints due to our regex only allowing numerical values.
 				colourR, _ := strconv.ParseInt(strings.TrimSpace(values[0]), int64Base, int64BitSize)

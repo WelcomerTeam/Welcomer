@@ -83,10 +83,12 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		GuildID: int64(guildID),
 		UserIDs: utils.If(memberID != nil, []int64{int64(*memberID)}, nil),
 	})
-	if err != nil {
+	if err != nil || guildMembers == nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to fetch guild members")
+
+		return err
 	}
 
 	allRolesToAssign := make(map[discord.Snowflake][]discord.Snowflake)

@@ -93,8 +93,7 @@ func main() {
 	}
 
 	// Setup app.
-	var app *backend.Backend
-	if app, err = backend.NewBackend(ctx, logger, backend.BackendOptions{
+	app, err := backend.NewBackend(ctx, logger, backend.BackendOptions{
 		BotToken:            *botToken,
 		Conn:                grpcConnection,
 		DiscordClientID:     *clientID,
@@ -112,7 +111,8 @@ func main() {
 		PrometheusAddress:   *prometheusAddress,
 		RedirectURL:         *redirectURL,
 		RESTInterface:       restInterface,
-	}); err != nil {
+	})
+	if err != nil || app == nil {
 		logger.Panic().Err(err).Msg("Exception creating app")
 	}
 

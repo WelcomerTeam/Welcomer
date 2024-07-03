@@ -61,20 +61,18 @@ func callback(ctx *gin.Context) {
 	discordSession := discord.NewSession(backend.ctx, token.TokenType+" "+token.AccessToken, httpInterface)
 
 	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(discordSession)
-	if err != nil {
+	if err != nil || authorizationInformation == nil {
 		doOAuthAuthorize(session, ctx)
 
 		return
 	}
 
-	user := authorizationInformation.User
-
 	sessionUser := SessionUser{
-		ID:            user.ID,
-		Username:      user.Username,
-		GlobalName:    user.GlobalName,
-		Discriminator: user.Discriminator,
-		Avatar:        user.Avatar,
+		ID:            authorizationInformation.User.ID,
+		Username:      authorizationInformation.User.Username,
+		GlobalName:    authorizationInformation.User.GlobalName,
+		Discriminator: authorizationInformation.User.Discriminator,
+		Avatar:        authorizationInformation.User.Avatar,
 
 		Guilds:                make(map[discord.Snowflake]*SessionGuild),
 		GuildsLastRequestedAt: time.Time{},

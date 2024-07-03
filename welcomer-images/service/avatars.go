@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"math"
 	"net/http"
+	"net/url"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
@@ -22,17 +23,21 @@ const (
 )
 
 func (is *ImageService) FetchAvatar(ctx context.Context, userID discord.Snowflake, avatarURL string) (image.Image, error) {
-	url, isValidURL := utils.IsValidURL(avatarURL)
-	if !isValidURL {
+	parsedURL, isValidURL := utils.IsValidURL(avatarURL)
+	if parsedURL == nil || !isValidURL {
 		return nil, ErrInvalidURL
 	}
 
-	query := url.Query()
-	if query.Has("size") {
+	queryValues, err := url.ParseQuery(parsedURL.RawQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	if queryValues.Has("size") {
 		// Set size to 256, if present.
-		query.Set("size", "256")
-		url.RawQuery = query.Encode()
-		avatarURL = url.String()
+		queryValues.Set("size", "256")
+		parsedURL.RawQuery = queryValues.Encode()
+		avatarURL = parsedURL.String()
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, avatarURL, nil)
@@ -45,7 +50,7 @@ func (is *ImageService) FetchAvatar(ctx context.Context, userID discord.Snowflak
 	req.Header.Set("User-Agent", UserAgent)
 
 	resp, err := is.Client.Do(req)
-	if err != nil {
+	if err != nil || resp == nil {
 		is.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
 
 		return nil, err
@@ -60,7 +65,7 @@ func (is *ImageService) FetchAvatar(ctx context.Context, userID discord.Snowflak
 	}
 
 	im, _, err := image.Decode(resp.Body)
-	if err != nil {
+	if err != nil || im == nil {
 		is.Logger.Error().Err(err).Msg("Failed to decode profile picture of user")
 
 		return nil, err

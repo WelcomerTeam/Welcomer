@@ -107,7 +107,7 @@ func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*M
 				backend.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
 			}
 
-			if ok {
+			if ok && guild != nil {
 				membership.Guild = GuildToMinimal(guild)
 			}
 		}

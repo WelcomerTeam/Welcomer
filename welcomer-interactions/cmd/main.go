@@ -108,10 +108,13 @@ func main() {
 
 	if *syncCommands {
 		grpcInterface := sandwich.NewDefaultGRPCClient()
-		configurations, _ := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
+		configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
 			Context:        ctx,
 			SandwichClient: sandwichClient,
 		}, *sandwichManagerName)
+		if err != nil {
+			panic(fmt.Errorf(`failed to sync command: grpcInterface.FetchConsumerConfiguration(): %w`, err))
+		}
 
 		configuration, ok := configurations.Identifiers[*sandwichManagerName]
 		if !ok {

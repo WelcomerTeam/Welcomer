@@ -188,6 +188,14 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		}
 	}
 
+	if guild == nil {
+		eventCtx.Logger.Error().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Failed to get guild from state cache")
+
+		return err
+	}
+
 	var existingRequestUuid uuid.UUID
 
 	borderwallRequests, err := queries.GetBorderwallRequestsByGuildIDUserID(eventCtx.Context, database.GetBorderwallRequestsByGuildIDUserIDParams{
@@ -241,9 +249,8 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		},
 	})
 
-	var serverMessage *discord.MessageParams
-
-	var directMessage *discord.MessageParams
+	var serverMessage discord.MessageParams
+	var directMessage discord.MessageParams
 
 	// Fallback to default message if the message is empty.
 	guildSettingsBorderwall.MessageVerify = utils.SetupJSONB(guildSettingsBorderwall.MessageVerify)
@@ -272,7 +279,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			}
 
 			// Fallback to default message if the message is empty.
-			if utils.IsMessageParamsEmpty(*serverMessage) {
+			if utils.IsMessageParamsEmpty(serverMessage) {
 				serverMessage.Content, _ = welcomer.FormatString(functions, variables, FallbackBorderwallMessage)
 			}
 		}
@@ -290,20 +297,20 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			}
 
 			// Fallback to default message if the message is empty.
-			if utils.IsMessageParamsEmpty(*directMessage) {
+			if utils.IsMessageParamsEmpty(directMessage) {
 				directMessage.Content, _ = welcomer.FormatString(functions, variables, FallbackBorderwallMessage)
 			}
 		}
 	}
 
 	// Send server message if it's not empty.
-	if serverMessage != nil {
+	if !utils.IsMessageParamsEmpty(serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsBorderwall.Channel)}
 
 		serverMessage = welcomer.IncludeBorderwallVerifyButton(serverMessage, borderwallLink)
 		serverMessage = welcomer.IncludeScamsButton(serverMessage)
 
-		_, err = channel.Send(eventCtx.Session, *serverMessage)
+		_, err = channel.Send(eventCtx.Session, serverMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -313,12 +320,12 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	// Send direct message if it's not empty.
-	if directMessage != nil {
+	if !utils.IsMessageParamsEmpty(directMessage) {
 		directMessage = welcomer.IncludeBorderwallVerifyButton(directMessage, borderwallLink)
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, err = user.Send(eventCtx.Session, *directMessage)
+		_, err = user.Send(eventCtx.Session, directMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -361,7 +368,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		return nil
 	}
 
-	var member *discord.GuildMember
+	var member discord.GuildMember
 
 	// Fetch guild member.
 	guildMembers, err := eventCtx.Sandwich.SandwichClient.FetchGuildMembers(eventCtx, &pb.FetchGuildMembersRequest{
@@ -379,18 +386,20 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 	memberPb, ok := guildMembers.GuildMembers[int64(event.Member.User.ID)]
 	if ok {
-		member, err = pb.GRPCToGuildMember(memberPb)
+		grpcMember, err := pb.GRPCToGuildMember(memberPb)
 		if err != nil {
 			return err
 		}
+
+		member = *grpcMember
 	} else {
 		eventCtx.Logger.Warn().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.Member.User.ID)).
 			Msg("Failed to get member from state cache, falling back to event.Member")
 
-		member, err = discord.GetGuildMember(eventCtx.Session, eventCtx.Guild.ID, event.Member.User.ID)
-		if err != nil {
+		discordMember, err := discord.GetGuildMember(eventCtx.Session, eventCtx.Guild.ID, event.Member.User.ID)
+		if err != nil || discordMember == nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
@@ -398,6 +407,8 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 			return err
 		}
+
+		member = *discordMember
 	}
 
 	member.GuildID = &eventCtx.Guild.ID
@@ -517,21 +528,29 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		return err
 	}
 
-	var guild *discord.Guild
+	var guild discord.Guild
+
 	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
 	if ok {
-		guild, err = pb.GRPCToGuild(guildPb)
+		grpcGuild, err := pb.GRPCToGuild(guildPb)
 		if err != nil {
 			return err
 		}
+
+		guild = *grpcGuild
+	} else {
+		eventCtx.Logger.Error().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Failed to get guild from state cache")
+
+		guild = *eventCtx.Guild
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil)
+	variables := welcomer.GatherVariables(eventCtx, event.Member, guild, nil)
 
-	var serverMessage *discord.MessageParams
-
-	var directMessage *discord.MessageParams
+	var serverMessage discord.MessageParams
+	var directMessage discord.MessageParams
 
 	if !utils.IsJSONBEmpty(guildSettingsBorderwall.MessageVerified.Bytes) {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerified.Bytes))
@@ -572,10 +591,10 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	// Send server message if it's not empty.
-	if serverMessage != nil && !utils.IsMessageParamsEmpty(*serverMessage) {
+	if !utils.IsMessageParamsEmpty(serverMessage) {
 		channel := discord.Channel{ID: discord.Snowflake(guildSettingsBorderwall.Channel)}
 
-		_, err = channel.Send(eventCtx.Session, *serverMessage)
+		_, err = channel.Send(eventCtx.Session, serverMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -585,11 +604,11 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	// Send direct message if it's not empty.
-	if directMessage != nil {
+	if !utils.IsMessageParamsEmpty(directMessage) {
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, err = user.Send(eventCtx.Session, *directMessage)
+		_, err = user.Send(eventCtx.Session, directMessage)
 		if err != nil {
 			eventCtx.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

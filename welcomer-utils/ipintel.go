@@ -166,6 +166,10 @@ func checkIPIntel(logger zerolog.Logger, ipaddress string, flags IPIntelFlags, o
 	req.Header.Set("User-Agent", UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
+	if resp == nil {
+		return
+	}
+
 	if err != nil {
 		logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send IPIntel request")
 

@@ -151,21 +151,29 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		return err
 	}
 
-	var guild *discord.Guild
+	var guild discord.Guild
 
 	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
 	if ok {
-		guild, err = pb.GRPCToGuild(guildPb)
+		grpcGuild, err := pb.GRPCToGuild(guildPb)
 		if err != nil {
 			return err
 		}
+
+		guild = *grpcGuild
+	} else {
+		eventCtx.Logger.Error().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Failed to get guild from state cache")
+
+		guild = *eventCtx.Guild
 	}
 
 	functions := welcomer.GatherFunctions()
 	variables := welcomer.GatherVariables(eventCtx, discord.GuildMember{
 		GuildID: &event.GuildID,
 		User:    &event.User,
-	}, *guild, nil)
+	}, guild, nil)
 
 	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
 	if err != nil {
