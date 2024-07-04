@@ -1145,13 +1145,13 @@ export default {
           embed: embed,
           discordCallback: {
             user: function (user) {
-              return `Unknown user ${user.id}`;
+              return `@${user.id}`;
             },
             channel: function (channel) {
-              return `Unknown channel ${channel.id}`;
+              return `#${channel.id}`;
             },
             role: function (role) {
-              return `Unknown role ${role.id}`;
+              return `@${role.id}`;
             },
             everyone: function () {
               return `@everyone`;
