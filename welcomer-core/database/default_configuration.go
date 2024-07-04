@@ -90,7 +90,7 @@ var DefaultWelcomerText GuildSettingsWelcomerText = GuildSettingsWelcomerText{
 	ToggleEnabled: false,
 	Channel:       0,
 	MessageFormat: MustConvertToJSONB(discord.MessageParams{
-		Content: "Welcome {{User.Mention}} to **{{Guild.Name}}**! You are the {{Guild.Members}}{{Ordinal(Guild.Members)}} member!",
+		Content: "Welcome {{User.Mention}} to **{{Guild.Name}}**! You are the {{Ordinal(Guild.Members)}} member!",
 	}),
 }
 
@@ -104,7 +104,7 @@ var DefaultWelcomerImages GuildSettingsWelcomerImages = GuildSettingsWelcomerIma
 	ColourProfileBorder:    "FFFFFF",
 	ImageAlignment:         int32(utils.ImageAlignmentLeft),
 	ImageTheme:             int32(utils.ImageThemeDefault),
-	ImageMessage:           "Welcome {{User.Name}}\nto {{Guild.Name}}you are the {{Guild.Members}}{{Ordinal(Guild.Members)}} member!",
+	ImageMessage:           "Welcome {{User.Name}}\nto {{Guild.Name}}you are the {{Ordinal(Guild.Members)}} member!",
 	ImageProfileBorderType: int32(utils.ImageProfileBorderTypeCircular),
 }
 

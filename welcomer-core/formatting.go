@@ -110,10 +110,10 @@ func getGuildIcon(guild discord.Guild) string {
 	}
 
 	if strings.HasPrefix(guild.Icon, "a_") {
-		return discord.EndpointCDN + "/" + discord.EndpointGuildIconAnimated(guild.ID.String(), guild.Icon)
+		return discord.EndpointCDN + discord.EndpointGuildIconAnimated(guild.ID.String(), guild.Icon)
 	}
 
-	return discord.EndpointCDN + "/" + discord.EndpointGuildIcon(guild.ID.String(), guild.Icon)
+	return discord.EndpointCDN + discord.EndpointGuildIcon(guild.ID.String(), guild.Icon)
 }
 
 func getGuildSplash(guild discord.Guild) string {
@@ -121,7 +121,7 @@ func getGuildSplash(guild discord.Guild) string {
 		return ""
 	}
 
-	return discord.EndpointCDN + "/" + discord.EndpointGuildSplash(guild.ID.String(), guild.Splash)
+	return discord.EndpointCDN + discord.EndpointGuildSplash(guild.ID.String(), guild.Splash)
 }
 
 func getGuildBanner(guild discord.Guild) string {
@@ -129,14 +129,14 @@ func getGuildBanner(guild discord.Guild) string {
 		return ""
 	}
 
-	return discord.EndpointCDN + "/" + discord.EndpointGuildBanner(guild.ID.String(), guild.Banner)
+	return discord.EndpointCDN + discord.EndpointGuildBanner(guild.ID.String(), guild.Banner)
 }
 
 func GetUserAvatar(user *discord.User) string {
 	if user.Avatar == "" {
 		if user.Discriminator == "" {
 			// If a user is on the new username system, the index is (user_id >> 22) % 6
-			return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(utils.Itoa((int64(user.ID)>>22)%6))
+			return discord.EndpointCDN + discord.EndpointDefaultUserAvatar(utils.Itoa((int64(user.ID)>>22)%6))
 		}
 
 		// If a user is on the old username system, the index is discriminator % 5
@@ -145,15 +145,15 @@ func GetUserAvatar(user *discord.User) string {
 			discriminator = 0
 		}
 
-		return discord.EndpointCDN + "/" + discord.EndpointDefaultUserAvatar(utils.Itoa(discriminator%5))
+		return discord.EndpointCDN + discord.EndpointDefaultUserAvatar(utils.Itoa(discriminator%5))
 	}
 
 	if strings.HasPrefix(user.Avatar, "a_") {
 		// If the avatar has the prefix a_, it is animated.
-		return discord.EndpointCDN + "/" + discord.EndpointUserAvatarAnimated(user.ID.String(), user.Avatar)
+		return discord.EndpointCDN + discord.EndpointUserAvatarAnimated(user.ID.String(), user.Avatar)
 	}
 
-	return discord.EndpointCDN + "/" + discord.EndpointUserAvatar(user.ID.String(), user.Avatar)
+	return discord.EndpointCDN + discord.EndpointUserAvatar(user.ID.String(), user.Avatar)
 }
 
 func GetGuildMemberDisplayName(member discord.GuildMember) string {
