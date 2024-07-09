@@ -19,8 +19,8 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
 	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
-	golang.org/x/image v0.17.0
-	google.golang.org/grpc v1.64.0
+	golang.org/x/image v0.18.0
+	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.34.2
 )
 
