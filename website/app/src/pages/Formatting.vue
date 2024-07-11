@@ -5,224 +5,184 @@
     <main>
       <div id="overview" class="relative bg-secondary">
         <div class="px-6 py-12 bg-secondary w-full max-w-7xl mx-auto">
-          <p
-            class="text-3xl font-bold text-left text-white flex tracking-tight"
-          >
+          <p class="text-3xl font-bold text-left text-white flex tracking-tight">
             Text Formatting
           </p>
         </div>
       </div>
 
-      <div id="plans">
-        <div class="bg-white">
-          <div class="hero-preview">
-            <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
-              <div class="sm:flex sm:flex-col sm:align-center">
-                <div class="prose-lg text-center">
-                  <h1
-                    class="font-black leading-8 tracking-tight text-gray-900"
-                  >
-                    Title
-                  </h1>
-                  <span
-                    class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto"
-                  >
-                    Subheading
-                  </span>
-                </div>
+      <div class="bg-white">
+        <div class="hero-preview">
+          <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
+            <div class="sm:flex sm:flex-col sm:align-center">
+              <div class="prose-lg text-center">
+                <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto">
+                  Welcomer now uses <code>{{ mustacheTags }}</code> for formatting variables in your welcome, leaver and
+                  borderwall messages. This allows you to customise your messages with ease.
+                </span>
               </div>
             </div>
           </div>
+
+          <table class="mt-8 w-full">
+            <thead>
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Name</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="formattingTag in formattingTags" :key="formattingTag.name">
+                <tr class="border-t border-gray-200">
+                  <th colspan="5" scope="colgroup"
+                    class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">{{
+                    formattingTag.name }}</th>
+                </tr>
+                <tr v-for="(value, id) in formattingTag.values" :key="value.name"
+                  :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
+                  <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3"><code>{{ value.name }}</code>
+                  </td>
+                  <td class="px-3 py-4 text-sm text-gray-500" v-html="marked(value.description, true)"></td>
+                  <td class="px-3 py-4 text-sm text-gray-500" v-html="marked(value.example, true)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
         </div>
       </div>
 
       <div>
         <div class="bg-donate">
           <div class="hero-features">
-            <div class="mx-4 my-12 lg:grid lg:grid-cols-3 lg:gap-8">
-              Hello World
-            </div>
+            <p class="text-3xl font-bold text-left text-white flex tracking-tight">
+              Examples
+            </p>
+
+            <table class="mt-8 w-full">
+              <thead>
+                <tr>
+                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-100 sm:pl-3">Example
+                  </th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-100">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(value, id) in textExamples" :key="value.name"
+                  :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
+                  <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-100 sm:pl-3"><kbd>{{ value.example }}</kbd>
+                  </td>
+                  <td class="px-3 py-4 text-sm text-gray-100" v-html="marked(value.result, true)"></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </main>
 
-    <div class="footer-anchor">
-      <Footer />
-    </div>
+    <Footer />
   </div>
 </template>
+
+<style lang="scss">
+code {
+  @apply bg-secondary-dark text-white px-2 py-1 rounded-md;
+}
+</style>
 
 <script>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 
-import { ref } from "vue";
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-  RadioGroup,
-  RadioGroupDescription,
-  RadioGroupLabel,
-  RadioGroupOption,
-} from "@headlessui/vue";
+import { toHTML } from "@/components/discord-markdown";
 
-import { CheckIcon } from "@heroicons/vue/solid";
-import { ChevronDownIcon } from "@heroicons/vue/outline";
+const formattingTags = [
+  {
+    name: "User",
+    values: [
+      { name: "{{User.ID}}", description: "The user's id", example: "143090142360371200" },
+      { name: "{{User.Name}}", description: "The user's global name or username with discriminator", example: "ImRock" },
+      { name: "{{User.Username}}", description: "The user's username", example: "imrock" },
+      { name: "{{User.Discriminator}}", description: "The user's discriminator", example: "0" },
+      { name: "{{User.GlobalName}}", description: "The user's global name", example: "ImRock" },
+      { name: "{{User.Mention}}", description: "Mentions the user", example: "<@143090142360371200>" },
+      { name: "{{User.CreatedAt}}", description: "The user's creation date as relative time", example: "`8 years ago`" },
+      { name: "{{User.JoinedAt}}", description: "The user's join date as relative time", example: "`7 years ago`" },
+      { name: "{{User.Avatar}}", description: "The user's avatar as a URL", example: "https://cdn.discordapp.com/avatars/143090142360371200/a73420b217a77a77b17fb42fa7ecfbcc.png" },
+      { name: "{{User.Bot}}", description: "Boolean to indicate the user is a bot", example: "false" },
+      { name: "{{User.Pending}}", description: "Boolean to indicate the user is pending membership screening", example: "false" },
+    ]
+  },
+  {
+    name: "Guild",
+    values: [
+      { name: "{{Guild.ID}}", description: "The guild's id", example: "341685098468343822" },
+      { name: "{{Guild.Name}}", description: "The guild's name", example: "Welcomer Support Guild" },
+      { name: "{{Guild.Icon}}", description: "The guild's icon as a URL", example: "https://cdn.discordapp.com/icons/341685098468343822/09cfc7fe72945a7c04ec6d3ddd01767c.png" },
+      { name: "{{Guild.Splash}}", description: "The guild's splash image as a URL", example: "" },
+      { name: "{{Guild.Members}}", description: "The guild's member count", example: "7600" },
+      { name: "{{Guild.Banner}}", description: "The guild's banner image as a URL", example: "" },
+    ]
+  },
+  {
+    name: "Functions",
+    values: [
+      { name: "{{Ordinal(int)}}", description: "Returns the ordinal (st, nd, rd, th) for an integer passed in. You can do `{{Ordinal(Guild.Members)}}` to display the member count.", example: "7600th" },
+    ]
+  }
+]
 
-const features = [
-  {
-    name: "Animated Welcomer Backgrounds",
-    icon: "photo-film",
-    description:
-      "Show off your awesome animated backgrounds to users who join, whatever it is. Except when it's rickroll...",
-  },
-  {
-    name: "Time Roles",
-    icon: "user-clock",
-    description:
-      "Sometimes you don't want to give users a role immediately. Use timeroles to give them roles automatically when the time comes, it could be 10 minutes or in a year.",
-  },
-  {
-    name: "Dedicated Donator Bot",
-    icon: "plug-circle-bolt",
-    description: "Run Welcomer on its own donator-only bot account.",
-  },
-  {
-    name: "Whitelabelled Bot",
-    icon: "plug-circle-plus",
-    soon: true,
-    description:
-      "Run Welcomer on its own unique bot account with a fully customisable username and avatar, with the same uptime and reliability.",
-  },
-];
-
-const checklist = [
-  "Custom Backgrounds",
-  "Dedicated Donator Bot",
-  "Flexible plans",
-  "No recurring payments",
-];
-
-// Data below will be fetched from API
-
-const currency = "£";
-
-const durations = [
-  {
-    name: "Monthly",
-    months: 1,
-    multiplier: 1,
-  },
-  {
-    name: "Annually",
-    months: 12,
-    multiplier: 0.8,
-  },
-  {
-    name: "Patreon",
-    months: 1,
-    multiplier: 1,
-    isPatreon: true,
-  },
-];
-
-const plans = [
-  {
-    name: "Welcomer x1",
-    price: 5,
-    footer: "Welcomer Pro for 1 server.",
-    patreonPrice: 5,
-    patreonCheckout: 3744919,
-  },
-  {
-    name: "Welcomer x3",
-    price: 10,
-    footer: "Welcomer Pro for 3 servers.",
-    patreonPrice: 10,
-    patreonCheckout: 3744921,
-  },
-  {
-    name: "Welcomer x5",
-    price: 15,
-    footer: "Welcomer Pro for 5 servers.",
-    patreonPrice: 15,
-    patreonCheckout: 3744926,
-  },
-];
-
-const faqs = [
-  {
-    question: "TODO",
-    answer: "TODO",
-  },
-];
-
-const customBackgroundPrice = 5;
-const fromPrice = 5;
+const textExamples = [
+  { example: "Welcome {{User.Mention}} to **{{Guild.Name}}**! You are the {{Ordinal(Guild.Members)}} member!", result: "Welcome <@143090142360371200> to **Welcomer Support Guild**! You are the 7600th member!" },
+  { example: "{{#User.Bot}}This message shows if the user is a bot.{{/User.Bot}}{{^User.Bot}}This message shows if the user is not a bot.{{/User.Bot}}", result: "This message shows if the user is not a bot." },
+]
 
 export default {
   components: {
-    Disclosure,
-    DisclosureButton,
-    DisclosurePanel,
-    RadioGroup,
-    RadioGroupDescription,
-    RadioGroupLabel,
-    RadioGroupOption,
-
-    CheckIcon,
-    ChevronDownIcon,
-
     Header,
     Footer,
   },
   setup() {
-    const durationSelected = ref(durations[0]);
-    const planSelected = ref(plans[0]);
-
     return {
-      features,
-      checklist,
-
-      durationSelected,
-      durations,
-
-      planSelected,
-      plans,
-
-      customBackgroundPrice,
-      currency,
-      fromPrice,
-
-      faqs,
+      mustacheTags: "{{Mustache.Tags}}",
+      formattingTags,
+      textExamples,
     };
   },
   methods: {
-    selectPlan(plan) {
-      this.planSelected = plan;
-      this.handleClick();
-    },
-    selectDuration(duration) {
-      this.durationSelected = duration;
-    },
-    handleCustomBackgroundClick() {
-      alert("handle cbg");
-      // Open the donate page
-    },
+    marked(input, embed) {
+      if (input) {
+        return toHTML(input, {
+          embed: embed,
+          discordCallback: {
+            user: function (user) {
+              if (user.id == 143090142360371200) {
+                return `@ImRock`;
+              }
 
-    handleClick() {
-      if (this.durationSelected.isPatreon) {
-        return window.open(
-          `https://www.patreon.com/join/Welcomer/checkout?rid=${this.planSelected.patreonCheckout}`,
-          "_blank"
-        );
+              return `@${user.id}`;
+            },
+            channel: function (channel) {
+              return `#${channel.id}`;
+            },
+            role: function (role) {
+              return `@${role.id}`;
+            },
+            everyone: function () {
+              return `@everyone`;
+            },
+            here: function () {
+              return `@here`;
+            },
+          },
+          cssModuleNames: {
+            "d-emoji": "emoji",
+          },
+        });
       }
-
-      alert(`handle ${this.durationSelected.name} ${this.planSelected.name}`);
-      // Open the donate page
+      return "";
     },
-  },
+  }
 };
 </script>
