@@ -111,7 +111,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	// Quit if nothing is enabled.
-	if !guildSettingsBorderwall.ToggleEnabled && !(guildSettingsBorderwall.ToggleSendDm || guildSettingsBorderwall.Channel != 0) {
+	if !guildSettingsBorderwall.ToggleEnabled || !(guildSettingsBorderwall.ToggleSendDm || guildSettingsBorderwall.Channel != 0) {
 		return nil
 	}
 
@@ -364,7 +364,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	// Quit if nothing is enabled.
-	if !guildSettingsBorderwall.ToggleEnabled && !(guildSettingsBorderwall.ToggleSendDm || guildSettingsBorderwall.Channel != 0) {
+	if !guildSettingsBorderwall.ToggleEnabled || (!guildSettingsBorderwall.ToggleSendDm && guildSettingsBorderwall.Channel == 0) {
 		return nil
 	}
 
