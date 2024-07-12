@@ -26,6 +26,7 @@ require (
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
 	github.com/zsais/go-gin-prometheus v0.1.0
+	go.uber.org/atomic v1.11.0
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/grpc v1.65.0
 )

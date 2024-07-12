@@ -242,6 +242,8 @@ func (b *Backend) PrepareGin() *gin.Engine {
 
 	registerExampleRoutes(router)
 
+	registerMetaRoutes(router)
+
 	registerSessionRoutes(router)
 	registerUserRoutes(router)
 
