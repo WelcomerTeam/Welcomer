@@ -46,7 +46,11 @@ func getStatus(ctx *gin.Context) {
 		statusResponseMu.RLock()
 		defer statusResponseMu.RUnlock()
 
-		ctx.JSON(200, statusResponse)
+		ctx.JSON(http.StatusOK, BaseResponse{
+			Ok:   true,
+			Data: statusResponse,
+		})
+
 		return
 	}
 
