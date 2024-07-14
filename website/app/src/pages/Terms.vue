@@ -5,9 +5,9 @@
     <main>
       <div id="overview" class="relative bg-secondary">
         <div class="px-6 py-12 bg-secondary w-full max-w-7xl mx-auto">
-          <p class="text-3xl font-bold text-left text-white flex tracking-tight">
+          <h1 class="text-3xl font-bold text-left text-white tracking-tight">
             Terms and Conditions
-          </p>
+          </h1>
         </div>
       </div>
 
