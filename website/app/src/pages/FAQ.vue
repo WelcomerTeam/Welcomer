@@ -3,43 +3,21 @@
     <Header />
 
     <main>
-      <div id="overview" class="relative bg-secondary">
-        <div class="px-6 py-12 bg-secondary w-full max-w-7xl mx-auto">
-          <h1 class="text-3xl font-bold text-left text-white tracking-tight">
-            Frequently Asked Questions
-          </h1>
-        </div>
+      <div class="relative bg-secondary text-white px-6 py-12 w-full max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-left tracking-tight">
+          Frequently Asked Questions
+        </h1>
       </div>
 
-      <div id="plans">
-        <div class="bg-white">
-          <div class="hero-preview">
-            <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
-              <div class="sm:flex sm:flex-col sm:align-center">
-                <div class="prose-lg text-center">
-                  <h1
-                    class="font-black leading-8 tracking-tight text-gray-900"
-                  >
-                    Title
-                  </h1>
-                  <span
-                    class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto"
-                  >
-                    Subheading
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="bg-donate">
-          <div class="hero-features">
-            <div class="mx-4 my-12 lg:grid lg:grid-cols-3 lg:gap-8">
-              Hello World
-            </div>
+      <div class="bg-white text-neutral-900 pb-32">
+        <div class="hero-preview">
+          <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
+            <h1 class="font-black leading-8 tracking-tight text-gray-900">
+              Title
+            </h1>
+            <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto">
+              Subheading
+            </span>
           </div>
         </div>
       </div>

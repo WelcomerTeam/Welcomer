@@ -12,7 +12,7 @@
       </div>
 
       <div id="plans">
-        <div class="bg-white">
+        <div class="bg-white text-neutral-900">
           <div class="hero-preview">
             <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
               <div class="sm:flex sm:flex-col sm:align-center">
