@@ -11,7 +11,7 @@
         </div>
       </div>
 
-      <div class="bg-white">
+      <div class="bg-white text-neutral-900">
         <div class="hero-preview">
           <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
             <div class="sm:flex sm:flex-col sm:align-center">
@@ -22,33 +22,33 @@
                 </span>
               </div>
             </div>
-          </div>
 
-          <table class="mt-8 w-full">
-            <thead>
-              <tr>
-                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Name</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Example</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template v-for="formattingTag in formattingTags" :key="formattingTag.name">
-                <tr class="border-t border-gray-200">
-                  <th colspan="5" scope="colgroup"
-                    class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">{{
-                    formattingTag.name }}</th>
+            <table class="mt-8 w-full">
+              <thead>
+                <tr>
+                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">Name</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold">Description</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold">Example</th>
                 </tr>
-                <tr v-for="(value, id) in formattingTag.values" :key="value.name"
-                  :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
-                  <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3"><code>{{ value.name }}</code>
-                  </td>
-                  <td class="px-3 py-4 text-sm text-gray-500" v-html="marked(value.description, true)"></td>
-                  <td class="px-3 py-4 text-sm text-gray-500" v-html="marked(value.example, true)"></td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <template v-for="formattingTag in formattingTags" :key="formattingTag.name">
+                  <tr class="border-t border-gray-200">
+                    <th colspan="5" scope="colgroup"
+                      class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{
+                        formattingTag.name }}</th>
+                  </tr>
+                  <tr v-for="(value, id) in formattingTag.values" :key="value.name"
+                    :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
+                    <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3"><code>{{ value.name }}</code>
+                    </td>
+                    <td class="px-3 py-4 text-sm text-gray-500" v-html="marked(value.description, true)"></td>
+                    <td class="px-3 py-4 text-sm text-gray-500 break-all" v-html="marked(value.example, true)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
