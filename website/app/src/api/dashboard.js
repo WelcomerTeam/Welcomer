@@ -121,6 +121,33 @@ export default {
     );
   },
 
+  getStatus(callback, errorCallback) {
+    getRequest(
+      "/api/status",
+      (response) => {
+        if (response.status === 401) {
+          doLogin();
+        } else {
+          response
+            .json()
+            .then((res) => {
+              if (res.ok) {
+                callback(res.data);
+              } else {
+                errorCallback(res.error);
+              }
+            })
+            .catch((error) => {
+              errorCallback(error);
+            });
+        }
+      },
+      (error) => {
+        errorCallback(error);
+      }
+    );
+  },
+
   fetchGuildMembers(query, guildID, callback, errorCallback) {
     if (query == "") {
       callback(this.dummyMembers);
