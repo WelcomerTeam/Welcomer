@@ -3,61 +3,61 @@
     <Header />
 
     <main>
-      <div id="overview" class="relative bg-secondary">
-        <div class="px-6 py-12 bg-secondary w-full max-w-7xl mx-auto">
-          <h1 class="text-3xl font-bold text-left text-white tracking-tight">
-            Status
-          </h1>
-        </div>
+      <div class="relative bg-secondary text-white px-6 py-12 w-full max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-left tracking-tight">
+          Status
+        </h1>
       </div>
 
-      <div class="bg-white">
+      <div class="bg-white text-neutral-900 pb-32">
         <div class="hero-preview">
-          <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
-            <div class="sm:flex sm:flex-col sm:align-center">
-              <div class="prose-lg text-center">
-                <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto">
-                  <div v-if="this.isDataError">
-                    <div class="mb-4">Data Error</div>
-                    <button @click="this.fetchStatus">Retry</button>
+          <div class="px-4 mx-auto max-w-7xl sm:px-6">
+            <div v-if="this.isDataError">
+              <div class="mb-4">Data Error</div>
+              <button @click="this.fetchStatus">Retry</button>
+            </div>
+            <div v-else-if="!this.isDataFetched" class="flex py-5 w-full justify-center">
+              <LoadingIcon />
+            </div>
+            <div v-else v-for="manager in status" :key="manager.id">
+              <p class="text-xl font-semibold text-left tracking-tight text-gray-900">
+                {{ manager.name }}
+              </p>
+              <p>
+                <b>Guilds:</b> {{ getTotalGuildsForManager(manager).toLocaleString() }}<br />
+                <b>Available Shards:</b> {{ getAvailableShardsForManager(manager).toLocaleString() }}/{{ manager.shards.length.toLocaleString() }}
+              </p>  
+              <div class="flex gap-2 flex-wrap mb-16 mt-4">
+                <button :class="['w-10 h-10 flex rounded-md items-center justify-center text-sm font-bold focus:ring-2 relative group', getStyleForShard(shard)]" v-for="shard in manager.shards" :key="shard.shard_id">
+                  <span>{{ shard.shard_id }}</span>
+                  <div class="hidden group-hover:block group-focus:block absolute w-36 p-4 rounded-md bg-secondary text-white z-10 -translate-x-1/2 left-1/2 top-full translate-y-1 text-xs">
+                    Guilds: {{ shard.guilds.toLocaleString() }}<br/>
+                    Latency: {{ shard.latency.toLocaleString() }}ms<br/>
+                    Uptime: {{ formatSeconds(shard.uptime) }}
                   </div>
-                  <div v-else-if="!this.isDataFetched" class="flex py-5 w-full justify-center">
-                    <LoadingIcon />
-                  </div>
-                  <div v-else v-for="manager in status" :key="manager.id">
-                    <p class="text-xl font-bold text-left tracking-tight text-gray-900">
-                      {{ manager.name }}
-                    </p>
-                    <div class="flex gap-2 flex-wrap mb-16 mt-4">
-                      <button :class="['w-10 h-10 flex rounded-md items-center justify-center text-sm font-bold focus:ring-2 relative group', getStyleForShard(shard)]" v-for="shard in manager.shards" :key="shard.shard_id">
-                        <span>{{ shard.shard_id }}</span>
-                        <div class="hidden group-hover:block group-focus:block absolute w-36 p-4 rounded-md bg-secondary text-white z-10 -translate-x-1/2 left-1/2 top-full translate-y-1 text-xs">
-                          Guilds: {{ shard.guilds }}<br/>
-                          Latency: {{ shard.latency }}ms<br/>
-                          Uptime: {{ formatSeconds(shard.uptime) }}
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="flex flex-wrap gap-2 mt-8">
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 0 })]">Idle</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 1 })]">Connecting</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 2 })]">Connected</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 3 })]">Ready</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 4 })]">Reconnecting</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 5 })]">Closing</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 6 })]">Closed</span>
-                    <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 7 })]">Erroring</span>
-                  </div>
-                </span>
+                </button>
               </div>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-8">
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 0 })]">Idle</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 1 })]">Connecting</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 2 })]">Connected</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 3 })]">Ready</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 4 })]">Reconnecting</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 5 })]">Closing</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 6 })]">Closed</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 7 })]">Erroring</span>
             </div>
           </div>
         </div>
       </div>
     </main>
 
-    <Footer />
+    <Toast />
+
+    <div class="footer-anchor">
+      <Footer />
+    </div>
   </div>
 </template>
 
@@ -68,6 +68,7 @@ import { ref } from "vue";
 
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
+import Toast from "@/components/dashboard/Toast.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 
 import { getErrorToast } from "@/utilities";
@@ -78,6 +79,7 @@ export default {
   components: {
     Header,
     Footer,
+    Toast,
     LoadingIcon,
   },
   setup() {
@@ -150,6 +152,14 @@ export default {
       } else {
         return `${seconds} second${seconds > 1 ? 's' : ''}`;
       }
+    },
+
+    getTotalGuildsForManager(manager) {
+      return manager.shards.reduce((acc, shard) => acc + shard.guilds, 0);
+    },
+
+    getAvailableShardsForManager(manager) {
+      return manager.shards.filter(shard => shard.status === 3 || shard.status === 4).length;
     },
 
     getStyleForShard(shard) {
