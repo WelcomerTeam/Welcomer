@@ -70,6 +70,8 @@ import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 
+import { getErrorToast } from "@/utilities";
+
 import dashboardAPI from "@/api/dashboard";
 
 export default {
