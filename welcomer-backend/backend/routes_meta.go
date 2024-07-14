@@ -41,7 +41,6 @@ var statusResponseMu sync.RWMutex
 
 // Route GET /api/status
 func getStatus(ctx *gin.Context) {
-	println(time.Since(statusLastFetchedAt.Load()))
 	if time.Since(statusLastFetchedAt.Load()) < statusResponseLifetime {
 		statusResponseMu.RLock()
 		defer statusResponseMu.RUnlock()
@@ -54,8 +53,12 @@ func getStatus(ctx *gin.Context) {
 		return
 	}
 
-	req, err := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, os.Getenv("SANDWICH_STATUS_ENDPOINT"), nil)
+	url := os.Getenv("SANDWICH_STATUS_ENDPOINT")
+
+	req, err := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
 	if req == nil || err != nil {
+		backend.Logger.Error().Err(err).Str("url", url).Msg("Failed to create request for status API")
+
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
 		})
@@ -65,6 +68,8 @@ func getStatus(ctx *gin.Context) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp == nil || err != nil {
+		backend.Logger.Error().Err(err).Str("url", url).Msg("Failed to fetch status from API")
+
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
 		})
