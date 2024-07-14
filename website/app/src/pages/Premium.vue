@@ -447,10 +447,7 @@ export default {
     getFromPrice() {
       let minimumPrice = Number.MAX_SAFE_INTEGER;
       this.skus.forEach(sku => {
-        const price = sku.costs[this.currency];
-        if (price < minimumPrice) {
-          minimumPrice = price;
-        }
+        minimumPrice = Math.min(minimumPrice, sku.costs[this.currency]);
       });
 
       return minimumPrice == Number.MAX_SAFE_INTEGER ? 0 : minimumPrice;
