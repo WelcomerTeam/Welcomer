@@ -1104,7 +1104,7 @@
 </style>
 
 <script>
-import { toHTML } from "./discord-markdown";
+import { toHTML } from "@/components/discord-markdown";
 
 export default {
   props: {

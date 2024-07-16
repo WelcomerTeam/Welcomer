@@ -17,7 +17,7 @@
       <div id="backgrounds">
         <div class="bg-white text-neutral-900">
           <div class="hero-preview">
-            <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
+            <div class="px-4 mx-auto max-w-7xl sm:px-6">
               <div class="sm:flex sm:flex-col sm:align-center">
                 <!-- <div class="mb-4 grid grid-cols-4 gap-4">
                   <input type="text"

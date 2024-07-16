@@ -4,7 +4,7 @@
 
     <main>
       <div class="hero-preview">
-        <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
+        <div class="px-4 mx-auto max-w-7xl sm:px-6">
           <div class="sm:flex sm:flex-col sm:align-center">
             <div class="prose-lg text-center">
               <img src="/assets/peek.png" alt="" class="mx-auto w-24 h-24 mb-4 select-none" />
