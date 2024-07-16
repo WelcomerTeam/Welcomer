@@ -11,13 +11,18 @@
 
       <div class="bg-white text-neutral-900 pb-32">
         <div class="hero-preview">
-          <div class="px-4 pt-8 mx-auto max-w-7xl sm:px-6">
-            <h1 class="font-black leading-8 tracking-tight text-gray-900">
-              Title
-            </h1>
-            <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto">
-              Subheading
-            </span>
+          <div class="px-4 mx-auto max-w-7xl sm:px-6 space-y-8">
+            <div class="mb-8 gap-y-1">
+              <a :href="'#' + getAnchor(faq.question)" class="text-primary underline block" v-for="faq in faqs" :key="faq.question">{{ faq.question }}</a>
+            </div>
+            <div class="faq-container space-y-8">
+              <div v-for="faq in faqs" :key="faq.question" :id="getAnchor(faq.question)">
+                <h2 class="font-semibold leading-8 tracking-tight text-gray-900">
+                  <a :href="'#' + getAnchor(faq.question)" class="text-primary-500">{{ faq.question }}</a>
+                </h2>
+                <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto" v-html="marked(faq.answer, true)"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -29,176 +34,111 @@
   </div>
 </template>
 
+<style>
+.faq-container a {
+  text-decoration: underline;
+}
+</style>
+
 <script>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 
-import { ref } from "vue";
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-  RadioGroup,
-  RadioGroupDescription,
-  RadioGroupLabel,
-  RadioGroupOption,
-} from "@headlessui/vue";
-
-import { CheckIcon } from "@heroicons/vue/solid";
-import { ChevronDownIcon } from "@heroicons/vue/outline";
-
-const features = [
-  {
-    name: "Animated Welcomer Backgrounds",
-    icon: "photo-film",
-    description:
-      "Show off your awesome animated backgrounds to users who join, whatever it is. Except when it's rickroll...",
-  },
-  {
-    name: "Time Roles",
-    icon: "user-clock",
-    description:
-      "Sometimes you don't want to give users a role immediately. Use timeroles to give them roles automatically when the time comes, it could be 10 minutes or in a year.",
-  },
-  {
-    name: "Dedicated Donator Bot",
-    icon: "plug-circle-bolt",
-    description: "Run Welcomer on its own donator-only bot account.",
-  },
-  {
-    name: "Whitelabelled Bot",
-    icon: "plug-circle-plus",
-    soon: true,
-    description:
-      "Run Welcomer on its own unique bot account with a fully customisable username and avatar, with the same uptime and reliability.",
-  },
-];
-
-const checklist = [
-  "Custom Backgrounds",
-  "Dedicated Donator Bot",
-  "Flexible plans",
-  "No recurring payments",
-];
-
-// Data below will be fetched from API
-
-const currency = "£";
-
-const durations = [
-  {
-    name: "Monthly",
-    months: 1,
-    multiplier: 1,
-  },
-  {
-    name: "Annually",
-    months: 12,
-    multiplier: 0.8,
-  },
-  {
-    name: "Patreon",
-    months: 1,
-    multiplier: 1,
-    isPatreon: true,
-  },
-];
-
-const plans = [
-  {
-    name: "Welcomer x1",
-    price: 5,
-    footer: "Welcomer Pro for 1 server.",
-    patreonPrice: 5,
-    patreonCheckout: 3744919,
-  },
-  {
-    name: "Welcomer x3",
-    price: 10,
-    footer: "Welcomer Pro for 3 servers.",
-    patreonPrice: 10,
-    patreonCheckout: 3744921,
-  },
-  {
-    name: "Welcomer x5",
-    price: 15,
-    footer: "Welcomer Pro for 5 servers.",
-    patreonPrice: 15,
-    patreonCheckout: 3744926,
-  },
-];
+import { toHTML } from "@/components/discord-markdown";
 
 const faqs = [
   {
-    question: "TODO",
-    answer: "TODO",
+    question: "How can I add Welcomer to my server?",
+    answer: "You can invite Welcomer to your server by clicking [here](/invite).",
+  },
+  {
+    question: "My server is not showing up on the dashboard.",
+    answer: "The dashboard will show all the guilds that the current logged in uer is in, even if Welcomer is not currently in it. Please make sure you are logged in as the correct user, and try refreshing the guild list.",
+  },
+
+  {
+    question: "I have donated, now what?",
+    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server. Currently Patreon pledges will require a support ticket on our [support server](/support), however you will be able to soon link your Patreon to your Discord account on the Welcomer website. Currently managing memberships is only done through the membership commands, but memberships within the website will be coming soon.",
+  },
+  {
+    question: "I have donated through Patreon but I have not received my membership.",
+    answer: "Currently we cannot automatically link Patreon pledges to Discord accounts. Please join our [support server](/support) and open a ticket with your Patreon email and Discord ID, and we will manually add the membership to your account. Automatic linking will be coming soon.",
+  },
+  {
+    question: "How can I automatically pay monthly for my membership with PayPal?",
+    answer: "Currently we do not support recurring payments through PayPal, but this is planned. You can currently buy a month, 6 months or a year. If you would like to pay monthly, you can pledge via our Patreon [here](/premium).",
+  },
+  {
+    question: "How long do I keep custom backgrounds for?",
+    answer: "Custom background memberships will last forever. There are a one-time payment, just make sure you do not remove your membership.",
+  },
+
+  {
+    question: "How can I include the name of the user who joined in the welcome message?",
+    answer: "You can use `{{User.Name}}` to show the name that is displayed for users.",
+  },
+  {
+    question: "How can I include the member count in the welcome message?",
+    answer: "You can use `{{Guild.Members}}` which will show as `374`. Use `{{Ordinal(Guild.Members)}}` to show as `374th`. See all the formatting tags [here](/formatting).",
+  },
+  {
+    question: "How can I test the welcome message?",
+    answer: "You can test your welcome messages via `/welcomer test`. When creating messages through the dashboard, we try to make sure it will display exactly how it shows in Discord, but you can always test it to be sure.",
+  },
+  {
+    question: "How can I upload a custom background?",
+    answer: "You can upload a custom background by first making sure you have a **Welcomer Pro** or **Custom Backgrounds** membership added to your server. On the dashboard go to the Welcomer tab and under **Welcomer Image Background**, make sure you select the **Custom** tab. If you have an active membership, this should let you upload a custom background or select a previously uploaded one.",
+  },
+
+  {
+    question: "Why are my roles or channels not showing up in dropdowns?",
+    answer: "The dashboard will only show channels it can message in or roles that it can assign (if applicable). If you would like to let use assign a role to a user that is not showing in the dropdown, make sure the top role that Welcomer has is above the roles you would like to assign.",
   },
 ];
 
-const customBackgroundPrice = 5;
-const fromPrice = 5;
-
 export default {
   components: {
-    Disclosure,
-    DisclosureButton,
-    DisclosurePanel,
-    RadioGroup,
-    RadioGroupDescription,
-    RadioGroupLabel,
-    RadioGroupOption,
-
-    CheckIcon,
-    ChevronDownIcon,
-
     Header,
     Footer,
   },
   setup() {
-    const durationSelected = ref(durations[0]);
-    const planSelected = ref(plans[0]);
-
     return {
-      features,
-      checklist,
-
-      durationSelected,
-      durations,
-
-      planSelected,
-      plans,
-
-      customBackgroundPrice,
-      currency,
-      fromPrice,
-
       faqs,
     };
   },
   methods: {
-    selectPlan(plan) {
-      this.planSelected = plan;
-      this.handleClick();
-    },
-    selectDuration(duration) {
-      this.durationSelected = duration;
-    },
-    handleCustomBackgroundClick() {
-      alert("handle cbg");
-      // Open the donate page
-    },
-
-    handleClick() {
-      if (this.durationSelected.isPatreon) {
-        return window.open(
-          `https://www.patreon.com/join/Welcomer/checkout?rid=${this.planSelected.patreonCheckout}`,
-          "_blank"
-        );
+    marked(input, embed) {
+      if (input) {
+        return toHTML(input, {
+          embed: embed,
+          discordCallback: {
+            user: function (user) {
+              return `@${user.id}`;
+            },
+            channel: function (channel) {
+              return `#${channel.id}`;
+            },
+            role: function (role) {
+              return `@${role.id}`;
+            },
+            everyone: function () {
+              return `@everyone`;
+            },
+            here: function () {
+              return `@here`;
+            },
+          },
+          cssModuleNames: {
+            "d-emoji": "emoji",
+          },
+        });
       }
-
-      alert(`handle ${this.durationSelected.name} ${this.planSelected.name}`);
-      // Open the donate page
+      return "";
     },
+
+    getAnchor(title) {
+      return title.toLowerCase().replace(/ /g, "-");
+    }
   },
 };
 </script>
