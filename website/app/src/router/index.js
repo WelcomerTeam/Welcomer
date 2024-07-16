@@ -146,16 +146,6 @@ const routes = [
     ],
   },
   {
-    path: "/template1",
-    name: "dashboard.guild.template1",
-    component: () => import("@/pages/templates/Placeholder.vue"),
-  },
-  {
-    path: "/template2",
-    name: "dashboard.guild.template2",
-    component: () => import("@/pages/templates/Title.vue"),
-  },
-  {
     path: "/:catchAll(.*)",
     component: () => import("@/pages/NotFound.vue"),
   },
