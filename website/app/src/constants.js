@@ -1,6 +1,6 @@
 export const IsDevelopment = true;
 
-export const LinkSupportServer = "https://discord.gg/kQJz33ExK2";
+export const LinkSupportServer = "https://discord.gg/UyUVCEcBU9";
 export const LinkYoutubeChannel = "";
 
 const primaryBotId = "330416853971107840";
