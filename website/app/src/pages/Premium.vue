@@ -327,6 +327,7 @@ const features = [
   {
     name: "Time Roles",
     icon: "user-clock",
+    soon: true,
     description:
       "Sometimes you don't want to give users a role immediately. Use timeroles to give them roles automatically when the time comes, it could be 10 minutes or in a year.",
   },
