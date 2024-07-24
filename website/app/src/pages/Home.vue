@@ -9,7 +9,7 @@
             <h1 class="hero-title">The go-to bot for your discord server</h1>
             <p class="hero-subtitle">
               Providing tools to let you manage your server. Join the more than
-              <b>521,473</b> Discord guilds using Welcomer.
+              <b>{{ Intl.NumberFormat().format(guildCount) }}</b> Discord guilds using Welcomer.
             </p>
             <div class="hero-buttons">
               <div class="hero-primary">
@@ -64,8 +64,8 @@
               </div>
             </div>
             <div class="my-auto">
-              <DiscordEmbed v-if="item.embeds" class="max-w-full m-auto" :isBot="true" :isDark="false" :respectDarkMode="false"
-                :embeds="item.embeds" />
+              <DiscordEmbed v-if="item.embeds" class="max-w-full m-auto" :isBot="true" :isDark="false"
+                :respectDarkMode="false" :embeds="item.embeds" />
               <img v-else :src="item.src" alt="Preview image" class="max-w-full m-auto" />
             </div>
           </div>
@@ -107,10 +107,14 @@
 </template>
 
 <script>
+import { ref } from "vue";
+
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import DiscordEmbed from "@/components/DiscordEmbed.vue";
 import HoistHeading from "@/components/hoist/HoistHeading.vue";
+
+import dashboardAPI from "@/api/dashboard";
 
 function makeAFunEmbed() {
   let messages = [
@@ -160,14 +164,14 @@ function makeAFunEmbed() {
     "/assets/ejected.png"
   ];
 
-  
+
   let hslToInt = (h, s, l) => {
     h /= 360;
     s /= 100;
     l /= 100;
-  
+
     let r, g, b;
-  
+
     if (s === 0) {
       r = g = b = l;
     } else {
@@ -179,23 +183,23 @@ function makeAFunEmbed() {
         if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
         return p;
       };
-  
+
       const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
       const p = 2 * l - q;
-  
+
       r = hue2rgb(p, q, h + 1 / 3);
       g = hue2rgb(p, q, h);
       b = hue2rgb(p, q, h - 1 / 3);
     }
-  
+
     const toInt = (c) => {
       return Math.round(c * 255);
     };
-  
+
     const intR = toInt(r);
     const intG = toInt(g);
     const intB = toInt(b);
-  
+
     return (intR << 16) + (intG << 8) + intB;
   };
 
@@ -295,10 +299,35 @@ export default {
     HoistHeading,
   },
   setup() {
+    let guildCount = ref(localStorage.getItem('guildCount') || 566525);
+
     return {
       previews,
       features,
+      guildCount
     };
   },
+  mounted() {
+    this.fetchGuildCount();
+  },
+  methods: {
+    fetchGuildCount() {
+      dashboardAPI.getStatus(
+        ({ managers }) => {
+          this.guildCount = managers.reduce((total, manager) => {
+            return total + manager.shards.reduce((sum, shard) => {
+              return sum + shard.guilds;
+            }, 0);
+          }, 0);
+
+          localStorage.setItem('guildCount', this.guildCount.toString());
+        },
+        (error) => {
+          console.log("error", error);
+          return null;
+        }
+      )
+    }
+  }
 };
 </script>
