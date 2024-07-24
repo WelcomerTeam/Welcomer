@@ -25,7 +25,7 @@
         </div>
         <div class="hero-accompany">
           <div class="flex w-full h-full">
-            <DiscordEmbed class="max-w-full m-auto" :isBot="true" :showTimestamp="true" :isDark="true" :embeds="[
+            <DiscordEmbed class="max-w-full m-auto" :isBot="true" :isDark="true" :embeds="[
               {
                 description: `Hey **ImRock**, you are the 256th member on **Welcomer Support Guild**`,
                 image: {
@@ -43,7 +43,9 @@
             <h1 class="text-lg font-black leading-8 tracking-tight text-gray-900">
               Elevate Your User Engagement
             </h1>
-            <span class="text-lg text-gray-700 max-w-3xl mx-auto section-subtitle">Explore the reasons why Welcomer is the go-to choice for empowering Discord guilds. Packed with numerous features and boasting a user-friendly dashboard, you have the flexibility to make changes whenever you desire.
+            <span class="text-lg text-gray-700 max-w-3xl mx-auto section-subtitle">Explore the reasons why Welcomer is
+              the go-to choice for empowering Discord guilds. Packed with numerous features and boasting a user-friendly
+              dashboard, you have the flexibility to make changes whenever you desire.
             </span>
           </div>
 
@@ -62,7 +64,9 @@
               </div>
             </div>
             <div class="my-auto">
-              <img :src="item.src" class="px-4 mt-4 sm:mt-0" />
+              <DiscordEmbed v-if="item.embeds" class="max-w-full m-auto" :isBot="true" :isDark="false" :respectDarkMode="false"
+                :embeds="item.embeds" />
+              <img v-else :src="item.src" alt="Preview image" class="max-w-full m-auto" />
             </div>
           </div>
         </div>
@@ -108,17 +112,121 @@ import Footer from "@/components/Footer.vue";
 import DiscordEmbed from "@/components/DiscordEmbed.vue";
 import HoistHeading from "@/components/hoist/HoistHeading.vue";
 
+function makeAFunEmbed() {
+  let messages = [
+    "Welcome to our server! Make sure to checkout our #rules and enjoy your stay!",
+    "Welcome aboard! Don't forget to say hi in the #introductions channel. Enjoy your time here!",
+    "Glad to have you with us! Check out #announcements for the latest news and have fun!",
+    "Welcome to our community! Make sure to explore our channels and join the conversations.",
+    "¡Bienvenido a nuestro servidor! No olvides revisar #reglas y disfruta tu estadía.",
+    "¡Nos alegra tenerte aquí! Pasa por #presentaciones y cuéntanos sobre ti. ¡Diviértete!",
+    "¡Bienvenido a nuestra comunidad! Explora nuestros canales y únete a las conversaciones.",
+    "Bienvenue sur notre serveur ! N'oubliez pas de consulter #règles et profitez de votre séjour.",
+    "Ravi de vous avoir avec nous ! Présentez-vous dans #présentations et amusez-vous bien !",
+    "Bienvenue dans notre communauté ! Explorez nos canaux et rejoignez les discussions.",
+    "Willkommen auf unserem Server! Schau dir #regeln an und hab eine gute Zeit!",
+    "Schön, dass du da bist! Stell dich in #vorstellungen vor und viel Spaß!",
+    "Willkommen in unserer Community! Erkunde unsere Kanäle und mach bei den Gesprächen mit.",
+    "サーバーへようこそ！#ルール を確認して、楽しんでくださいね。",
+    "ようこそ！#自己紹介 で挨拶して、楽しい時間を過ごしてください！",
+    "コミュニティへようこそ！チャンネルを探索して、会話に参加しましょう。",
+    "Bem-vindo ao nosso servidor! Não se esqueça de conferir #regras e aproveite sua estadia!",
+    "Ficamos felizes em tê-lo conosco! Passe por #apresentações e se divirta!",
+    "Bem-vindo à nossa comunidade! Explore nossos canais e junte-se às conversas.",
+    "Benvenuto nel nostro server! Non dimenticare di dare un'occhiata a #regole e goditi il tuo soggiorno.",
+    "Siamo felici di averti con noi! Presentati in #presentazioni e divertiti!",
+    "Benvenuto nella nostra comunità! Esplora i nostri canali e partecipa alle conversazioni.",
+    "हमारे सर्वर में आपका स्वागत है! #नियम चैनल को देखना न भूलें और यहाँ का आनंद लें।",
+    "हमारे साथ जुड़ने के लिए धन्यवाद! #परिचय में जाकर हमें अपने बारे में बताएं और मज़े करें।",
+    "हमारे समुदाय में आपका स्वागत है! हमारे चैनलों को एक्सप्लोर करें और बातचीत में शामिल हों।",
+    "ہمارے سرور پر خوش آمدید! #قواعد کو دیکھنا نہ بھولیں اور یہاں کا مزہ لیں۔",
+    "ہمارے ساتھ شامل ہونے کا شکریہ! #تعارف میں جائیں اور ہمیں اپنے بارے میں بتائیں اور لطف اندوز ہوں۔",
+    "ہماری کمیونٹی میں خوش آمدید! ہمارے چینلز کو دریافت کریں اور بات چیت میں شامل ہوں۔"
+  ];
+
+  let thumbnailURLs = [
+    "/assets/comfy_white.png",
+    "/assets/crown.gif",
+    "/assets/explode.gif",
+    "/assets/green_gibheart.png",
+    "/assets/green_sunglas.png",
+    "/assets/red_mlg.png",
+    "/assets/red_waving.png",
+    "/assets/wave.gif",
+    "/assets/white_comfee.png",
+  ];
+
+  let imageURLs = [
+    "/assets/ejected.png"
+  ];
+
+  
+  let hslToInt = (h, s, l) => {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+  
+    let r, g, b;
+  
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+  
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+  
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+  
+    const toInt = (c) => {
+      return Math.round(c * 255);
+    };
+  
+    const intR = toInt(r);
+    const intG = toInt(g);
+    const intB = toInt(b);
+  
+    return (intR << 16) + (intG << 8) + intB;
+  };
+
+  let embed = {
+    description: messages[Math.floor(Math.random() * messages.length)],
+    color: hslToInt(Math.floor(Math.random() * 361), 50, 50),
+  }
+
+  if (Math.random() < 0.1) {
+    embed.image = {
+      url: imageURLs[Math.floor(Math.random() * imageURLs.length)],
+    };
+  } else {
+    embed.thumbnail = {
+      url: thumbnailURLs[Math.floor(Math.random() * thumbnailURLs.length)],
+    };
+  }
+
+  return [embed];
+}
+
 const previews = [
   {
     name: "Empower your Welcome Messages",
     description: "Tailor your welcome messages with Welcomer, offering personalized customization for text, direct messages, and images, ensuring a unique and engaging experience for every Discord user.",
-    src: "/assets/placeholder.png",
+    embeds: makeAFunEmbed(),
   },
   {
     name: "Reinforce Your Server's Defenses with Borderwall",
-    description:
-      "With Borderwall enabled, ensure only authentic users can send messages by presenting a challenge upon joining, guaranteeing a secure and spam-resistant community.",
-    src: "/assets/placeholder.png",
+    description: "With Borderwall enabled, ensure only authentic users can send messages by presenting a challenge upon joining, guaranteeing a secure and spam-resistant community.",
+    src: "/assets/verify.png",
   },
   // {
   //   name: "Increase user engagement",
