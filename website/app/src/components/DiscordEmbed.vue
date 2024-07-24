@@ -7,7 +7,7 @@
         <span class="headerText-3Uvj1Y"><span :class="[
           $props.isDark
             ? 'text-gray-50'
-            : 'text-secondary dark:text-gray-50',
+            : ('text-secondary ' + ($props.respectDarkMode ? 'dark:text-gray-50' : '')),
           'username-1A8OIy desaturateUserColors-1gar-1',
         ]" aria-expanded="false" tabindex="0" :style="authorColour ? { color: `#${rgbIntToRGB(authorColour)}` } : {}
   ">
@@ -1136,6 +1136,10 @@ export default {
     },
     isDark: {
       type: Boolean,
+    },
+    respectDarkMode: {
+      type: Boolean,
+      default: true,
     },
   },
   methods: {
