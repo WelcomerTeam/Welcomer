@@ -1,21 +1,21 @@
 <template>
-  <div class="relative overflow-hidden mx-auto carousel-container top-10">
+  <div class="relative overflow-hidden mx-auto carousel-container top-10" aria-hidden="true">
     <div class="carousel-overlay"></div>
     <div class="absolute overflow-hidden left-0 top-0 carousel">
-      <img src="/assets/examples/Frame0.png" class="carousel-item" style="--color: #0b5dea" />
-      <img src="/assets/examples/Frame1.png" class="carousel-item" style="--color: #ed4245" />
-      <img src="/assets/examples/Frame2.png" class="carousel-item" style="--color: #7ac4c9" />
-      <img src="/assets/examples/Frame3.png" class="carousel-item" style="--color: #171c39" />
+      <img src="/assets/examples/Frame0.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #0b5dea" />
+      <img src="/assets/examples/Frame1.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #ed4245" />
+      <img src="/assets/examples/Frame2.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #7ac4c9" />
+      <img src="/assets/examples/Frame3.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #171c39" />
       <!-- Set 2 -->
-      <img src="/assets/examples/Frame0.png" class="carousel-item" style="--color: #0b5dea" />
-      <img src="/assets/examples/Frame1.png" class="carousel-item" style="--color: #ed4245" />
-      <img src="/assets/examples/Frame2.png" class="carousel-item" style="--color: #7ac4c9" />
-      <img src="/assets/examples/Frame3.png" class="carousel-item" style="--color: #171c39" />
+      <img src="/assets/examples/Frame0.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #0b5dea" />
+      <img src="/assets/examples/Frame1.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #ed4245" />
+      <img src="/assets/examples/Frame2.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #7ac4c9" />
+      <img src="/assets/examples/Frame3.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #171c39" />
       <!-- Set 3 -->
-      <img src="/assets/examples/Frame0.png" class="carousel-item" style="--color: #0b5dea" />
-      <img src="/assets/examples/Frame1.png" class="carousel-item" style="--color: #ed4245" />
-      <img src="/assets/examples/Frame2.png" class="carousel-item" style="--color: #7ac4c9" />
-      <img src="/assets/examples/Frame3.png" class="carousel-item" style="--color: #171c39" />
+      <img src="/assets/examples/Frame0.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #0b5dea" />
+      <img src="/assets/examples/Frame1.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #ed4245" />
+      <img src="/assets/examples/Frame2.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #7ac4c9" />
+      <img src="/assets/examples/Frame3.png" class="carousel-item" aria-hidden="true" alt="" style="--color: #171c39" />
     </div>
   </div>
 </template>

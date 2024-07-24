@@ -10,7 +10,7 @@
             : ('text-secondary ' + ($props.respectDarkMode ? 'dark:text-gray-50' : '')),
           'username-1A8OIy desaturateUserColors-1gar-1',
         ]" aria-expanded="false" tabindex="0" :style="authorColour ? { color: `#${rgbIntToRGB(authorColour)}` } : {}
-  ">
+          ">
             {{ author }}</span><span v-if="isBot"
             class="botTagCozy-1fFsZk botTag-1un5a6 botTagRegular-2HEhHi botTag-2WPJ74 rem-2m9HGf"><svg
               aria-label="Verified Bot" class="botTagVerified-1klIIt" aria-hidden="false" width="16" height="16"
@@ -33,8 +33,8 @@
           embed?.thumbnail?.url ? 'hasThumbnail-3FJf1w' : '',
         ]">
           <div class="embedAuthor-3l5luH embedMargin-UO5XwE" v-if="embed?.author">
-            <img aria-hidden="true" alt="Embed author icon" class="embedAuthorIcon--1zR3L" :src="embed?.author?.icon_url"
-              v-if="embed?.author?.icon_url" /><a v-if="embed?.author?.url"
+            <img aria-hidden="true" alt="Embed author icon" class="embedAuthorIcon--1zR3L"
+              :src="embed?.author?.icon_url" v-if="embed?.author?.icon_url" /><a v-if="embed?.author?.url"
               class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB embedAuthorNameLink-1gVryT embedLink-1G1K1D embedAuthorName-3mnTWj"
               tabindex="0" href="#" rel="noreferrer noopener">{{ embed?.author?.name }}</a>
             <span v-else class="embedAuthorName-3mnTWj">
@@ -53,55 +53,25 @@
               (field.inline ? (field.odd ? '7 / 13' : '1 / 7') : '1 / 13')
               " v-for="field in embed?.fields" v-bind:key="field">
               <div class="embedFieldName-NFrena">
-                <span class="emojiContainer-3X8SvE" role="button" tabindex="0" v-html="marked(field.name, true)" />
+                <span class="emojiContainer-3X8SvE" tabindex="0" v-html="marked(field.name, true)" />
               </div>
               <div class="embedFieldValue-nELq2s">
                 <span v-html="marked(field.value, true)" />
               </div>
             </div>
           </div>
-          <a class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY imageZoom-1n-ADA clickable-3Ya1ho embedWrapper-lXpS3L embedMedia-1guQoW embedImage-2W1cML"
-            tabindex="0" href="#" rel="noreferrer noopener" role="button" v-if="embed?.image?.url"><img aria-hidden="true"
-              alt="Embed image" :src="embed?.image?.url" /></a>
-          <a class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY imageZoom-1n-ADA clickable-3Ya1ho embedThumbnail-2Y84-K"
-            tabindex="0" href="#" rel="noreferrer noopener" role="button" style="width: 80px; height: 80px"
+          <div class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY clickable-3Ya1ho embedWrapper-lXpS3L embedMedia-1guQoW embedImage-2W1cML"
+            tabindex="0" href="#" rel="noreferrer noopener" v-if="embed?.image?.url"><img
+              aria-hidden="true" alt="Embed image" :src="embed?.image?.url" /></div>
+          <div class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY clickable-3Ya1ho embedThumbnail-2Y84-K"
+            tabindex="0" href="#" rel="noreferrer noopener" style="width: 80px; height: 80px"
             v-if="embed?.thumbnail?.url"><img aria-hidden="true" alt="Embed thumbnail" :src="embed?.thumbnail?.url"
-              style="width: 80px; height: 80px" /></a>
+              style="width: 80px; height: 80px" /></div>
           <div class="embedFooter-3yVop- embedMargin-UO5XwE">
             <img class="embedFooterIcon-3klTIQ" :src="embed?.footer?.icon_url" v-if="embed?.footer?.icon_url" />
             <span class="embedFooterText-28V_Wb">{{ embed?.footer?.text
-            }}<span class="embedFooterSeparator-3klTIQ" v-if="embed?.footer?.text && showTimestamp">•</span><span
+              }}<span class="embedFooterSeparator-3klTIQ" v-if="embed?.footer?.text && showTimestamp">•</span><span
                 v-if="showTimestamp">{{ timestamp }}</span></span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="buttonContainer-DHceWr">
-      <div class="buttons-cl5qTG container-3npvBV isHeader-2dII4U" aria-label="Message Actions">
-        <div class="wrapper-2aW0bm">
-          <div class="button-1ZiXG9" aria-label="Add Reaction" aria-controls="popout_112962" aria-expanded="false"
-            role="button" tabindex="0">
-            <svg class="icon-3Gkjwa" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24">
-              <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"
-                d="M12.2512 2.00309C12.1677 2.00104 12.084 2 12 2C6.477 2 2 6.477 2 12C2 17.522 6.477 22 12 22C17.523 22 22 17.522 22 12C22 11.916 21.999 11.8323 21.9969 11.7488C21.3586 11.9128 20.6895 12 20 12C15.5817 12 12 8.41828 12 4C12 3.31052 12.0872 2.6414 12.2512 2.00309ZM10 8C10 6.896 9.104 6 8 6C6.896 6 6 6.896 6 8C6 9.105 6.896 10 8 10C9.104 10 10 9.105 10 8ZM12 19C15.14 19 18 16.617 18 14V13H6V14C6 16.617 8.86 19 12 19Z">
-              </path>
-              <path d="M21 3V0H19V3H16V5H19V8H21V5H24V3H21Z" fill="currentColor"></path>
-            </svg>
-          </div>
-          <div class="button-1ZiXG9" aria-label="Reply" role="button" tabindex="0">
-            <svg class="icon-3Gkjwa" width="24" height="24" viewBox="0 0 24 24">
-              <path
-                d="M10 8.26667V4L3 11.4667L10 18.9333V14.56C15 14.56 18.5 16.2667 21 20C20 14.6667 17 9.33333 10 8.26667Z"
-                fill="currentColor"></path>
-            </svg>
-          </div>
-          <div class="button-1ZiXG9" aria-label="More" aria-controls="popout_112963" aria-expanded="false" role="button"
-            tabindex="0">
-            <svg class="icon-3Gkjwa" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24">
-              <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"
-                d="M7 12.001C7 10.8964 6.10457 10.001 5 10.001C3.89543 10.001 3 10.8964 3 12.001C3 13.1055 3.89543 14.001 5 14.001C6.10457 14.001 7 13.1055 7 12.001ZM14 12.001C14 10.8964 13.1046 10.001 12 10.001C10.8954 10.001 10 10.8964 10 12.001C10 13.1055 10.8954 14.001 12 14.001C13.1046 14.001 14 13.1055 14 12.001ZM19 10.001C20.1046 10.001 21 10.8964 21 12.001C21 13.1055 20.1046 14.001 19 14.001C17.8954 14.001 17 13.1055 17 12.001C17 10.8964 17.8954 10.001 19 10.001Z">
-              </path>
-            </svg>
           </div>
         </div>
       </div>
@@ -460,10 +430,6 @@
 
 .anchorUnderlineOnHover-2ESHQB:hover {
   text-decoration: underline;
-}
-
-.imageZoom-1n-ADA {
-  cursor: zoom-in;
 }
 
 .embedImage-2W1cML,

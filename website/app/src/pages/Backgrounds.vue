@@ -58,7 +58,7 @@
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                       <button as="template" v-for="image in category.images" :key="image">
-                        <img :title="image.name" v-lazy="{
+                        <img :title="image.name" :alt="'Background image ' + image.name" v-lazy="{
                           src: `/assets/backgrounds/${image.name}.webp`,
                         }" :class="[
                           $props.modelValue == image.name

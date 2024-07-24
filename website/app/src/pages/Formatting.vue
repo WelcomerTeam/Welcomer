@@ -16,7 +16,7 @@
           <div class="px-4 mx-auto max-w-7xl sm:px-6">
             <div class="sm:flex sm:flex-col sm:align-center">
               <div class="prose-lg text-center">
-                <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto">
+                <span class="mt-3 text-lg section-subtitle max-w-prose mx-auto">
                   Welcomer now uses <code>{{ mustacheTags }}</code> for formatting variables in your welcome, leaver and
                   borderwall messages. This allows you to customise your messages with ease.
                 </span>
@@ -42,8 +42,8 @@
                     :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
                     <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3"><code>{{ value.name }}</code>
                     </td>
-                    <td class="px-3 py-4 text-sm text-gray-500" v-html="marked(value.description, true)"></td>
-                    <td class="px-3 py-4 text-sm text-gray-500 break-all" v-html="marked(value.example, true)"></td>
+                    <td class="px-3 py-4 text-sm" v-html="marked(value.description, true)"></td>
+                    <td class="px-3 py-4 text-sm break-all" v-html="marked(value.example, true)"></td>
                   </tr>
                 </template>
               </tbody>
@@ -62,17 +62,17 @@
             <table class="mt-8 w-full">
               <thead>
                 <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-100 sm:pl-3">Example
+                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">Example
                   </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-100">Result</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold">Result</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(value, id) in textExamples" :key="value.name"
                   :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
-                  <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-100 sm:pl-3"><kbd>{{ value.example }}</kbd>
+                  <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3"><kbd>{{ value.example }}</kbd>
                   </td>
-                  <td class="px-3 py-4 text-sm text-gray-100" v-html="marked(value.result, true)"></td>
+                  <td class="px-3 py-4 text-sm" v-html="marked(value.result, true)"></td>
                 </tr>
               </tbody>
             </table>

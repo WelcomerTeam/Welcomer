@@ -72,7 +72,7 @@
         </div>
       </div>
 
-      <div class="bg-primary">
+      <div id="features" class="bg-primary">
         <div class="hero-features">
           <div class="hero-features-item">
             <div v-for="item in features" :key="item.name"

@@ -36,7 +36,7 @@
             <router-link @click="$emit('onTabClick')" v-for="item in nav.items" :key="item.name"
               :to="{ name: item.linkname, params: $route.params }" :class="[
                 $route.name === item.linkname
-                  ? 'text-secondary dark:text-white bg-gray-200 dark:bg-secondary'
+                  ? 'text-secondary dark:text-grey-50 bg-gray-200 dark:bg-secondary'
                   : 'text-gray-600 dark:text-gray-400',
                 'hover:text-secondary dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-secondary group flex items-center px-2 py-2 text-sm leading-6 font-semibold rounded-md',
                 item.extendedClass,

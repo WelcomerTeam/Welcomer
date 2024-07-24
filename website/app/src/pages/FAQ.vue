@@ -3,24 +3,26 @@
     <Header />
 
     <main>
-      <div class="relative bg-secondary text-white px-6 py-12 w-full max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold text-left tracking-tight">
-          Frequently Asked Questions
-        </h1>
+      <div id="overview" class="relative bg-secondary text-white">
+        <div class="px-6 py-12 w-full max-w-7xl mx-auto">
+          <h1 class="text-3xl font-bold text-left tracking-tight">
+            Frequently Asked Questions
+          </h1>
+        </div>
       </div>
 
-      <div class="bg-white text-neutral-900 pb-32">
+      <div class="pb-32">
         <div class="hero-preview">
           <div class="px-4 mx-auto max-w-7xl sm:px-6 space-y-8">
-            <div class="mb-8 gap-y-1">
-              <a :href="'#' + getAnchor(faq.question)" class="text-primary underline block" v-for="faq in faqs" :key="faq.question">{{ faq.question }}</a>
-            </div>
+            <ul class="mb-8 gap-y-1">
+              <li><a :href="'#' + getAnchor(faq.question)" class="text-primary underline font-bold block" v-for="faq in faqs" :key="faq.question">{{ faq.question }}</a></li>
+            </ul>
             <div class="faq-container space-y-8">
               <div v-for="faq in faqs" :key="faq.question" :id="getAnchor(faq.question)">
-                <h2 class="font-semibold leading-8 tracking-tight text-gray-900">
-                  <a :href="'#' + getAnchor(faq.question)" class="text-primary-500">{{ faq.question }}</a>
+                <h2 class="font-semibold leading-8 tracking-tight">
+                  <a :href="'#' + getAnchor(faq.question)">{{ faq.question }}</a>
                 </h2>
-                <span class="mt-3 text-lg text-gray-500 section-subtitle max-w-prose mx-auto" v-html="marked(faq.answer, true)"></span>
+                <span class="mt-3 text-lg section-subtitle max-w-prose mx-auto" v-html="marked(faq.answer, true)"></span>
               </div>
             </div>
           </div>
@@ -49,7 +51,7 @@ import { toHTML } from "@/components/discord-markdown";
 const faqs = [
   {
     question: "How can I add Welcomer to my server?",
-    answer: "You can invite Welcomer to your server by clicking [here](/invite).",
+    answer: "[You can invite Welcomer to your server here](/invite).",
   },
   {
     question: "My server is not showing up on the dashboard.",
@@ -66,7 +68,7 @@ const faqs = [
   },
   {
     question: "How can I automatically pay monthly for my membership with PayPal?",
-    answer: "Currently we do not support recurring payments through PayPal, but this is planned. You can currently buy a month, 6 months or a year. If you would like to pay monthly, you can pledge via our Patreon [here](/premium).",
+    answer: "Currently we do not support recurring payments through PayPal, but this is planned. You can currently buy a month, 6 months or a year. If you would like to pay monthly, you can [pledge via our Patreon](/premium).",
   },
   {
     question: "How long do I keep custom backgrounds for?",
@@ -79,7 +81,7 @@ const faqs = [
   },
   {
     question: "How can I include the member count in the welcome message?",
-    answer: "You can use `{{Guild.Members}}` which will show as `374`. Use `{{Ordinal(Guild.Members)}}` to show as `374th`. See all the formatting tags [here](/formatting).",
+    answer: "You can use `{{Guild.Members}}` which will show as `374`. Use `{{Ordinal(Guild.Members)}}` to show as `374th`. [See all the formatting tags here](/formatting).",
   },
   {
     question: "How can I test the welcome message?",

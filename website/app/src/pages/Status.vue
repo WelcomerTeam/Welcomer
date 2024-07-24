@@ -29,7 +29,7 @@
               </p>  
               <div class="flex gap-2 flex-wrap mb-16 mt-4">
                 <button :class="['w-10 h-10 flex rounded-md items-center justify-center text-sm font-bold focus:ring-2 relative group', getStyleForShard(shard)]" v-for="shard in manager.shards" :key="shard.shard_id">
-                  <span>{{ shard.shard_id }}</span>
+                  <span><span class="sr-only">Shard </span>{{ shard.shard_id }}</span>
                   <div class="hidden group-hover:block group-focus:block absolute w-36 p-4 rounded-md bg-secondary text-white z-10 -translate-x-1/2 left-1/2 top-full translate-y-1 text-xs">
                     Guilds: {{ shard.guilds.toLocaleString() }}<br/>
                     Latency: {{ shard.latency.toLocaleString() }}ms<br/>
