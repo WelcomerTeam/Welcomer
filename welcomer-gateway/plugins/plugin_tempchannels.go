@@ -3,6 +3,7 @@ package plugins
 import (
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -222,6 +223,12 @@ func (p *TempChannelsCog) formatChannelName(member discord.GuildMember) string {
 	return fmt.Sprintf("🔊 %s's Channel [%d]", welcomer.GetGuildMemberDisplayName(member), member.User.ID)
 }
 
+var tempChannelRegex = regexp.MustCompile(`🔊 (.+)'s Channel \[(\d+)\]`)
+
+func (p *TempChannelsCog) isTempChannel(name string) bool {
+	return tempChannelRegex.MatchString(name)
+}
+
 func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category discord.Snowflake, lobby discord.Snowflake, channelID discord.Snowflake) (ok bool, err error) {
 	channel := sandwich.NewChannel(&guildID, channelID)
 	channel, err = sandwich.FetchChannel(eventCtx.ToGRPCContext(), channel)
@@ -232,6 +239,10 @@ func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 			Msg("Failed to fetch channel for tempchannels")
 
 		return false, err
+	}
+
+	if !p.isTempChannel(channel.Name) {
+		return false, utils.ErrInvalidTempChannel
 	}
 
 	if (channel.ParentID != nil && *channel.ParentID == category) && channel.MemberCount == 0 && channel.ID != lobby {
