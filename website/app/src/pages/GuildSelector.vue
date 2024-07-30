@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 focus:outline-none bg-white dark:bg-secondary">
-    <main class="relative z-0 flex-1 min-h-full pb-8">
-      <div class="font-medium pb-20">
+    <main class="z-0 flex-1">
+      <div class="font-medium pb-20 min-h-screen">
         <div class="dashboard-container">
           <div class="dashboard-title-container">
             <div class="dashboard-title">My Guilds</div>
@@ -82,11 +82,14 @@
           </div>
         </div>
       </div>
+
+      <Footer />
     </main>
   </div>
 </template>
 
 <script>
+import Footer from "@/components/Footer.vue";
 import { ChevronRightIcon, PlusIcon } from "@heroicons/vue/outline";
 import FormValue from "@/components/dashboard/FormValue.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
@@ -98,7 +101,7 @@ import {
 } from "@/constants";
 
 export default {
-  components: { FormValue, ChevronRightIcon, LoadingIcon, PlusIcon },
+  components: { FormValue, ChevronRightIcon, LoadingIcon, PlusIcon, Footer },
   setup() {
     store.dispatch("fetchGuilds");
   },

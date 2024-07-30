@@ -2,6 +2,7 @@ export const IsDevelopment = true;
 
 export const LinkSupportServer = "https://discord.gg/UyUVCEcBU9";
 export const LinkYoutubeChannel = "";
+export const LinkPhishing = "https://discord.com/safety/common-scams-what-to-look-out-for";
 
 const primaryBotId = "330416853971107840";
 const betaBotId =    "342685807221407744";

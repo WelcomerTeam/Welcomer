@@ -5,6 +5,7 @@ import Premium from "@/pages/Premium.vue";
 import Invite from "@/pages/Invite.vue";
 import Dashboard from "@/pages/Dashboard.vue";
 import Support from "@/pages/Support.vue";
+import Phishing from "@/pages/Phishing.vue";
 
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     path: "/support",
     name: "support",
     component: Support,
+  },
+  {
+    path: "/phishing",
+    name: "phishing",
+    component: Phishing,
   },
   {
     path: "/backgrounds",
