@@ -1,6 +1,4 @@
-go 1.22
-
-toolchain go1.22.0
+go 1.22.1
 
 use (
 	./welcomer-backend
@@ -9,4 +7,6 @@ use (
 	./welcomer-images
 	./welcomer-interactions
 	./welcomer-utils
+
+	./migration-service
 )
