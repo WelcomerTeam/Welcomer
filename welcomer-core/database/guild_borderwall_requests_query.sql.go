@@ -176,6 +176,50 @@ func (q *Queries) GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddres
 	return items, nil
 }
 
+const InsertBorderwallRequest = `-- name: InsertBorderwallRequest :one
+INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, ip_address)
+    VALUES ($1, now(), now(), $2, $3, $4, $5)
+RETURNING
+    request_uuid, created_at, updated_at, guild_id, user_id, is_verified, verified_at, ip_address, recaptcha_score, ipintel_score, country_code, ua_family, ua_family_version, ua_os, ua_os_version
+`
+
+type InsertBorderwallRequestParams struct {
+	RequestUuid uuid.UUID   `json:"request_uuid"`
+	GuildID     int64       `json:"guild_id"`
+	UserID      int64       `json:"user_id"`
+	IsVerified  bool        `json:"is_verified"`
+	IpAddress   pgtype.Inet `json:"ip_address"`
+}
+
+func (q *Queries) InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error) {
+	row := q.db.QueryRow(ctx, InsertBorderwallRequest,
+		arg.RequestUuid,
+		arg.GuildID,
+		arg.UserID,
+		arg.IsVerified,
+		arg.IpAddress,
+	)
+	var i BorderwallRequests
+	err := row.Scan(
+		&i.RequestUuid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GuildID,
+		&i.UserID,
+		&i.IsVerified,
+		&i.VerifiedAt,
+		&i.IpAddress,
+		&i.RecaptchaScore,
+		&i.IpintelScore,
+		&i.CountryCode,
+		&i.UaFamily,
+		&i.UaFamilyVersion,
+		&i.UaOs,
+		&i.UaOsVersion,
+	)
+	return &i, err
+}
+
 const UpdateBorderwallRequest = `-- name: UpdateBorderwallRequest :execrows
 UPDATE
     borderwall_requests

@@ -99,6 +99,21 @@ func (q *Queries) CreateUserTransaction(ctx context.Context, arg CreateUserTrans
 	return &i, err
 }
 
+const DeleteUserTransaction = `-- name: DeleteUserTransaction :execrows
+DELETE FROM
+    user_transactions
+WHERE
+    transaction_uuid = $1
+`
+
+func (q *Queries) DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, DeleteUserTransaction, transactionUuid)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const GetUserTransaction = `-- name: GetUserTransaction :one
 SELECT
     transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount

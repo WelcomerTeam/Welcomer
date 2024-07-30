@@ -4,6 +4,12 @@ INSERT INTO user_transactions (transaction_uuid, created_at, updated_at, user_id
 RETURNING
     *;
 
+-- name: DeleteUserTransaction :execrows
+DELETE FROM
+    user_transactions
+WHERE
+    transaction_uuid = $1;
+
 -- name: CreateOrUpdateUserTransaction :one
 INSERT INTO user_transactions (transaction_uuid, created_at, updated_at, user_id, platform_type, transaction_id, transaction_status, currency_code, amount)
     VALUES (uuid_generate_v7(), now(), now(), $1, $2, $3, $4, $5, $6)

@@ -18,6 +18,12 @@ ON CONFLICT(membership_uuid) DO UPDATE
 RETURNING
     *;
 
+-- name: DeleteUserMembership :execrows
+DELETE FROM
+    user_memberships
+WHERE
+    membership_uuid = $1;
+
 -- name: GetUserMembership :one
 SELECT
     *

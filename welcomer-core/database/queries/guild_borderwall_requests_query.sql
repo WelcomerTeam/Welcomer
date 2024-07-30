@@ -4,6 +4,12 @@ INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id,
 RETURNING
     *;
 
+-- name: InsertBorderwallRequest :one
+INSERT INTO borderwall_requests (request_uuid, created_at, updated_at, guild_id, user_id, is_verified, ip_address)
+    VALUES ($1, now(), now(), $2, $3, $4, $5)
+RETURNING
+    *;
+
 -- name: GetBorderwallRequest :one
 SELECT
     *

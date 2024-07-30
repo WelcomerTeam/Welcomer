@@ -107,6 +107,21 @@ func (q *Queries) CreateOrUpdateNewMembership(ctx context.Context, arg CreateOrU
 	return &i, err
 }
 
+const DeleteUserMembership = `-- name: DeleteUserMembership :execrows
+DELETE FROM
+    user_memberships
+WHERE
+    membership_uuid = $1
+`
+
+func (q *Queries) DeleteUserMembership(ctx context.Context, membershipUuid uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, DeleteUserMembership, membershipUuid)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const GetUserMembership = `-- name: GetUserMembership :one
 SELECT
     membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount
