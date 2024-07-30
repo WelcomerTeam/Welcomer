@@ -106,11 +106,11 @@ func (s *StringNumber) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	switch v.(type) {
+	switch v := v.(type) {
 	case string:
-		*s = StringNumber(v.(string))
+		*s = StringNumber(v)
 	case float64:
-		*s = StringNumber(strconv.FormatFloat(v.(float64), 'f', -1, 64))
+		*s = StringNumber(strconv.FormatFloat(v, 'f', -1, 64))
 	}
 
 	return nil
@@ -132,16 +132,16 @@ func (s *PossibleStringList) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	switch v.(type) {
+	switch v := v.(type) {
 	case string:
-		*s = PossibleStringList{StringNumber(v.(string))}
+		*s = PossibleStringList{StringNumber(v)}
 	case []interface{}:
-		arr := v.([]interface{})
+		arr := v
 		l := make(PossibleStringList, len(arr))
 		for i, item := range arr {
-			switch item.(type) {
+			switch item := item.(type) {
 			case string:
-				l[i] = StringNumber(item.(string))
+				l[i] = StringNumber(item)
 			}
 		}
 		*s = l
@@ -153,11 +153,6 @@ func (s *PossibleStringList) UnmarshalJSON(data []byte) error {
 func (s *StringNumber) AsInt64() int64 {
 	i, _ := strconv.ParseInt(string(*s), 10, 64)
 	return i
-}
-
-func m(a any) string {
-	r, _ := json.Marshal(a)
-	return string(r)
 }
 
 func PossibleStringListAsInt64(l PossibleStringList) []int64 {
