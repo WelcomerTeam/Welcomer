@@ -68,7 +68,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to enable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: RuleModuleRules, Value: utils.StringToJsonLiteral(RuleModuleRules)},
 					{Name: RuleModuleDMs, Value: utils.StringToJsonLiteral(RuleModuleDMs)},
 				},
@@ -185,7 +185,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to disable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: RuleModuleRules, Value: utils.StringToJsonLiteral(RuleModuleRules)},
 					{Name: RuleModuleDMs, Value: utils.StringToJsonLiteral(RuleModuleDMs)},
 				},
@@ -320,8 +320,8 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "Rules", Color: utils.EmbedColourInfo}
+				embeds := []discord.Embed{}
+				embed := discord.Embed{Title: "Rules", Color: utils.EmbedColourInfo}
 
 				for ruleNumber, rule := range guildSettingsRules.Rules {
 					ruleWithNumber := fmt.Sprintf("%d. %s\n", ruleNumber, rule)
@@ -329,7 +329,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(ruleWithNumber) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += ruleWithNumber

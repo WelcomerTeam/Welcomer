@@ -164,7 +164,7 @@ func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, gu
 
 	for _, guildChannel := range channels.GuildChannels {
 		if category == nil || guildChannel.ParentID == int64(*category) {
-			channel, err = pb.GRPCToChannel(guildChannel)
+			pChannel, err := pb.GRPCToChannel(guildChannel)
 			if err != nil {
 				eventCtx.Logger.Error().Err(err).
 					Str("guild_id", guildID.String()).
@@ -172,7 +172,7 @@ func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, gu
 					Msg("Failed to convert channel")
 			}
 
-			return channel, nil
+			return &pChannel, nil
 		}
 	}
 

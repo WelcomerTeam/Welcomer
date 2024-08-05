@@ -212,8 +212,8 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "TimeRoles", Color: utils.EmbedColourInfo}
+				embeds := []discord.Embed{}
+				embed := discord.Embed{Title: "TimeRoles", Color: utils.EmbedColourInfo}
 
 				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 
@@ -290,7 +290,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += roleMessage
@@ -344,8 +344,8 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "TimeRoles", Color: utils.EmbedColourInfo}
+				embeds := []discord.Embed{}
+				embed := discord.Embed{Title: "TimeRoles", Color: utils.EmbedColourInfo}
 
 				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 
@@ -379,7 +379,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += roleMessage

@@ -22,7 +22,7 @@ type Membership struct {
 	UpdatedAt      time.Time         `json:"updated_at"`
 	StartedAt      time.Time         `json:"started_at"`
 	ExpiresAt      time.Time         `json:"expires_at"`
-	Guild          *MinimalGuild     `json:"guild"`
+	Guild          MinimalGuild      `json:"guild"`
 	GuildID        discord.Snowflake `json:"guild_id"`
 	Status         int32             `json:"status"`
 	MembershipType int32             `json:"membership_type"`

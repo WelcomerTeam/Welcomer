@@ -254,10 +254,12 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 		userPb, ok := users.Users[int64(event.Member.User.ID)]
 		if ok {
-			user, err = pb.GRPCToUser(userPb)
+			pUser, err := pb.GRPCToUser(userPb)
 			if err != nil {
 				return err
 			}
+
+			user = &pUser
 		} else {
 			eventCtx.Logger.Warn().
 				Int64("user_id", int64(event.Member.User.ID)).
@@ -276,7 +278,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		return err
 	}
 
-	var guild *discord.Guild
+	var guild discord.Guild
 	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
 	if ok {
 		guild, err = pb.GRPCToGuild(guildPb)
@@ -286,7 +288,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil)
+	variables := welcomer.GatherVariables(eventCtx, event.Member, guild, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams

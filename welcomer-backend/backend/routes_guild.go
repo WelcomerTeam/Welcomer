@@ -101,7 +101,7 @@ func getGuild(ctx *gin.Context) {
 			partialGuild.Roles = CalculateRoleValues(partialGuild.Roles, guildMembers)
 
 			guild := Guild{
-				Guild: partialGuild,
+				Guild: &partialGuild,
 
 				HasWelcomerPro:       hasWelcomerPro,
 				HasCustomBackgrounds: hasCustomBackgrounds,

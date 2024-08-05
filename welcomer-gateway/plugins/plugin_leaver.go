@@ -160,7 +160,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 			return err
 		}
 
-		guild = *grpcGuild
+		guild = grpcGuild
 	} else {
 		eventCtx.Logger.Error().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

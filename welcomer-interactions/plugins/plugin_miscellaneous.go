@@ -139,7 +139,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: []*discord.Embed{
+						Embeds: []discord.Embed{
 							{
 								Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at %s", welcomer.WebsiteURL+"/dashboard"),
 								Color:       utils.EmbedColourInfo,
@@ -152,7 +152,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: []*discord.Embed{
+							Embeds: []discord.Embed{
 								{
 									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
 									Color:       utils.EmbedColourInfo,
@@ -173,16 +173,16 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: []*discord.Embed{
+					Embeds: []discord.Embed{
 						{
 							Description: "### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.",
 							Color:       utils.EmbedColourInfo,
 						},
 					},
-					Components: []*discord.InteractionComponent{
+					Components: []discord.InteractionComponent{
 						{
 							Type: discord.InteractionComponentTypeActionRow,
-							Components: []*discord.InteractionComponent{
+							Components: []discord.InteractionComponent{
 								{
 									Type:  discord.InteractionComponentTypeButton,
 									Style: discord.InteractionComponentStyleLink,
@@ -203,8 +203,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "Emojis", Color: utils.EmbedColourInfo}
+				embeds := []discord.Embed{}
+				embed := discord.Embed{Title: "Emojis", Color: utils.EmbedColourInfo}
 
 				guildEmojis, err := sub.SandwichClient.FetchGuildEmojis(sub.Context, &sandwich.FetchGuildEmojisRequest{
 					GuildID: int64(*interaction.GuildID),
@@ -243,7 +243,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(emojiLine) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += emojiLine
@@ -326,8 +326,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "Invite Leaderboard", Color: utils.EmbedColourInfo}
+				embeds := []discord.Embed{}
+				embed := discord.Embed{Title: "Invite Leaderboard", Color: utils.EmbedColourInfo}
 
 				embed.Description += fmt.Sprintf(
 					"You have invited %d user%s to this server.\n",
@@ -357,7 +357,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(leaderboardWithNumber) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += leaderboardWithNumber
@@ -382,8 +382,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
-					embeds := []*discord.Embed{}
-					embed := &discord.Embed{Title: "Newly Created Users", Color: utils.EmbedColourInfo}
+					embeds := []discord.Embed{}
+					embed := discord.Embed{Title: "Newly Created Users", Color: utils.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
@@ -437,7 +437,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newCreationWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = &discord.Embed{Color: utils.EmbedColourInfo}
+							embed = discord.Embed{Color: utils.EmbedColourInfo}
 						}
 
 						embed.Description += newCreationWithNumber
@@ -467,8 +467,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
-					embeds := []*discord.Embed{}
-					embed := &discord.Embed{Title: "Newly Joined Members", Color: utils.EmbedColourInfo}
+					embeds := []discord.Embed{}
+					embed := discord.Embed{Title: "Newly Joined Members", Color: utils.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
@@ -516,7 +516,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = &discord.Embed{Color: utils.EmbedColourInfo}
+							embed = discord.Embed{Color: utils.EmbedColourInfo}
 						}
 
 						embed.Description += newMemberWithNumber
@@ -546,8 +546,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
-					embeds := []*discord.Embed{}
-					embed := &discord.Embed{Title: "Oldest Members", Color: utils.EmbedColourInfo}
+					embeds := []discord.Embed{}
+					embed := discord.Embed{Title: "Oldest Members", Color: utils.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
@@ -595,7 +595,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = &discord.Embed{Color: utils.EmbedColourInfo}
+							embed = discord.Embed{Color: utils.EmbedColourInfo}
 						}
 
 						embed.Description += newMemberWithNumber
@@ -857,7 +857,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: []*discord.Embed{
+					Embeds: []discord.Embed{
 						{
 							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.SupportInvite),
 							Color:       utils.EmbedColourInfo,
@@ -932,7 +932,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					responseMessage := discord.WebhookMessageParams{
 						Embeds: utils.NewEmbed("Here is a list of the guild emojis!", utils.EmbedColourInfo),
 					}
-					responseMessage.Files = append(responseMessage.Files, &discord.File{
+					responseMessage.Files = append(responseMessage.Files, discord.File{
 						Name:        "emojis.zip",
 						ContentType: "application/zip",
 						Reader:      &buf,

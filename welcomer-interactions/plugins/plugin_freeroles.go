@@ -209,9 +209,6 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				embeds := []*discord.Embed{}
-				embed := &discord.Embed{Title: "FreeRoles", Color: utils.EmbedColourInfo}
-
 				roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 				if err != nil {
 					sub.Logger.Error().Err(err).
@@ -231,13 +228,16 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
+				embeds := []discord.Embed{}
+				embed := discord.Embed{Title: "FreeRoles", Color: utils.EmbedColourInfo}
+
 				for _, roleID := range roleList {
 					roleMessage := fmt.Sprintf("- <@&%d>\n", roleID)
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {
 						embeds = append(embeds, embed)
-						embed = &discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: utils.EmbedColourInfo}
 					}
 
 					embed.Description += roleMessage

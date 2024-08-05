@@ -70,7 +70,7 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 
 			HasWelcomerPro:       hasWelcomerPro,
 			HasCustomBackgrounds: hasCustomBackgrounds,
-			HasElevation:         hasElevation(*discordGuild, user),
+			HasElevation:         hasElevation(discordGuild, user),
 			IsOwner:              discordGuild.Owner,
 		}
 	}
@@ -107,7 +107,7 @@ func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*M
 				backend.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
 			}
 
-			if ok && guild != nil {
+			if ok && !guild.ID.IsNil() {
 				membership.Guild = GuildToMinimal(guild)
 			}
 		}

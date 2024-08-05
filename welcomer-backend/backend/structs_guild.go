@@ -20,11 +20,11 @@ type Guild struct {
 }
 
 type PartialGuild struct {
-	*MinimalGuild
-	Channels    []*MinimalChannel `json:"channels"`
-	Roles       []*MinimalRole    `json:"roles"`
-	Emojis      []*MinimalEmoji   `json:"emojis"`
-	MemberCount int32             `json:"member_count"`
+	MinimalGuild
+	Channels    []MinimalChannel `json:"channels"`
+	Roles       []MinimalRole    `json:"roles"`
+	Emojis      []MinimalEmoji   `json:"emojis"`
+	MemberCount int32            `json:"member_count"`
 }
 
 type MinimalGuild struct {
@@ -65,8 +65,8 @@ type MinimalEmoji struct {
 	Available bool              `json:"available"`
 }
 
-func GuildToPartial(guild *discord.Guild) *PartialGuild {
-	return &PartialGuild{
+func GuildToPartial(guild discord.Guild) PartialGuild {
+	return PartialGuild{
 		MinimalGuild: GuildToMinimal(guild),
 		MemberCount:  guild.MemberCount,
 		Channels:     ChannelsToMinimal(guild.Channels),
@@ -75,8 +75,8 @@ func GuildToPartial(guild *discord.Guild) *PartialGuild {
 	}
 }
 
-func GuildToMinimal(guild *discord.Guild) *MinimalGuild {
-	return &MinimalGuild{
+func GuildToMinimal(guild discord.Guild) MinimalGuild {
+	return MinimalGuild{
 		ID:              guild.ID,
 		Name:            guild.Name,
 		Icon:            guild.Icon,
@@ -88,11 +88,11 @@ func GuildToMinimal(guild *discord.Guild) *MinimalGuild {
 	}
 }
 
-func ChannelsToMinimal(channels []*discord.Channel) []*MinimalChannel {
-	minimalChannels := make([]*MinimalChannel, len(channels))
+func ChannelsToMinimal(channels []discord.Channel) []MinimalChannel {
+	minimalChannels := make([]MinimalChannel, len(channels))
 
 	for i, channel := range channels {
-		minimalChannels[i] = &MinimalChannel{
+		minimalChannels[i] = MinimalChannel{
 			ID:       channel.ID,
 			Type:     channel.Type,
 			Position: channel.Position,
@@ -103,11 +103,11 @@ func ChannelsToMinimal(channels []*discord.Channel) []*MinimalChannel {
 	return minimalChannels
 }
 
-func RolesToMinimal(roles []*discord.Role) []*MinimalRole {
-	minimalRoles := make([]*MinimalRole, len(roles))
+func RolesToMinimal(roles []discord.Role) []MinimalRole {
+	minimalRoles := make([]MinimalRole, len(roles))
 
 	for i, role := range roles {
-		minimalRoles[i] = &MinimalRole{
+		minimalRoles[i] = MinimalRole{
 			ID:       role.ID,
 			Name:     role.Name,
 			Color:    role.Color,
@@ -122,11 +122,11 @@ func RolesToMinimal(roles []*discord.Role) []*MinimalRole {
 	return minimalRoles
 }
 
-func EmojisToMinimal(emojis []*discord.Emoji) []*MinimalEmoji {
-	minimalEmojis := make([]*MinimalEmoji, len(emojis))
+func EmojisToMinimal(emojis []discord.Emoji) []MinimalEmoji {
+	minimalEmojis := make([]MinimalEmoji, len(emojis))
 
 	for i, emoji := range emojis {
-		minimalEmojis[i] = &MinimalEmoji{
+		minimalEmojis[i] = MinimalEmoji{
 			ID:        emoji.ID,
 			Name:      emoji.Name,
 			Managed:   emoji.Managed,
@@ -138,8 +138,8 @@ func EmojisToMinimal(emojis []*discord.Emoji) []*MinimalEmoji {
 	return minimalEmojis
 }
 
-func MinimalRolesToMap(roles []*MinimalRole) map[discord.Snowflake]*MinimalRole {
-	roleMap := map[discord.Snowflake]*MinimalRole{}
+func MinimalRolesToMap(roles []MinimalRole) map[discord.Snowflake]MinimalRole {
+	roleMap := map[discord.Snowflake]MinimalRole{}
 
 	for _, role := range roles {
 		roleMap[role.ID] = role

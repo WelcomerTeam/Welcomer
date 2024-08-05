@@ -185,7 +185,7 @@ type Embed struct {
 	Description string                  `json:"description,omitempty" yaml:"description,omitempty"`
 	URL         string                  `json:"url,omitempty" yaml:"url,omitempty"`
 	Title       string                  `json:"title,omitempty" yaml:"title,omitempty"`
-	Fields      []*discord.EmbedField   `json:"fields,omitempty" yaml:"fields,omitempty"`
+	Fields      []discord.EmbedField    `json:"fields,omitempty" yaml:"fields,omitempty"`
 	Color       int32                   `json:"color,omitempty" yaml:"color,omitempty"`
 }
 

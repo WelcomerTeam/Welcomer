@@ -6,10 +6,10 @@ toolchain go1.22.0
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
-	github.com/WelcomerTeam/Discord v0.0.0-20240514163306-3aed427237a5
+	github.com/WelcomerTeam/Discord v0.0.0-20240805191305-92c171f8d82f
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240531214409-1966ff46a177
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240805222556-025ad033b5d7
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240805203317-4c3091ee8297
 	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -56,9 +56,9 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20240611065828-3a4781585db6 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240711142825-46eb208f015d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

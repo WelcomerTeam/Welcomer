@@ -176,7 +176,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to enable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: TempChannelsModuleTempChannels, Value: utils.StringToJsonLiteral(TempChannelsModuleTempChannels)},
 					{Name: TempChannelsModuleAutoPurge, Value: utils.StringToJsonLiteral(TempChannelsModuleAutoPurge)},
 				},
@@ -289,7 +289,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to disable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: TempChannelsModuleTempChannels, Value: utils.StringToJsonLiteral(TempChannelsModuleTempChannels)},
 					{Name: TempChannelsModuleAutoPurge, Value: utils.StringToJsonLiteral(TempChannelsModuleAutoPurge)},
 				},

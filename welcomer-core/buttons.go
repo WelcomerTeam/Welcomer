@@ -10,7 +10,7 @@ func includeActionRow(messageParams discord.MessageParams) discord.MessageParams
 	if len(messageParams.Components) == 0 {
 		messageParams.AddComponent(discord.InteractionComponent{
 			Type:       discord.InteractionComponentTypeActionRow,
-			Components: make([]*discord.InteractionComponent, 0),
+			Components: make([]discord.InteractionComponent, 0),
 		})
 	}
 
@@ -22,7 +22,7 @@ func IncludeSentByButton(messageParams discord.MessageParams, guildName string) 
 
 	messageParams.Components[0].Components = append(
 		messageParams.Components[0].Components,
-		&discord.InteractionComponent{
+		discord.InteractionComponent{
 			Type:     discord.InteractionComponentTypeButton,
 			Style:    discord.InteractionComponentStylePrimary,
 			Label:    fmt.Sprintf("Sent by %s", guildName),
@@ -40,7 +40,7 @@ func IncludeScamsButton(messageParams discord.MessageParams) discord.MessagePara
 
 	messageParams.Components[0].Components = append(
 		messageParams.Components[0].Components,
-		&discord.InteractionComponent{
+		discord.InteractionComponent{
 			Type:  discord.InteractionComponentTypeButton,
 			Style: discord.InteractionComponentStyleLink,
 			Label: "Watch out for scams",
@@ -57,7 +57,7 @@ func IncludeBorderwallVerifyButton(messageParams discord.MessageParams, borderwa
 
 	messageParams.Components[0].Components = append(
 		messageParams.Components[0].Components,
-		&discord.InteractionComponent{
+		discord.InteractionComponent{
 			Type:  discord.InteractionComponentTypeButton,
 			Style: discord.InteractionComponentStyleLink,
 			Label: "Verify",

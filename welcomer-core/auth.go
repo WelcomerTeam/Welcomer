@@ -90,7 +90,7 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 			return nil, err
 		}
 
-		var guild *discord.Guild
+		var guild discord.Guild
 		guildPb, ok := guilds.Guilds[int64(*interaction.GuildID)]
 		if ok {
 			guild, err = protobuf.GRPCToGuild(guildPb)
@@ -99,11 +99,11 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 			}
 		}
 
-		if guild == nil {
+		if guild.ID.IsNil() {
 			return nil, utils.ErrMissingGuild
 		}
 
-		if !MemberHasElevation(*guild, *interaction.Member) {
+		if interaction.Member == nil || !MemberHasElevation(guild, *interaction.Member) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{

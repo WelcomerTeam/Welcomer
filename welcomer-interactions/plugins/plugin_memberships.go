@@ -156,17 +156,17 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: []*discord.Embed{
+						Embeds: []discord.Embed{
 							{
 								Title:       "Memberships",
 								Description: "You don't have any memberships.",
 								Color:       utils.EmbedColourInfo,
 							},
 						},
-						Components: []*discord.InteractionComponent{
+						Components: []discord.InteractionComponent{
 							{
 								Type: discord.InteractionComponentTypeActionRow,
-								Components: []*discord.InteractionComponent{
+								Components: []discord.InteractionComponent{
 									{
 										Type:  discord.InteractionComponentTypeButton,
 										Style: discord.InteractionComponentStyleLink,
@@ -180,8 +180,8 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			embeds := []*discord.Embed{}
-			embed := &discord.Embed{Title: "Your Memberships", Color: utils.EmbedColourInfo}
+			embeds := []discord.Embed{}
+			embed := discord.Embed{Title: "Your Memberships", Color: utils.EmbedColourInfo}
 
 			for _, membership := range memberships {
 				switch membership.MembershipStatus {
@@ -191,7 +191,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					continue
 				}
 
-				embed.Fields = append(embed.Fields, &discord.EmbedField{
+				embed.Fields = append(embed.Fields, discord.EmbedField{
 					Name: fmt.Sprintf(
 						"%s – %s%s",
 						membership.MembershipType.Label(),
@@ -214,10 +214,10 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: embeds,
 					Flags:  uint32(discord.MessageFlagEphemeral),
-					Components: []*discord.InteractionComponent{
+					Components: []discord.InteractionComponent{
 						{
 							Type: discord.InteractionComponentTypeActionRow,
-							Components: []*discord.InteractionComponent{
+							Components: []discord.InteractionComponent{
 								{
 									Type:  discord.InteractionComponentTypeButton,
 									Style: discord.InteractionComponentStyleLink,
@@ -236,7 +236,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "add",
 		Description: "Add a membership to a server.",
 
-		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]*discord.ApplicationCommandOptionChoice, error) {
+		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
 			var userID discord.Snowflake
 			if interaction.Member != nil {
 				userID = interaction.Member.User.ID
@@ -251,7 +251,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					Msg("Failed to get user memberships")
 			}
 
-			choices := make([]*discord.ApplicationCommandOptionChoice, 0, len(memberships))
+			choices := make([]discord.ApplicationCommandOptionChoice, 0, len(memberships))
 
 			for _, membership := range memberships {
 				switch membership.MembershipStatus {
@@ -261,7 +261,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					continue
 				}
 
-				choices = append(choices, &discord.ApplicationCommandOptionChoice{
+				choices = append(choices, discord.ApplicationCommandOptionChoice{
 					Name: fmt.Sprintf(
 						"%s – %s%s",
 						membership.MembershipType.Label(),
@@ -277,7 +277,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			if len(choices) == 0 {
-				choices = append(choices, &discord.ApplicationCommandOptionChoice{
+				choices = append(choices, discord.ApplicationCommandOptionChoice{
 					Name:  "No memberships are available",
 					Value: utils.StringToJsonLiteral(NoMembershipsAvailable),
 				})
@@ -311,10 +311,10 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					Data: &discord.InteractionCallbackData{
 						Embeds: utils.NewEmbed("You do not have any memberships available.", utils.EmbedColourError),
 						Flags:  uint32(discord.MessageFlagEphemeral),
-						Components: []*discord.InteractionComponent{
+						Components: []discord.InteractionComponent{
 							{
 								Type: discord.InteractionComponentTypeActionRow,
-								Components: []*discord.InteractionComponent{
+								Components: []discord.InteractionComponent{
 									{
 										Type:  discord.InteractionComponentTypeButton,
 										Style: discord.InteractionComponentStyleLink,
@@ -549,7 +549,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "remove",
 		Description: "Removes a membership from a server.",
 
-		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]*discord.ApplicationCommandOptionChoice, error) {
+		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
 			var userID discord.Snowflake
 			if interaction.Member != nil {
 				userID = interaction.Member.User.ID
@@ -564,7 +564,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					Msg("Failed to get user memberships")
 			}
 
-			choices := make([]*discord.ApplicationCommandOptionChoice, 0, len(memberships))
+			choices := make([]discord.ApplicationCommandOptionChoice, 0, len(memberships))
 
 			for _, membership := range memberships {
 				if membership.GuildID == 0 {
@@ -579,7 +579,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					continue
 				}
 
-				choices = append(choices, &discord.ApplicationCommandOptionChoice{
+				choices = append(choices, discord.ApplicationCommandOptionChoice{
 					Name: fmt.Sprintf(
 						"%s – %s (Assigned to %s)",
 						membership.MembershipType.Label(),
@@ -591,7 +591,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			if len(choices) == 0 {
-				choices = append(choices, &discord.ApplicationCommandOptionChoice{
+				choices = append(choices, discord.ApplicationCommandOptionChoice{
 					Name:  "No active memberships are available",
 					Value: utils.StringToJsonLiteral(NoMembershipsAvailable),
 				})
@@ -619,10 +619,10 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					Data: &discord.InteractionCallbackData{
 						Embeds: utils.NewEmbed("You do not have any active memberships available.", utils.EmbedColourError),
 						Flags:  uint32(discord.MessageFlagEphemeral),
-						Components: []*discord.InteractionComponent{
+						Components: []discord.InteractionComponent{
 							{
 								Type: discord.InteractionComponentTypeActionRow,
-								Components: []*discord.InteractionComponent{
+								Components: []discord.InteractionComponent{
 									{
 										Type:  discord.InteractionComponentTypeButton,
 										Style: discord.InteractionComponentStyleLink,

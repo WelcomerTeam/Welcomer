@@ -156,10 +156,12 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 
 		userPb, ok := users.Users[int64(event.Member.User.ID)]
 		if ok {
-			user, err = pb.GRPCToUser(userPb)
+			gUser, err := pb.GRPCToUser(userPb)
 			if err != nil {
 				return err
 			}
+
+			user = &gUser
 		} else {
 			eventCtx.Logger.Warn().
 				Int64("user_id", int64(event.Member.User.ID)).
@@ -167,8 +169,6 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 
 			user = event.Member.User
 		}
-	} else {
-		user = event.Member.User
 	}
 
 	// Query state cache for guild.
@@ -180,12 +180,15 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	var guild *discord.Guild
+
 	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
 	if ok {
-		guild, err = pb.GRPCToGuild(guildPb)
+		pGuild, err := pb.GRPCToGuild(guildPb)
 		if err != nil {
 			return err
 		}
+
+		guild = &pGuild
 	}
 
 	if guild == nil {
@@ -320,7 +323,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	// Send direct message if it's not empty.
-	if !utils.IsMessageParamsEmpty(directMessage) {
+	if user != nil && !utils.IsMessageParamsEmpty(directMessage) {
 		directMessage = welcomer.IncludeBorderwallVerifyButton(directMessage, borderwallLink)
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
@@ -391,7 +394,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 			return err
 		}
 
-		member = *grpcMember
+		member = grpcMember
 	} else {
 		eventCtx.Logger.Warn().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -505,10 +508,12 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 		userPb, ok := users.Users[int64(event.Member.User.ID)]
 		if ok {
-			user, err = pb.GRPCToUser(userPb)
+			pUser, err := pb.GRPCToUser(userPb)
 			if err != nil {
 				return err
 			}
+
+			user = &pUser
 		} else {
 			eventCtx.Logger.Warn().
 				Int64("user_id", int64(event.Member.User.ID)).
@@ -537,7 +542,8 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 			return err
 		}
 
-		guild = *grpcGuild
+		guild =
+			grpcGuild
 	} else {
 		eventCtx.Logger.Error().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

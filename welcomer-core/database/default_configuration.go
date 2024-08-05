@@ -35,7 +35,7 @@ var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
 	ToggleSendDm:  true,
 	Channel:       0,
 	MessageVerify: MustConvertToJSONB(discord.MessageParams{
-		Embeds: []*discord.Embed{
+		Embeds: []discord.Embed{
 			{
 				Description: "This server is protected by Borderwall. Please verify at {{Borderwall.Link}}.",
 				Color:       utils.EmbedColourInfo,
@@ -43,7 +43,7 @@ var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
 		},
 	}),
 	MessageVerified: MustConvertToJSONB(discord.MessageParams{
-		Embeds: []*discord.Embed{
+		Embeds: []discord.Embed{
 			{
 				Description: "Thank you for verifying! You now have access to the server.",
 				Color:       utils.EmbedColourSuccess,

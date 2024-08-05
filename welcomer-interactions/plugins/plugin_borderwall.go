@@ -67,7 +67,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to enable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: BorderwallModuleBorderwall, Value: utils.StringToJsonLiteral(BorderwallModuleBorderwall)},
 					{Name: BorderwallModuleDMs, Value: utils.StringToJsonLiteral(BorderwallModuleDMs)},
 				},
@@ -203,7 +203,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to disable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: BorderwallModuleBorderwall, Value: utils.StringToJsonLiteral(BorderwallModuleBorderwall)},
 					{Name: BorderwallModuleDMs, Value: utils.StringToJsonLiteral(BorderwallModuleDMs)},
 				},

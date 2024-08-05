@@ -145,10 +145,12 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		memberPb, ok := guildMembers.GuildMembers[int64(memberID)]
 		if ok {
-			member, err = pb.GRPCToGuildMember(memberPb)
+			pMember, err := pb.GRPCToGuildMember(memberPb)
 			if err != nil {
 				return err
 			}
+
+			member = &pMember
 		} else {
 			eventCtx.Logger.Warn().
 				Int64("guild_id", int64(guildID)).

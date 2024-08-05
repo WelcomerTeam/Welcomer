@@ -214,7 +214,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to enable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: WelcomerModuleAll, Value: utils.StringToJsonLiteral(WelcomerModuleAll)},
 					{Name: WelcomerModuleText, Value: utils.StringToJsonLiteral(WelcomerModuleText)},
 					{Name: WelcomerModuleImages, Value: utils.StringToJsonLiteral(WelcomerModuleImages)},
@@ -431,7 +431,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "module",
 				Description:  "The module to disable.",
 
-				Choices: []*discord.ApplicationCommandOptionChoice{
+				Choices: []discord.ApplicationCommandOptionChoice{
 					{Name: WelcomerModuleAll, Value: utils.StringToJsonLiteral(WelcomerModuleAll)},
 					{Name: WelcomerModuleText, Value: utils.StringToJsonLiteral(WelcomerModuleText)},
 					{Name: WelcomerModuleImages, Value: utils.StringToJsonLiteral(WelcomerModuleImages)},

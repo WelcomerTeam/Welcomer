@@ -85,7 +85,7 @@ func getBorderwall(ctx *gin.Context) {
 			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext().ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Msg("Failed to fetch guild")
-			} else if guild != nil {
+			} else if !guild.ID.IsNil() {
 				borderwallResponse.GuildName = guild.Name
 			}
 		}

@@ -9,8 +9,8 @@ const (
 	EmbedColourWarn    = 0xFBC01B
 )
 
-func NewEmbed(message string, color int32) []*discord.Embed {
-	embeds := []*discord.Embed{
+func NewEmbed(message string, color int32) []discord.Embed {
+	embeds := []discord.Embed{
 		{
 			Description: message,
 			Color:       color,

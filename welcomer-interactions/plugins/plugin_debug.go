@@ -73,7 +73,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(discord.GuildMemberAdd(member))
+				data, err := json.Marshal(*member)
 				if err != nil {
 					return nil, err
 				}
@@ -126,7 +126,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				member.GuildID = interaction.GuildID
 
 				data, err := json.Marshal(discord.GuildMemberRemove{
-					User:    member.User,
+					User:    *member.User,
 					GuildID: *member.GuildID,
 				})
 				if err != nil {
