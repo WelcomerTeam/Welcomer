@@ -569,6 +569,13 @@ type UserInfo struct {
 	IP []string `json:"ip"`
 }
 
+func maxTime(a time.Time, b time.Time) time.Time {
+	if a.After(b) {
+		return a
+	}
+	return b
+}
+
 type BorderwallInfo struct {
 	Activated bool         `json:"a"`  // borderwall.activated
 	GuildID   StringNumber `json:"gi"` // borderwall.guild_id
@@ -894,6 +901,7 @@ func migrateUserData(id int64, structure UserInfo) {
 	}()
 
 	nowUnix := time.Now().Unix()
+	memspiration := time.Time{}
 	// Create transactions
 
 	m, err := q.GetUserMembershipsByUserID(ctx, id)
@@ -938,11 +946,12 @@ func migrateUserData(id int64, structure UserInfo) {
 			StartedAt:       time.Unix(int64(structure.Memberships.WelcomerPro1.Until), 0).AddDate(0, -1, 0),
 			ExpiresAt:       time.Unix(int64(structure.Memberships.WelcomerPro1.Until), 0),
 			Status:          utils.If(int64(structure.Memberships.WelcomerPro1.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
-			MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro1),
+			MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 			TransactionUuid: t.TransactionUuid,
 			UserID:          id,
 			GuildID:         0,
 		})
+		memspiration = maxTime(memspiration, time.Unix(int64(structure.Memberships.WelcomerPro1.Until), 0))
 		if err != nil {
 			println("Cannot create new welcomer pro1 membership", id, err.Error())
 		} else {
@@ -967,11 +976,12 @@ func migrateUserData(id int64, structure UserInfo) {
 				StartedAt:       time.Unix(int64(structure.Memberships.WelcomerPro3.Until), 0).AddDate(0, -1, 0),
 				ExpiresAt:       time.Unix(int64(structure.Memberships.WelcomerPro3.Until), 0),
 				Status:          utils.If(int64(structure.Memberships.WelcomerPro3.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
-				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro3),
+				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 				TransactionUuid: t.TransactionUuid,
 				UserID:          id,
 				GuildID:         0,
 			})
+			memspiration = maxTime(memspiration, time.Unix(int64(structure.Memberships.WelcomerPro3.Until), 0))
 			if err != nil {
 				println("Cannot create new welcomer pro1 membership", id, err.Error())
 			} else {
@@ -997,11 +1007,12 @@ func migrateUserData(id int64, structure UserInfo) {
 				StartedAt:       time.Unix(int64(structure.Memberships.WelcomerPro5.Until), 0).AddDate(0, -1, 0),
 				ExpiresAt:       time.Unix(int64(structure.Memberships.WelcomerPro5.Until), 0),
 				Status:          utils.If(int64(structure.Memberships.WelcomerPro5.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
-				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro5),
+				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 				TransactionUuid: t.TransactionUuid,
 				UserID:          id,
 				GuildID:         0,
 			})
+			memspiration = maxTime(memspiration, time.Unix(int64(structure.Memberships.WelcomerPro5.Until), 0))
 			if err != nil {
 				println("Cannot create new welcomer pro5 membership", id, err.Error())
 			} else {
@@ -1027,11 +1038,12 @@ func migrateUserData(id int64, structure UserInfo) {
 				StartedAt:       time.Unix(0, 0),
 				ExpiresAt:       time.Unix(2147483647, 0),
 				Status:          int32(database.MembershipStatusActive),
-				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro5),
+				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 				TransactionUuid: t.TransactionUuid,
 				UserID:          id,
 				GuildID:         0,
 			})
+			memspiration = maxTime(memspiration, time.Unix(2147483647, 0))
 			if err != nil {
 				println("Cannot create new welcomer parnter membership", id, err.Error())
 			} else {
@@ -1061,6 +1073,8 @@ func migrateUserData(id int64, structure UserInfo) {
 		}
 	}
 
+	println(len(transactions), len(memberships), id)
+
 	for _, sub := range structure.Memberships.Subscriptions {
 		switch sub.Type {
 		case "don":
@@ -1071,11 +1085,13 @@ func migrateUserData(id int64, structure UserInfo) {
 				memberships = memberships[1:]
 				transactions = transactions[1:]
 
+				println(len(memberships), len(transactions), sub.GuildID.AsInt64(), sub.Type)
+
 				_, err := q.CreateNewMembership(ctx, database.CreateNewMembershipParams{
-					StartedAt:       time.Unix(0, 0),
-					ExpiresAt:       time.Unix(2147483647, 0),
+					StartedAt:       time.Now(),
+					ExpiresAt:       memspiration,
 					Status:          int32(database.MembershipStatusActive),
-					MembershipType:  int32(database.MembershipTypeLegacyCustomBackgrounds),
+					MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 					TransactionUuid: v,
 					UserID:          id,
 					GuildID:         sub.GuildID.AsInt64(),
@@ -1160,9 +1176,9 @@ var ctx context.Context
 var client http.Client
 
 func main() {
-	migrateGuilds := true
+	migrateGuilds := false
 	migrateUsers := true
-	migrateBorderwall := true
+	migrateBorderwall := false
 
 	guildMinValue := int64(839101942046916619)
 	userMinValue := int64(0)

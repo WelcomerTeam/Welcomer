@@ -25,12 +25,8 @@ func (x MembershipType) Label() string {
 		return "Unknown"
 	case MembershipTypeLegacyCustomBackgrounds:
 		return "Legacy Custom Backgrounds"
-	case MembershipTypeLegacyWelcomerPro1:
-		return "Legacy Welcomer Pro 1"
-	case MembershipTypeLegacyWelcomerPro3:
-		return "Legacy Welcomer Pro 3"
-	case MembershipTypeLegacyWelcomerPro5:
-		return "Legacy Welcomer Pro 5"
+	case MembershipTypeLegacyWelcomerPro:
+		return "Legacy Welcomer Pro"
 	case MembershipTypeWelcomerPro:
 		return "Welcomer Pro"
 	case MembershipTypeCustomBackgrounds:

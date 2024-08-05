@@ -25,15 +25,11 @@ func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRo
 }
 
 func IsCustomBackgroundsMembership(membershipType database.MembershipType) bool {
-	return membershipType == database.MembershipTypeLegacyCustomBackgrounds ||
-		membershipType == database.MembershipTypeCustomBackgrounds
+	return membershipType == database.MembershipTypeLegacyCustomBackgrounds || membershipType == database.MembershipTypeCustomBackgrounds
 }
 
 func IsWelcomerProMembership(membershipType database.MembershipType) bool {
-	return membershipType == database.MembershipTypeLegacyWelcomerPro1 ||
-		membershipType == database.MembershipTypeLegacyWelcomerPro3 ||
-		membershipType == database.MembershipTypeLegacyWelcomerPro5 ||
-		membershipType == database.MembershipTypeWelcomerPro
+	return membershipType == database.MembershipTypeLegacyWelcomerPro || membershipType == database.MembershipTypeWelcomerPro
 }
 
 func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) bool {

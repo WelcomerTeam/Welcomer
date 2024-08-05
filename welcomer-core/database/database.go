@@ -11,7 +11,7 @@ type ScienceGuildEventType int32
 // ENUM(unknown, idle, active, expired, refunded, removed)
 type MembershipStatus int32
 
-// ENUM(unknown, legacyCustomBackgrounds, legacyWelcomerPro1, legacyWelcomerPro3, legacyWelcomerPro5, welcomerPro, customBackgrounds)
+// ENUM(unknown, legacyCustomBackgrounds, legacyWelcomerPro, welcomerPro, customBackgrounds)
 type MembershipType int32
 
 // ENUM(unknown, paypal, patreon, stripe)

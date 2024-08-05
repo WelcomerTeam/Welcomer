@@ -7,6 +7,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -24,6 +25,8 @@ const (
 	// MembershipStatusRemoved is a MembershipStatus of type Removed.
 	MembershipStatusRemoved
 )
+
+var ErrInvalidMembershipStatus = errors.New("not a valid MembershipStatus")
 
 const _MembershipStatusName = "unknownidleactiveexpiredrefundedremoved"
 
@@ -44,6 +47,13 @@ func (x MembershipStatus) String() string {
 	return fmt.Sprintf("MembershipStatus(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x MembershipStatus) IsValid() bool {
+	_, ok := _MembershipStatusMap[x]
+	return ok
+}
+
 var _MembershipStatusValue = map[string]MembershipStatus{
 	_MembershipStatusName[0:7]:   MembershipStatusUnknown,
 	_MembershipStatusName[7:11]:  MembershipStatusIdle,
@@ -58,7 +68,7 @@ func ParseMembershipStatus(name string) (MembershipStatus, error) {
 	if x, ok := _MembershipStatusValue[name]; ok {
 		return x, nil
 	}
-	return MembershipStatus(0), fmt.Errorf("%s is not a valid MembershipStatus", name)
+	return MembershipStatus(0), fmt.Errorf("%s is %w", name, ErrInvalidMembershipStatus)
 }
 
 // MarshalText implements the text marshaller method.
@@ -82,28 +92,24 @@ const (
 	MembershipTypeUnknown MembershipType = iota
 	// MembershipTypeLegacyCustomBackgrounds is a MembershipType of type LegacyCustomBackgrounds.
 	MembershipTypeLegacyCustomBackgrounds
-	// MembershipTypeLegacyWelcomerPro1 is a MembershipType of type LegacyWelcomerPro1.
-	MembershipTypeLegacyWelcomerPro1
-	// MembershipTypeLegacyWelcomerPro3 is a MembershipType of type LegacyWelcomerPro3.
-	MembershipTypeLegacyWelcomerPro3
-	// MembershipTypeLegacyWelcomerPro5 is a MembershipType of type LegacyWelcomerPro5.
-	MembershipTypeLegacyWelcomerPro5
+	// MembershipTypeLegacyWelcomerPro is a MembershipType of type LegacyWelcomerPro.
+	MembershipTypeLegacyWelcomerPro
 	// MembershipTypeWelcomerPro is a MembershipType of type WelcomerPro.
 	MembershipTypeWelcomerPro
 	// MembershipTypeCustomBackgrounds is a MembershipType of type CustomBackgrounds.
 	MembershipTypeCustomBackgrounds
 )
 
-const _MembershipTypeName = "unknownlegacyCustomBackgroundslegacyWelcomerPro1legacyWelcomerPro3legacyWelcomerPro5welcomerProcustomBackgrounds"
+var ErrInvalidMembershipType = errors.New("not a valid MembershipType")
+
+const _MembershipTypeName = "unknownlegacyCustomBackgroundslegacyWelcomerProwelcomerProcustomBackgrounds"
 
 var _MembershipTypeMap = map[MembershipType]string{
 	MembershipTypeUnknown:                 _MembershipTypeName[0:7],
 	MembershipTypeLegacyCustomBackgrounds: _MembershipTypeName[7:30],
-	MembershipTypeLegacyWelcomerPro1:      _MembershipTypeName[30:48],
-	MembershipTypeLegacyWelcomerPro3:      _MembershipTypeName[48:66],
-	MembershipTypeLegacyWelcomerPro5:      _MembershipTypeName[66:84],
-	MembershipTypeWelcomerPro:             _MembershipTypeName[84:95],
-	MembershipTypeCustomBackgrounds:       _MembershipTypeName[95:112],
+	MembershipTypeLegacyWelcomerPro:       _MembershipTypeName[30:47],
+	MembershipTypeWelcomerPro:             _MembershipTypeName[47:58],
+	MembershipTypeCustomBackgrounds:       _MembershipTypeName[58:75],
 }
 
 // String implements the Stringer interface.
@@ -114,14 +120,19 @@ func (x MembershipType) String() string {
 	return fmt.Sprintf("MembershipType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x MembershipType) IsValid() bool {
+	_, ok := _MembershipTypeMap[x]
+	return ok
+}
+
 var _MembershipTypeValue = map[string]MembershipType{
-	_MembershipTypeName[0:7]:    MembershipTypeUnknown,
-	_MembershipTypeName[7:30]:   MembershipTypeLegacyCustomBackgrounds,
-	_MembershipTypeName[30:48]:  MembershipTypeLegacyWelcomerPro1,
-	_MembershipTypeName[48:66]:  MembershipTypeLegacyWelcomerPro3,
-	_MembershipTypeName[66:84]:  MembershipTypeLegacyWelcomerPro5,
-	_MembershipTypeName[84:95]:  MembershipTypeWelcomerPro,
-	_MembershipTypeName[95:112]: MembershipTypeCustomBackgrounds,
+	_MembershipTypeName[0:7]:   MembershipTypeUnknown,
+	_MembershipTypeName[7:30]:  MembershipTypeLegacyCustomBackgrounds,
+	_MembershipTypeName[30:47]: MembershipTypeLegacyWelcomerPro,
+	_MembershipTypeName[47:58]: MembershipTypeWelcomerPro,
+	_MembershipTypeName[58:75]: MembershipTypeCustomBackgrounds,
 }
 
 // ParseMembershipType attempts to convert a string to a MembershipType.
@@ -129,7 +140,7 @@ func ParseMembershipType(name string) (MembershipType, error) {
 	if x, ok := _MembershipTypeValue[name]; ok {
 		return x, nil
 	}
-	return MembershipType(0), fmt.Errorf("%s is not a valid MembershipType", name)
+	return MembershipType(0), fmt.Errorf("%s is %w", name, ErrInvalidMembershipType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -159,6 +170,8 @@ const (
 	PlatformTypeStripe
 )
 
+var ErrInvalidPlatformType = errors.New("not a valid PlatformType")
+
 const _PlatformTypeName = "unknownpaypalpatreonstripe"
 
 var _PlatformTypeMap = map[PlatformType]string{
@@ -176,6 +189,13 @@ func (x PlatformType) String() string {
 	return fmt.Sprintf("PlatformType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x PlatformType) IsValid() bool {
+	_, ok := _PlatformTypeMap[x]
+	return ok
+}
+
 var _PlatformTypeValue = map[string]PlatformType{
 	_PlatformTypeName[0:7]:   PlatformTypeUnknown,
 	_PlatformTypeName[7:13]:  PlatformTypePaypal,
@@ -188,7 +208,7 @@ func ParsePlatformType(name string) (PlatformType, error) {
 	if x, ok := _PlatformTypeValue[name]; ok {
 		return x, nil
 	}
-	return PlatformType(0), fmt.Errorf("%s is not a valid PlatformType", name)
+	return PlatformType(0), fmt.Errorf("%s is %w", name, ErrInvalidPlatformType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -216,6 +236,8 @@ const (
 	ScienceEventTypeGuildLeave
 )
 
+var ErrInvalidScienceEventType = errors.New("not a valid ScienceEventType")
+
 const _ScienceEventTypeName = "unknownguildJoinguildLeave"
 
 var _ScienceEventTypeMap = map[ScienceEventType]string{
@@ -232,6 +254,13 @@ func (x ScienceEventType) String() string {
 	return fmt.Sprintf("ScienceEventType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ScienceEventType) IsValid() bool {
+	_, ok := _ScienceEventTypeMap[x]
+	return ok
+}
+
 var _ScienceEventTypeValue = map[string]ScienceEventType{
 	_ScienceEventTypeName[0:7]:   ScienceEventTypeUnknown,
 	_ScienceEventTypeName[7:16]:  ScienceEventTypeGuildJoin,
@@ -243,7 +272,7 @@ func ParseScienceEventType(name string) (ScienceEventType, error) {
 	if x, ok := _ScienceEventTypeValue[name]; ok {
 		return x, nil
 	}
-	return ScienceEventType(0), fmt.Errorf("%s is not a valid ScienceEventType", name)
+	return ScienceEventType(0), fmt.Errorf("%s is %w", name, ErrInvalidScienceEventType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -285,6 +314,8 @@ const (
 	ScienceGuildEventTypeMembershipRemoved
 )
 
+var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
+
 const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemoved"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
@@ -308,6 +339,13 @@ func (x ScienceGuildEventType) String() string {
 	return fmt.Sprintf("ScienceGuildEventType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ScienceGuildEventType) IsValid() bool {
+	_, ok := _ScienceGuildEventTypeMap[x]
+	return ok
+}
+
 var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[0:7]:     ScienceGuildEventTypeUnknown,
 	_ScienceGuildEventTypeName[7:15]:    ScienceGuildEventTypeUserJoin,
@@ -326,7 +364,7 @@ func ParseScienceGuildEventType(name string) (ScienceGuildEventType, error) {
 	if x, ok := _ScienceGuildEventTypeValue[name]; ok {
 		return x, nil
 	}
-	return ScienceGuildEventType(0), fmt.Errorf("%s is not a valid ScienceGuildEventType", name)
+	return ScienceGuildEventType(0), fmt.Errorf("%s is %w", name, ErrInvalidScienceGuildEventType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -356,6 +394,8 @@ const (
 	TransactionStatusRefunded
 )
 
+var ErrInvalidTransactionStatus = errors.New("not a valid TransactionStatus")
+
 const _TransactionStatusName = "unknownpendingcompletedrefunded"
 
 var _TransactionStatusMap = map[TransactionStatus]string{
@@ -373,6 +413,13 @@ func (x TransactionStatus) String() string {
 	return fmt.Sprintf("TransactionStatus(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x TransactionStatus) IsValid() bool {
+	_, ok := _TransactionStatusMap[x]
+	return ok
+}
+
 var _TransactionStatusValue = map[string]TransactionStatus{
 	_TransactionStatusName[0:7]:   TransactionStatusUnknown,
 	_TransactionStatusName[7:14]:  TransactionStatusPending,
@@ -385,7 +432,7 @@ func ParseTransactionStatus(name string) (TransactionStatus, error) {
 	if x, ok := _TransactionStatusValue[name]; ok {
 		return x, nil
 	}
-	return TransactionStatus(0), fmt.Errorf("%s is not a valid TransactionStatus", name)
+	return TransactionStatus(0), fmt.Errorf("%s is %w", name, ErrInvalidTransactionStatus)
 }
 
 // MarshalText implements the text marshaller method.
