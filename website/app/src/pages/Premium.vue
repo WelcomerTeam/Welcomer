@@ -254,7 +254,7 @@
               </p>
             </div>
             <div class="mt-12 lg:mt-0 lg:col-span-2">
-              <dl class="space-y-10">
+              <dl class="space-y-10 faq-container">
                 <Disclosure as="div" v-for="faq in faqs" :key="faq.question" v-slot="{ open }">
                   <dt class="text-lg">
                     <DisclosureButton class="flex items-start justify-between w-full text-left">
@@ -270,9 +270,7 @@
                     </DisclosureButton>
                   </dt>
                   <DisclosurePanel as="dd" class="pr-12 mt-2">
-                    <p class="text-base text-gray-100">
-                      {{ faq.answer }}
-                    </p>
+                    <span class="text-base text-gray-100" v-html="marked(faq.answer, true)"></span>
                   </DisclosurePanel>
                 </Disclosure>
               </dl>
@@ -288,6 +286,17 @@
   </div>
 </template>
 
+<style>
+.faq-container a {
+  text-decoration: underline;
+}
+
+.faq-container code {
+    background: rgba(0, 0, 0, .2);
+    padding: 2px;
+}
+</style>
+
 <script>
 import { ref } from "vue";
 
@@ -295,6 +304,8 @@ import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import Toast from "@/components/dashboard/Toast.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
+
+import { toHTML } from "@/components/discord-markdown";
 
 import billingAPI from "@/api/billing";
 
@@ -354,8 +365,20 @@ const checklist = [
 
 const faqs = [
   {
-    question: "TODO",
-    answer: "TODO",
+    question: "I have donated, now what?",
+    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server. Currently Patreon pledges will require a support ticket on our [support server](/support), however you will be able to soon link your Patreon to your Discord account on the Welcomer website. Currently managing memberships is only done through the membership commands, but memberships within the website will be coming soon.",
+  },
+  {
+    question: "I have donated through Patreon but I have not received my membership.",
+    answer: "Currently we cannot automatically link Patreon pledges to Discord accounts. Please join our [support server](/support) and open a ticket with your Patreon email and Discord ID, and we will manually add the membership to your account. Automatic linking will be coming soon.",
+  },
+  {
+    question: "How can I automatically pay monthly for my membership with PayPal?",
+    answer: "Currently we do not support recurring payments through PayPal, but this is planned. You can currently buy a month, 6 months or a year. If you would like to pay monthly, you can [pledge via our Patreon](/premium).",
+  },
+  {
+    question: "How long do I keep custom backgrounds for?",
+    answer: "Custom background memberships will last forever. There are a one-time payment, just make sure you do not remove your membership.",
   },
 ];
 
@@ -430,6 +453,34 @@ export default {
   },
 
   methods: {
+    marked(input, embed) {
+      if (input) {
+        return toHTML(input, {
+          embed: embed,
+          discordCallback: {
+            user: function (user) {
+              return `@${user.id}`;
+            },
+            channel: function (channel) {
+              return `#${channel.id}`;
+            },
+            role: function (role) {
+              return `@${role.id}`;
+            },
+            everyone: function () {
+              return `@everyone`;
+            },
+            here: function () {
+              return `@here`;
+            },
+          },
+          cssModuleNames: {
+            "d-emoji": "emoji",
+          },
+        });
+      }
+      return "";
+    },
     getLocale() {
       return (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.language;
     },

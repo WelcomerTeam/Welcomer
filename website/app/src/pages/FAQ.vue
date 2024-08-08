@@ -40,6 +40,11 @@
 .faq-container a {
   text-decoration: underline;
 }
+
+.faq-container code {
+    background: rgba(0, 0, 0, .2);
+    padding: 2px;
+}
 </style>
 
 <script>
