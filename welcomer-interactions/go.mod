@@ -7,8 +7,8 @@ toolchain go1.22.0
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240805191305-92c171f8d82f
 	github.com/WelcomerTeam/Sandwich v0.0.0-20240805222556-025ad033b5d7
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240805203317-4c3091ee8297
-	github.com/WelcomerTeam/Subway v0.0.0-20240808123639-d0943da0bcc1
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240807192832-cb3693433d1f
+	github.com/WelcomerTeam/Subway v0.0.0-20240808203826-fef603eb6e67
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -53,11 +53,11 @@ require (
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20240611065828-3a4781585db6 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240808171019-573a1156607a // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

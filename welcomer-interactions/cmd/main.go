@@ -38,7 +38,7 @@ func main() {
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
 	host := flag.String("host", os.Getenv("INTERACTIONS_HOST"), "Host to serve interactions from")
-	publicKey := flag.String("publicKey", os.Getenv("INTERACTIONS_PUBLIC_KEY"), "Public key for signature validation")
+	publicKeys := flag.String("publicKey", os.Getenv("INTERACTIONS_PUBLIC_KEY"), "Public key(s) for signature validation. Comma delimited.")
 
 	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
 	syncCommands := flag.Bool("syncCommands", false, "If true, will update commands")
@@ -103,7 +103,7 @@ func main() {
 		SandwichClient:    sandwichClient,
 		RESTInterface:     restInterface,
 		Logger:            logger,
-		PublicKey:         *publicKey,
+		PublicKeys:        *publicKeys,
 		PrometheusAddress: *prometheusAddress,
 	})
 	if err != nil {
