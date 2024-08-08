@@ -76,8 +76,12 @@ func main() {
 
 	// Setup GRPC
 	var grpcConnection *grpc.ClientConn
-	if grpcConnection, err = grpc.Dial(*sandwichGRPCHost, grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
-		panic(fmt.Sprintf(`grpc.Dial(%s): %v`, *sandwichGRPCHost, err.Error()))
+	if grpcConnection, err = grpc.NewClient(
+		*sandwichGRPCHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+	); err != nil {
+		panic(fmt.Sprintf(`grpc.NewClient(%s): %v`, *sandwichGRPCHost, err.Error()))
 	}
 
 	sandwichClient := protobuf.NewSandwichClient(grpcConnection)
