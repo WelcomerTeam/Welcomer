@@ -1,15 +1,9 @@
-export const IsDevelopment = true;
-
 export const LinkSupportServer = "https://discord.gg/UyUVCEcBU9";
 export const LinkYoutubeChannel = "";
 export const LinkPhishing = "https://discord.com/safety/common-scams-what-to-look-out-for";
 
-const primaryBotId = "330416853971107840";
-const betaBotId =    "342685807221407744";
-const donatorBotId = "498519480985583636";
-
-export const PrimaryBotId = IsDevelopment ? betaBotId : primaryBotId;
-export const DonatorBotId = donatorBotId;
+export const PrimaryBotId = "330416853971107840";
+export const DonatorBotId = "498519480985583636";
 
 export const Toggle_ShowFeaturesOnPrimaryNavigation = false;
 export const Toggle_ShowFeaturesOnDashboard = false;
