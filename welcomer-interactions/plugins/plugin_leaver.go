@@ -78,8 +78,8 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member == nil {
-					member = interaction.Member
+				if member.User == nil || member.User.ID.IsNil() {
+					member = *interaction.Member
 				}
 
 				queries := welcomer.GetQueriesFromContext(ctx)
@@ -330,7 +330,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guildSettingsLeaver.MessageFormat = utils.SetupJSONB(guildSettingsLeaver.MessageFormat)
-				guildSettingsLeaver.Channel = utils.If(channel != nil, int64(channel.ID), 0)
+				guildSettingsLeaver.Channel = utils.If(!channel.ID.IsNil(), int64(channel.ID), 0)
 
 				err = utils.RetryWithFallback(
 					func() error {
@@ -356,7 +356,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{

@@ -334,7 +334,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 
 			var err error
 
-			if guild == nil || guild.ID == 0 {
+			if guild.ID.IsNil() {
 				if interaction.GuildID == nil {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -345,17 +345,17 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				if guild == nil {
-					guild = &discord.Guild{}
-				}
-
 				guild.ID = *interaction.GuildID
 
-				guild, err = sandwich.FetchGuild(sub.NewGRPCContext(ctx), guild)
+				sGuild, err := sandwich.FetchGuild(sub.NewGRPCContext(ctx), &guild)
 				if err != nil {
 					sub.Logger.Warn().Err(err).
 						Int64("guild_id", int64(guild.ID)).
 						Msg("Failed to fetch guild")
+				}
+
+				if sGuild != nil {
+					guild = *sGuild
 				}
 			}
 

@@ -516,7 +516,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					guildSettingsTempChannels.ChannelLobby = int64(channel.ID)
 				} else {
 					guildSettingsTempChannels.ChannelLobby = 0
@@ -548,7 +548,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{

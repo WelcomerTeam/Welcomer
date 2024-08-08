@@ -738,10 +738,10 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					if (argumentNewUsers && message.Author.ID.Time().Before(time.Now().Add(-time.Hour*24*7))) ||
-						(argumentUser != nil && message.Author.ID == argumentUser.ID) ||
+						(!argumentUser.ID.IsNil() && message.Author.ID == argumentUser.ID) ||
 						(argumentBot && message.Author.Bot) ||
 						(argumentWebhooks && message.WebhookID != nil) ||
-						(!argumentNewUsers && argumentUser == nil && !argumentBot && !argumentWebhooks) {
+						(!argumentNewUsers && argumentUser.ID.IsNil() && !argumentBot && !argumentWebhooks) {
 						messagesToDelete = append(messagesToDelete, message.ID)
 
 						if argumentTimeout > 0 {

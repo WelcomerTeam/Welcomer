@@ -66,14 +66,14 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member == nil {
-					member = interaction.Member
+				if member.User == nil || member.User.ID.IsNil() {
+					member = *interaction.Member
 				}
 
 				// GuildID may be missing, fill it in.
 				member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(*member)
+				data, err := json.Marshal(member)
 				if err != nil {
 					return nil, err
 				}
@@ -118,8 +118,8 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member == nil {
-					member = interaction.Member
+				if member.User == nil || member.User.ID.IsNil() {
+					member = *interaction.Member
 				}
 
 				// GuildID may be missing, fill it in.

@@ -352,7 +352,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					guildSettingsBorderwall.Channel = int64(channel.ID)
 				} else {
 					guildSettingsBorderwall.Channel = 0
@@ -397,7 +397,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{

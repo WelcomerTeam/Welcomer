@@ -80,8 +80,8 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member == nil {
-					member = interaction.Member
+				if member.User == nil || member.User.ID.IsNil() {
+					member = *interaction.Member
 				}
 
 				queries := core.GetQueriesFromContext(ctx)
@@ -179,7 +179,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				data, err := json.Marshal(core.CustomEventInvokeWelcomerStructure{
 					Interaction: &interaction,
-					Member:      *member,
+					Member:      member,
 				})
 				if err != nil {
 					return nil, err
@@ -684,7 +684,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					guildSettingsWelcomerText.Channel = int64(channel.ID)
 				} else {
 					guildSettingsWelcomerText.Channel = 0
@@ -713,7 +713,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if channel != nil {
+				if !channel.ID.IsNil() {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{

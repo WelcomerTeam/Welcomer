@@ -8,10 +8,15 @@ github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a h1:b99bvmrowJ7BDlQcBebv9xv6C7bQRxg9c/BnrDyeyco=
 github.com/WelcomerTeam/Sandwich v0.0.0-20240601213226-0e512a04534a/go.mod h1:Sicaes09aierp/MBlXZ5fYZxEOzSLH1PnTpE22H+QMI=
+github.com/WelcomerTeam/Sandwich v0.0.0-20240805222556-025ad033b5d7/go.mod h1:gq1iMWEOvi5YYMcutmQHcagAI2XR6EEMYdCJwNlDGqc=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240805203317-4c3091ee8297 h1:6+EtREbFDR0uSV/qYT3R3+EWoFAyD5tN5QelITDATgY=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240805203317-4c3091ee8297/go.mod h1:5KxY4p+4yyp7FUCH9QTun9sNC3D2gaARaDVvIFZFYDs=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac h1:nJKIPfpF/wN7bZiLtreMvrQDak46YknBlNG3jzQKfFw=
 github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac/go.mod h1:QGmUWQqffCc3+gWWRRDOOVrrsaIcw8UTiCj3vCVkx9Y=
+github.com/WelcomerTeam/Subway v0.0.0-20240808120206-be62d16d75e3 h1:R8w+HjZFmmdrcL2L1EabGUtnMnEe+fVeBgSiR4pjIEk=
+github.com/WelcomerTeam/Subway v0.0.0-20240808120206-be62d16d75e3/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
+github.com/WelcomerTeam/Subway v0.0.0-20240808121330-d412a98793db h1:f19O+pPBUjmshHX9G388tLspKi88/A6khz/JLOVfZGQ=
+github.com/WelcomerTeam/Subway v0.0.0-20240808121330-d412a98793db/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
