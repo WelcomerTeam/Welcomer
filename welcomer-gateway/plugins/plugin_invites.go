@@ -5,6 +5,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type InviteCog struct {
@@ -58,13 +59,22 @@ func (c *InviteCog) RegisterCog(bot *sandwich.Bot) error {
 			inviter = invite.Inviter.ID
 		}
 
-		_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
-			InviteCode: invite.Code,
-			GuildID:    guildID,
-			CreatedBy:  int64(inviter),
-			CreatedAt:  invite.CreatedAt,
-			Uses:       int64(invite.Uses),
-		})
+		err := utils.RetryWithFallback(
+			func() error {
+				_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
+					InviteCode: invite.Code,
+					GuildID:    guildID,
+					CreatedBy:  int64(inviter),
+					CreatedAt:  invite.CreatedAt,
+					Uses:       int64(invite.Uses),
+				})
+				return err
+			},
+			func() error {
+				return welcomer.EnsureGuild(eventCtx.Context, queries, discord.Snowflake(guildID))
+			},
+			nil,
+		)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guildID", guildID).
