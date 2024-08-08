@@ -449,6 +449,16 @@ export default {
   },
 
   mounted() {
+    var url = new URL(document.location);
+    if (url.hash == "#success") {
+      this.$store.dispatch("createToast", {
+        title: "Your payment was successful, thank you for supporting us! 🎉 Check out the membership commands on your server to manage your memberships",
+        icon: "heart",
+        class: "text-white bg-primary",
+        expiration: 60000,
+    });
+    }
+
     this.fetchSKUs();
   },
 
