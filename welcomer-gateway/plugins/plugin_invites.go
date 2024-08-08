@@ -53,10 +53,15 @@ func (c *InviteCog) RegisterCog(bot *sandwich.Bot) error {
 			return nil
 		}
 
+		var inviter discord.Snowflake
+		if invite.Inviter != nil {
+			inviter = invite.Inviter.ID
+		}
+
 		_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
 			InviteCode: invite.Code,
 			GuildID:    guildID,
-			CreatedBy:  int64(invite.Inviter.ID),
+			CreatedBy:  int64(inviter),
 			CreatedAt:  invite.CreatedAt,
 			Uses:       int64(invite.Uses),
 		})
