@@ -14,6 +14,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	plugins "github.com/WelcomerTeam/Welcomer/welcomer-interactions/plugins"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"
 )
 
@@ -69,14 +70,25 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 			userID = int64(interaction.User.ID)
 		}
 
-		usage, err := queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
-			GuildID:         guildID,
-			UserID:          userID,
-			ChannelID:       channelID,
-			Command:         interactionCommandName,
-			Errored:         interactionError != nil,
-			ExecutionTimeMs: time.Since(interaction.ID.Time()).Milliseconds(),
-		})
+		var usage *database.ScienceCommandUsages
+
+		err = utils.RetryWithFallback(
+			func() error {
+				usage, err = queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
+					GuildID:         guildID,
+					UserID:          userID,
+					ChannelID:       channelID,
+					Command:         interactionCommandName,
+					Errored:         interactionError != nil,
+					ExecutionTimeMs: time.Since(interaction.ID.Time()).Milliseconds(),
+				})
+				return err
+			},
+			func() error {
+				return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(guildID))
+			},
+			nil,
+		)
 		if err != nil {
 			sub.Logger.Warn().Err(err).Msg("Failed to create command usage")
 		}
@@ -87,11 +99,20 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 				sub.Logger.Warn().Err(err).Msg("Failed to marshal interaction")
 			}
 
-			_, err = queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
-				CommandUuid: usage.CommandUuid,
-				Trace:       interactionError.Error(),
-				Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},
-			})
+			err = utils.RetryWithFallback(
+				func() error {
+					_, err = queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
+						CommandUuid: usage.CommandUuid,
+						Trace:       interactionError.Error(),
+						Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},
+					})
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(guildID))
+				},
+				nil,
+			)
 			if err != nil {
 				sub.Logger.Warn().Err(err).Msg("Failed to create command error")
 			}
