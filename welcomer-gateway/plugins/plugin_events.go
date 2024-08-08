@@ -8,35 +8,42 @@ import (
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
-type InviteCog struct {
+type EventsCog struct {
 	EventHandler *sandwich.Handlers
 }
 
 // Assert types.
 
 var (
-	_ sandwich.Cog           = (*InviteCog)(nil)
-	_ sandwich.CogWithEvents = (*InviteCog)(nil)
+	_ sandwich.Cog           = (*EventsCog)(nil)
+	_ sandwich.CogWithEvents = (*EventsCog)(nil)
 )
 
-func NewInviteCog() *InviteCog {
-	return &InviteCog{
+func NewEventsCog() *EventsCog {
+	return &EventsCog{
 		EventHandler: sandwich.SetupHandler(nil),
 	}
 }
 
-func (c *InviteCog) CogInfo() *sandwich.CogInfo {
+func (c *EventsCog) CogInfo() *sandwich.CogInfo {
 	return &sandwich.CogInfo{
 		Name:        "Invites",
-		Description: "Handles storing the creation and deletion of invites",
+		Description: "Handles misc discord events",
 	}
 }
 
-func (c *InviteCog) GetEventHandlers() *sandwich.Handlers {
+func (c *EventsCog) GetEventHandlers() *sandwich.Handlers {
 	return c.EventHandler
 }
 
-func (c *InviteCog) RegisterCog(bot *sandwich.Bot) error {
+func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
+
+	// Register event for when a guild is joined.
+	c.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
+
+		return welcomer.EnsureGuild(eventCtx.Context, queries, guild.ID)
+	})
 
 	// Register event for when an invite is created.
 	c.EventHandler.RegisterOnInviteCreateEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
