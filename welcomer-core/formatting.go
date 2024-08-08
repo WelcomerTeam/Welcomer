@@ -83,6 +83,8 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 		Banner:  getGuildBanner(guild),
 	}
 
+	vars["Invite"] = StubInvite{}
+
 	for key, value := range extraValues {
 		vars[key] = value
 	}
@@ -225,4 +227,17 @@ func (s StubTime) String() string {
 
 func (s StubTime) Relative() string {
 	return "<t:" + utils.Itoa(time.Time(s).Unix()) + ":R>"
+}
+
+// Invite represents the invite used on discord.
+type StubInvite struct {
+	ExpiresAt time.Time         `json:"expires_at"`
+	CreatedAt time.Time         `json:"created_at"`
+	Inviter   StubUser          `json:"inviter"`
+	ChannelID discord.Snowflake `json:"channel"`
+	Code      string            `json:"code"`
+	Uses      int32             `json:"uses"`
+	MaxUses   int32             `json:"max_uses"`
+	MaxAge    int32             `json:"max_age"`
+	Temporary bool              `json:"temporary"`
 }
