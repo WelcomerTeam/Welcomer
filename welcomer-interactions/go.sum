@@ -17,6 +17,10 @@ github.com/WelcomerTeam/Subway v0.0.0-20240808120206-be62d16d75e3 h1:R8w+HjZFmmd
 github.com/WelcomerTeam/Subway v0.0.0-20240808120206-be62d16d75e3/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
 github.com/WelcomerTeam/Subway v0.0.0-20240808121330-d412a98793db h1:f19O+pPBUjmshHX9G388tLspKi88/A6khz/JLOVfZGQ=
 github.com/WelcomerTeam/Subway v0.0.0-20240808121330-d412a98793db/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
+github.com/WelcomerTeam/Subway v0.0.0-20240808123149-0efd5909c376 h1:1YCSSdzDh/BW+TPUfDVMhJ1wZ9T8Fc/x8kEhtia8JIg=
+github.com/WelcomerTeam/Subway v0.0.0-20240808123149-0efd5909c376/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
+github.com/WelcomerTeam/Subway v0.0.0-20240808123639-d0943da0bcc1 h1:+cQARWCdZAx325GuNxg4XqGjexoWHKKJK9d2RhZ0pOQ=
+github.com/WelcomerTeam/Subway v0.0.0-20240808123639-d0943da0bcc1/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
