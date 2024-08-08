@@ -6,8 +6,8 @@ toolchain go1.22.0
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20240805191305-92c171f8d82f
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240805222556-025ad033b5d7
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240805203317-4c3091ee8297
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240808094208-03351bce032f
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240807192832-cb3693433d1f
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -21,7 +21,7 @@ require (
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Subway v0.0.0-20240515214206-eef3c3b554ac // indirect
+	github.com/WelcomerTeam/Subway v0.0.0-20240805224917-d1ddd149452a // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -53,10 +53,10 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20240611065828-3a4781585db6 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
