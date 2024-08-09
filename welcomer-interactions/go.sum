@@ -12,6 +12,8 @@ github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240807192832-cb3693433d1f h1:oI
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240807192832-cb3693433d1f/go.mod h1:5KxY4p+4yyp7FUCH9QTun9sNC3D2gaARaDVvIFZFYDs=
 github.com/WelcomerTeam/Subway v0.0.0-20240808203826-fef603eb6e67 h1:9zLo841JjJkPLl9boCEcpCfikPe88qskBvya8EGMjB0=
 github.com/WelcomerTeam/Subway v0.0.0-20240808203826-fef603eb6e67/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
+github.com/WelcomerTeam/Subway v0.0.0-20240809224607-b8332ec15045 h1:NmUbLMb9WSmH6dItIKflKZ07OtBFbnwOSm99CmFve8w=
+github.com/WelcomerTeam/Subway v0.0.0-20240809224607-b8332ec15045/go.mod h1:YL09l4jwGNt3JmlNLKQE/whNZvYRVpW56cEzePF/YtM=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

@@ -3,6 +3,7 @@ package welcomer
 import (
 	"context"
 
+	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -43,7 +44,15 @@ func AddManagerNameToContext(ctx context.Context, v string) context.Context {
 }
 
 func GetManagerNameFromContext(ctx context.Context) string {
-	value, _ := ctx.Value(ManagerNameKey).(string)
+	url := subway.GetURLFromContext(ctx)
+	query := url.Query()
 
-	return value
+	manager := query.Get("manager")
+	if manager != "" {
+		return manager
+	} else {
+		value, _ := ctx.Value(ManagerNameKey).(string)
+
+		return value
+	}
 }
