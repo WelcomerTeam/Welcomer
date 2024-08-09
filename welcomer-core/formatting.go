@@ -57,15 +57,20 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 	return
 }
 
+// EscapeStringForJSON escapes a string for JSON.
+func EscapeStringForJSON(value string) string {
+	return strings.ReplaceAll(value, `"`, `\"`)
+}
+
 func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, extraValues map[string]interface{}) (vars map[string]interface{}) {
 	vars = make(map[string]interface{})
 
 	vars["User"] = StubUser{
 		ID:            member.User.ID,
-		Name:          GetUserDisplayName(member.User),
-		Username:      member.User.Username,
-		Discriminator: member.User.Discriminator,
-		GlobalName:    member.User.GlobalName,
+		Name:          EscapeStringForJSON(GetUserDisplayName(member.User)),
+		Username:      EscapeStringForJSON(member.User.Username),
+		Discriminator: EscapeStringForJSON(member.User.Discriminator),
+		GlobalName:    EscapeStringForJSON(member.User.GlobalName),
 		Mention:       "<@" + member.User.ID.String() + ">",
 		CreatedAt:     StubTime(member.User.ID.Time()),
 		JoinedAt:      StubTime(member.JoinedAt),
@@ -76,7 +81,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 
 	vars["Guild"] = StubGuild{
 		ID:      guild.ID,
-		Name:    guild.Name,
+		Name:    EscapeStringForJSON(guild.Name),
 		Icon:    getGuildIcon(guild),
 		Splash:  getGuildSplash(guild),
 		Members: guild.MemberCount,
