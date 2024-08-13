@@ -418,7 +418,7 @@ func paymentCallback(ctx *gin.Context) {
 			}
 
 			// Capture the order
-			authorizeResponse, err := backend.PaypalClient.AuthorizeOrder(backend.ctx, token, paypal.AuthorizeOrderRequest{})
+			authorizeResponse, err := backend.PaypalClient.CaptureOrder(backend.ctx, token, paypal.CaptureOrderRequest{})
 			if err != nil || authorizeResponse.Status != paypal.OrderStatusCompleted {
 				backend.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
 
