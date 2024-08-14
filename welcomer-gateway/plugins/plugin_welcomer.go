@@ -390,8 +390,14 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		if imageReaderCloser != nil {
 			defer imageReaderCloser.Close()
 
+			var imageFileType utils.ImageFileType
+
+			if err := imageFileType.UnmarshalText([]byte(contentType)); err != nil {
+				imageFileType = utils.ImageFileTypeUnknown
+			}
+
 			file = &discord.File{
-				Name:        "image.png",
+				Name:        "welcome-" + eventCtx.Guild.ID.String() + "-" + event.Member.User.ID.String() + "." + imageFileType.GetExtension(),
 				ContentType: contentType,
 				Reader:      imageReaderCloser,
 			}

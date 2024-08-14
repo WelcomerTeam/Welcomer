@@ -62,6 +62,21 @@ type BackgroundType int32
 // ENUM(unknown, image/png, image/jpeg, image/gif, image/webp)
 type ImageFileType int32
 
+func (i ImageFileType) GetExtension() string {
+	switch i {
+	case ImageFileTypeImagePng:
+		return "png"
+	case ImageFileTypeImageJpeg:
+		return "jpeg"
+	case ImageFileTypeImageGif:
+		return "gif"
+	case ImageFileTypeImageWebp:
+		return "webp"
+	default:
+		return "png"
+	}
+}
+
 type Background struct {
 	Value string         `json:"value"`
 	Type  BackgroundType `json:"type"`
