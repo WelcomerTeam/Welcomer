@@ -51,6 +51,11 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 			suffix = "th"
 		}
 
+		switch int64(argument) % 100 {
+		case 11, 12, 13:
+			suffix = "th"
+		}
+
 		return utils.Itoa(int64(argument)) + suffix, nil
 	}
 
