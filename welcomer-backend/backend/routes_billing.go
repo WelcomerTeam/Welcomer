@@ -218,7 +218,7 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		// Send order request to paypal.
-		order, err := backend.PaypalClient.CreateOrder(backend.ctx, paypal.OrderIntentAuthorize, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, &paypal.ApplicationContext{
+		order, err := backend.PaypalClient.CreateOrder(backend.ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, &paypal.ApplicationContext{
 			BrandName:          "Welcomer",
 			ShippingPreference: paypal.ShippingPreferenceNoShipping,
 			UserAction:         paypal.UserActionPayNow,
