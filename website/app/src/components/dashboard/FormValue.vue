@@ -12,15 +12,7 @@
       </div>
     </label>
     <div class="mt-1 sm:mt-0 sm:col-span-2">
-      <div v-if="type == FormTypeBlank">
-        <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
-        </div>
-      </div>
-
-      <div v-else-if="type == FormTypeToggle">
+      <div v-if="type == FormTypeToggle">
         <Switch :id="componentId" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled" :class="[
             $props.validation?.$invalid
@@ -62,9 +54,7 @@
           </span>
         </Switch>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -161,9 +151,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -266,9 +254,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -367,9 +353,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -494,9 +478,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -593,9 +575,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -647,9 +627,7 @@
         ]" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
           :maxlength="$props.maxLength" @input="updateValue($event.target.value)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -664,9 +642,7 @@
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" :disabled="$props.disabled" :value="modelValue" @input="updateValue($event.target.value)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -682,9 +658,7 @@
         ]" rows="4" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
           @input="updateValue($event.target.value)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -766,9 +740,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -776,9 +748,7 @@
         <embed-builder :id="componentId" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled" :invalid="$props.validation?.$invalid" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
@@ -787,26 +757,22 @@
           @update:files="updateFiles($event)" @blur="blur" :files="$props.files" :disabled="$props.disabled"
           :invalid="$props.validation?.$invalid" :customImages="$props.customImages" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-          }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
 
-      <span v-else><span>Unknown type {{ type }}</span>
-        <div>
-          <div v-if="$props.validation?.$invalid" class="errors">
-            <span v-bind:key="index" v-for="(message, index) in $props.validation?.$Errors">{{ message.$message }}</span>
-            <span v-bind:key="index" v-for="(message, index) in $props.validation?.$silentErrors">{{ message.$message
-            }}</span>
-          </div>
-        </div>
-      </span>
     </div>
 
     <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0" v-if="!$props.inlineSlot">
       <slot></slot>
     </div>
+
+    <div v-if="type == FormTypeBlank">
+      <div v-if="$props.validation?.$invalid" class="errors">
+        <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+      </div>
+    </div>
+
   </div>
 </template>
 

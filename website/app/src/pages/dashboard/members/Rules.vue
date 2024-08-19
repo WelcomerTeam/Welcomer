@@ -23,7 +23,7 @@
               also receive the rules in their direct
               messages.</form-value>
 
-            <form-value title="Rules" :type="FormTypeBlank" :hideBorder="true">
+            <form-value title="Rules" :type="FormTypeBlank" :hideBorder="true" :validation="v$.rules">
               <table class="min-w-full border-spacing-2">
                 <tbody class="divide-y divide-gray-200 dark:divide-secondary-light">
                   <tr v-for="(rule, index) in this.rules" :key="index" :class="[
@@ -67,7 +67,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td />
+                    <td :class="this.rules.length === 0 ? 'hidden' : ''" />
                     <td>
                       <input v-if="this.rules.length < this.maxRuleCount" type="text"
                         class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-10 mt-2 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
@@ -201,6 +201,10 @@ export default {
           selected: false,
         });
       });
+
+      if (this.config.rules.length === 0) {
+        this.config.rules = null;
+      }
     },
 
     fetchConfig() {
@@ -235,11 +239,6 @@ export default {
 
       this.isChangeInProgress = true;
 
-      this.config.rules = [];
-      this.rules.forEach((rule) => {
-        this.config.rules.push(rule.value);
-      });
-
       dashboardAPI.setConfig(
         endpoints.EndpointGuildRules(this.$store.getters.getSelectedGuildID),
         this.config,
@@ -261,6 +260,16 @@ export default {
 
     onValueUpdate() {
       this.unsavedChanges = true;
+
+      if (this.rules.length === 0) {
+        this.config.rules = null;
+      } else {
+        // Update the config with the new rules.
+        this.config.rules = [];
+        this.rules.forEach((rule) => {
+          this.config.rules.push(rule.value);
+        });
+      }
     },
 
     marked(input, embed) {
