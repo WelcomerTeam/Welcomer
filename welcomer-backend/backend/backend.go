@@ -73,23 +73,31 @@ type Backend struct {
 
 // BackendOptions represents any options passable when creating the backend service.
 type BackendOptions struct {
-	BotToken            string
-	Conn                grpc.ClientConnInterface
+	Domain            string
+	Host              string
+	KeyPairs          string
+	NginxAddress      string
+	PostgresAddress   string
+	PrometheusAddress string
+
+	Conn          grpc.ClientConnInterface
+	RESTInterface discord.RESTInterface
+	Pool          *pgxpool.Pool
+
+	BotToken        string
+	DonatorBotToken string
+
 	DiscordClientID     string
 	DiscordClientSecret string
-	Domain              string
-	DonatorBotToken     string
-	Host                string
-	KeyPairs            string
-	NginxAddress        string
-	PaypalClientID      string
-	PaypalClientSecret  string
-	PaypalIsLive        bool
-	Pool                *pgxpool.Pool
-	PostgresAddress     string
-	PrometheusAddress   string
-	RedirectURL         string
-	RESTInterface       discord.RESTInterface
+	DiscordRedirectURL  string
+
+	PatreonClientID     string
+	PatreonClientSecret string
+	PatreonRedirectURL  string
+
+	PaypalClientID     string
+	PaypalClientSecret string
+	PaypalIsLive       bool
 }
 
 // NewBackend creates a new backend.
@@ -118,10 +126,15 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 		IPChecker: utils.NewLRUIPChecker(logger, 1024),
 	}
 
-	// Setup OAuth2
-	OAuth2Config.ClientID = options.DiscordClientID
-	OAuth2Config.ClientSecret = options.DiscordClientSecret
-	OAuth2Config.RedirectURL = options.RedirectURL
+	// Setup Discord OAuth2
+	DiscordOAuth2Config.ClientID = options.DiscordClientID
+	DiscordOAuth2Config.ClientSecret = options.DiscordClientSecret
+	DiscordOAuth2Config.RedirectURL = options.DiscordRedirectURL
+
+	// Setup Patreon OAuth2
+	PatreonOAuth2Config.ClientID = options.PatreonClientID
+	PatreonOAuth2Config.ClientSecret = options.PatreonClientSecret
+	PatreonOAuth2Config.RedirectURL = options.PatreonRedirectURL
 
 	// Setup sessions
 	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface)
@@ -235,7 +248,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	router.Use(logger.SetLogger())
 	router.Use(b.PrometheusHandler.HandlerFunc())
 	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))
-	router.Use(sessions.Sessions(os.Getenv("BACKEND_SESSION_COOKIE_NAME"), b.Store))
+	router.Use(sessions.Sessions(os.Getenv("SESSION_COOKIE_NAME"), b.Store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	router.Use(gin.Recovery())
@@ -248,6 +261,8 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerUserRoutes(router)
 
 	registerBillingRoutes(router)
+	registerMembershipsRoutes(router)
+	registerPatreonRoutes(router)
 
 	registerBorderwallRoutes(router)
 
