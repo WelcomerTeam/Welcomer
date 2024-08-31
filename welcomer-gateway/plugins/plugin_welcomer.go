@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"encoding/json"
@@ -135,6 +136,92 @@ func (p *WelcomerCog) FetchWelcomerImage(options utils.GenerateImageOptionsRaw) 
 	}
 
 	return resp.Body, resp.Header.Get("Content-Type"), nil
+}
+
+func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (*discord.Invite, error) {
+	var potentialInvite *discord.Invite
+
+	invites, err := discord.GetGuildInvites(eventCtx.Session, guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
+
+	databaseInvites, err := queries.GetGuildInvites(eventCtx.Context, int64(guildID))
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
+
+	type inviteData struct {
+		Uses  int32
+		Index int
+	}
+
+	beforeInvites := make(map[string]inviteData)
+	for i, beforeInvite := range databaseInvites {
+		beforeInvites[beforeInvite.InviteCode] = inviteData{
+			Uses:  int32(beforeInvite.Uses),
+			Index: i,
+		}
+	}
+
+	updatedInvites := make([]database.GuildInvites, 0)
+
+	for _, invite := range invites {
+		beforeInvite, ok := beforeInvites[invite.Code]
+		if !ok {
+			// New invite.
+
+			// Is it the first time we've seen it?
+			if invite.Uses == 1 {
+				if potentialInvite == nil {
+					potentialInvite = &invite
+				} else {
+					// Multiple new invites with 1 use, now none are potential.
+					potentialInvite = nil
+				}
+			}
+
+			var createdBy int64
+			if invite.Inviter != nil {
+				createdBy = int64(invite.Inviter.ID)
+			}
+
+			updatedInvites = append(updatedInvites, database.GuildInvites{
+				InviteCode: invite.Code,
+				GuildID:    int64(guildID),
+				CreatedBy:  createdBy,
+				CreatedAt:  invite.CreatedAt,
+				Uses:       int64(invite.Uses),
+			})
+		} else {
+			if invite.Uses-beforeInvite.Uses == 1 {
+				if potentialInvite == nil {
+					potentialInvite = &invite
+				} else {
+					// Multiple invites have changed uses, now none are potential.
+					potentialInvite = nil
+				}
+			}
+
+			databaseInvites[beforeInvite.Index].Uses = int64(invite.Uses)
+
+			updatedInvites = append(updatedInvites, *databaseInvites[beforeInvite.Index])
+		}
+	}
+
+	for _, updatedInvite := range updatedInvites {
+		_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams(updatedInvite))
+		if err != nil {
+			eventCtx.Logger.Warn().Err(err).
+				Int64("guild_id", int64(guildID)).
+				Str("invite_code", updatedInvite.InviteCode).
+				Msg("Failed to create or update guild invite")
+		}
+	}
+
+	return potentialInvite, nil
 }
 
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
@@ -303,8 +390,24 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
+	// Check if the welcomer text, dms or images possibly has an invite variable. This also checks if the module is enabled or not.
+	hasInviteVariable := ((guildSettingsWelcomerText.ToggleEnabled || (guildSettingsWelcomerDMs.ToggleEnabled && guildSettingsWelcomerDMs.ToggleUseTextFormat)) && strings.Contains(string(guildSettingsWelcomerText.MessageFormat.Bytes), "{{Invite")) ||
+		((guildSettingsWelcomerDMs.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleUseTextFormat) && strings.Contains(string(guildSettingsWelcomerDMs.MessageFormat.Bytes), "{{Invite")) ||
+		((guildSettingsWelcomerImages.ToggleEnabled) && strings.Contains(guildSettingsWelcomerImages.ImageMessage, "{{Invite"))
+
+	var usedInvite *discord.Invite
+
+	if hasInviteVariable {
+		usedInvite, err = p.trackInvites(eventCtx, eventCtx.Guild.ID)
+		if err != nil {
+			eventCtx.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to track invites")
+		}
+	}
+
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, guild, nil)
+	variables := welcomer.GatherVariables(eventCtx, event.Member, guild, usedInvite, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
