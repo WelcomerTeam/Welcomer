@@ -72,6 +72,7 @@ import {
 
 import {
   faChartLine as farChartLine,
+  faCopy as farCopy,
   faDoorClosed as farDoorClosed,
   faHeart as farHeart,
   faListCheck as farListCheck,
@@ -149,6 +150,7 @@ library.add(
   fasWrench,
 
   farChartLine,
+  farCopy,
   farDoorClosed,
   farHeart,
   farListCheck,
