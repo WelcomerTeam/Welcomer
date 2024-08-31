@@ -51,7 +51,7 @@ type Querier interface {
 	CreateWelcomerImagesGuildSettings(ctx context.Context, arg CreateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error)
 	CreateWelcomerTextGuildSettings(ctx context.Context, arg CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error)
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
-	DeletePatreonUser(ctx context.Context, patreonUserID int64) (int64, error)
+	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)
 	DeleteUserMembership(ctx context.Context, membershipUuid uuid.UUID) (int64, error)
 	DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error)
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)

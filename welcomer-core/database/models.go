@@ -130,13 +130,16 @@ type Guilds struct {
 }
 
 type PatreonUsers struct {
-	PatreonUserID int64     `json:"patreon_user_id"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	UserID        int64     `json:"user_id"`
-	FullName      string    `json:"full_name"`
-	Email         string    `json:"email"`
-	ThumbUrl      string    `json:"thumb_url"`
+	PatreonUserID   int64     `json:"patreon_user_id"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	UserID          int64     `json:"user_id"`
+	FullName        string    `json:"full_name"`
+	Email           string    `json:"email"`
+	ThumbUrl        string    `json:"thumb_url"`
+	PledgeCreatedAt time.Time `json:"pledge_created_at"`
+	PledgeEndedAt   time.Time `json:"pledge_ended_at"`
+	TierID          int64     `json:"tier_id"`
 }
 
 type ScienceCommandErrors struct {

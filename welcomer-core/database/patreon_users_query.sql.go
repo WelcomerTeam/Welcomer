@@ -7,27 +7,34 @@ package database
 
 import (
 	"context"
+	"time"
 )
 
 const CreateOrUpdatePatreonUser = `-- name: CreateOrUpdatePatreonUser :one
-INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url)
-    VALUES ($1, now(), now(), $2, $3, $4, $5)
+INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT(patreon_user_id) DO UPDATE
     SET updated_at = EXCLUDED.updated_at,
         user_id = EXCLUDED.user_id,
         full_name = EXCLUDED.full_name,
         email = EXCLUDED.email,
-        thumb_url = EXCLUDED.thumb_url
+        thumb_url = EXCLUDED.thumb_url,
+        pledge_created_at = EXCLUDED.pledge_created_at,
+        pledge_ended_at = EXCLUDED.pledge_ended_at,
+        tier_id = EXCLUDED.tier_id
 RETURNING
-    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url
+    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id
 `
 
 type CreateOrUpdatePatreonUserParams struct {
-	PatreonUserID int64  `json:"patreon_user_id"`
-	UserID        int64  `json:"user_id"`
-	FullName      string `json:"full_name"`
-	Email         string `json:"email"`
-	ThumbUrl      string `json:"thumb_url"`
+	PatreonUserID   int64     `json:"patreon_user_id"`
+	UserID          int64     `json:"user_id"`
+	FullName        string    `json:"full_name"`
+	Email           string    `json:"email"`
+	ThumbUrl        string    `json:"thumb_url"`
+	PledgeCreatedAt time.Time `json:"pledge_created_at"`
+	PledgeEndedAt   time.Time `json:"pledge_ended_at"`
+	TierID          int64     `json:"tier_id"`
 }
 
 func (q *Queries) CreateOrUpdatePatreonUser(ctx context.Context, arg CreateOrUpdatePatreonUserParams) (*PatreonUsers, error) {
@@ -37,6 +44,9 @@ func (q *Queries) CreateOrUpdatePatreonUser(ctx context.Context, arg CreateOrUpd
 		arg.FullName,
 		arg.Email,
 		arg.ThumbUrl,
+		arg.PledgeCreatedAt,
+		arg.PledgeEndedAt,
+		arg.TierID,
 	)
 	var i PatreonUsers
 	err := row.Scan(
@@ -47,23 +57,29 @@ func (q *Queries) CreateOrUpdatePatreonUser(ctx context.Context, arg CreateOrUpd
 		&i.FullName,
 		&i.Email,
 		&i.ThumbUrl,
+		&i.PledgeCreatedAt,
+		&i.PledgeEndedAt,
+		&i.TierID,
 	)
 	return &i, err
 }
 
 const CreatePatreonUser = `-- name: CreatePatreonUser :one
-INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url)
-    VALUES ($1, now(), now(), $2, $3, $4, $5)
+INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8)
 RETURNING
-    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url
+    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id
 `
 
 type CreatePatreonUserParams struct {
-	PatreonUserID int64  `json:"patreon_user_id"`
-	UserID        int64  `json:"user_id"`
-	FullName      string `json:"full_name"`
-	Email         string `json:"email"`
-	ThumbUrl      string `json:"thumb_url"`
+	PatreonUserID   int64     `json:"patreon_user_id"`
+	UserID          int64     `json:"user_id"`
+	FullName        string    `json:"full_name"`
+	Email           string    `json:"email"`
+	ThumbUrl        string    `json:"thumb_url"`
+	PledgeCreatedAt time.Time `json:"pledge_created_at"`
+	PledgeEndedAt   time.Time `json:"pledge_ended_at"`
+	TierID          int64     `json:"tier_id"`
 }
 
 func (q *Queries) CreatePatreonUser(ctx context.Context, arg CreatePatreonUserParams) (*PatreonUsers, error) {
@@ -73,6 +89,9 @@ func (q *Queries) CreatePatreonUser(ctx context.Context, arg CreatePatreonUserPa
 		arg.FullName,
 		arg.Email,
 		arg.ThumbUrl,
+		arg.PledgeCreatedAt,
+		arg.PledgeEndedAt,
+		arg.TierID,
 	)
 	var i PatreonUsers
 	err := row.Scan(
@@ -83,17 +102,25 @@ func (q *Queries) CreatePatreonUser(ctx context.Context, arg CreatePatreonUserPa
 		&i.FullName,
 		&i.Email,
 		&i.ThumbUrl,
+		&i.PledgeCreatedAt,
+		&i.PledgeEndedAt,
+		&i.TierID,
 	)
 	return &i, err
 }
 
 const DeletePatreonUser = `-- name: DeletePatreonUser :execrows
 DELETE FROM patreon_users
-WHERE patreon_user_id = $1
+WHERE patreon_user_id = $1 AND user_id = $2
 `
 
-func (q *Queries) DeletePatreonUser(ctx context.Context, patreonUserID int64) (int64, error) {
-	result, err := q.db.Exec(ctx, DeletePatreonUser, patreonUserID)
+type DeletePatreonUserParams struct {
+	PatreonUserID int64 `json:"patreon_user_id"`
+	UserID        int64 `json:"user_id"`
+}
+
+func (q *Queries) DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, DeletePatreonUser, arg.PatreonUserID, arg.UserID)
 	if err != nil {
 		return 0, err
 	}
@@ -102,7 +129,7 @@ func (q *Queries) DeletePatreonUser(ctx context.Context, patreonUserID int64) (i
 
 const GetPatreonUser = `-- name: GetPatreonUser :one
 SELECT
-    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url
+    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id
 FROM
     patreon_users
 WHERE
@@ -120,13 +147,16 @@ func (q *Queries) GetPatreonUser(ctx context.Context, patreonUserID int64) (*Pat
 		&i.FullName,
 		&i.Email,
 		&i.ThumbUrl,
+		&i.PledgeCreatedAt,
+		&i.PledgeEndedAt,
+		&i.TierID,
 	)
 	return &i, err
 }
 
 const GetPatreonUsersByUserID = `-- name: GetPatreonUsersByUserID :many
 SELECT
-    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url
+    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id
 FROM
     patreon_users
 WHERE
@@ -150,6 +180,9 @@ func (q *Queries) GetPatreonUsersByUserID(ctx context.Context, userID int64) ([]
 			&i.FullName,
 			&i.Email,
 			&i.ThumbUrl,
+			&i.PledgeCreatedAt,
+			&i.PledgeEndedAt,
+			&i.TierID,
 		); err != nil {
 			return nil, err
 		}
@@ -169,17 +202,23 @@ SET
     user_id = $2,
     full_name = $3,
     email = $4,
-    thumb_url = $5
+    thumb_url = $5,
+    pledge_created_at = $6,
+    pledge_ended_at = $7,
+    tier_id = $8
 WHERE
     patreon_user_id = $1
 `
 
 type UpdatePatreonUserParams struct {
-	PatreonUserID int64  `json:"patreon_user_id"`
-	UserID        int64  `json:"user_id"`
-	FullName      string `json:"full_name"`
-	Email         string `json:"email"`
-	ThumbUrl      string `json:"thumb_url"`
+	PatreonUserID   int64     `json:"patreon_user_id"`
+	UserID          int64     `json:"user_id"`
+	FullName        string    `json:"full_name"`
+	Email           string    `json:"email"`
+	ThumbUrl        string    `json:"thumb_url"`
+	PledgeCreatedAt time.Time `json:"pledge_created_at"`
+	PledgeEndedAt   time.Time `json:"pledge_ended_at"`
+	TierID          int64     `json:"tier_id"`
 }
 
 func (q *Queries) UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error) {
@@ -189,6 +228,9 @@ func (q *Queries) UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserPa
 		arg.FullName,
 		arg.Email,
 		arg.ThumbUrl,
+		arg.PledgeCreatedAt,
+		arg.PledgeEndedAt,
+		arg.TierID,
 	)
 	if err != nil {
 		return 0, err
