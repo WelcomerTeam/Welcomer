@@ -5,10 +5,10 @@ go 1.22
 toolchain go1.22.0
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20240805191305-92c171f8d82f
+	github.com/WelcomerTeam/Discord v0.0.0-20240830112951-b06f039734f5
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
-	github.com/WelcomerTeam/Sandwich v0.0.0-20240805222556-025ad033b5d7
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240805203317-4c3091ee8297
+	github.com/WelcomerTeam/Sandwich v0.0.0-20240830113518-2b681113998e
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20240813100917-8d49d984adc2
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gin-contrib/cache v1.3.0
