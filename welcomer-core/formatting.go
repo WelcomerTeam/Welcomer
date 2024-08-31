@@ -67,7 +67,7 @@ func EscapeStringForJSON(value string) string {
 	return strings.ReplaceAll(value, `"`, `\"`)
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, extraValues map[string]interface{}) (vars map[string]interface{}) {
+func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, invite *discord.Invite, extraValues map[string]interface{}) (vars map[string]interface{}) {
 	vars = make(map[string]interface{})
 
 	vars["User"] = StubUser{
@@ -93,7 +93,63 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 		Banner:  getGuildBanner(guild),
 	}
 
-	vars["Invite"] = StubInvite{}
+	if invite != nil {
+		var inviter StubUser
+		if invite.Inviter != nil {
+			inviter = StubUser{
+				Name:          EscapeStringForJSON(GetUserDisplayName(invite.Inviter)),
+				Username:      EscapeStringForJSON(invite.Inviter.Username),
+				Discriminator: EscapeStringForJSON(invite.Inviter.Discriminator),
+				GlobalName:    EscapeStringForJSON(invite.Inviter.GlobalName),
+				Mention:       "<@" + invite.Inviter.ID.String() + ">",
+				Avatar:        GetUserAvatar(invite.Inviter),
+				ID:            invite.Inviter.ID,
+				Bot:           invite.Inviter.Bot,
+				Pending:       false,
+			}
+		}
+
+		var channelID discord.Snowflake
+		if invite.Channel != nil {
+			channelID = invite.Channel.ID
+		}
+
+		vars["Invite"] = StubInvite{
+			ExpiresAt: StubTime(invite.ExpiresAt),
+			CreatedAt: StubTime(invite.CreatedAt),
+			Inviter:   inviter,
+			ChannelID: channelID,
+			Code:      invite.Code,
+			Uses:      invite.Uses,
+			MaxUses:   invite.MaxUses,
+			MaxAge:    invite.MaxAge,
+			Temporary: invite.Temporary,
+		}
+	} else {
+		vars["Invite"] = StubInvite{
+			ExpiresAt: StubTime(time.Time{}),
+			CreatedAt: StubTime(time.Time{}),
+			Inviter: StubUser{
+				CreatedAt:     StubTime{},
+				JoinedAt:      StubTime{},
+				Name:          "Unknown",
+				Username:      "unknown",
+				Discriminator: "",
+				GlobalName:    "Unknown",
+				Mention:       "Unknown",
+				Avatar:        "",
+				ID:            0,
+				Bot:           false,
+				Pending:       false,
+			},
+			ChannelID: 0,
+			Code:      "Unknown",
+			Uses:      0,
+			MaxUses:   0,
+			MaxAge:    0,
+			Temporary: false,
+		}
+	}
 
 	for key, value := range extraValues {
 		vars[key] = value
@@ -241,8 +297,8 @@ func (s StubTime) Relative() string {
 
 // Invite represents the invite used on discord.
 type StubInvite struct {
-	ExpiresAt time.Time         `json:"expires_at"`
-	CreatedAt time.Time         `json:"created_at"`
+	ExpiresAt StubTime          `json:"expires_at"`
+	CreatedAt StubTime          `json:"created_at"`
 	Inviter   StubUser          `json:"inviter"`
 	ChannelID discord.Snowflake `json:"channel"`
 	Code      string            `json:"code"`
