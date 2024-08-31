@@ -22,26 +22,29 @@ import (
 
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
+	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
+
+	domain := flag.String("domain", os.Getenv("DOMAIN"), "Domain name for the backend")
+	host := flag.String("host", os.Getenv("HOST"), "Host to serve backend from")
+	keyPairs := flag.String("keypairs", os.Getenv("KEYPAIRS"), "Comma separated list of keypairs to use for sessions. This should be in the format <newhashkey>,<newblockkey>,<oldhashkey>,<oldblockkey>... to allow for key rotation")
+	nginxAddress := flag.String("nginxProxy", os.Getenv("NGINX_PROXY"), "NGINX Proxy Address. Used to set trusted proxies.")
+	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
+	prometheusAddress := flag.String("prometheusAddress", os.Getenv("PROMETHEUS_ADDRESS"), "Prometheus address")
 
 	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
 	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
-	prometheusAddress := flag.String("prometheusAddress", os.Getenv("BACKEND_PROMETHEUS_ADDRESS"), "Prometheus address")
-	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
 	botToken := flag.String("botToken", os.Getenv("BOT_TOKEN"), "Primary bot token")
 	fallbackBotToken := flag.String("donatorBotToken", os.Getenv("BOT_TOKEN_DONATOR"), "Donator bot token")
-	host := flag.String("host", os.Getenv("BACKEND_HOST"), "Host to serve backend from")
-	keyPairs := flag.String("keypairs", os.Getenv("BACKEND_KEYPAIRS"), "Comma separated list of keypairs to use for sessions. This should be in the format <newhashkey>,<newblockkey>,<oldhashkey>,<oldblockkey>... to allow for key rotation")
 
-	clientID := flag.String("clientID", os.Getenv("BOT_CLIENT_ID"), "OAuth2 Client ID")
-	clientSecret := flag.String("clientSecret", os.Getenv("BOT_CLIENT_SECRET"), "OAuth2 Client Secret")
-	redirectURL := flag.String("redirectURL", os.Getenv("BACKEND_REDIRECT_URL"), "OAuth2 Redirect URL")
+	discordClientID := flag.String("discordClientID", os.Getenv("DISCORD_CLIENT_ID"), "OAuth2 Client ID")
+	discordClientSecret := flag.String("discordClientSecret", os.Getenv("DISCORD_CLIENT_SECRET"), "OAuth2 Client Secret")
+	discordRedirectURL := flag.String("discordRedirectURL", os.Getenv("DISCORD_REDIRECT_URL"), "OAuth2 Redirect URL")
 
-	nginxAddress := flag.String("nginxProxy", os.Getenv("NGINX_PROXY"), "NGINX Proxy Address. Used to set trusted proxies.")
-	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
-
-	domain := flag.String("domain", os.Getenv("BACKEND_DOMAIN"), "Domain name for the backend")
+	patreonClientID := flag.String("patreonClientID", os.Getenv("PATREON_CLIENT_ID"), "OAuth2 Client ID")
+	patreonClientSecret := flag.String("patreonClientSecret", os.Getenv("PATREON_CLIENT_SECRET"), "OAuth2 Client Secret")
+	patreonRedirectURL := flag.String("patreonRedirectURL", os.Getenv("PATREON_REDIRECT_URL"), "OAuth2 Redirect URL")
 
 	paypalClientID := flag.String("paypalClientID", os.Getenv("PAYPAL_CLIENT_ID"), "Paypal client ID")
 	paypalClientSecret := flag.String("paypalSecretID", os.Getenv("PAYPAL_CLIENT_SECRET"), "Paypal client secret")
@@ -98,23 +101,31 @@ func main() {
 
 	// Setup app.
 	app, err := backend.NewBackend(ctx, logger, backend.BackendOptions{
-		BotToken:            *botToken,
-		Conn:                grpcConnection,
-		DiscordClientID:     *clientID,
-		DiscordClientSecret: *clientSecret,
-		Domain:              *domain,
-		DonatorBotToken:     *fallbackBotToken,
-		Host:                *host,
-		KeyPairs:            *keyPairs,
-		NginxAddress:        *nginxAddress,
-		PaypalClientID:      *paypalClientID,
-		PaypalClientSecret:  *paypalClientSecret,
-		PaypalIsLive:        *paypalIsLive,
-		Pool:                pool,
-		PostgresAddress:     *postgresURL,
-		PrometheusAddress:   *prometheusAddress,
-		RedirectURL:         *redirectURL,
-		RESTInterface:       restInterface,
+		Domain:            *domain,
+		Host:              *host,
+		KeyPairs:          *keyPairs,
+		NginxAddress:      *nginxAddress,
+		PostgresAddress:   *postgresURL,
+		PrometheusAddress: *prometheusAddress,
+
+		Conn:          grpcConnection,
+		RESTInterface: restInterface,
+		Pool:          pool,
+
+		BotToken:        *botToken,
+		DonatorBotToken: *fallbackBotToken,
+
+		DiscordClientID:     *discordClientID,
+		DiscordClientSecret: *discordClientSecret,
+		DiscordRedirectURL:  *discordRedirectURL,
+
+		PatreonClientID:     *patreonClientID,
+		PatreonClientSecret: *patreonClientSecret,
+		PatreonRedirectURL:  *patreonRedirectURL,
+
+		PaypalClientID:     *paypalClientID,
+		PaypalClientSecret: *paypalClientSecret,
+		PaypalIsLive:       *paypalIsLive,
 	})
 	if err != nil || app == nil {
 		logger.Panic().Err(err).Msg("Exception creating app")

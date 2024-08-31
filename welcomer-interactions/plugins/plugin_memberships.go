@@ -109,7 +109,7 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 		if guild, ok := guilds[membership.GuildID]; ok {
 			guildName = guild.Name
 		} else {
-			guildName = fmt.Sprintf("Unknown Guild `%d`", membership.GuildID)
+			guildName = fmt.Sprintf("Unknown Guild %d", membership.GuildID)
 		}
 
 		userMemberships = append(userMemberships, UserMembership{

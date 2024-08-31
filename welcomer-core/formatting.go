@@ -51,21 +51,31 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 			suffix = "th"
 		}
 
+		switch int64(argument) % 100 {
+		case 11, 12, 13:
+			suffix = "th"
+		}
+
 		return utils.Itoa(int64(argument)) + suffix, nil
 	}
 
 	return
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, extraValues map[string]interface{}) (vars map[string]interface{}) {
+// EscapeStringForJSON escapes a string for JSON.
+func EscapeStringForJSON(value string) string {
+	return strings.ReplaceAll(value, `"`, `\"`)
+}
+
+func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, invite *discord.Invite, extraValues map[string]interface{}) (vars map[string]interface{}) {
 	vars = make(map[string]interface{})
 
 	vars["User"] = StubUser{
 		ID:            member.User.ID,
-		Name:          GetUserDisplayName(member.User),
-		Username:      member.User.Username,
-		Discriminator: member.User.Discriminator,
-		GlobalName:    member.User.GlobalName,
+		Name:          EscapeStringForJSON(GetUserDisplayName(member.User)),
+		Username:      EscapeStringForJSON(member.User.Username),
+		Discriminator: EscapeStringForJSON(member.User.Discriminator),
+		GlobalName:    EscapeStringForJSON(member.User.GlobalName),
 		Mention:       "<@" + member.User.ID.String() + ">",
 		CreatedAt:     StubTime(member.User.ID.Time()),
 		JoinedAt:      StubTime(member.JoinedAt),
@@ -76,14 +86,70 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 
 	vars["Guild"] = StubGuild{
 		ID:      guild.ID,
-		Name:    guild.Name,
+		Name:    EscapeStringForJSON(guild.Name),
 		Icon:    getGuildIcon(guild),
 		Splash:  getGuildSplash(guild),
 		Members: guild.MemberCount,
 		Banner:  getGuildBanner(guild),
 	}
 
-	vars["Invite"] = StubInvite{}
+	if invite != nil {
+		var inviter StubUser
+		if invite.Inviter != nil {
+			inviter = StubUser{
+				Name:          EscapeStringForJSON(GetUserDisplayName(invite.Inviter)),
+				Username:      EscapeStringForJSON(invite.Inviter.Username),
+				Discriminator: EscapeStringForJSON(invite.Inviter.Discriminator),
+				GlobalName:    EscapeStringForJSON(invite.Inviter.GlobalName),
+				Mention:       "<@" + invite.Inviter.ID.String() + ">",
+				Avatar:        GetUserAvatar(invite.Inviter),
+				ID:            invite.Inviter.ID,
+				Bot:           invite.Inviter.Bot,
+				Pending:       false,
+			}
+		}
+
+		var channelID discord.Snowflake
+		if invite.Channel != nil {
+			channelID = invite.Channel.ID
+		}
+
+		vars["Invite"] = StubInvite{
+			ExpiresAt: StubTime(invite.ExpiresAt),
+			CreatedAt: StubTime(invite.CreatedAt),
+			Inviter:   inviter,
+			ChannelID: channelID,
+			Code:      invite.Code,
+			Uses:      invite.Uses,
+			MaxUses:   invite.MaxUses,
+			MaxAge:    invite.MaxAge,
+			Temporary: invite.Temporary,
+		}
+	} else {
+		vars["Invite"] = StubInvite{
+			ExpiresAt: StubTime(time.Time{}),
+			CreatedAt: StubTime(time.Time{}),
+			Inviter: StubUser{
+				CreatedAt:     StubTime{},
+				JoinedAt:      StubTime{},
+				Name:          "Unknown",
+				Username:      "unknown",
+				Discriminator: "",
+				GlobalName:    "Unknown",
+				Mention:       "Unknown",
+				Avatar:        "",
+				ID:            0,
+				Bot:           false,
+				Pending:       false,
+			},
+			ChannelID: 0,
+			Code:      "Unknown",
+			Uses:      0,
+			MaxUses:   0,
+			MaxAge:    0,
+			Temporary: false,
+		}
+	}
 
 	for key, value := range extraValues {
 		vars[key] = value
@@ -231,8 +297,8 @@ func (s StubTime) Relative() string {
 
 // Invite represents the invite used on discord.
 type StubInvite struct {
-	ExpiresAt time.Time         `json:"expires_at"`
-	CreatedAt time.Time         `json:"created_at"`
+	ExpiresAt StubTime          `json:"expires_at"`
+	CreatedAt StubTime          `json:"created_at"`
 	Inviter   StubUser          `json:"inviter"`
 	ChannelID discord.Snowflake `json:"channel"`
 	Code      string            `json:"code"`

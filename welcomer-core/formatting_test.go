@@ -28,7 +28,7 @@ func TestFormatString(t *testing.T) {
 		Splash:      "",
 		MemberCount: 100,
 		Banner:      "",
-	}, nil)
+	}, nil, nil)
 
 	testCases := map[string]string{
 		"{{User.CreatedAt}}":     "<t:1420070400:R>",

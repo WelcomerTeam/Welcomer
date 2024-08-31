@@ -20,7 +20,7 @@ const (
 	StateStringLength = 16
 )
 
-var OAuth2Config = &oauth2.Config{
+var DiscordOAuth2Config = &oauth2.Config{
 	ClientID:     "",
 	ClientSecret: "",
 	Endpoint: oauth2.Endpoint{
@@ -30,6 +30,18 @@ var OAuth2Config = &oauth2.Config{
 	},
 	RedirectURL: "",
 	Scopes:      []string{"identify", "guilds"},
+}
+
+var PatreonOAuth2Config = &oauth2.Config{
+	ClientID:     "",
+	ClientSecret: "",
+	Endpoint: oauth2.Endpoint{
+		AuthURL:   "https://www.patreon.com/oauth2/authorize",
+		TokenURL:  "https://www.patreon.com/api/oauth2/token",
+		AuthStyle: oauth2.AuthStyleInParams,
+	},
+	RedirectURL: "",
+	Scopes:      []string{"identity"},
 }
 
 func init() {
@@ -75,33 +87,14 @@ func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) 
 	return
 }
 
-// Send user to OAuth2 Authorize URL.
-func doOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
-	state := utils.RandStringBytesRmndr(StateStringLength)
-
-	SetStateSession(session, state)
-
-	if err := session.Save(); err != nil {
-		backend.Logger.Warn().Err(err).Msg("Failed to save session")
-	}
-
-	ctx.Redirect(http.StatusTemporaryRedirect, OAuth2Config.AuthCodeURL(state))
-}
-
-// Returns Unauthorized if user is not logged in, else runs handler.
-func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
+func checkOAuthAuthorization(ctx *gin.Context) error {
 	session := sessions.Default(ctx)
 
 	user, ok := GetUserSession(session)
 	if !ok {
 		backend.Logger.Warn().Msg("Failed to get user session")
 
-		ctx.JSON(http.StatusUnauthorized, BaseResponse{
-			Ok:    false,
-			Error: ErrMissingUser.Error(),
-		})
-
-		return
+		return ErrMissingUser
 	}
 
 	ctx.Set(UserKey, user)
@@ -110,15 +103,10 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 	if !ok {
 		backend.Logger.Warn().Msg("Failed to get token session")
 
-		ctx.JSON(http.StatusUnauthorized, BaseResponse{
-			Ok:    false,
-			Error: ErrMissingToken.Error(),
-		})
-
-		return
+		return ErrMissingToken
 	}
 
-	newToken, changed, err := checkToken(backend.ctx, OAuth2Config, token)
+	newToken, changed, err := checkToken(backend.ctx, DiscordOAuth2Config, token)
 	if err != nil {
 		ClearTokenSession(session)
 
@@ -127,12 +115,7 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 			backend.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
 
-		ctx.JSON(http.StatusUnauthorized, BaseResponse{
-			Ok:    false,
-			Error: ErrOAuthFailure.Error(),
-		})
-
-		return
+		return ErrOAuthFailure
 	}
 
 	if changed {
@@ -142,6 +125,21 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
+	}
+
+	return nil
+}
+
+// Returns Unauthorized if user is not logged in, else runs handler.
+func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
+	err := checkOAuthAuthorization(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, BaseResponse{
+			Ok:    false,
+			Error: ErrOAuthFailure.Error(),
+		})
+
+		return
 	}
 
 	handler(ctx)

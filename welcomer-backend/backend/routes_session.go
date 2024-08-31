@@ -6,9 +6,23 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
+
+// Send user to OAuth2 Authorize URL.
+func doDiscordOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
+	state := utils.RandStringBytesRmndr(StateStringLength)
+
+	SetStateSession(session, state)
+
+	if err := session.Save(); err != nil {
+		backend.Logger.Warn().Err(err).Msg("Failed to save session")
+	}
+
+	ctx.Redirect(http.StatusTemporaryRedirect, DiscordOAuth2Config.AuthCodeURL(state))
+}
 
 // Route GET /login
 func login(ctx *gin.Context) {
@@ -18,7 +32,7 @@ func login(ctx *gin.Context) {
 
 	SetPreviousPathSession(session, queryPath)
 
-	doOAuthAuthorize(session, ctx)
+	doDiscordOAuthAuthorize(session, ctx)
 }
 
 // Route GET /logout
@@ -40,16 +54,16 @@ func callback(ctx *gin.Context) {
 
 	sessionState, ok := GetStateSession(session)
 	if !ok || (sessionState != queryState) || queryCode == "" || queryState == "" {
-		doOAuthAuthorize(session, ctx)
+		doDiscordOAuthAuthorize(session, ctx)
 
 		return
 	}
 
-	token, err := OAuth2Config.Exchange(backend.ctx, queryCode)
+	token, err := DiscordOAuth2Config.Exchange(backend.ctx, queryCode)
 	if err != nil {
 		backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
-		doOAuthAuthorize(session, ctx)
+		doDiscordOAuthAuthorize(session, ctx)
 
 		return
 	}
@@ -58,11 +72,11 @@ func callback(ctx *gin.Context) {
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(backend.ctx, token.TokenType+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(backend.ctx, token.Type()+" "+token.AccessToken, httpInterface)
 
 	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(discordSession)
 	if err != nil || authorizationInformation == nil {
-		doOAuthAuthorize(session, ctx)
+		doDiscordOAuthAuthorize(session, ctx)
 
 		return
 	}
