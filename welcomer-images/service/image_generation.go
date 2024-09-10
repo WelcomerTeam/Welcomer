@@ -5,13 +5,17 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"runtime"
 	"sync"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/RealRock/limiter"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 )
+
+var lim = limiter.NewConcurrencyLimiter(runtime.NumCPU() / 2)
 
 // FullImage stores the image and any extra information.
 type FullImage struct {
@@ -144,6 +148,9 @@ func overlayFrames(themeResponse GenerateThemeResponse, background FullImage) []
 		wg.Add(1)
 
 		go func(frameNumber int, frame image.Image) {
+			ticket := lim.Wait()
+			defer lim.FreeTicket(ticket)
+
 			resizedFrame := image.NewRGBA(themeResponse.TargetImageSize)
 
 			// Draw resized background frame
