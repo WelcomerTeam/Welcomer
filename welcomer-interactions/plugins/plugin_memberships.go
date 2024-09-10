@@ -675,14 +675,6 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						}, nil
 					}
 
-					switch membership.MembershipStatus {
-					case database.MembershipStatusUnknown,
-						database.MembershipStatusIdle,
-						database.MembershipStatusActive,
-						database.MembershipStatusExpired,
-						database.MembershipStatusRefunded,
-						database.MembershipStatusRemoved:
-					}
 					queries := welcomer.GetQueriesFromContext(ctx)
 
 					membership, err := queries.GetUserMembership(ctx, membershipUuid)

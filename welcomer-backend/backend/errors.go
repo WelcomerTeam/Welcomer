@@ -11,10 +11,17 @@ var (
 	ErrMissingUser  = errors.New("missing user in session")
 
 	ErrMissingParameter = errors.New("missing parameter \"%s\" in request")
+	ErrInvalidParameter = errors.New("invalid parameter \"%s\" in request")
 	ErrWelcomerMissing  = errors.New("bot is missing from server")
 	ErrEnsureFailure    = errors.New("failed to ensure guild")
 
 	ErrOAuthFailure = errors.New("issue checking oauth2 token")
+
+	ErrMembershipAlreadyInUse = errors.New("membership is already in use")
+	ErrMembershipInvalid      = errors.New("membership is invalid")
+	ErrMembershipExpired      = errors.New("membership has expired")
+	ErrMembershipNotInUse     = errors.New("membership is not in use")
+	ErrUnhandledMembership    = errors.New("membership type is not handled")
 )
 
 // HTTP errors.
