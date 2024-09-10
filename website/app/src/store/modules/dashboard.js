@@ -63,7 +63,11 @@ const getters = {
   },
 
   getAssignableGuildRoles: (state) => {
-    return state.guildRoles.filter((role) => role.is_assignable)
+    var roles = state.guildRoles.filter((role) => role.id !== state.guild.id);
+    roles.sort((a, b) => a.position - b.position);
+    return roles;
+
+    // return state.guildRoles.filter((role) => role.is_assignable && role.id !== state.guild.id);
   },
 
   getGuildEmojis: (state) => {
