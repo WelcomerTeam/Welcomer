@@ -162,10 +162,10 @@ func postMembershipSubscribe(ctx *gin.Context) {
 			return
 		}
 
-		var guildID *discord.Snowflake
+		var guildID discord.Snowflake
 
 		if body.GuildID != nil {
-			guildID = discord.SnowflakeFromString(*body.GuildID)
+			guildID = discord.Snowflake(utils.TryParseInt(*body.GuildID))
 		}
 
 		rawMembershipID := ctx.Param(MembershipIDKey)
@@ -196,8 +196,8 @@ func postMembershipSubscribe(ctx *gin.Context) {
 				var err error
 				var newMembership database.UpdateUserMembershipParams
 
-				if guildID != nil {
-					newMembership, err = addMembershipToServer(ctx, *membership, *guildID)
+				if !guildID.IsNil() {
+					newMembership, err = addMembershipToServer(ctx, *membership, guildID)
 				} else {
 					newMembership, err = removeMembershipFromServer(ctx, *membership)
 				}
