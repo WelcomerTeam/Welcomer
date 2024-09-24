@@ -22,8 +22,8 @@ type getUserMembershipResponse struct {
 }
 
 type userAccount struct {
-	Identifier string                `json:"identifier"`
-	Platform   database.PlatformType `json:"platform"`
+	UserID   string                `json:"user_id"`
+	Platform database.PlatformType `json:"platform"`
 
 	Name      string `json:"name"`
 	Thumbnail string `json:"thumb_url"`
@@ -37,15 +37,16 @@ type userAccount struct {
 
 type userMembership struct {
 	MembershipUUID   uuid.UUID                 `json:"membership_uuid"`
-	GuildID          int64                     `json:"guild_id"`
+	GuildID          discord.Snowflake         `json:"guild_id"`
 	GuildName        string                    `json:"guild_name"`
+	GuildIcon        string                    `json:"guild_icon"`
 	ExpiresAt        time.Time                 `json:"expires_at"`
 	MembershipStatus database.MembershipStatus `json:"membership_status"`
 	MembershipType   database.MembershipType   `json:"membership_type"`
 }
 
 func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
-	var accounts []userAccount
+	accounts := make([]userAccount, 0)
 
 	// Patreon
 
@@ -57,7 +58,7 @@ func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
 
 	for _, patreonAccount := range patreonAccounts {
 		accounts = append(accounts, userAccount{
-			Identifier: utils.Itoa(patreonAccount.PatreonUserID),
+			UserID:     utils.Itoa(patreonAccount.PatreonUserID),
 			Platform:   database.PlatformTypePatreon,
 			Name:       patreonAccount.FullName,
 			Thumbnail:  patreonAccount.ThumbUrl,
@@ -74,7 +75,7 @@ func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
 // Route GET /api/memberships
 func getMemberships(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
-		var userMemberships []userMembership
+		userMemberships := make([]userMembership, 0)
 
 		userID := tryGetUser(ctx).ID
 
@@ -115,21 +116,44 @@ func getMemberships(ctx *gin.Context) {
 		}
 
 		for _, membership := range memberships {
-			var guildName string
+			membershipStatus := database.MembershipStatus(membership.Status)
+			if !membershipStatus.IsValid() {
+				continue
+			}
 
-			if guild, ok := guilds[membership.GuildID]; ok {
+			switch membershipStatus {
+			case database.MembershipStatusUnknown,
+				database.MembershipStatusRefunded:
+				continue
+			}
+
+			membershipType := database.MembershipType(membership.MembershipType)
+			if !membershipType.IsValid() {
+				continue
+			}
+
+			var guildName string
+			var guildIcon string
+
+			if membership.GuildID == 0 {
+				guildName = ""
+				guildIcon = ""
+			} else if guild, ok := guilds[membership.GuildID]; ok {
 				guildName = guild.Name
+				guildIcon = guild.Icon
 			} else {
 				guildName = fmt.Sprintf("Unknown Guild %d", membership.GuildID)
+				guildIcon = ""
 			}
 
 			userMemberships = append(userMemberships, userMembership{
 				MembershipUUID:   membership.MembershipUuid,
-				GuildID:          membership.GuildID,
+				GuildID:          discord.Snowflake(membership.GuildID),
 				GuildName:        guildName,
+				GuildIcon:        guildIcon,
 				ExpiresAt:        membership.ExpiresAt,
-				MembershipStatus: database.MembershipStatus(membership.Status),
-				MembershipType:   database.MembershipType(membership.MembershipType),
+				MembershipStatus: membershipStatus,
+				MembershipType:   membershipType,
 			})
 		}
 
@@ -222,9 +246,15 @@ func postMembershipSubscribe(ctx *gin.Context) {
 }
 
 func addMembershipToServer(ctx context.Context, membership database.GetUserMembershipsByUserIDRow, guildID discord.Snowflake) (newMembership database.UpdateUserMembershipParams, err error) {
-	if membership.GuildID != 0 {
-		return database.UpdateUserMembershipParams{}, ErrMembershipAlreadyInUse
-	}
+	// if membership.GuildID != 0 {
+	// 	backend.Logger.Error().
+	// 		Str("membership_uuid", membership.MembershipUuid.String()).
+	// 		Int64("guild_id", membership.GuildID).
+	// 		Int64("new_guild_id", int64(guildID)).
+	// 		Msg("Membership is already in use")
+
+	// 	return database.UpdateUserMembershipParams{}, ErrMembershipAlreadyInUse
+	// }
 
 	switch database.MembershipStatus(membership.Status) {
 	case database.MembershipStatusUnknown,
@@ -245,7 +275,6 @@ func addMembershipToServer(ctx context.Context, membership database.GetUserMembe
 			return database.UpdateUserMembershipParams{}, utils.ErrTransactionNotComplete
 		}
 
-		membership.UpdatedAt = time.Now()
 		membership.Status = int32(database.MembershipStatusActive)
 		membership.GuildID = int64(guildID)
 
@@ -283,6 +312,11 @@ func addMembershipToServer(ctx context.Context, membership database.GetUserMembe
 
 		return newMembership, nil
 	default:
+		backend.Logger.Error().
+			Str("membership_uuid", membership.MembershipUuid.String()).
+			Int32("status", membership.Status).
+			Msg("Unhandled membership status")
+
 		return database.UpdateUserMembershipParams{}, ErrUnhandledMembership
 	}
 }
@@ -291,8 +325,6 @@ func removeMembershipFromServer(ctx context.Context, membership database.GetUser
 	if membership.GuildID == 0 {
 		return database.UpdateUserMembershipParams{}, ErrMembershipNotInUse
 	}
-
-	membership.UpdatedAt = time.Now()
 
 	// Only set the status to Idle if the membership is currently Active.
 	membership.Status = utils.If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
@@ -322,5 +354,5 @@ func removeMembershipFromServer(ctx context.Context, membership database.GetUser
 
 func registerMembershipsRoutes(r *gin.Engine) {
 	r.GET("/api/memberships", getMemberships)
-	r.POST("/api/membership/:membershipID/subscribe", postMembershipSubscribe)
+	r.POST("/api/memberships/:membershipID/subscribe", postMembershipSubscribe)
 }
