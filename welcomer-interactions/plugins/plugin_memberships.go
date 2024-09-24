@@ -106,7 +106,9 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 	for _, membership := range memberships {
 		var guildName string
 
-		if guild, ok := guilds[membership.GuildID]; ok {
+		if membership.GuildID == 0 {
+			guildName = ""
+		} else if guild, ok := guilds[membership.GuildID]; ok {
 			guildName = guild.Name
 		} else {
 			guildName = fmt.Sprintf("Unknown Guild %d", membership.GuildID)
@@ -359,7 +361,9 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				}
 			}
 
-			if guild.Name == "" {
+			if guild.ID.IsNil() {
+				guild.Name = ""
+			} else if guild.Name == "" {
 				guild.Name = fmt.Sprintf("Unknown Guild `%d`", guild.ID)
 			}
 
