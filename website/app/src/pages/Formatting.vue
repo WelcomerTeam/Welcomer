@@ -55,7 +55,7 @@
       </div>
 
       <div>
-        <div class="bg-donate">
+        <div class="bg-primary">
           <div class="hero-features">
             <p class="text-3xl font-bold text-left text-white tracking-tight">
               Examples

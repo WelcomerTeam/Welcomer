@@ -35,7 +35,7 @@
       </div>
 
       <div>
-        <div class="bg-donate">
+        <div class="bg-primary">
           <div class="hero-features">
             <div class="mx-4 my-12 lg:grid lg:grid-cols-3 lg:gap-8">
               Hello World

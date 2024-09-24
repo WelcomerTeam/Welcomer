@@ -147,7 +147,7 @@
                 </p>
               </div>
             </div>
-            <div v-else class="border-donate border-2 p-4 grid grid-cols-6 gap-4">
+            <div v-else class="border-primary border-2 p-4 grid grid-cols-6 gap-4">
               <div class="col-span-6 items-center grid">
                 <span class="font-bold leading-6">Looking for more?</span>
                 With Welcomer Pro, you can unlock custom backgrounds on your server. You can upload PNG, JPG and even

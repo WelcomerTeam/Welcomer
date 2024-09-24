@@ -5,7 +5,7 @@
     <main>
       <div id="overview" class="relative bg-secondary">
         <div class="absolute inset-0" aria-hidden="true">
-          <div class="absolute inset-y-0 right-0 w-1/2 bg-donate" />
+          <div class="absolute inset-y-0 right-0 w-1/2 bg-primary" />
         </div>
         <div class="relative mx-auto max-w-7xl lg:px-6 lg:grid lg:grid-cols-2">
           <div class="px-6 pt-6 pb-12 bg-secondary lg:pt-12 lg:px-0 lg:pr-6">
@@ -38,7 +38,7 @@
               </div>
             </div>
           </div>
-          <div class="px-4 py-12 bg-donate sm:px-6 lg:bg-none lg:px-0 lg:pl-8 lg:flex lg:items-center lg:justify-end">
+          <div class="px-4 py-12 bg-primary sm:px-6 lg:bg-none lg:px-0 lg:pl-8 lg:flex lg:items-center lg:justify-end">
             <div class="w-full lg:max-w-lg mx-auto space-y-8 lg:mx-0">
               <div>
                 <span class="sr-only">Price</span>
@@ -50,7 +50,7 @@
                   </span>
                 </p>
               </div>
-              <ul class="grid gap-0.5 overflow-hidden rounded sm:grid-cols-2">
+              <ul class="grid gap-0.5 rounded sm:grid-cols-2">
                 <li v-for="item in checklist" :key="item"
                   class="flex items-center px-4 py-4 space-x-3 text-base text-white bg-opacity-50">
                   <CheckIcon class="w-6 h-6 text-white" aria-hidden="true" />
@@ -58,7 +58,7 @@
                 </li>
               </ul>
               <a href="#plans"
-                class="flex items-center justify-center w-full px-8 py-4 text-lg font-medium leading-6 bg-white border border-transparent rounded-md text-donate hover:text-donate-dark hover:bg-gray-200 md:px-10">
+                class="flex items-center justify-center w-full px-8 py-4 text-lg font-medium leading-6 bg-white border border-transparent rounded-md text-primary hover:text-primary-dark hover:bg-gray-200 md:px-10">
                 Get Welcomer Pro
               </a>
               <a href="#custom-backgrounds"
@@ -87,7 +87,7 @@
                   durationSelected === durationMonthly
                     ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
                     : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-donate focus:z-10 lg:w-auto lg:px-8',
+                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
                 ]">
                   Monthly
                 </button>
@@ -96,11 +96,11 @@
                   durationSelected === durationBiAnnually
                     ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
                     : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-donate focus:z-10 lg:w-auto lg:px-8',
+                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
                 ]">
                   Biannual
                   <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-donate text-white">
+                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
                     20% off
                   </span>
                 </button>
@@ -109,11 +109,11 @@
                   durationSelected === durationAnnually
                     ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
                     : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-donate focus:z-10 lg:w-auto lg:px-8',
+                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
                 ]">
                   Yearly
                   <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-donate text-white">
+                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
                     20% off
                   </span>
                 </button>
@@ -170,8 +170,7 @@
                 <router-link :to="{ name: 'invite' }"><button type="button" class="border-gray-300 hover:bg-gray-300 text-gray-900 border flex items-center justify-center px-5 py-3 mt-8 text-base font-medium rounded-md cursor-pointer w-full">Invite Welcomer</button></router-link>
               </div>
               <div class="-order-1 lg:order-1">
-                <div
-                  :class="['border-primary bg-primary text-white', 'border p-6 lg:p-12 rounded-lg shadow-sm h-fit']">
+                <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit">
                   <h3 class="text-2xl font-bold sm:text-3xl">
                     Welcomer Pro
                   </h3>
@@ -186,7 +185,7 @@
                   </p>
 
                   <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())"
-                    :class="['bg-donate-light hover:bg-donate-dark', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-white border border-transparent rounded-md cursor-pointer w-full']">
+                    :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">
                     <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />{{ durationSelected == durationPatreon ? 'Become a Patron' : 'Get Started' }}</button>
                 </div>
                 <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="mt-2 text-center">
@@ -208,7 +207,7 @@
           </div>
           <div class="pb-16 mt-8 bg-white sm:mt-12 sm:pb-20 lg:pb-28">
             <div class="relative">
-              <div class="mx-auto overflow-hidden border border-gray-300 rounded-lg shadow-sm lg:flex">
+              <div class="mx-auto border border-gray-300 rounded-lg shadow-sm lg:flex">
                 <div class="flex-1 px-6 py-8 my-auto bg-white lg:p-12">
                   <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">
                     Custom Welcomer Backgrounds
@@ -241,7 +240,7 @@
         </div>
       </div>
 
-      <div class="bg-donate" id="faqs">
+      <div class="bg-primary" id="faqs">
         <div class="hero-features">
           <div class="lg:grid lg:grid-cols-3 lg:gap-8">
             <div>

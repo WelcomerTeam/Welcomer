@@ -5,7 +5,7 @@
     <main>
       <div id="overview" class="relative bg-secondary">
         <div class="absolute inset-0" aria-hidden="true">
-          <div class="absolute inset-y-0 right-0 w-1/2 bg-donate" />
+          <div class="absolute inset-y-0 right-0 w-1/2 bg-primary" />
         </div>
         <div class="relative mx-auto max-w-7xl lg:px-6 lg:grid lg:grid-cols-2">
           <div class="px-6 py-12 bg-secondary sm:px-6 lg:px-0 lg:pr-8">
@@ -22,7 +22,7 @@
             </div>
           </div>
           <div
-            class="px-4 py-12 bg-donate sm:px-6 lg:bg-none lg:px-0 lg:pl-8 lg:flex lg:items-center lg:justify-end"
+            class="px-4 py-12 bg-primary sm:px-6 lg:bg-none lg:px-0 lg:pl-8 lg:flex lg:items-center lg:justify-end"
           >
             <div class="w-full lg:max-w-lg mx-auto space-y-8 lg:mx-0">B</div>
           </div>
@@ -53,7 +53,7 @@
       </div>
 
       <div>
-        <div class="bg-donate">
+        <div class="bg-primary">
           <div class="hero-features">
             <div class="mx-4 my-12 lg:grid lg:grid-cols-3 lg:gap-8">
               Hello World

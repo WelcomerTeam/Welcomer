@@ -40,7 +40,6 @@ import { helpers, requiredIf } from "@vuelidate/validators";
 import {
   FormTypeBlank,
   FormTypeToggle,
-  FormTypeRoleList,
 } from "@/components/dashboard/FormValueEnum";
 
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
@@ -94,7 +93,6 @@ export default {
     return {
       FormTypeBlank,
       FormTypeToggle,
-      FormTypeRoleList,
 
       isDataFetched,
       isDataError,

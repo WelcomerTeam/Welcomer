@@ -41,7 +41,6 @@ import { helpers, requiredIf } from "@vuelidate/validators";
 import {
   FormTypeBlank,
   FormTypeToggle,
-  FormTypeRoleList,
 } from "@/components/dashboard/FormValueEnum";
 
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
@@ -97,7 +96,6 @@ export default {
     return {
       FormTypeBlank,
       FormTypeToggle,
-      FormTypeRoleList,
 
       isDataFetched,
       isDataError,

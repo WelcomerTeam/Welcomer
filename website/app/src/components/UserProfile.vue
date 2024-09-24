@@ -44,7 +44,7 @@
                   <div
                     class="gap-6 px-5 py-6 relative rounded-lg sm:gap-8 sm:p-6 group bg-primary text-white rounded-b-none grid grid-cols-4">
                     <!-- class="gap-6 px-5 py-6 relative rounded-lg sm:gap-8 sm:p-6 group bg-primary hover:bg-primary-dark text-white rounded-b-none grid grid-cols-4"> -->
-                    <img class="object-cover col-span-1 aspect-square" :src="`https://cdn.discordapp.com/avatars/${$store.getters.getCurrentUser.id
+                    <img class="object-cover col-span-1 aspect-square w-16 h-16" :src="`https://cdn.discordapp.com/avatars/${$store.getters.getCurrentUser.id
                       }/${$store.getters.getCurrentUser.avatar}.${$store.getters.getCurrentUser.avatar.startsWith('a_')
                         ? 'gif'
                         : 'webp'

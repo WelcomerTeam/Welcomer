@@ -1,4 +1,4 @@
-FROM golang:1.22 AS build_base
+FROM golang:1.23 AS build_base
 COPY . /tmp
 WORKDIR /tmp/welcomer-backend
 RUN cd /tmp/welcomer-backend

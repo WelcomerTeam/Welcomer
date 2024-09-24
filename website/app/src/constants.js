@@ -18,6 +18,10 @@ export const OpenBotInvite = (bot_id, guild_id, callback) => {
     TryOpenURLInPopup(GetBotInvite(bot_id, guild_id), callback)
 }
 
+export const OpenPatreonLink = (callback) => {
+    TryOpenURLInPopup("/patreon_link", callback)
+}
+
 export const TryOpenURLInPopup = (url, callback) => {
     const padding = 64
 

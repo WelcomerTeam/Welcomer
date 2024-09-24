@@ -1,4 +1,4 @@
-import { doLogin, getRequest } from "./routes";
+import { doLogin, doRequest, getRequest } from "./routes";
 
 export default {
   getUser(callback, errorCallback) {
@@ -66,4 +66,63 @@ export default {
       }
     );
   },
+
+  getMemberships(callback, errorCallback) {
+    getRequest(
+      "/api/memberships",
+      (response) => {
+        if (response.status === 401) {
+          doLogin();
+        } else {
+          response
+            .json()
+            .then((res) => {
+              if (res.ok) {
+                callback(res.data);
+              } else {
+                errorCallback(res.error);
+              }
+            })
+            .catch((error) => {
+              errorCallback(error);
+            });
+        }
+      },
+      (error) => {
+        errorCallback(error);
+      }
+    )
+  },
+
+  assignMembership(membershipID, guildID, callback, errorCallback) {
+    doRequest(
+      "POST",
+      `/api/memberships/${membershipID}/subscribe`,
+      {
+        guild_id: guildID,
+      },
+      null,
+      (response) => {
+        if (response.status === 401) {
+          doLogin();
+        } else {
+          response
+            .json()
+            .then((res) => {
+              if (res.ok) {
+                callback(res.data);
+              } else {
+                errorCallback(res.error);
+              }
+            })
+            .catch((error) => {
+              errorCallback(error);
+            });
+        }
+      },
+      (error) => {
+        errorCallback(error);
+      }
+    );
+  }
 };
