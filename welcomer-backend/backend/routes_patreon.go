@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -152,12 +151,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			// TODO: Handle tier change
 		}
 
-		queryPath, ok := GetPreviousPathSession(session)
-		if !ok || !strings.HasPrefix(queryPath, "/") {
-			queryPath = "/"
-		}
-
-		ctx.Redirect(http.StatusTemporaryRedirect, queryPath)
+		ctx.Data(http.StatusOK, "text/html", []byte("Your patreon account has been linked. You may now close this window.<script>setTimeout(function(){window.close()},3000)</script>"))
 	})
 }
 
