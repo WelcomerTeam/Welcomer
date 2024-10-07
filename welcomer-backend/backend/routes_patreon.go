@@ -38,10 +38,6 @@ func getPatreonLink(ctx *gin.Context) {
 
 	session := sessions.Default(ctx)
 
-	queryPath := ctx.Query("path")
-
-	SetPreviousPathSession(session, queryPath)
-
 	doPatreonOAuthAuthorize(session, ctx)
 }
 

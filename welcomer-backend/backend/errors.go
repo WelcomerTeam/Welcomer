@@ -16,12 +16,6 @@ var (
 	ErrEnsureFailure    = errors.New("failed to ensure guild")
 
 	ErrOAuthFailure = errors.New("issue checking oauth2 token")
-
-	ErrMembershipAlreadyInUse = errors.New("membership is already in use")
-	ErrMembershipInvalid      = errors.New("membership is invalid")
-	ErrMembershipExpired      = errors.New("membership has expired")
-	ErrMembershipNotInUse     = errors.New("membership is not in use")
-	ErrUnhandledMembership    = errors.New("membership type is not handled")
 )
 
 // HTTP errors.

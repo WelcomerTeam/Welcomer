@@ -11,7 +11,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
@@ -248,7 +248,7 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		data, err := json.Marshal(core.CustomEventInvokeWelcomerStructure{
+		data, err := json.Marshal(welcomer.CustomEventInvokeWelcomerStructure{
 			Member: discord.GuildMember{
 				User: &discord.User{
 					ID:            user.ID,
@@ -272,7 +272,7 @@ func setBorderwall(ctx *gin.Context) {
 
 		_, err = backend.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
 			Manager: managers[0],
-			Type:    core.CustomEventInvokeBorderwallCompletion,
+			Type:    welcomer.CustomEventInvokeBorderwallCompletion,
 			Data:    data,
 		})
 		if err != nil {
