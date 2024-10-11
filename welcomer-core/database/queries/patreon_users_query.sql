@@ -1,12 +1,12 @@
 -- name: CreatePatreonUser :one
-INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id)
-    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id, last_charge_status, patron_status)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING
     *;
 
 -- name: CreateOrUpdatePatreonUser :one
-INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id)
-    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id, last_charge_status, patron_status)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8, $9, $10)
 ON CONFLICT(patreon_user_id) DO UPDATE
     SET updated_at = EXCLUDED.updated_at,
         user_id = EXCLUDED.user_id,
@@ -15,9 +15,17 @@ ON CONFLICT(patreon_user_id) DO UPDATE
         thumb_url = EXCLUDED.thumb_url,
         pledge_created_at = EXCLUDED.pledge_created_at,
         pledge_ended_at = EXCLUDED.pledge_ended_at,
-        tier_id = EXCLUDED.tier_id
+        tier_id = EXCLUDED.tier_id,
+        last_charge_status = EXCLUDED.last_charge_status,
+        patron_status = EXCLUDED.patron_status
 RETURNING
     *;
+
+-- name: GetPatreonUsers :many
+SELECT
+    *
+FROM
+    patreon_users;
 
 -- name: GetPatreonUser :one
 SELECT
@@ -46,7 +54,9 @@ SET
     thumb_url = $5,
     pledge_created_at = $6,
     pledge_ended_at = $7,
-    tier_id = $8
+    tier_id = $8,
+    last_charge_status = $9,
+    patron_status = $10
 WHERE
     patreon_user_id = $1;
 
