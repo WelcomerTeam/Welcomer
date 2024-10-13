@@ -171,14 +171,16 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		// Create a user transaction.
-		userTransaction, err := backend.Database.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
-			UserID:            int64(user.ID),
-			PlatformType:      int32(database.PlatformTypePaypal),
-			TransactionID:     "",
-			TransactionStatus: int32(database.TransactionStatusPending),
-			CurrencyCode:      money.Currency,
-			Amount:            money.Value,
-		})
+		userTransaction, err := welcomer.CreateTransactionForUser(
+			backend.ctx,
+			backend.Database,
+			user.ID,
+			database.PlatformTypePaypal,
+			database.TransactionStatusPending,
+			"",
+			money.Currency,
+			money.Value,
+		)
 		if err != nil {
 			backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
 
@@ -423,14 +425,16 @@ func paymentCallback(ctx *gin.Context) {
 				backend.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
 
 				// Create a user transaction.
-				_, err = queries.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
-					UserID:            int64(user.ID),
-					PlatformType:      int32(database.PlatformTypePaypal),
-					TransactionID:     authorizeResponse.ID,
-					TransactionStatus: int32(database.TransactionStatusPending),
-					CurrencyCode:      transaction.CurrencyCode,
-					Amount:            transaction.Amount,
-				})
+				_, err = welcomer.CreateTransactionForUser(
+					backend.ctx,
+					queries,
+					user.ID,
+					database.PlatformTypePaypal,
+					database.TransactionStatusPending,
+					authorizeResponse.ID,
+					transaction.CurrencyCode,
+					transaction.Amount,
+				)
 				if err != nil {
 					backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
 				}
@@ -443,14 +447,16 @@ func paymentCallback(ctx *gin.Context) {
 			}
 
 			// Create a user transaction.
-			userTransaction, err := queries.CreateUserTransaction(backend.ctx, database.CreateUserTransactionParams{
-				UserID:            int64(user.ID),
-				PlatformType:      int32(database.PlatformTypePaypal),
-				TransactionID:     authorizeResponse.ID,
-				TransactionStatus: int32(database.TransactionStatusCompleted),
-				CurrencyCode:      order.PurchaseUnits[0].Amount.Currency,
-				Amount:            order.PurchaseUnits[0].Amount.Value,
-			})
+			userTransaction, err := welcomer.CreateTransactionForUser(
+				backend.ctx,
+				queries,
+				user.ID,
+				database.PlatformTypePaypal,
+				database.TransactionStatusCompleted,
+				authorizeResponse.ID,
+				transaction.CurrencyCode,
+				transaction.Amount,
+			)
 			if err != nil {
 				backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
 
@@ -466,15 +472,15 @@ func paymentCallback(ctx *gin.Context) {
 			expiresAt := startedAt.AddDate(0, utils.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
 
 			// Create a new membership for the user.
-			_, err = queries.CreateNewMembership(backend.ctx, database.CreateNewMembershipParams{
-				StartedAt:       startedAt,
-				ExpiresAt:       expiresAt,
-				Status:          int32(database.MembershipStatusIdle),
-				MembershipType:  int32(sku.MembershipType),
-				TransactionUuid: userTransaction.TransactionUuid,
-				UserID:          int64(user.ID),
-				GuildID:         0,
-			})
+			err = welcomer.CreateMembershipForUser(
+				backend.ctx,
+				queries,
+				user.ID,
+				userTransaction.TransactionUuid,
+				sku.MembershipType,
+				expiresAt,
+				nil,
+			)
 			if err != nil {
 				backend.Logger.Error().Err(err).Msg("Failed to create new membership")
 

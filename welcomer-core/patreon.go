@@ -1,9 +1,13 @@
 package welcomer
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
@@ -14,24 +18,101 @@ const (
 	CampaignID  = "1150593"
 )
 
+var null = []byte("null")
+
+type PatreonTier int64
+
+const (
+	PatreonTierFree PatreonTier = 10503463
+
+	PatreonTierUnpublishedWelcomerDonator PatreonTier = 3975266
+	PatreonTierUnpublishedWelcomerPro1    PatreonTier = 3744919
+	PatreonTierUnpublishedWelcomerPro3    PatreonTier = 3744921
+	PatreonTierUnpublishedWelcomerPro5    PatreonTier = 3744926
+
+	PatreonTierWelcomerPro PatreonTier = 23606682
+)
+
+func (s *PatreonTier) UnmarshalJSON(b []byte) error {
+	if !bytes.Equal(b, null) {
+		i, err := strconv.ParseInt(string(b[1:len(b)-1]), 10, 64)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal json: %v", err)
+		}
+
+		*s = PatreonTier(i)
+	} else {
+		*s = 0
+	}
+
+	return nil
+}
+
 type PatreonMember struct {
-	PatreonUserID discord.Snowflake   `json:"patreon_user_id"`
-	EntitledTiers []discord.Snowflake `json:"active_tier"`
+	PatreonUserID discord.Snowflake `json:"patreon_user_id"`
+	EntitledTiers []PatreonTier     `json:"active_tier"`
+	Attributes    Attributes        `json:"attributes"`
 }
 
 type GetPatreonMembersResponse struct {
 	Data []struct {
+		Attributes    Attributes    `json:"attributes"`
 		Relationships Relationships `json:"relationships"`
 	} `json:"data"`
+	Included []struct {
+		Attributes Attributes        `json:"attributes"`
+		ID         discord.Snowflake `json:"id"`
+		Type       string            `json:"type"`
+	}
 	Links struct {
 		Next string `json:"next"`
 	} `json:"links"`
 }
 
+type Attributes struct {
+	CurrentlyEntitledAmountCents int64                   `json:"currently_entitled_amount_cents"`
+	Email                        string                  `json:"email"`
+	FullName                     string                  `json:"full_name"`
+	ThumbUrl                     string                  `json:"thumb_url"`
+	IsFollower                   bool                    `json:"is_follower"`
+	LastChargeDate               time.Time               `json:"last_charge_date"`
+	LastChargeStatus             LastChargeStatus        `json:"last_charge_status"`
+	LifetimeSupportCents         int64                   `json:"lifetime_support_cents"`
+	PatronStatus                 PatronStatus            `json:"patron_status"`
+	SocialConnections            PatronSocialConnections `json:"social_connections"`
+}
+
+type PatronSocialConnections struct {
+	Discord struct {
+		UserID discord.Snowflake `json:"user_id"`
+	} `json:"discord"`
+}
+
+type LastChargeStatus string
+
+const (
+	LastChargeStatusDeclined LastChargeStatus = "Declined"
+	LastChargeStatusPaid     LastChargeStatus = "Paid"
+	LastChargeStatusDeleted  LastChargeStatus = "Deleted"
+	LastChargeStatusPending  LastChargeStatus = "Pending"
+	LastChargeStatusRefunded LastChargeStatus = "Refunded"
+	LastChargeStatusFraud    LastChargeStatus = "Fraud"
+	LastChargeStatusOther    LastChargeStatus = "Other"
+)
+
+type PatronStatus string
+
+const (
+	PatreonStatusNeverPledged PatronStatus = ""
+	PatreonStatusActive       PatronStatus = "active_patron"
+	PatreonStatusDeclined     PatronStatus = "declined_patron"
+	PatreonStatusFormer       PatronStatus = "former_patron"
+)
+
 type Relationships struct {
 	CurrentlyEntitledTiers struct {
 		Data []struct {
-			ID discord.Snowflake `json:"id"`
+			ID PatreonTier `json:"id"`
 		} `json:"data"`
 	} `json:"currently_entitled_tiers"`
 	User struct {
@@ -77,7 +158,7 @@ type PatreonUser_Discord struct {
 func IdentifyPatreonMember(ctx context.Context, token string) (PatreonUser, error) {
 	req, err := http.NewRequest(
 		http.MethodGet,
-		PatreonBase+"identity?fields%5Buser%5D=email,full_name,social_connections,thumb_url",
+		PatreonBase+"identity?fields[user]=email,full_name,social_connections,thumb_url",
 		nil,
 	)
 	if err != nil {
@@ -109,16 +190,23 @@ func IdentifyPatreonMember(ctx context.Context, token string) (PatreonUser, erro
 	}, nil
 }
 
-func GetAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, u string) ([]PatreonMember, error) {
+func GetAllPatreonMembers(ctx context.Context, token string) ([]PatreonMember, error) {
+	return getAllPatreonMembers(ctx, token, nil, "")
+}
+
+func getAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, u string) ([]PatreonMember, error) {
 	if l == nil {
 		l = []PatreonMember{}
 	}
 
+	u = utils.If(u != "", u, PatreonBase+"campaigns/"+CampaignID+"/members?fields[member]=patron_status,email,pledge_relationship_start,currently_entitled_amount_cents,last_charge_status,last_charge_date,pledge_relationship_start&fields[user]=social_connections,full_name,thumb_url&include=user,currently_entitled_tiers&page[size]=100")
+
 	req, err := http.NewRequest(
 		http.MethodGet,
-		utils.If(u != "", u, PatreonBase+"campaigns/"+CampaignID+"/members?fields=%5Buser%5D%3Dsocial_connections&include=user%2Ccurrently_entitled_tiers&page%5Bsize%5D=1000"),
+		u,
 		nil,
 	)
+
 	if err != nil {
 		return l, err
 	}
@@ -133,6 +221,10 @@ func GetAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, 
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode >= 400 {
+		return l, fmt.Errorf("received status code %d", resp.StatusCode)
+	}
+
 	var response GetPatreonMembersResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
@@ -140,20 +232,28 @@ func GetAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, 
 	}
 
 	for _, member := range response.Data {
-		var entitledTiers []discord.Snowflake
+		var entitledTiers []PatreonTier
 
 		for _, tier := range member.Relationships.CurrentlyEntitledTiers.Data {
 			entitledTiers = append(entitledTiers, tier.ID)
 		}
 
+		for _, inc := range response.Included {
+			if inc.ID == member.Relationships.User.Data.ID && inc.Type == "user" {
+				member.Attributes.FullName = inc.Attributes.FullName
+				member.Attributes.SocialConnections.Discord.UserID = inc.Attributes.SocialConnections.Discord.UserID
+			}
+		}
+
 		l = append(l, PatreonMember{
 			PatreonUserID: member.Relationships.User.Data.ID,
+			Attributes:    member.Attributes,
 			EntitledTiers: entitledTiers,
 		})
 	}
 
-	if response.Links.Next != "" {
-		l, err = GetAllPatreonMembers(ctx, token, l, response.Links.Next)
+	if response.Links.Next != "" && response.Links.Next != u {
+		l, err = getAllPatreonMembers(ctx, token, l, response.Links.Next)
 	}
 
 	return l, err

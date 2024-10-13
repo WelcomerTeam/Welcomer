@@ -34,6 +34,16 @@ const (
 	UserAgent = "WelcomerService (https://github.com/WelcomerTeam/Welcomer)"
 )
 
+func Coalesce(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+
+	return ""
+}
+
 func Itoa(v int64) string {
 	return strconv.FormatInt(v, int64Base)
 }

@@ -74,7 +74,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		patreonUsers, err := core.GetAllPatreonMembers(ctx, token.Type()+" "+token.AccessToken, nil, "")
+		patreonUsers, err := core.GetAllPatreonMembers(ctx, token.Type()+" "+token.AccessToken)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to get all patreon members")
 
@@ -124,7 +124,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			}
 		}
 
-		_, err = backend.Database.CreateOrUpdatePatreonUser(ctx, database.CreateOrUpdatePatreonUserParams{
+		newPatreonUser := database.CreateOrUpdatePatreonUserParams{
 			PatreonUserID:   int64(patreonUser.ID),
 			UserID:          int64(user.ID),
 			FullName:        patreonUser.FullName,
@@ -133,7 +133,9 @@ func getPatreonCallback(ctx *gin.Context) {
 			PledgeCreatedAt: pledgeCreatedAt,
 			PledgeEndedAt:   pledgeEndedAt,
 			TierID:          tierID,
-		})
+		}
+
+		_, err = backend.Database.CreateOrUpdatePatreonUser(ctx, newPatreonUser)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to create or update patreon user")
 
@@ -142,9 +144,21 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
+		err = core.OnPatreonLinked(ctx, backend.Logger, backend.Database, patreonUser, false)
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon linked")
+		}
+
 		if tierID != databasePatreonUser.TierID {
-			println(user.ID, "tier changed from", databasePatreonUser.TierID, "to", tierID)
-			// TODO: Handle tier change
+			err = core.OnPatreonTierChanged(ctx, backend.Logger, backend.Database, databasePatreonUser, newPatreonUser)
+			if err != nil {
+				backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed")
+
+				err = core.OnPatreonTierChanged_Fallback(ctx, backend.Logger, backend.Database, databasePatreonUser, newPatreonUser, err)
+				if err != nil {
+					backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed fallback")
+				}
+			}
 		}
 
 		ctx.Data(http.StatusOK, "text/html", []byte("Your patreon account has been linked. You may now close this window.<script>setTimeout(function(){window.close()},3000)</script>"))
@@ -167,6 +181,17 @@ func deletePatreonLink(ctx *gin.Context) {
 			return
 		}
 
+		rec, err := backend.Database.GetPatreonUser(ctx, int64(patreonIDInt))
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to get patreon user")
+
+			ctx.JSON(http.StatusInternalServerError, BaseResponse{
+				Ok: false,
+			})
+
+			return
+		}
+
 		_, err = backend.Database.DeletePatreonUser(ctx, database.DeletePatreonUserParams{
 			PatreonUserID: int64(patreonIDInt),
 			UserID:        int64(tryGetUser(ctx).ID),
@@ -179,6 +204,11 @@ func deletePatreonLink(ctx *gin.Context) {
 			})
 
 			return
+		}
+
+		err = core.OnPatreonUnlinked(ctx, backend.Logger, backend.Database, rec)
+		if err != nil {
+			backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon unlinked")
 		}
 
 		ctx.JSON(http.StatusOK, BaseResponse{
