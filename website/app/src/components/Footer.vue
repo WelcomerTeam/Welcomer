@@ -1,6 +1,6 @@
 <template>
   <footer class="bg-secondary-dark">
-    <div class="lg:px-6 max-w-7xl mx-auto overflow-hidden px-4 py-8 sm:px-6">
+    <div class="lg:px-6 max-w-7xl mx-auto px-4 py-8 sm:px-6">
       <nav class="-mx-5 -my-2 flex flex-wrap" aria-label="Footer">
         <span class="px-5 py-2 text-xl font-bold text-white"> Welcomer </span>
         <div class="flex">

@@ -11,7 +11,5 @@ var (
 	ErrMissingChannel         = fmt.Errorf("missing channel")
 	ErrMissingApplicationUser = fmt.Errorf("missing application user")
 
-	ErrTransactionNotComplete = fmt.Errorf("transaction not completed")
-
 	ErrInvalidTempChannel = fmt.Errorf("channel is not a temporary channel")
 )

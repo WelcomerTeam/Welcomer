@@ -34,13 +34,15 @@
               <tbody>
                 <template v-for="formattingTag in formattingTags" :key="formattingTag.name">
                   <tr class="border-t border-gray-200">
-                    <th colspan="5" scope="colgroup"
-                      class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{
-                        formattingTag.name }}</th>
+                    <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{ formattingTag.name }}</th>
                   </tr>
                   <tr v-for="(value, id) in formattingTag.values" :key="value.name"
                     :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
-                    <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3"><code>{{ value.name }}</code>
+                    <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3">
+                      <code class="cursor-copy group relative whitespace-nowrap" @click="copyTag(value)">
+                        {{ value.name }}
+                        <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400 absolute -left-6 group-hover:visible invisible" aria-hidden="true" />
+                      </code>
                     </td>
                     <td class="px-3 py-4 text-sm" v-html="marked(value.description, true)"></td>
                     <td class="px-3 py-4 text-sm break-all" v-html="marked(value.example, true)"></td>
@@ -53,7 +55,7 @@
       </div>
 
       <div>
-        <div class="bg-donate">
+        <div class="bg-primary">
           <div class="hero-features">
             <p class="text-3xl font-bold text-left text-white tracking-tight">
               Examples
@@ -81,6 +83,8 @@
       </div>
     </main>
 
+    <Toast />
+
     <Footer />
   </div>
 </template>
@@ -94,6 +98,7 @@ code {
 <script>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
+import Toast from "@/components/dashboard/Toast.vue";
 
 import { toHTML } from "@/components/discord-markdown";
 
@@ -126,6 +131,20 @@ const formattingTags = [
     ]
   },
   {
+    name: "Invite",
+    values: [
+      { name: "{{Invite.Code}}", description: "The code of the invite", example: "UyUVCEcBU9" },
+      { name: "{{Invite.Uses}}", description: "The number of times the invite has been used", example: "2724" },
+      { name: "{{Invite.Inviter}}", description: "The user who created the invite", example: "Welcomer#5491" },
+      { name: "{{Invite.ChannelID}}", description: "The ID of the channel the invite is for", example: "1234567890" },
+      { name: "{{Invite.CreatedAt}}", description: "The creation date of the invite", example: "`3 months ago`" },
+      { name: "{{Invite.ExpiresAt}}", description: "The expiration date of the invite", example: "`in 5 days`" },
+      { name: "{{Invite.MaxAge}}", description: "The maximum age of the invite in seconds", example: "86400" },
+      { name: "{{Invite.MaxUses}}", description: "The maximum number of times the invite can be used", example: "10000" },
+      { name: "{{Invite.Temporary}}", description: "Boolean to indicate if the invite is temporary", example: "false" }
+    ]
+  },
+  {
     name: "Functions",
     values: [
       { name: "{{Ordinal(int)}}", description: "Returns the ordinal (st, nd, rd, th) for an integer passed in. You can do `{{Ordinal(Guild.Members)}}` to display the member count.", example: "7600th" },
@@ -142,6 +161,7 @@ export default {
   components: {
     Header,
     Footer,
+    Toast,
   },
   setup() {
     return {
@@ -183,6 +203,16 @@ export default {
       }
       return "";
     },
+
+    copyTag(formattingTag) {
+      navigator.clipboard.writeText(formattingTag.name);
+
+      this.$store.dispatch("createToast", {
+            title: "Copied to clipboard",
+            icon: "info",
+            class: "text-blue-500 bg-blue-100",
+          });
+    }
   }
 };
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen overflow-hidden bg-gray-100">
+  <div class="flex min-h-screen bg-gray-100">
     <TransitionRoot as="template" :show="$props.sidebarOpen">
       <Dialog as="div" static class="fixed inset-0 z-40 flex lg:hidden" @close="this.$emit('closeSidebar')"
         :open="$props.sidebarOpen">

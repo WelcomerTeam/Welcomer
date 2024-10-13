@@ -11,6 +11,7 @@ var (
 	ErrMissingUser  = errors.New("missing user in session")
 
 	ErrMissingParameter = errors.New("missing parameter \"%s\" in request")
+	ErrInvalidParameter = errors.New("invalid parameter \"%s\" in request")
 	ErrWelcomerMissing  = errors.New("bot is missing from server")
 	ErrEnsureFailure    = errors.New("failed to ensure guild")
 

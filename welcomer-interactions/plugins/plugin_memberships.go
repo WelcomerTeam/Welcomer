@@ -106,7 +106,9 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 	for _, membership := range memberships {
 		var guildName string
 
-		if guild, ok := guilds[membership.GuildID]; ok {
+		if membership.GuildID == 0 {
+			guildName = ""
+		} else if guild, ok := guilds[membership.GuildID]; ok {
 			guildName = guild.Name
 		} else {
 			guildName = fmt.Sprintf("Unknown Guild %d", membership.GuildID)
@@ -359,7 +361,9 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				}
 			}
 
-			if guild.Name == "" {
+			if guild.ID.IsNil() {
+				guild.Name = ""
+			} else if guild.Name == "" {
 				guild.Name = fmt.Sprintf("Unknown Guild `%d`", guild.ID)
 			}
 
@@ -379,7 +383,9 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				userID = interaction.User.ID
 			}
 
-			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
+			queries := welcomer.GetQueriesFromContext(ctx)
+
+			memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(userID))
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
@@ -389,7 +395,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			for _, membership := range memberships {
-				if membership.MembershipUUID.String() == membershipUuidString {
+				if membership.MembershipUuid.String() == membershipUuidString {
 					if interaction.GuildID != nil && membership.GuildID == int64(*interaction.GuildID) {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -404,133 +410,88 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: utils.NewEmbed("This membership is already in use by `"+membership.GuildName+"`. Please use `/membership remove` to remove the existing membership before re-assigning it.", utils.EmbedColourWarn),
+								Embeds: utils.NewEmbed("This membership is already in use by another guild. Please use `/membership remove` to remove the existing membership before re-assigning it.", utils.EmbedColourWarn),
 								Flags:  uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
 					}
 
-					switch membership.MembershipStatus {
-					case database.MembershipStatusUnknown,
-						database.MembershipStatusRefunded:
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: utils.NewEmbed("This membership is no longer valid.", utils.EmbedColourError),
-								Flags:  uint32(discord.MessageFlagEphemeral),
-							},
-						}, nil
-					case database.MembershipStatusExpired:
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: utils.NewEmbed("This membership has expired.", utils.EmbedColourWarn),
-								Flags:  uint32(discord.MessageFlagEphemeral),
-							},
-						}, nil
-					case database.MembershipStatusActive,
-						database.MembershipStatusIdle:
+					queries := welcomer.GetQueriesFromContext(ctx)
 
-						queries := welcomer.GetQueriesFromContext(ctx)
+					isNewMembership := membership.StartedAt.IsZero()
 
-						membership, err := queries.GetUserMembership(ctx, membershipUuid)
-						if err != nil {
-							sub.Logger.Error().Err(err).
-								Str("membership_uuid", membershipUuid.String()).
-								Msg("Failed to get user membership")
-
-							return nil, err
-						}
-
-						// Check if the transaction is completed.
-						if database.TransactionStatus(membership.TransactionStatus.Int32) != database.TransactionStatusCompleted {
-							sub.Logger.Error().
-								Str("membership_uuid", membershipUuid.String()).
-								Int32("transaction_status", membership.TransactionStatus.Int32).
-								Msg("Membership transaction is not completed")
-
-							return nil, utils.ErrTransactionNotComplete
-						}
-
-						membership.UpdatedAt = time.Now()
-						membership.Status = int32(database.MembershipStatusActive)
-						membership.GuildID = int64(guild.ID)
-
-						isNewMembership := membership.StartedAt.IsZero()
-
-						if membership.StartedAt.IsZero() {
-							// If StartedAt is zero, the membership has not started yet.
-							// Compare ExpiresAt against StartedAt to find the length of the membership.
-							duration := membership.ExpiresAt.Sub(membership.StartedAt)
-
-							membership.StartedAt = time.Now()
-							membership.ExpiresAt = membership.StartedAt.Add(duration)
-						} else {
-							// If StartedAt is not zero, the membership has already started.
-							// Do not modify the ExpiresAt, but reset the StartedAt.
-							membership.StartedAt = time.Now()
-						}
-
-						_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
-							MembershipUuid:  membership.MembershipUuid,
-							StartedAt:       membership.StartedAt,
-							ExpiresAt:       membership.ExpiresAt,
-							Status:          membership.Status,
-							TransactionUuid: membership.TransactionUuid,
-							UserID:          membership.UserID,
-							GuildID:         membership.GuildID,
-						})
-						if err != nil {
-							sub.Logger.Error().Err(err).
-								Str("membership_uuid", membershipUuid.String()).
-								Msg("Failed to update user membership")
-
-							return nil, err
-						}
-
-						if isNewMembership {
+					_, err = welcomer.AddMembershipToServer(ctx, sub.Logger, queries, *membership, guild.ID)
+					if err != nil {
+						switch {
+						case errors.Is(err, welcomer.ErrMembershipInvalid):
 							return &discord.InteractionResponse{
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
-									Embeds: utils.NewEmbed(
-										fmt.Sprintf(
-											"🎉 Your membership has now been applied to `%s`.%s",
-											guild.Name,
-											utils.If(
-												!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
-												fmt.Sprintf(
-													" Your membership expires **<t:%d:R>**.",
-													membership.ExpiresAt.Unix(),
-												),
-												"",
-											),
-										),
-										utils.EmbedColourSuccess,
-									),
+									Embeds: utils.NewEmbed("This membership is no longer valid.", utils.EmbedColourError),
+									Flags:  uint32(discord.MessageFlagEphemeral),
 								},
 							}, nil
-						} else {
+						case errors.Is(err, welcomer.ErrMembershipExpired):
 							return &discord.InteractionResponse{
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
-									Embeds: utils.NewEmbed(
-										fmt.Sprintf(
-											"🎉 Your membership has now been applied to `%s`.%s",
-											guild.Name,
-											utils.If(
-												!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
-												fmt.Sprintf(
-													" You have used this membership previously and expires **<t:%d:R>**.",
-													membership.ExpiresAt.Unix(),
-												),
-												"",
-											),
-										),
-										utils.EmbedColourSuccess,
-									),
+									Embeds: utils.NewEmbed("This membership has expired.", utils.EmbedColourWarn),
+									Flags:  uint32(discord.MessageFlagEphemeral),
 								},
 							}, nil
+						default:
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: utils.NewEmbed("An error occurred while adding the membership. Please join our support server and make a ticket for further support.", utils.EmbedColourError),
+									Flags:  uint32(discord.MessageFlagEphemeral),
+								},
+							}, err
 						}
+					}
+
+					if isNewMembership {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: utils.NewEmbed(
+									fmt.Sprintf(
+										"🎉 Your membership has now been applied to `%s`.%s",
+										guild.Name,
+										utils.If(
+											!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
+											fmt.Sprintf(
+												" Your membership expires **<t:%d:R>**.",
+												membership.ExpiresAt.Unix(),
+											),
+											"",
+										),
+									),
+									utils.EmbedColourSuccess,
+								),
+							},
+						}, nil
+					} else {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: utils.NewEmbed(
+									fmt.Sprintf(
+										"🎉 Your membership has now been applied to `%s`.%s",
+										guild.Name,
+										utils.If(
+											!welcomer.IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)),
+											fmt.Sprintf(
+												" You have used this membership previously and expires **<t:%d:R>**.",
+												membership.ExpiresAt.Unix(),
+											),
+											"",
+										),
+									),
+									utils.EmbedColourSuccess,
+								),
+							},
+						}, nil
 					}
 				}
 			}
@@ -654,7 +615,9 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				userID = interaction.User.ID
 			}
 
-			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
+			queries := welcomer.GetQueriesFromContext(ctx)
+
+			memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(userID))
 			if err != nil {
 				sub.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
@@ -664,57 +627,27 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			for _, membership := range memberships {
-				if membership.MembershipUUID.String() == membershipUuidString {
-					if membership.GuildID == 0 {
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: utils.NewEmbed("This membership is not currently in use.", utils.EmbedColourInfo),
-								Flags:  uint32(discord.MessageFlagEphemeral),
-							},
-						}, nil
-					}
-
-					switch membership.MembershipStatus {
-					case database.MembershipStatusUnknown,
-						database.MembershipStatusIdle,
-						database.MembershipStatusActive,
-						database.MembershipStatusExpired,
-						database.MembershipStatusRefunded,
-						database.MembershipStatusRemoved:
-					}
-					queries := welcomer.GetQueriesFromContext(ctx)
-
-					membership, err := queries.GetUserMembership(ctx, membershipUuid)
+				if membership.MembershipUuid.String() == membershipUuidString {
+					_, err = welcomer.RemoveMembershipFromServer(ctx, sub.Logger, queries, *membership)
 					if err != nil {
-						sub.Logger.Error().Err(err).
-							Str("membership_uuid", membershipUuid.String()).
-							Msg("Failed to get user membership")
-
-						return nil, err
-					}
-
-					membership.UpdatedAt = time.Now()
-
-					// Only set the status to Idle if the membership is currently Active.
-					membership.Status = utils.If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
-					membership.GuildID = 0
-
-					_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
-						MembershipUuid:  membership.MembershipUuid,
-						StartedAt:       membership.StartedAt,
-						ExpiresAt:       membership.ExpiresAt,
-						Status:          membership.Status,
-						TransactionUuid: membership.TransactionUuid,
-						UserID:          membership.UserID,
-						GuildID:         membership.GuildID,
-					})
-					if err != nil {
-						sub.Logger.Error().Err(err).
-							Str("membership_uuid", membershipUuid.String()).
-							Msg("Failed to update user membership")
-
-						return nil, err
+						switch {
+						case errors.Is(err, welcomer.ErrMembershipNotInUse):
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: utils.NewEmbed("This membership is not currently in use.", utils.EmbedColourInfo),
+									Flags:  uint32(discord.MessageFlagEphemeral),
+								},
+							}, nil
+						default:
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: utils.NewEmbed("An error occurred while removing the membership. Please join our support server and make a ticket for further support.", utils.EmbedColourError),
+									Flags:  uint32(discord.MessageFlagEphemeral),
+								},
+							}, err
+						}
 					}
 
 					return &discord.InteractionResponse{

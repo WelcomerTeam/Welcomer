@@ -22,7 +22,7 @@
               Loading your guilds...
             </div> -->
             <div v-if="!$store.getters.isLoadingGuilds"
-              class="mt-4 bg-white dark:bg-secondary-dark shadow-sm overflow-hidden rounded-md border-gray-300 dark:border-secondary-light border">
+              class="mt-4 bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
               <ul role="list" class="divide-y divide-gray-200 dark:divide-secondary-light">
                 <li v-if="$store.getters.getGuilds.length === 0">
                   <div class="p-4">
@@ -36,7 +36,7 @@
                   <button class="block hover:bg-gray-50 dark:hover:bg-secondary w-full">
                     <div class="px-4 py-4 flex items-center space-x-5 group">
                       <div class="flex-shrink-0">
-                        <div class="flex overflow-hidden -space-x-1">
+                        <div class="flex -space-x-1">
                           <img :alt="`Guild icon for ${guild.name}`" :class="[
                             !guild.has_welcomer | !guild.has_elevation
                               ? 'saturate-0'

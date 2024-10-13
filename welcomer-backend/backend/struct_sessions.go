@@ -10,6 +10,8 @@ const (
 	UserKey         = "user"
 	GuildKey        = "guild"
 	GuildIDKey      = "guildID"
+	PatreonIDKey    = "patreonID"
+	MembershipIDKey = "membershipID"
 	KeyKey          = "key"
 	TokenKey        = "token"
 	StateKey        = "state"

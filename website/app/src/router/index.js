@@ -90,8 +90,7 @@ const routes = [
           {
             name: "dashboard.guild.memberships",
             path: "memberships",
-            // component: () => import("@/pages/dashboard/Memberships.vue"),
-            component: () => import("@/pages/ComingSoon.vue"),
+            component: () => import("@/pages/dashboard/Memberships.vue"),
           },
           {
             name: "dashboard.guild.settings",

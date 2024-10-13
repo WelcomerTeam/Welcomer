@@ -39,16 +39,16 @@
                   ? 'text-secondary dark:text-gray-50 bg-gray-200 dark:bg-secondary'
                   : 'text-gray-600 dark:text-gray-400',
                 'hover:text-secondary dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-secondary group flex items-center px-2 py-2 text-sm leading-6 font-semibold rounded-md',
-                item.extendedClass,
+                item.class,
               ]">
               <font-awesome-icon :icon="($route.name === item.linkname ? 'fa-solid' : 'fa-regular') + ' ' + item.icon"
                 :class="[
                   'flex group-hover:hidden flex-shrink-0 w-6 h-6 mr-4',
-                  item.extendedClass,
+                  item.class,
                 ]" aria-hidden="true" />
               <font-awesome-icon :icon="'fa-solid ' + item.icon" :class="[
                 'hidden group-hover:flex flex-shrink-0 w-6 h-6 mr-4',
-                item.extendedClass,
+                item.class,
               ]" aria-hidden="true" />
               {{ item.name }}
             </router-link>
@@ -75,6 +75,7 @@ const navigation = [
         name: "Memberships",
         linkname: "dashboard.guild.memberships",
         icon: "fa-heart",
+        class: "text-primary",
       },
     ],
   },

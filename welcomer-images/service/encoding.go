@@ -48,6 +48,9 @@ func encodeFramesAsGif(frames []image.Image, background FullImage) ([]byte, util
 		wg.Add(1)
 
 		go func(index int) {
+			ticket := lim.Wait()
+			defer lim.FreeTicket(ticket)
+
 			p, _ := quantizeImage(frames[index])
 			quantized_frames[index] = p
 
