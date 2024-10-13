@@ -1,11 +1,14 @@
 package utils
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"image/color"
 	"math/rand"
 	"net"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -456,4 +459,26 @@ func SliceContains[T comparable](slice []T, value T) bool {
 	}
 
 	return false
+}
+
+func SendWebhookMessage(ctx context.Context, webhookURL string, message discord.WebhookMessageParams) error {
+	body, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, webhookURL, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", UserAgent)
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
