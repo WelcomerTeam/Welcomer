@@ -90,22 +90,6 @@ type CreatePatreonUserParams struct {
 	TierID           int64     `json:"tier_id"`
 	LastChargeStatus string    `json:"last_charge_status"`
 	PatronStatus     string    `json:"patron_status"`
-=======
-INSERT INTO patreon_users (patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id)
-    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8)
-RETURNING
-    patreon_user_id, created_at, updated_at, user_id, full_name, email, thumb_url, pledge_created_at, pledge_ended_at, tier_id
-`
-
-type CreatePatreonUserParams struct {
-	PatreonUserID   int64     `json:"patreon_user_id"`
-	UserID          int64     `json:"user_id"`
-	FullName        string    `json:"full_name"`
-	Email           string    `json:"email"`
-	ThumbUrl        string    `json:"thumb_url"`
-	PledgeCreatedAt time.Time `json:"pledge_created_at"`
-	PledgeEndedAt   time.Time `json:"pledge_ended_at"`
-	TierID          int64     `json:"tier_id"`
 }
 
 func (q *Queries) CreatePatreonUser(ctx context.Context, arg CreatePatreonUserParams) (*PatreonUsers, error) {

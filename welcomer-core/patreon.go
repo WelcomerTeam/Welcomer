@@ -52,6 +52,7 @@ type PatreonMember struct {
 	PatreonUserID discord.Snowflake `json:"patreon_user_id"`
 	EntitledTiers []PatreonTier     `json:"active_tier"`
 	Attributes    Attributes        `json:"attributes"`
+}
 
 type GetPatreonMembersResponse struct {
 	Data []struct {

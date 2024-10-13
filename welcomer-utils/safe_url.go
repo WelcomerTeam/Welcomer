@@ -15,7 +15,6 @@ package utils
 import (
 	"fmt"
 	"net"
-	"syscall"
 )
 
 func ipv4Net(a, b, c, d byte, subnetPrefixLen int) net.IPNet {
@@ -63,7 +62,7 @@ func IsPublicIPAddress(address net.IP) bool {
 	}
 }
 
-func safeSocketControl(network string, address string, conn syscall.RawConn) error {
+func safeSocketControl(network string, address string) error {
 	if !(network == "tcp4" || network == "tcp6") {
 		return fmt.Errorf("%s is not a safe network type", network)
 	}

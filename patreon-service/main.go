@@ -69,7 +69,7 @@ func main() {
 
 	patreonUsersList, err := db.GetPatreonUsers(ctx)
 	if err != nil {
-		panic(fmt.Sprint("GetPatreonUsers(): %v", err))
+		panic(fmt.Sprint("GetPatreonUsers(): %w", err))
 	}
 
 	patreonUsersMap := make(map[int64]database.PatreonUsers, len(patreonUsersList))
