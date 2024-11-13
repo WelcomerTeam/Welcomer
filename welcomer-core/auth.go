@@ -2,7 +2,9 @@ package welcomer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -11,6 +13,19 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
+
+var elevatedUsers []discord.Snowflake
+
+func init() {
+	elevatedUsersStr := os.Getenv("ELEVATED_USERS")
+
+	if elevatedUsersStr == "" {
+		err := json.Unmarshal([]byte(elevatedUsersStr), &elevatedUsers)
+		if err != nil {
+			panic(fmt.Errorf("failed to parse ELEVATED_USERS: %w", err))
+		}
+	}
+}
 
 func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
 	for _, membership := range memberships {
@@ -33,8 +48,12 @@ func IsWelcomerProMembership(membershipType database.MembershipType) bool {
 }
 
 func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) bool {
-	if member.User != nil && member.User.ID == 143090142360371200 {
-		return true
+	if member.User != nil {
+		for _, elevatedUser := range elevatedUsers {
+			if member.User.ID == elevatedUser {
+				return true
+			}
+		}
 	}
 
 	if discordGuild.Owner {
