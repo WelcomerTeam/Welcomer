@@ -139,7 +139,7 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 }
 
 // overlay frames
-func overlayFrames(themeResponse GenerateThemeResponse, background FullImage) []image.Image {
+func overlayFrames(themeResponse *GenerateThemeResponse, background FullImage) []image.Image {
 	wg := sync.WaitGroup{}
 
 	frames := make([]image.Image, len(background.Frames))
@@ -183,7 +183,7 @@ func overlayFrames(themeResponse GenerateThemeResponse, background FullImage) []
 }
 
 // apply image border
-func applyImageBorder(themeResponse GenerateThemeResponse, imageOptions GenerateImageOptions) {
+func applyImageBorder(themeResponse *GenerateThemeResponse, imageOptions GenerateImageOptions) {
 	border := image.Point{imageOptions.ImageBorderWidth, imageOptions.ImageBorderWidth}
 	d := border.Add(border)
 

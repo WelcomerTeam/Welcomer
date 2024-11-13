@@ -9,7 +9,7 @@ import (
 	"golang.org/x/image/font"
 )
 
-func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp GenerateThemeResponse, err error) {
+func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
 	imageSize := image.Rect(0, 0, 964, 320)
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 900, 256)
@@ -53,7 +53,7 @@ func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp Gener
 		},
 	)
 
-	return GenerateThemeResponse{
+	return &GenerateThemeResponse{
 		Overlay: im,
 
 		TargetImageSize:   imageSize,

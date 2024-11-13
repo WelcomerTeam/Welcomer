@@ -10,7 +10,7 @@ import (
 )
 
 func CreateRegularImage(
-	is *ImageService, args GenerateImageArguments) (resp GenerateThemeResponse, err error) {
+	is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
 	imageSize := image.Rect(0, 0, 1000, 300)
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 936, 236)
@@ -66,7 +66,7 @@ func CreateRegularImage(
 		},
 	)
 
-	return GenerateThemeResponse{
+	return &GenerateThemeResponse{
 		Overlay: im,
 
 		TargetImageSize:   imageSize,

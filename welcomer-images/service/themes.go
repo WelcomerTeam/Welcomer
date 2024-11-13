@@ -7,10 +7,10 @@ import (
 )
 
 var (
-	themes = make(map[utils.ImageTheme]func(*ImageService, GenerateImageArguments) (GenerateThemeResponse, error))
+	themes = make(map[utils.ImageTheme]func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error))
 )
 
-func registerThemeFunc(theme utils.ImageTheme, f func(*ImageService, GenerateImageArguments) (GenerateThemeResponse, error)) {
+func registerThemeFunc(theme utils.ImageTheme, f func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error)) {
 	themes[theme] = f
 }
 
