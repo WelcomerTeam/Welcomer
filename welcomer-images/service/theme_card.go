@@ -17,41 +17,69 @@ func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp *Gene
 	im := image.NewRGBA(overlaySize)
 	context := gg.NewContextForRGBA(im)
 
-	context.SetColor(args.ImageOptions.ProfileBorderColor)
-	context.DrawRoundedRectangle(50, 33, 850, 190, 32)
-	context.Fill()
+	if args.Avatar == nil {
+		context.SetColor(args.ImageOptions.ProfileBorderColor)
+		context.DrawRoundedRectangle(0, 33, 900, 190, 32)
+		context.Fill()
 
-	context.DrawImage(
-		imaging.Resize(
-			args.Avatar,
-			256,
-			256,
-			imaging.MitchellNetravali,
-		),
-		0, 0,
-	)
+		err = drawMultiline(
+			font.Drawer{Dst: im},
+			is.CreateFontPackHook(args.ImageOptions.TextFont),
+			MultilineArguments{
+				DefaultFontSize: defaultFontSize,
 
-	err = drawMultiline(
-		font.Drawer{Dst: im},
-		is.CreateFontPackHook(args.ImageOptions.TextFont),
-		MultilineArguments{
-			DefaultFontSize: defaultFontSize,
+				X: 40,
+				Y: 50,
 
-			X: 288,
-			Y: 50,
+				Width:  840,
+				Height: 159,
 
-			Width:  579,
-			Height: 159,
+				Alignment: args.ImageOptions.TextAlign,
 
-			Alignment: args.ImageOptions.TextAlign,
+				StrokeWeight: args.ImageOptions.TextStroke,
+				StrokeColor:  args.ImageOptions.TextStrokeColor,
+				TextColor:    args.ImageOptions.TextColor,
 
-			StrokeWeight: args.ImageOptions.TextStroke,
-			StrokeColor:  args.ImageOptions.TextStrokeColor,
-			TextColor:    args.ImageOptions.TextColor,
+				Text: args.ImageOptions.Text,
+			},
+		)
+	} else {
+		context.SetColor(args.ImageOptions.ProfileBorderColor)
+		context.DrawRoundedRectangle(50, 33, 850, 190, 32)
+		context.Fill()
 
-			Text: args.ImageOptions.Text,
-		},
-	)
+		context.DrawImage(
+			imaging.Resize(
+				args.Avatar,
+				256,
+				256,
+				imaging.MitchellNetravali,
+			),
+			0, 0,
+		)
+
+		err = drawMultiline(
+			font.Drawer{Dst: im},
+			is.CreateFontPackHook(args.ImageOptions.TextFont),
+			MultilineArguments{
+				DefaultFontSize: defaultFontSize,
+
+				X: 288,
+				Y: 50,
+
+				Width:  579,
+				Height: 159,
+
+				Alignment: args.ImageOptions.TextAlign,
+
+				StrokeWeight: args.ImageOptions.TextStroke,
+				StrokeColor:  args.ImageOptions.TextStrokeColor,
+				TextColor:    args.ImageOptions.TextColor,
+
+				Text: args.ImageOptions.Text,
+			},
+		)
+	}
 
 	return &GenerateThemeResponse{
 		Overlay: im,

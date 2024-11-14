@@ -148,9 +148,7 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 	case utils.ImageProfileBorderTypeSquared:
 		avatarImage = avatar
 	default:
-		err = ErrUnknownProfileBorderType
-
-		return
+		return avatar, ErrUnknownProfileBorderType
 	}
 
 	context.DrawImageAnchored(

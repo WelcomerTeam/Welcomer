@@ -73,11 +73,25 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 	timing := utils.NewTiming()
 
-	avatar, err := is.FetchAvatar(ctx, imageOptions.UserID, imageOptions.AvatarURL)
-	if err != nil {
-		is.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+	var avatar image.Image
+	var err error
 
-		avatar = assetsDefaultAvatarImage
+	if imageOptions.AvatarURL == "" {
+		avatar = nil
+	} else {
+		avatar, err = is.FetchAvatar(ctx, imageOptions.UserID, imageOptions.AvatarURL)
+		if err != nil {
+			is.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+
+			avatar = assetsDefaultAvatarImage
+		}
+
+		avatar, err = applyAvatarEffects(avatar, imageOptions)
+		if err != nil {
+			is.Logger.Error().Err(err).Msg("Failed to generate avatar")
+		}
+
+		timing.Track("applyAvatarEffects")
 	}
 
 	timing.Track("fetchAvatar")
@@ -91,16 +105,9 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 	timing.Track("fetchBackground")
 
-	avatarOverlay, err := applyAvatarEffects(avatar, imageOptions)
-	if err != nil {
-		is.Logger.Error().Err(err).Msg("Failed to generate avatar")
-	}
-
-	timing.Track("applyAvatarEffects")
-
 	themeResponse, err := theme(is, GenerateImageArguments{
 		ImageOptions: imageOptions,
-		Avatar:       avatarOverlay,
+		Avatar:       avatar,
 	})
 	if err != nil {
 		is.Logger.Error().Err(err).Msg("Failed to generate theme overlay")
