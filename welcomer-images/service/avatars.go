@@ -107,7 +107,12 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 
 	context := gg.NewContextForRGBA(atlas)
 
-	context.SetColor(generateImageOptions.ProfileBorderColor)
+	if generateImageOptions.ProfileBorderWidth == 0 {
+		context.SetColor(transparent)
+	} else {
+		context.SetColor(generateImageOptions.ProfileBorderColor)
+	}
+
 	context.Clear()
 
 	rounding := float64(0)
@@ -156,7 +161,13 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 		0.5,
 	)
 
-	return roundImage(atlas, rounding), nil
+	if rounding > 0 {
+		im = roundImage(atlas, rounding)
+	} else {
+		im = atlas
+	}
+
+	return im, nil
 }
 
 // roundImage cuts out a rounded segment from an image.
@@ -165,9 +176,12 @@ func roundImage(im image.Image, radius float64) image.Image {
 	width := bounds.Dx()
 	height := bounds.Dy()
 
+	// Add minor offset to the rounding of images to prevent cutting off the edges.
+	offset := float64(4)
+
 	radius = math.Max(0, math.Min(radius, float64(height)/2))
 	context := gg.NewContext(width, height)
-	context.DrawRoundedRectangle(0, 0, float64(width), float64(height), radius)
+	context.DrawRoundedRectangle(offset, offset, float64(width)-offset, float64(height)-offset, radius)
 	context.Clip()
 	context.DrawImage(im, 0, 0)
 
