@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	urlverifier "github.com/davidmytton/url-verifier"
@@ -36,6 +37,20 @@ const (
 
 	UserAgent = "WelcomerService (https://github.com/WelcomerTeam/Welcomer)"
 )
+
+func TruncateUTF8(s string, length int) string {
+	if len(s) <= length {
+		return s
+	}
+
+	s = s[:length]
+
+	for !utf8.ValidString(s) {
+		s = s[:len(s)-1]
+	}
+
+	return s
+}
 
 func Coalesce(values ...string) string {
 	for _, value := range values {

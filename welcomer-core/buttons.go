@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 func includeActionRow(messageParams discord.MessageParams) discord.MessageParams {
@@ -20,12 +21,18 @@ func includeActionRow(messageParams discord.MessageParams) discord.MessageParams
 func IncludeSentByButton(messageParams discord.MessageParams, guildName string) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
+	label := fmt.Sprintf("Sent by %s", guildName)
+
+	if len(label) > 80 {
+		label = utils.TruncateUTF8(label, 77) + "..."
+	}
+
 	messageParams.Components[0].Components = append(
 		messageParams.Components[0].Components,
 		discord.InteractionComponent{
 			Type:     discord.InteractionComponentTypeButton,
 			Style:    discord.InteractionComponentStylePrimary,
-			Label:    fmt.Sprintf("Sent by %s", guildName),
+			Label:    label,
 			CustomID: "server",
 			Emoji:    &EmojiMessageBadge,
 			Disabled: true,

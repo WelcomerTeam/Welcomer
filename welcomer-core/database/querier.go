@@ -62,6 +62,7 @@ type Querier interface {
 	GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddress pgtype.Inet) ([]*BorderwallRequests, error)
 	GetCommandError(ctx context.Context, commandUuid uuid.UUID) (*GetCommandErrorRow, error)
 	GetCommandUsage(ctx context.Context, commandUuid uuid.UUID) (*ScienceCommandUsages, error)
+	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
