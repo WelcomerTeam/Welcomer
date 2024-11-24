@@ -158,7 +158,7 @@ func isLightColorLuminance(r, g, b uint32, threshold float64) bool {
 // or an error if the process encounters an issue.
 func (is *ImageService) FetchBackgroundSolidProfile(src image.Image) (FullImage, error) {
 	if src == nil {
-		return FullImage{}, fmt.Errorf("source image is nil")
+		return getFullImageForColour(color.RGBA{}), nil
 	}
 
 	// Initial threshold for solid profile luminance

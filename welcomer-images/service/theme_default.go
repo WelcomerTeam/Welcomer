@@ -10,7 +10,7 @@ import (
 )
 
 func CreateRegularImage(
-	is *ImageService, args GenerateImageArguments) (resp GenerateThemeResponse, err error) {
+	is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
 	imageSize := image.Rect(0, 0, 1000, 300)
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 936, 236)
@@ -21,52 +21,76 @@ func CreateRegularImage(
 	imagePoint := image.Point{}
 	textPoint := image.Point{}
 
-	switch args.ImageOptions.ProfileFloat {
-	case utils.ImageAlignmentLeft: // left
-		imagePoint = image.Point{0, 0}
-		textPoint = image.Point{268, 0}
-	case utils.ImageAlignmentRight: // right
-		imagePoint = image.Point{700, 0}
-		textPoint = image.Point{0, 0}
-	default:
-		err = ErrUnknownProfileFloat
+	if args.Avatar == nil {
+		err = drawMultiline(
+			font.Drawer{Dst: im},
+			is.CreateFontPackHook(args.ImageOptions.TextFont),
+			MultilineArguments{
+				DefaultFontSize: defaultFontSize,
 
-		return
+				X: textPoint.X,
+				Y: textPoint.Y,
+
+				Width:  936,
+				Height: 236,
+
+				Alignment: args.ImageOptions.TextAlign,
+
+				StrokeWeight: args.ImageOptions.TextStroke,
+				StrokeColor:  args.ImageOptions.TextStrokeColor,
+				TextColor:    args.ImageOptions.TextColor,
+
+				Text: args.ImageOptions.Text,
+			},
+		)
+	} else {
+		switch args.ImageOptions.ProfileFloat {
+		case utils.ImageAlignmentLeft: // left
+			imagePoint = image.Point{0, 0}
+			textPoint = image.Point{268, 0}
+		case utils.ImageAlignmentRight: // right
+			imagePoint = image.Point{700, 0}
+			textPoint = image.Point{0, 0}
+		default:
+			err = ErrUnknownProfileFloat
+
+			return
+		}
+
+		context.DrawImage(
+			imaging.Resize(
+				args.Avatar,
+				236,
+				236,
+				imaging.MitchellNetravali,
+			),
+			imagePoint.X, imagePoint.Y,
+		)
+
+		err = drawMultiline(
+			font.Drawer{Dst: im},
+			is.CreateFontPackHook(args.ImageOptions.TextFont),
+			MultilineArguments{
+				DefaultFontSize: defaultFontSize,
+
+				X: textPoint.X,
+				Y: textPoint.Y,
+
+				Width:  668,
+				Height: 236,
+
+				Alignment: args.ImageOptions.TextAlign,
+
+				StrokeWeight: args.ImageOptions.TextStroke,
+				StrokeColor:  args.ImageOptions.TextStrokeColor,
+				TextColor:    args.ImageOptions.TextColor,
+
+				Text: args.ImageOptions.Text,
+			},
+		)
 	}
 
-	context.DrawImage(
-		imaging.Resize(
-			args.Avatar,
-			236,
-			236,
-			imaging.MitchellNetravali,
-		),
-		imagePoint.X, imagePoint.Y,
-	)
-
-	err = drawMultiline(
-		font.Drawer{Dst: im},
-		is.CreateFontPackHook(args.ImageOptions.TextFont),
-		MultilineArguments{
-			DefaultFontSize: defaultFontSize,
-
-			X: textPoint.X,
-			Y: textPoint.Y,
-
-			Width:  668,
-			Height: 236,
-
-			Alignment: args.ImageOptions.TextAlign,
-
-			StrokeWeight: args.ImageOptions.TextStroke,
-			StrokeColor:  args.ImageOptions.TextStrokeColor,
-			TextColor:    args.ImageOptions.TextColor,
-
-			Text: args.ImageOptions.Text,
-		},
-	)
-
-	return GenerateThemeResponse{
+	return &GenerateThemeResponse{
 		Overlay: im,
 
 		TargetImageSize:   imageSize,

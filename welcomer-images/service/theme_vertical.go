@@ -9,7 +9,7 @@ import (
 	"golang.org/x/image/font"
 )
 
-func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp GenerateThemeResponse, err error) {
+func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
 	imageSize := image.Rect(0, 0, 750, 516)
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 686, 452)
@@ -17,39 +17,82 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp Ge
 	im := image.NewRGBA(overlaySize)
 	context := gg.NewContextForRGBA(im)
 
-	context.DrawImage(
-		imaging.Resize(
-			args.Avatar,
-			236,
-			236,
-			imaging.MitchellNetravali,
-		),
-		225, 0,
-	)
+	imagePoint := image.Point{}
+	textPoint := image.Point{}
 
-	err = drawMultiline(
-		font.Drawer{Dst: im},
-		is.CreateFontPackHook(args.ImageOptions.TextFont),
-		MultilineArguments{
-			DefaultFontSize: defaultFontSize,
+	if args.Avatar == nil {
+		err = drawMultiline(
+			font.Drawer{Dst: im},
+			is.CreateFontPackHook(args.ImageOptions.TextFont),
+			MultilineArguments{
+				DefaultFontSize: defaultFontSize,
 
-			X: 0,
-			Y: 252,
+				X: textPoint.X,
+				Y: textPoint.Y,
 
-			Width:  686,
-			Height: 200,
+				Width:  686,
+				Height: 452,
 
-			Alignment: args.ImageOptions.TextAlign,
+				Alignment: args.ImageOptions.TextAlign,
 
-			StrokeWeight: args.ImageOptions.TextStroke,
-			StrokeColor:  args.ImageOptions.TextStrokeColor,
-			TextColor:    args.ImageOptions.TextColor,
+				StrokeWeight: args.ImageOptions.TextStroke,
+				StrokeColor:  args.ImageOptions.TextStrokeColor,
+				TextColor:    args.ImageOptions.TextColor,
 
-			Text: args.ImageOptions.Text,
-		},
-	)
+				Text: args.ImageOptions.Text,
+			},
+		)
+	} else {
+		switch args.ImageOptions.ProfileFloat {
+		case utils.ImageAlignmentLeft: // left
+			imagePoint = image.Point{0, 0}
+			textPoint = image.Point{0, 236}
+		case utils.ImageAlignmentCenter: // center
+			imagePoint = image.Point{225, 0}
+			textPoint = image.Point{0, 236}
+		case utils.ImageAlignmentRight: // right
+			imagePoint = image.Point{450, 0}
+			textPoint = image.Point{0, 236}
+		default:
+			err = ErrUnknownProfileFloat
 
-	return GenerateThemeResponse{
+			return
+		}
+
+		context.DrawImage(
+			imaging.Resize(
+				args.Avatar,
+				236,
+				236,
+				imaging.MitchellNetravali,
+			),
+			imagePoint.X, imagePoint.Y,
+		)
+
+		err = drawMultiline(
+			font.Drawer{Dst: im},
+			is.CreateFontPackHook(args.ImageOptions.TextFont),
+			MultilineArguments{
+				DefaultFontSize: defaultFontSize,
+
+				X: textPoint.X,
+				Y: textPoint.Y,
+
+				Width:  686,
+				Height: 200,
+
+				Alignment: args.ImageOptions.TextAlign,
+
+				StrokeWeight: args.ImageOptions.TextStroke,
+				StrokeColor:  args.ImageOptions.TextStrokeColor,
+				TextColor:    args.ImageOptions.TextColor,
+
+				Text: args.ImageOptions.Text,
+			},
+		)
+	}
+
+	return &GenerateThemeResponse{
 		Overlay: im,
 
 		TargetImageSize:   imageSize,
