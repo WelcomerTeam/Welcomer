@@ -307,42 +307,71 @@ func main() {
 		}
 	}
 
-	err = utils.SendWebhookMessage(ctx, *patreonWebhookUrl, discord.WebhookMessageParams{
-		Embeds: []discord.Embed{
-			{
-				Title: "Patreon Service",
-				Fields: []discord.EmbedField{
-					{
-						Name:  "Newly Linked",
-						Value: fmt.Sprintf("%d - %d", len(processPatreonUsersNewlyLinked), processPatreonUsersNewlyLinked),
-					},
-					{
-						Name:  "Tiers Changed",
-						Value: fmt.Sprintf("%d - %d", len(processPatreonUsersTiersChanged), processPatreonUsersTiersChanged),
-					},
-					{
-						Name:  "No Longer Pledging",
-						Value: fmt.Sprintf("%d - %d", len(processPatreonUsersNoLongerPledging), processPatreonUsersNoLongerPledging),
-					},
-					{
-						Name:  "Active",
-						Value: fmt.Sprintf("%d - %d", len(processPatreonUsersActive), processPatreonUsersActive),
-					},
-					{
-						Name:  "Declined",
-						Value: fmt.Sprintf("%d - %d", len(processPatreonUsersDeclined), processPatreonUsersDeclined),
-					},
-					{
-						Name:  "Missing",
-						Value: fmt.Sprintf("%d - %d", len(processPatreonUsersMissing), processPatreonUsersMissing),
-					},
+	embedFields := make([]discord.EmbedField, 0)
+
+	if len(processPatreonUsersNewlyLinked) > 0 {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "Newly Linked",
+			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersNewlyLinked), processPatreonUsersNewlyLinked),
+		})
+	}
+
+	if len(processPatreonUsersTiersChanged) > 0 {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "Tiers Changed",
+			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersTiersChanged), processPatreonUsersTiersChanged),
+		})
+	}
+
+	if len(processPatreonUsersNoLongerPledging) > 0 {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "No Longer Pledging",
+			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersNoLongerPledging), processPatreonUsersNoLongerPledging),
+		})
+	}
+
+	if len(processPatreonUsersActive) > 0 {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "Active",
+			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersActive), processPatreonUsersActive),
+		})
+	}
+
+	if len(processPatreonUsersDeclined) > 0 {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "Declined",
+			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersDeclined), processPatreonUsersDeclined),
+		})
+	}
+
+	// Only include missing when there are no other fields.
+	if len(processPatreonUsersMissing) > 0 && len(embedFields) == 0 {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "Missing",
+			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersMissing), processPatreonUsersMissing),
+		})
+	}
+
+	if len(embedFields) == 0 && processHasWarning {
+		embedFields = append(embedFields, discord.EmbedField{
+			Name:  "Warning",
+			Value: "There was a warning but no users were processed",
+		})
+	}
+
+	if len(embedFields) > 0 {
+		err = utils.SendWebhookMessage(ctx, *patreonWebhookUrl, discord.WebhookMessageParams{
+			Embeds: []discord.Embed{
+				{
+					Title:     "Patreon Service",
+					Fields:    embedFields,
+					Color:     utils.If(processHasWarning, int32(16760839), int32(5415248)),
+					Timestamp: utils.ToPointer(time.Now()),
 				},
-				Color:     utils.If(processHasWarning, int32(16760839), int32(5415248)),
-				Timestamp: utils.ToPointer(time.Now()),
 			},
-		},
-	})
-	if err != nil {
-		logger.Warn().Err(err).Msg("Failed to send webhook message")
+		})
+		if err != nil {
+			logger.Warn().Err(err).Msg("Failed to send webhook message")
+		}
 	}
 }

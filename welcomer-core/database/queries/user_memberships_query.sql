@@ -65,3 +65,12 @@ SET
     updated_at = now()
 WHERE
     membership_uuid = $1;
+
+-- name: GetExpiringUserMemberships :many
+SELECT
+    *
+FROM
+    user_memberships 
+WHERE
+    status = $1
+    AND expires_at < (NOW() + interval '@lookahead::integer' day);

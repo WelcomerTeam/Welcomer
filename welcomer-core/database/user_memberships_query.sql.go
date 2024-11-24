@@ -122,6 +122,47 @@ func (q *Queries) DeleteUserMembership(ctx context.Context, membershipUuid uuid.
 	return result.RowsAffected(), nil
 }
 
+const GetExpiringUserMemberships = `-- name: GetExpiringUserMemberships :many
+SELECT
+    membership_uuid, created_at, updated_at, started_at, expires_at, status, membership_type, transaction_uuid, user_id, guild_id
+FROM
+    user_memberships 
+WHERE
+    status = $1
+    AND expires_at < (NOW() + interval '@lookahead::integer' day)
+`
+
+func (q *Queries) GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error) {
+	rows, err := q.db.Query(ctx, GetExpiringUserMemberships, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*UserMemberships{}
+	for rows.Next() {
+		var i UserMemberships
+		if err := rows.Scan(
+			&i.MembershipUuid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StartedAt,
+			&i.ExpiresAt,
+			&i.Status,
+			&i.MembershipType,
+			&i.TransactionUuid,
+			&i.UserID,
+			&i.GuildID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetUserMembership = `-- name: GetUserMembership :one
 SELECT
     membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount
