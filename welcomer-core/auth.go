@@ -19,7 +19,7 @@ var elevatedUsers []discord.Snowflake
 func init() {
 	elevatedUsersStr := os.Getenv("ELEVATED_USERS")
 
-	if elevatedUsersStr == "" {
+	if elevatedUsersStr != "" {
 		err := json.Unmarshal([]byte(elevatedUsersStr), &elevatedUsers)
 		if err != nil {
 			panic(fmt.Errorf("failed to parse ELEVATED_USERS: %w", err))
