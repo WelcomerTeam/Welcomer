@@ -3,6 +3,8 @@ package backend
 import (
 	"net"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -46,6 +48,15 @@ type GetSKUsResponse struct {
 	SKUs                []welcomer.PricingSKU `json:"skus"`
 }
 
+func getSKUPricing() map[welcomer.SKUName]welcomer.PricingSKU {
+	index, err := strconv.Atoi(os.Getenv("PRICING_TABLE"))
+	if err != nil || index < 0 || index >= len(welcomer.SKUPricingTable) {
+		backend.Logger.Error().Err(err).Msg("Invalid PRICING_TABLE environment variable")
+		return nil
+	}
+	return welcomer.SKUPricingTable[index]
+}
+
 // Route GET /api/billing/skus
 func getSKUs(ctx *gin.Context) {
 	response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
@@ -55,13 +66,16 @@ func getSKUs(ctx *gin.Context) {
 
 	currencies := getAvailableCurrencies(response)
 
+	// TODO:
+	skuPricing := getSKUPricing()
+
 	pricingStructure := GetSKUsResponse{
 		AvailableCurrencies: currencies,
 		DefaultCurrency:     getDefaultCurrency(response),
-		SKUs:                make([]welcomer.PricingSKU, 0, len(welcomer.SKUPricing)),
+		SKUs:                make([]welcomer.PricingSKU, 0, len(skuPricing)),
 	}
 
-	for _, sku := range welcomer.SKUPricing {
+	for _, sku := range skuPricing {
 		pricingStructure.SKUs = append(pricingStructure.SKUs, sku)
 	}
 
@@ -105,7 +119,9 @@ func createPayment(ctx *gin.Context) {
 			return
 		}
 
-		sku, ok := welcomer.SKUPricing[welcomer.SKUName(request.SKU)]
+		pricing := getSKUPricing()
+
+		sku, ok := pricing[welcomer.SKUName(request.SKU)]
 		if !ok {
 			backend.Logger.Warn().Str("sku", string(request.SKU)).Msg("Invalid SKU")
 
@@ -407,7 +423,9 @@ func paymentCallback(ctx *gin.Context) {
 			// Fetch SKU from the order.
 			skuName := order.PurchaseUnits[0].Items[0].SKU
 
-			sku, ok := welcomer.SKUPricing[welcomer.SKUName(skuName)]
+			pricing := getSKUPricing()
+
+			sku, ok := pricing[welcomer.SKUName(skuName)]
 			if !ok {
 				backend.Logger.Warn().Str("sku", skuName).Msg("Invalid SKU")
 
