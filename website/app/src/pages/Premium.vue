@@ -74,6 +74,7 @@
         <div class="hero-preview">
           <div class="sm:flex sm:flex-col sm:align-center">
             <div class="prose-lg text-center">
+              <div class="mb-16 bg-secondary-dark rounded-md p-2 text-white font-semibold prose-sm">Save 25% off a monthly and annual membership this black friday!</div>
               <h1 class="font-black leading-8 tracking-tight text-gray-900">
                 Choose the plan you want
               </h1>
@@ -337,7 +338,7 @@ const features = [
   {
     name: "Time Roles",
     icon: "user-clock",
-    soon: true,
+    soon: false,
     description:
       "Sometimes you don't want to give users a role immediately. Use timeroles to give them roles automatically when the time comes, it could be 10 minutes or in a year.",
   },
