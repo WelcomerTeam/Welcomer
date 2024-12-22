@@ -19,12 +19,12 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/plutov/paypal/v4"
 	gin_prometheus "github.com/zsais/go-gin-prometheus"
+	"google.golang.org/grpc"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
-	"google.golang.org/grpc"
 )
 
 const VERSION = "0.1"
