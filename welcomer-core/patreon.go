@@ -5,12 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WelcomerTeam/Discord/discord"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 const (

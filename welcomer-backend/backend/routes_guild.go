@@ -15,7 +15,7 @@ func getGuild(ctx *gin.Context) {
 		requireMutualGuild(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			welcomerPresence, discordGuild, guildMembers, err := hasWelcomerPresence(guildID, true)
+			welcomerPresence, discordGuild, guildMembers, err := hasWelcomerPresence(ctx, guildID, true)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to check welcomer presence")
 			}
@@ -30,7 +30,7 @@ func getGuild(ctx *gin.Context) {
 				return
 			}
 
-			grpcContext := backend.GetBasicEventContext().ToGRPCContext()
+			grpcContext := backend.GetBasicEventContext(ctx).ToGRPCContext()
 
 			channels, err := backend.GRPCInterface.FetchChannelsByName(grpcContext, guildID, "")
 			if err != nil {
@@ -68,7 +68,7 @@ func getGuild(ctx *gin.Context) {
 			discordGuild.Roles = roles
 			discordGuild.Emojis = emojis
 
-			hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(discordGuild.ID)
+			hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, discordGuild.ID)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 			}

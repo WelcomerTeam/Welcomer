@@ -81,7 +81,7 @@ func getBorderwall(ctx *gin.Context) {
 				return
 			}
 
-			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext().ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
+			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Msg("Failed to fetch guild")
 			} else if !guild.ID.IsNil() {
@@ -236,7 +236,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Broadcast borderwall completion.
-		managers, err := fetchManagersForGuild(discord.Snowflake(borderwallRequest.GuildID))
+		managers, err := fetchManagersForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
 		if err != nil || len(managers) == 0 {
 			logger.Error().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Int("len", len(managers)).Msg("Failed to get managers for guild")
 

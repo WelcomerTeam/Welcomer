@@ -202,7 +202,7 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 			})
 		}
 
-		guilds, err := backend.GetUserGuilds(session)
+		guilds, err := backend.GetUserGuilds(ctx, session)
 		if err != nil {
 			var statusCode int
 			if errors.Is(err, discord.ErrUnauthorized) {

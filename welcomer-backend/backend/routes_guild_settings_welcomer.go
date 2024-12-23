@@ -186,7 +186,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			if welcomerImages.BackgroundName == utils.CustomBackgroundPrefix+"upload" {
 				if fileValue != nil {
-					hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(guildID)
+					hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, guildID)
 					if err != nil {
 						backend.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 					}
@@ -359,6 +359,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				return
 			}
 
+			welcomerImages.ToggleShowAvatar = true
 			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
 
 			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")

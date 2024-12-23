@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -16,7 +17,7 @@ const (
 	LazyRefreshFrequency    = time.Hour
 )
 
-func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Snowflake]*SessionGuild, err error) {
+func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (guilds map[discord.Snowflake]*SessionGuild, err error) {
 	token, ok := GetTokenSession(session)
 	if !ok {
 		return nil, ErrMissingToken
@@ -31,7 +32,7 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(backend.ctx, token.TokenType+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(ctx, token.TokenType+" "+token.AccessToken, httpInterface)
 
 	discordGuilds, err := discord.GetCurrentUserGuilds(discordSession)
 	if err != nil {
@@ -51,12 +52,12 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 	}
 
 	for _, discordGuild := range discordGuilds {
-		welcomerPresence, _, _, err := hasWelcomerPresence(discordGuild.ID, false)
+		welcomerPresence, _, _, err := hasWelcomerPresence(ctx, discordGuild.ID, false)
 		if err != nil {
 			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
 		}
 
-		hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(discordGuild.ID)
+		hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, discordGuild.ID)
 		if err != nil {
 			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 		}
@@ -77,13 +78,13 @@ func (b *Backend) GetUserGuilds(session sessions.Session) (guilds map[discord.Sn
 	return guilds, nil
 }
 
-func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*Membership, err error) {
+func (b *Backend) GetUserMemberships(ctx context.Context, session sessions.Session) (memberships []*Membership, err error) {
 	user, ok := GetUserSession(session)
 	if !ok {
 		return nil, ErrMissingUser
 	}
 
-	userMemberships, err := backend.Database.GetUserMembershipsByUserID(backend.ctx, int64(user.ID))
+	userMemberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(user.ID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user memberships: %w", err)
 	}
@@ -101,7 +102,7 @@ func (b *Backend) GetUserMemberships(session sessions.Session) (memberships []*M
 		}
 
 		if userMembership.GuildID != 0 {
-			ok, guild, _, err := hasWelcomerPresence(discord.Snowflake(userMembership.GuildID), false)
+			ok, guild, _, err := hasWelcomerPresence(ctx, discord.Snowflake(userMembership.GuildID), false)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
 			}
@@ -127,7 +128,7 @@ func usersMe(ctx *gin.Context) {
 		refresh := time.Since(user.MembershipsLastRequestedAt) > RefreshFrequency
 
 		if refresh {
-			memberships, err := backend.GetUserMemberships(session)
+			memberships, err := backend.GetUserMemberships(ctx, session)
 			if err != nil {
 				backend.Logger.Error().Err(err).Msg("Failed to get user memberships")
 
@@ -172,7 +173,7 @@ func usersMeMemberships(ctx *gin.Context) {
 		var err error
 
 		if refresh {
-			memberships, err = backend.GetUserMemberships(session)
+			memberships, err = backend.GetUserMemberships(ctx, session)
 			if err != nil {
 				backend.Logger.Error().Err(err).Msg("Failed to get user memberships")
 
@@ -224,7 +225,7 @@ func usersGuilds(ctx *gin.Context) {
 		var err error
 
 		if refresh {
-			mappedGuilds, err = backend.GetUserGuilds(session)
+			mappedGuilds, err = backend.GetUserGuilds(ctx, session)
 
 			if err != nil {
 				if errors.Is(err, discord.ErrUnauthorized) {
@@ -254,7 +255,7 @@ func usersGuilds(ctx *gin.Context) {
 			mappedGuilds = user.Guilds
 
 			for _, guild := range mappedGuilds {
-				hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(guild.ID)
+				hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, guild.ID)
 				if err != nil {
 					backend.Logger.Warn().Err(err).Int("guildID", int(guild.ID)).Msg("Exception getting welcomer membership")
 				}

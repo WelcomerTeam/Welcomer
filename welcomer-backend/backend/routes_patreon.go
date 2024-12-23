@@ -3,9 +3,6 @@ package backend
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
-
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
@@ -13,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 	"golang.org/x/oauth2"
+	"net/http"
+	"time"
 )
 
 // Send user to OAuth2 Authorize URL.

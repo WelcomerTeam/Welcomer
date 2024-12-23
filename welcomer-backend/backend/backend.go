@@ -39,8 +39,6 @@ const (
 var backend *Backend
 
 type Backend struct {
-	ctx context.Context
-
 	Logger    zerolog.Logger
 	StartTime time.Time
 
@@ -105,8 +103,6 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	}
 
 	b := &Backend{
-		ctx: ctx,
-
 		Logger: logger,
 
 		Options: options,
@@ -135,9 +131,9 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	PatreonOAuth2Config.RedirectURL = options.PatreonRedirectURL
 
 	// Setup sessions
-	b.EmptySession = discord.NewSession(b.ctx, "", b.RESTInterface)
-	b.BotSession = discord.NewSession(b.ctx, b.Options.BotToken, b.RESTInterface)
-	b.DonatorBotSession = discord.NewSession(b.ctx, b.Options.DonatorBotToken, b.RESTInterface)
+	b.EmptySession = discord.NewSession(ctx, "", b.RESTInterface)
+	b.BotSession = discord.NewSession(ctx, b.Options.BotToken, b.RESTInterface)
+	b.DonatorBotSession = discord.NewSession(ctx, b.Options.DonatorBotToken, b.RESTInterface)
 
 	if options.NginxAddress != "" {
 		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
@@ -191,9 +187,9 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 }
 
 // GetEventContext.
-func (b *Backend) GetBasicEventContext() (client *sandwich.EventContext) {
+func (b *Backend) GetBasicEventContext(ctx context.Context) (client *sandwich.EventContext) {
 	return &sandwich.EventContext{
-		Context: b.ctx,
+		Context: ctx,
 		Logger:  b.Logger,
 		Sandwich: &sandwich.Sandwich{
 			SandwichClient: b.SandwichClient,
