@@ -4,6 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/url"
+	"os"
+	"time"
+
 	messaging "github.com/WelcomerTeam/Sandwich/messaging"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -14,9 +18,8 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"net/url"
-	"os"
-	"time"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {

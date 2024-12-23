@@ -4,6 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/url"
+	"os"
+	"time"
+
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
@@ -13,9 +17,6 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"net/url"
-	"os"
-	"time"
 )
 
 func main() {
