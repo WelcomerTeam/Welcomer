@@ -97,6 +97,7 @@ var DefaultWelcomerText GuildSettingsWelcomerText = GuildSettingsWelcomerText{
 var DefaultWelcomerImages GuildSettingsWelcomerImages = GuildSettingsWelcomerImages{
 	ToggleEnabled:          false,
 	ToggleImageBorder:      true,
+	ToggleShowAvatar:       true,
 	BackgroundName:         "solid:profile",
 	ColourText:             "#FFFFFF",
 	ColourTextBorder:       "#000000",

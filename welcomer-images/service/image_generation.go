@@ -85,13 +85,6 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 			avatar = assetsDefaultAvatarImage
 		}
-
-		avatar, err = applyAvatarEffects(avatar, imageOptions)
-		if err != nil {
-			is.Logger.Error().Err(err).Msg("Failed to generate avatar")
-		}
-
-		timing.Track("applyAvatarEffects")
 	}
 
 	timing.Track("fetchAvatar")
@@ -101,6 +94,15 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 		is.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
 
 		background = FullImage{Frames: []image.Image{backgroundsDefaultImage}}
+	}
+
+	if avatar != nil {
+		avatar, err = applyAvatarEffects(avatar, imageOptions)
+		if err != nil {
+			is.Logger.Error().Err(err).Msg("Failed to generate avatar")
+		}
+
+		timing.Track("applyAvatarEffects")
 	}
 
 	timing.Track("fetchBackground")
