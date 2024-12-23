@@ -290,6 +290,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				GuildID:                int64(eventCtx.Guild.ID),
 				ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
 				ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+				ToggleShowAvatar:       database.DefaultWelcomerImages.ToggleShowAvatar,
 				BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
 				ColourText:             database.DefaultWelcomerImages.ColourText,
 				ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
@@ -462,12 +463,18 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		var imageReaderCloser io.ReadCloser
 		var contentType string
 
+		var avatarURL string
+
+		if guildSettingsWelcomerImages.ToggleShowAvatar {
+			avatarURL = welcomer.GetUserAvatar(event.Member.User)
+		}
+
 		// Fetch the utils.image.
 		imageReaderCloser, contentType, err = p.FetchWelcomerImage(utils.GenerateImageOptionsRaw{
 			GuildID:            int64(eventCtx.Guild.ID),
 			UserID:             int64(event.Member.User.ID),
 			AllowAnimated:      hasWelcomerPro,
-			AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
+			AvatarURL:          avatarURL,
 			Theme:              guildSettingsWelcomerImages.ImageTheme,
 			Background:         guildSettingsWelcomerImages.BackgroundName,
 			Text:               messageFormat,
@@ -612,14 +619,33 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Send server message if it's not empty.
 	if !utils.IsMessageParamsEmpty(serverMessage) {
-		channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
-
-		_, serr = channel.Send(eventCtx.Session, serverMessage)
-		if serr != nil {
-			eventCtx.Logger.Warn().Err(serr).
+		validGuild, err := core.CheckChannelGuild(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsWelcomerText.Channel))
+		if err != nil {
+			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsWelcomerText.Channel).
-				Msg("Failed to send welcomer message to channel")
+				Msg("Failed to check channel guild")
+		} else if !validGuild {
+			eventCtx.Logger.Warn().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsWelcomerText.Channel).
+				Msg("Channel does not belong to guild")
+		} else {
+			channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
+
+			_, serr = channel.Send(eventCtx.Session, serverMessage)
+
+			eventCtx.Logger.Info().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsWelcomerText.Channel).
+				Msg("Sent welcomer message to channel")
+
+			if serr != nil {
+				eventCtx.Logger.Warn().Err(serr).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("channel_id", guildSettingsWelcomerText.Channel).
+					Msg("Failed to send welcomer message to channel")
+			}
 		}
 	}
 
@@ -629,6 +655,12 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
 		_, dmerr = user.Send(eventCtx.Session, directMessage)
+
+		eventCtx.Logger.Info().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Msg("Sent welcomer DMs to user")
+
 		if dmerr != nil {
 			eventCtx.Logger.Warn().Err(dmerr).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

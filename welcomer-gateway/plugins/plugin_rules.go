@@ -95,9 +95,13 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 
 	embeds = append(embeds, embed)
 
-	_, err = member.User.Send(eventCtx.Session, discord.MessageParams{
-		Embeds: embeds,
-	})
+	_, err = member.User.Send(eventCtx.Session, discord.MessageParams{Embeds: embeds})
+
+	eventCtx.Logger.Info().
+		Int64("guild_id", int64(eventCtx.Guild.ID)).
+		Int64("user_id", int64(member.User.ID)).
+		Msg("Sent rules to user")
+
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

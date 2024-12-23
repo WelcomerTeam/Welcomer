@@ -85,6 +85,9 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 
 			databaseTempChannelsGuildSettings := database.CreateOrUpdateTempChannelsGuildSettingsParams(*tempchannels)
 
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *tempchannels).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild tempchannel settings")
+
 			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)

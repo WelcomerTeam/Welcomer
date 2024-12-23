@@ -200,14 +200,33 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 	// Send the message if it's not empty.
 	if !utils.IsMessageParamsEmpty(serverMessage) {
-		channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
-
-		_, err = channel.Send(eventCtx.Session, serverMessage)
+		validGuild, err := core.CheckChannelGuild(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
 		if err != nil {
-			eventCtx.Logger.Warn().Err(err).
+			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsLeaver.Channel).
-				Msg("Failed to send leaver message to channel")
+				Msg("Failed to check channel guild")
+		} else if !validGuild {
+			eventCtx.Logger.Warn().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsLeaver.Channel).
+				Msg("Channel does not belong to guild")
+		} else {
+			channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
+
+			_, err = channel.Send(eventCtx.Session, serverMessage)
+
+			eventCtx.Logger.Info().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsLeaver.Channel).
+				Msg("Sent leaver message to channel")
+
+			if err != nil {
+				eventCtx.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("channel_id", guildSettingsLeaver.Channel).
+					Msg("Failed to send leaver message to channel")
+			}
 		}
 	}
 

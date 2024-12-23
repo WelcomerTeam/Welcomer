@@ -89,6 +89,9 @@ func setGuildSettingsRules(ctx *gin.Context) {
 
 			databaseRulesGuildSettings := database.CreateOrUpdateRulesGuildSettingsParams(*rules)
 
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *rules).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild rule settings")
+
 			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)

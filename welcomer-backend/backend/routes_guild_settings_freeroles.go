@@ -82,6 +82,9 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 
 			databaseFreeRolesGuildSettings := database.CreateOrUpdateFreeRolesGuildSettingsParams(*freeroles)
 
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *freeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild freerole settings")
+
 			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateFreeRolesGuildSettings(ctx, databaseFreeRolesGuildSettings)

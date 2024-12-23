@@ -27,6 +27,28 @@ func init() {
 	}
 }
 
+func CheckChannelGuild(ctx context.Context, c protobuf.SandwichClient, guildID, channelID discord.Snowflake) (bool, error) {
+	channels, err := c.FetchGuildChannels(ctx, &protobuf.FetchGuildChannelsRequest{
+		GuildID: int64(guildID),
+	})
+	if err != nil {
+		fmt.Printf("Failed to fetch guild channels channelId=%d guildId=%d: %v", channelID, guildID, err)
+
+		return false, err
+	}
+
+	for channel := range channels.GuildChannels {
+		if channel == int64(channelID) {
+			return true, nil
+		}
+	}
+
+	fmt.Printf("Channel %d not found in guild %d. Channels: %v", channelID, guildID, channels.GuildChannels)
+
+	return false, nil
+
+}
+
 func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
 	for _, membership := range memberships {
 		if IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)) {
@@ -82,7 +104,7 @@ func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) 
 		}
 	}
 
-	// Backdoor here :)
+	println(member.User.ID, "is not elevated")
 
 	return false
 }
