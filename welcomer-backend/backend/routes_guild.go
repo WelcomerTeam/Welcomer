@@ -94,7 +94,6 @@ func getGuild(ctx *gin.Context) {
 
 					return
 				}
-
 			}
 
 			partialGuild := GuildToPartial(discordGuild)

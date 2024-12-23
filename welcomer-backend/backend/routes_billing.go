@@ -52,8 +52,10 @@ func getSKUPricing() map[welcomer.SKUName]welcomer.PricingSKU {
 	index, err := strconv.Atoi(os.Getenv("PRICING_TABLE"))
 	if err != nil || index < 0 || index >= len(welcomer.SKUPricingTable) {
 		backend.Logger.Error().Err(err).Msg("Invalid PRICING_TABLE environment variable")
+
 		return nil
 	}
+
 	return welcomer.SKUPricingTable[index]
 }
 
@@ -66,7 +68,6 @@ func getSKUs(ctx *gin.Context) {
 
 	currencies := getAvailableCurrencies(response)
 
-	// TODO:
 	skuPricing := getSKUPricing()
 
 	pricingStructure := GetSKUsResponse{

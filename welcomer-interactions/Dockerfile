@@ -10,6 +10,6 @@ FROM alpine:3
 RUN apk add ca-certificates libc6-compat
 COPY --from=build_base /usr/local/lib /usr/local/lib
 COPY --from=build_base /tmp/welcomer-interactions/out/interactions /app/interactions
-CMD ["/app/interactions"]
+CMD ["/app/interactions", "--proxyDebug"]
 
 LABEL org.opencontainers.image.source https://github.com/WelcomerTeam/Welcomer

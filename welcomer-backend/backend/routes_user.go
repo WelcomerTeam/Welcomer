@@ -267,6 +267,7 @@ func usersGuilds(ctx *gin.Context) {
 
 		i := 0
 		guilds := make([]*SessionGuild, len(mappedGuilds))
+
 		for _, guild := range mappedGuilds {
 			guilds[i] = guild
 			i++

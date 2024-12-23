@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/WelcomerTeam/Discord/discord"
 	messaging "github.com/WelcomerTeam/Sandwich/messaging"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -65,7 +64,7 @@ func main() {
 		panic(fmt.Errorf("failed to parse proxy address. url.Parse(%s): %w", *proxyAddress, err))
 	}
 
-	restInterface := discord.NewTwilightProxy(*proxyURL)
+	restInterface := welcomer.NewTwilightProxy(*proxyURL)
 	restInterface.SetDebug(*proxyDebug)
 
 	// Setup GRPC

@@ -134,6 +134,7 @@ func getMemberships(ctx *gin.Context) {
 			}
 
 			var guildName string
+
 			var guildIcon string
 
 			if membership.GuildID == 0 {
@@ -219,6 +220,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 		for _, membership := range memberships {
 			if membership.MembershipUuid == membershipID {
 				var err error
+
 				var newMembership database.UpdateUserMembershipParams
 
 				if !guildID.IsNil() {

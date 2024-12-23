@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
@@ -71,7 +70,7 @@ func main() {
 		panic(fmt.Sprintf("url.Parse(%s): %v", *proxyAddress, err.Error()))
 	}
 
-	restInterface := discord.NewTwilightProxy(*proxyURL)
+	restInterface := welcomer.NewTwilightProxy(*proxyURL)
 	restInterface.SetDebug(*proxyDebug)
 
 	// Setup GRPC

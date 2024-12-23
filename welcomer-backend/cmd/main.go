@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/WelcomerTeam/Discord/discord"
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -80,7 +80,7 @@ func main() {
 		panic(fmt.Sprintf("url.Parse(%s): %v", *proxyAddress, err.Error()))
 	}
 
-	restInterface := discord.NewTwilightProxy(*proxyURL)
+	restInterface := welcomer.NewTwilightProxy(*proxyURL)
 	restInterface.SetDebug(*proxyDebug)
 
 	// Setup GRPC
