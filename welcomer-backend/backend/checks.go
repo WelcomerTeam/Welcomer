@@ -2,9 +2,10 @@ package backend
 
 import (
 	"context"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"time"
 )
 
 func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnBotGuildMembers bool) (ok bool, guild discord.Guild, guildMembers []discord.GuildMember, err error) {

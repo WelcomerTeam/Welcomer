@@ -17,6 +17,8 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {

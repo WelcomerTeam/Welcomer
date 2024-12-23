@@ -5,13 +5,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/WelcomerTeam/Discord/discord"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/WelcomerTeam/Discord/discord"
 )
 
 // TwilightProxy is a proxy that requests are sent through, instead of directly to discord that will handle

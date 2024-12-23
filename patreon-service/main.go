@@ -4,6 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -13,8 +16,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rs/zerolog"
 	"golang.org/x/oauth2"
-	"os"
-	"time"
 )
 
 func main() {
