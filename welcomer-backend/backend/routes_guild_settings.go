@@ -3,11 +3,10 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	"net/http"
-
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 // Route GET /api/guild/:guildID/settings

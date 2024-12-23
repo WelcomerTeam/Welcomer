@@ -1,18 +1,17 @@
 package backend
 
 import (
-	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
-
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 	"github.com/plutov/paypal/v4"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
 )
 
 // ISO 3166-1 alpha-2 country codes for the Eurozone.

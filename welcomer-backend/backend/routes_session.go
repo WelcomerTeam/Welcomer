@@ -1,14 +1,13 @@
 package backend
 
 import (
-	"net/http"
-	"strings"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strings"
+	"time"
 )
 
 // Send user to OAuth2 Authorize URL.

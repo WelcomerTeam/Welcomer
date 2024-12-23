@@ -1,10 +1,9 @@
 package service
 
 import (
-	"time"
-
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/prometheus/client_golang/prometheus"
+	"time"
 )
 
 var (

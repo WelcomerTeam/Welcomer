@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -15,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
+	"net/http"
+	"time"
 )
 
 type getUserMembershipResponse struct {

@@ -1,9 +1,8 @@
 package welcomer
 
 import (
-	"os"
-
 	"github.com/WelcomerTeam/Discord/discord"
+	"os"
 )
 
 const (

@@ -3,12 +3,11 @@ package service
 import (
 	"bytes"
 	"fmt"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/gofrs/uuid"
 	"image"
 	"image/color"
 	"image/gif"
-
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/gofrs/uuid"
 )
 
 const (

@@ -2,17 +2,9 @@ package plugins
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"image/color"
-	"io"
-	"net/http"
-	"os"
-	"strings"
-	"time"
-
-	"encoding/json"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
@@ -21,9 +13,14 @@ import (
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
+	"image/color"
+	"io"
+	"net/http"
+	"os"
+	"strings"
+	"time"
 )
 
 const (

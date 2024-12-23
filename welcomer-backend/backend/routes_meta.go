@@ -2,14 +2,13 @@ package backend
 
 import (
 	"encoding/json"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/atomic"
 	"net/http"
 	"os"
 	"sync"
 	"time"
-
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/structs"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/atomic"
 )
 
 type GetStatusResponse struct {

@@ -2,16 +2,15 @@ package service
 
 import (
 	"context"
+	"github.com/WelcomerTeam/Discord/discord"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
 	"image"
 	"image/color"
 	"math"
 	"net/http"
 	"net/url"
-
-	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/disintegration/imaging"
-	"github.com/fogleman/gg"
 )
 
 var (

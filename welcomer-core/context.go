@@ -2,7 +2,6 @@ package welcomer
 
 import (
 	"context"
-
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4/pgxpool"

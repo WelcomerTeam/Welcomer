@@ -3,7 +3,6 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"

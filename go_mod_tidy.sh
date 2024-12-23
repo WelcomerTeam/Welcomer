@@ -1,5 +1,8 @@
 #!/bin/bash
 
+gci write --skip-generated -s default *
+
+
 # Loop through all directories in the current folder
 for dir in */; do
   # Check if it's a directory and contains a go.mod file

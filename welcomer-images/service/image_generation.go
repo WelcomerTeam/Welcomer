@@ -2,17 +2,16 @@ package service
 
 import (
 	"context"
-	"image"
-	"image/color"
-	"image/draw"
-	"runtime"
-	"sync"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/RealRock/limiter"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
+	"image"
+	"image/color"
+	"image/draw"
+	"runtime"
+	"sync"
 )
 
 var lim = limiter.NewConcurrencyLimiter(runtime.NumCPU() / 2)

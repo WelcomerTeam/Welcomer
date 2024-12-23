@@ -3,12 +3,11 @@ package backend
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"time"
 )
 
 const (

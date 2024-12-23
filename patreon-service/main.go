@@ -4,18 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rs/zerolog"
-
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/rs/zerolog"
+	"os"
+	"time"
 )
 
 func main() {

@@ -5,15 +5,14 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
+	"net/http"
+	"time"
 )
 
 const (

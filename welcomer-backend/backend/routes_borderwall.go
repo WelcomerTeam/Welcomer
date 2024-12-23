@@ -3,12 +3,6 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
-	"net"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -18,6 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
+	"net"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (

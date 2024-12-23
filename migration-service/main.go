@@ -6,16 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image/gif"
-	"io"
-	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -25,6 +15,15 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"gopkg.in/yaml.v3"
+	"image/gif"
+	"io"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
 type ShareServiceStructure struct {

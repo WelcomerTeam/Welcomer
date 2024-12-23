@@ -1,11 +1,10 @@
 package service
 
 import (
-	"image"
-
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/sfnt"
 	"golang.org/x/image/math/fixed"
+	"image"
 )
 
 type MultiFaceEntry struct {

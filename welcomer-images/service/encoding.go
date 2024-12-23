@@ -3,14 +3,13 @@ package service
 import (
 	"bytes"
 	"fmt"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	gotils_strconv "github.com/savsgio/gotils/strconv"
+	"github.com/ultimate-guitar/go-imagequant"
 	"image"
 	"image/gif"
 	"image/png"
 	"sync"
-
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	gotils_strconv "github.com/savsgio/gotils/strconv"
-	"github.com/ultimate-guitar/go-imagequant"
 )
 
 var (

@@ -3,7 +3,6 @@ package plugins
 import (
 	"errors"
 	"fmt"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
