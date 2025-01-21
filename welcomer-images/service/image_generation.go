@@ -2,16 +2,17 @@ package service
 
 import (
 	"context"
-	"github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/RealRock/limiter"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/disintegration/imaging"
-	"github.com/fogleman/gg"
 	"image"
 	"image/color"
 	"image/draw"
 	"runtime"
 	"sync"
+
+	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/RealRock/limiter"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
 )
 
 var lim = limiter.NewConcurrencyLimiter(runtime.NumCPU() / 2)
@@ -44,6 +45,7 @@ type FullImage struct {
 }
 
 type GenerateImageOptions struct {
+	ShowAvatar         bool
 	GuildID            discord.Snowflake
 	UserID             discord.Snowflake
 	AllowAnimated      bool
@@ -73,17 +75,18 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 	timing := utils.NewTiming()
 
 	var avatar image.Image
+
 	var err error
 
-	if imageOptions.AvatarURL == "" {
-		avatar = nil
-	} else {
-		avatar, err = is.FetchAvatar(ctx, imageOptions.UserID, imageOptions.AvatarURL)
+	if imageOptions.AvatarURL != "" {
+		avatar, err = is.FetchAvatar(ctx, imageOptions.AvatarURL)
 		if err != nil {
 			is.Logger.Error().Err(err).Msg("Failed to fetch avatar")
 
 			avatar = assetsDefaultAvatarImage
 		}
+	} else {
+		avatar = nil
 	}
 
 	timing.Track("fetchAvatar")
@@ -93,6 +96,10 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 		is.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
 
 		background = FullImage{Frames: []image.Image{backgroundsDefaultImage}}
+	}
+
+	if !imageOptions.ShowAvatar {
+		avatar = nil
 	}
 
 	if avatar != nil {
