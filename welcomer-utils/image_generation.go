@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/WelcomerTeam/Discord/discord"
 	"regexp"
 	"strings"
+
+	"github.com/WelcomerTeam/Discord/discord"
 )
 
 var (
