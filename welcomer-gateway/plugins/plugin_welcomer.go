@@ -460,19 +460,13 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		var imageReaderCloser io.ReadCloser
 		var contentType string
 
-		var avatarURL string
-
-		if guildSettingsWelcomerImages.ToggleShowAvatar {
-			avatarURL = welcomer.GetUserAvatar(event.Member.User)
-		}
-
 		// Fetch the utils.image.
 		imageReaderCloser, contentType, err = p.FetchWelcomerImage(utils.GenerateImageOptionsRaw{
 			ShowAvatar:         guildSettingsWelcomerImages.ToggleShowAvatar,
 			GuildID:            int64(eventCtx.Guild.ID),
 			UserID:             int64(event.Member.User.ID),
 			AllowAnimated:      hasWelcomerPro,
-			AvatarURL:          avatarURL,
+			AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
 			Theme:              guildSettingsWelcomerImages.ImageTheme,
 			Background:         guildSettingsWelcomerImages.BackgroundName,
 			Text:               messageFormat,

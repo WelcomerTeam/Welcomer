@@ -7,13 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image/jpeg"
-	"image/png"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -24,6 +17,12 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
+	"image/jpeg"
+	"image/png"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"time"
 )
 
 //go:embed imageFailure.png

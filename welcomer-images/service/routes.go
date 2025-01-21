@@ -1,13 +1,12 @@
 package service
 
 import (
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
+	"time"
 )
 
 // Route POST /generate

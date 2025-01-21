@@ -4,6 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
@@ -19,10 +24,6 @@ import (
 	"github.com/rs/zerolog"
 	gin_prometheus "github.com/zsais/go-gin-prometheus"
 	"google.golang.org/grpc"
-	"net/http"
-	"os"
-	"strings"
-	"time"
 )
 
 const VERSION = "0.1"
