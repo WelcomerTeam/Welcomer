@@ -99,12 +99,12 @@ type BackendOptions struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptions) (b *Backend, err error) {
+func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptions) (*Backend, error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
 
-	b = &Backend{
+	b := &Backend{
 		ctx: ctx,
 
 		Logger: logger,
@@ -140,7 +140,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	b.DonatorBotSession = discord.NewSession(b.ctx, b.Options.DonatorBotToken, b.RESTInterface)
 
 	if options.NginxAddress != "" {
-		err = b.Route.SetTrustedProxies([]string{options.NginxAddress})
+		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
 		if err != nil {
 			return nil, fmt.Errorf("failed to set trusted proxies: %w", err)
 		}

@@ -55,7 +55,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		token, err := PatreonOAuth2Config.Exchange(backend.ctx, queryCode)
+		token, err := PatreonOAuth2Config.Exchange(ctx, queryCode)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
@@ -64,7 +64,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		patreonUser, err := core.IdentifyPatreonMember(backend.ctx, token.Type()+" "+token.AccessToken)
+		patreonUser, err := core.IdentifyPatreonMember(ctx, token.Type()+" "+token.AccessToken)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to identify member")
 

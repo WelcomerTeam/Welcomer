@@ -219,7 +219,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate IPIntel
-		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
+		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to validate IPIntel")
 		}
@@ -284,12 +284,12 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		ip := net.ParseIP(ctx.ClientIP())
-		family, familyVersion, os, osVersion := utils.ParseUserAgent(userAgent)
+		clientIP := net.ParseIP(ctx.ClientIP())
+		familyName, familyVersion, osName, osVersion := utils.ParseUserAgent(userAgent)
 
 		// If platform version is 13 or higher, we assume it's Windows 11.
 		// https://learn.microsoft.com/en-us/microsoft-edge/web-platform/how-to-detect-win11
-		if strings.ToLower(os) == "windows" && osVersion == "10" && getMajor(request.PlatformVersion) >= 13 {
+		if strings.ToLower(osName) == "windows" && osVersion == "10" && getMajor(request.PlatformVersion) >= 13 {
 			osVersion = "11"
 		}
 
@@ -304,12 +304,12 @@ func setBorderwall(ctx *gin.Context) {
 			RequestUuid:     borderwallRequest.RequestUuid,
 			IsVerified:      true,
 			VerifiedAt:      sql.NullTime{Time: time.Now(), Valid: true},
-			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: ip, Mask: ip.DefaultMask()}, Status: pgtype.Present},
+			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: clientIP, Mask: clientIP.DefaultMask()}, Status: pgtype.Present},
 			RecaptchaScore:  sql.NullFloat64{Float64: recaptchaScore, Valid: true},
 			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
-			UaFamily:        sql.NullString{String: family, Valid: true},
+			UaFamily:        sql.NullString{String: familyName, Valid: true},
 			UaFamilyVersion: sql.NullString{String: familyVersion, Valid: true},
-			UaOs:            sql.NullString{String: os, Valid: true},
+			UaOs:            sql.NullString{String: osName, Valid: true},
 			UaOsVersion:     sql.NullString{String: osVersion, Valid: true},
 		}); err != nil {
 			logger.Warn().Err(err).Msg("Failed to update borderwall request")

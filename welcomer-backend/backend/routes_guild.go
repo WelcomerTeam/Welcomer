@@ -73,7 +73,7 @@ func getGuild(ctx *gin.Context) {
 				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 			}
 
-			guildConfig, err := backend.Database.GetGuild(backend.ctx, int64(discordGuild.ID))
+			guildConfig, err := backend.Database.GetGuild(ctx, int64(discordGuild.ID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildConfig = &database.Guilds{
