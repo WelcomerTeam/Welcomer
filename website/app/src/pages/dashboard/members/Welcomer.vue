@@ -178,6 +178,7 @@ import {
   getSuccessToast,
   getValidationToast,
   navigateToErrors,
+  isValidJson,
 } from "@/utilities";
 
 var imageAlignmentTypes = [
@@ -235,6 +236,9 @@ export default {
               config.value.text?.enabled ||
               (config.value.dms?.reuse_message && config.value.dms?.enabled)
             )),
+            isValidJson: helpers.withMessage("The message is not valid JSON", (value) => {
+              return !value || isValidJson(value);
+            }),
           },
         },
         images: {
