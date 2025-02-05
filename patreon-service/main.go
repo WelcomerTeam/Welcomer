@@ -4,6 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -12,20 +15,24 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rs/zerolog"
-	"os"
-	"time"
+	"golang.org/x/oauth2"
 )
 
 func main() {
+	var err error
+
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
+	patreonClientID := flag.String("patreonClientID", os.Getenv("PATREON_CLIENT_ID"), "Patreon client ID")
+	patreonClientSecret := flag.String("patreonClientSecret", os.Getenv("PATREON_CLIENT_SECRET"), "Patreon client secret")
+
 	patreonAccessToken := flag.String("patreonAccessToken", os.Getenv("PATREON_ACCESS_TOKEN"), "Patreon access token")
+	patreonRefreshToken := flag.String("patreonRefreshToken", os.Getenv("PATREON_REFRESH_TOKEN"), "Patreon refresh token")
+
 	patreonWebhookUrl := flag.String("patreonWebhookUrl", os.Getenv("PATREON_WEBHOOK_URL"), "Webhook URL for logging")
 
 	flag.Parse()
-
-	var err error
 
 	// Setup Logger
 	var level zerolog.Level
@@ -46,6 +53,27 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic:", r)
+
+			err = utils.SendWebhookMessage(ctx, *patreonWebhookUrl, discord.WebhookMessageParams{
+				Content: "<@143090142360371200>",
+				Embeds: []discord.Embed{
+					{
+						Title:       "Patreon Service",
+						Description: fmt.Sprintf("Recovered from panic: %v", r),
+						Color:       int32(16760839),
+						Timestamp:   utils.ToPointer(time.Now()),
+					},
+				},
+			})
+			if err != nil {
+				logger.Warn().Err(err).Msg("Failed to send webhook message")
+			}
+		}
+	}()
+
 	// Setup postgres pool.
 	var pool *pgxpool.Pool
 	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
@@ -55,7 +83,28 @@ func main() {
 	// Setup database.
 	db := database.New(pool)
 
-	membersList, err := core.GetAllPatreonMembers(ctx, "Bearer "+*patreonAccessToken)
+	entrypoint(ctx, logger, db, *patreonClientID, *patreonClientSecret, *patreonAccessToken, *patreonRefreshToken, *patreonWebhookUrl)
+}
+
+func entrypoint(ctx context.Context, logger zerolog.Logger, db *database.Queries, patreonClientID, patreonClientSecret, patreonAccessToken, patreonRefreshToken, patreonWebhookUrl string) {
+	config := oauth2.Config{
+		ClientID:     patreonClientID,
+		ClientSecret: patreonClientSecret,
+		Scopes:       []string{"campaigns.members"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://www.patreon.com/oauth2/authorize",
+			TokenURL: "https://www.patreon.com/oauth2/token",
+		},
+	}
+
+	tc := config.Client(ctx, &oauth2.Token{
+		AccessToken:  patreonAccessToken,
+		RefreshToken: patreonRefreshToken,
+		ExpiresIn:    3600,
+	})
+	tc.Transport = utils.NewUserAgentSetterTransport(tc.Transport, utils.UserAgent)
+
+	membersList, err := core.GetAllPatreonMembers(ctx, tc)
 	if err != nil {
 		panic(fmt.Sprintf("GetAllPatreonMembers(): %v", err))
 	}
@@ -358,7 +407,8 @@ func main() {
 	}
 
 	if len(embedFields) > 0 {
-		err = utils.SendWebhookMessage(ctx, *patreonWebhookUrl, discord.WebhookMessageParams{
+		err = utils.SendWebhookMessage(ctx, patreonWebhookUrl, discord.WebhookMessageParams{
+			Content: utils.If(processHasWarning, "<@143090142360371200>", ""),
 			Embeds: []discord.Embed{
 				{
 					Title:     "Patreon Service",

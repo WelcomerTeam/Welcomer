@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/WelcomerTeam/Discord/discord"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 const (
@@ -189,18 +190,19 @@ func IdentifyPatreonMember(ctx context.Context, token string) (PatreonUser, erro
 	}, nil
 }
 
-func GetAllPatreonMembers(ctx context.Context, token string) ([]PatreonMember, error) {
-	return getAllPatreonMembers(ctx, token, nil, "")
+func GetAllPatreonMembers(ctx context.Context, client *http.Client) ([]PatreonMember, error) {
+	return getAllPatreonMembers(ctx, client, nil, "")
 }
 
-func getAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, u string) ([]PatreonMember, error) {
+func getAllPatreonMembers(ctx context.Context, client *http.Client, l []PatreonMember, u string) ([]PatreonMember, error) {
 	if l == nil {
 		l = []PatreonMember{}
 	}
 
 	u = utils.If(u != "", u, PatreonBase+"campaigns/"+CampaignID+"/members?fields[member]=patron_status,email,pledge_relationship_start,currently_entitled_amount_cents,last_charge_status,last_charge_date,pledge_relationship_start&fields[user]=social_connections,full_name,thumb_url&include=user,currently_entitled_tiers&page[size]=100")
 
-	req, err := http.NewRequest(
+	req, err := http.NewRequestWithContext(
+		ctx,
 		http.MethodGet,
 		u,
 		nil,
@@ -210,10 +212,7 @@ func getAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, 
 		return l, err
 	}
 
-	req.Header.Set("Authorization", token)
-	req.Header.Set("User-Agent", utils.UserAgent)
-
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return l, err
 	}
@@ -252,7 +251,7 @@ func getAllPatreonMembers(ctx context.Context, token string, l []PatreonMember, 
 	}
 
 	if response.Links.Next != "" && response.Links.Next != u {
-		l, err = getAllPatreonMembers(ctx, token, l, response.Links.Next)
+		l, err = getAllPatreonMembers(ctx, client, l, response.Links.Next)
 	}
 
 	return l, err
