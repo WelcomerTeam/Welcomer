@@ -3,14 +3,16 @@ package backend
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
-	"time"
+	"golang.org/x/oauth2"
 )
 
 // Send user to OAuth2 Authorize URL.
@@ -73,7 +75,10 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		patreonUsers, err := core.GetAllPatreonMembers(ctx, token.Type()+" "+token.AccessToken)
+		tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
+		tc.Transport = utils.NewUserAgentSetterTransport(tc.Transport, utils.UserAgent)
+
+		patreonUsers, err := core.GetAllPatreonMembers(ctx, tc)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to get all patreon members")
 
