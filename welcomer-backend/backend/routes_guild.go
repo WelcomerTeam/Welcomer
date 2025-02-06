@@ -2,12 +2,11 @@ package backend
 
 import (
 	"errors"
-	"net/http"
-	"sort"
-
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
+	"sort"
 )
 
 // Route GET /api/guild/:guildID
@@ -74,7 +73,7 @@ func getGuild(ctx *gin.Context) {
 				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 			}
 
-			guildConfig, err := backend.Database.GetGuild(backend.ctx, int64(discordGuild.ID))
+			guildConfig, err := backend.Database.GetGuild(ctx, int64(discordGuild.ID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildConfig = &database.Guilds{
@@ -94,7 +93,6 @@ func getGuild(ctx *gin.Context) {
 
 					return
 				}
-
 			}
 
 			partialGuild := GuildToPartial(discordGuild)

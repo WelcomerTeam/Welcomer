@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
@@ -15,6 +13,7 @@ import (
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
+	"time"
 )
 
 func NewMembershipCog() *MembershipCog {
@@ -135,7 +134,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 
 	membershipGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "list",
-		Description: "Lists all membershipss you have available.",
+		Description: "Lists all memberships you have available.",
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			var userID discord.Snowflake
@@ -207,6 +206,11 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 					Value:  utils.If(membership.GuildID != 0, fmt.Sprintf("%s `%d`", membership.GuildName, membership.GuildID), "Unassigned"),
 					Inline: false,
 				})
+
+				if len(embed.Fields) == 25 {
+					embeds = append(embeds, embed)
+					embed = discord.Embed{Color: utils.EmbedColourInfo}
+				}
 			}
 
 			embeds = append(embeds, embed)

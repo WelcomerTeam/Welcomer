@@ -2,13 +2,12 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/rs/zerolog"
 )
 
 const (

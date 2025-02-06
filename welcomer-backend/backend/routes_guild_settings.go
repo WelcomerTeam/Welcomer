@@ -3,11 +3,10 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	"net/http"
-
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 // Route GET /api/guild/:guildID/settings
@@ -82,6 +81,9 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			settings := PartialToGuildSettings(int64(guildID), partial)
 
 			databaseGuildSettings := database.CreateOrUpdateGuildParams(*settings)
+
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
 
 			_, err = backend.Database.CreateOrUpdateGuild(ctx, databaseGuildSettings)
 			if err != nil {

@@ -1,12 +1,11 @@
 package backend
 
 import (
-	"net/http"
-	"time"
-
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"time"
 )
 
 func registerExampleRoutes(g *gin.Engine) {

@@ -16,7 +16,8 @@
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer Text</div>
             <form-value title="Enable Welcomer Text" :type="FormTypeToggle" v-model="config.text.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.text.enabled">Welcome users when they join with a custom
+              @update:modelValue="onValueUpdate" :validation="v$.text.enabled">Welcome users when they join with a
+              custom
               message. This will
               wait until a user has completed borderwall or rule screening, if
               enabled.</form-value>
@@ -71,13 +72,18 @@
             <form-value title="Image Text Colour" :type="FormTypeColour" v-model="config.images.text_colour"
               @update:modelValue="onValueUpdate" :validation="v$.images.text_colour" :inlineSlot="true"
               :disabled="!config.images.enabled">This is the colour of the text in your welcome image.</form-value>
-            <form-value title="Image Text Border Colour" :type="FormTypeColour" v-model="config.images.text_colour_border"
-              @update:modelValue="onValueUpdate" :validation="v$.images.text_colour_border" :inlineSlot="true"
-              :disabled="!config.images.enabled">This is the colour of the text border in your welcome
+            <form-value title="Image Text Border Colour" :type="FormTypeColour"
+              v-model="config.images.text_colour_border" @update:modelValue="onValueUpdate"
+              :validation="v$.images.text_colour_border" :inlineSlot="true" :disabled="!config.images.enabled">This is
+              the colour of the text border in your welcome
               image.</form-value>
           </div>
 
           <div class="dashboard-inputs">
+            <form-value title="Show User Avatars" :type="FormTypeToggle" v-model="config.images.show_avatar"
+              @update:modelValue="onValueUpdate" :validation="v$.images.show_avatar">When enabled, shows user avatars
+              in Welcome images.</form-value>
+
             <form-value title="Image Profile Border Type" :type="FormTypeDropdown" :values="profileBorderTypes"
               v-model="config.images.profile_border_type" @update:modelValue="onValueUpdate"
               :validation="v$.images.profile_border_type" :inlineSlot="true">This is the way the profile border shows on
@@ -119,8 +125,9 @@
               message, if enabled.</form-value>
             -->
 
-            <form-value title="Use Same Message As Welcome Text" v-model="config.dms.reuse_message" :type="FormTypeToggle"
-              @update:modelValue="onValueUpdate" :validation="v$.dms.reuse_message" :inlineSlot="true">This will copy the
+            <form-value title="Use Same Message As Welcome Text" v-model="config.dms.reuse_message"
+              :type="FormTypeToggle" @update:modelValue="onValueUpdate" :validation="v$.dms.reuse_message"
+              :inlineSlot="true">This will copy the
               same message as your welcomer text message,
               instead of using a separate message.</form-value>
 
@@ -171,6 +178,7 @@ import {
   getSuccessToast,
   getValidationToast,
   navigateToErrors,
+  isValidJson,
 } from "@/utilities";
 
 var imageAlignmentTypes = [
@@ -228,10 +236,14 @@ export default {
               config.value.text?.enabled ||
               (config.value.dms?.reuse_message && config.value.dms?.enabled)
             )),
+            isValidJson: helpers.withMessage("The message is not valid JSON", (value) => {
+              return !value || isValidJson(value);
+            }),
           },
         },
         images: {
           enabled: {},
+          show_avatar: {},
           enable_border: {},
           border_colour: {},
           background: {},

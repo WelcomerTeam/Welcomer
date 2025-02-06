@@ -102,6 +102,7 @@ type GuildSettingsWelcomerImages struct {
 	GuildID                int64  `json:"guild_id"`
 	ToggleEnabled          bool   `json:"toggle_enabled"`
 	ToggleImageBorder      bool   `json:"toggle_image_border"`
+	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
 	BackgroundName         string `json:"background_name"`
 	ColourText             string `json:"colour_text"`
 	ColourTextBorder       string `json:"colour_text_border"`

@@ -1,10 +1,9 @@
 package backend
 
 import (
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/gofrs/uuid"
+	"time"
 )
 
 type MinimalUser struct {

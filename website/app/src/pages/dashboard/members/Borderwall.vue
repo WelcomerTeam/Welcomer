@@ -93,6 +93,7 @@ import {
   getSuccessToast,
   getValidationToast,
   navigateToErrors,
+  isValidJson
 } from "@/utilities";
 
 export default {
@@ -120,8 +121,16 @@ export default {
             config.value.enabled && !config.value.send_dm && (config.value.message_verify !== "" || config.value.message_verified !== "")
           ))
         },
-        message_verify: {},
-        message_verified: {},
+        message_verify: {
+          isValidJson: helpers.withMessage("The message is not valid JSON", (value) => {
+            return !value || isValidJson(value);
+          })
+        },
+        message_verified: {
+          isValidJson: helpers.withMessage("The message is not valid JSON", (value) => {
+            return !value || isValidJson(value);
+          })
+        },
         roles_on_join: {},
         roles_on_verify: {},
       };

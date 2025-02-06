@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -15,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
+	"net/http"
+	"time"
 )
 
 type getUserMembershipResponse struct {
@@ -134,6 +133,7 @@ func getMemberships(ctx *gin.Context) {
 			}
 
 			var guildName string
+
 			var guildIcon string
 
 			if membership.GuildID == 0 {
@@ -219,6 +219,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 		for _, membership := range memberships {
 			if membership.MembershipUuid == membershipID {
 				var err error
+
 				var newMembership database.UpdateUserMembershipParams
 
 				if !guildID.IsNil() {

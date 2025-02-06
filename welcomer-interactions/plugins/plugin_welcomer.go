@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
@@ -111,6 +110,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:                int64(*interaction.GuildID),
 							ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
 							ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+							ToggleShowAvatar:       database.DefaultWelcomerImages.ToggleShowAvatar,
 							BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
 							ColourText:             database.DefaultWelcomerImages.ColourText,
 							ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
@@ -276,6 +276,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:                int64(*interaction.GuildID),
 							ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
 							ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+							ToggleShowAvatar:       database.DefaultWelcomerImages.ToggleShowAvatar,
 							BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
 							ColourText:             database.DefaultWelcomerImages.ColourText,
 							ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
@@ -349,6 +350,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					GuildID:                int64(*interaction.GuildID),
 					ToggleEnabled:          guildSettingsWelcomerImages.ToggleEnabled,
 					ToggleImageBorder:      guildSettingsWelcomerImages.ToggleImageBorder,
+					ToggleShowAvatar:       guildSettingsWelcomerImages.ToggleShowAvatar,
 					BackgroundName:         guildSettingsWelcomerImages.BackgroundName,
 					ColourText:             guildSettingsWelcomerImages.ColourText,
 					ColourTextBorder:       guildSettingsWelcomerImages.ColourTextBorder,
@@ -493,6 +495,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:                int64(*interaction.GuildID),
 							ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
 							ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+							ToggleShowAvatar:       database.DefaultWelcomerImages.ToggleShowAvatar,
 							BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
 							ColourText:             database.DefaultWelcomerImages.ColourText,
 							ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
@@ -570,6 +573,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					GuildID:                int64(*interaction.GuildID),
 					ToggleEnabled:          guildSettingsWelcomerImages.ToggleEnabled,
 					ToggleImageBorder:      guildSettingsWelcomerImages.ToggleImageBorder,
+					ToggleShowAvatar:       guildSettingsWelcomerImages.ToggleShowAvatar,
 					BackgroundName:         guildSettingsWelcomerImages.BackgroundName,
 					ColourText:             guildSettingsWelcomerImages.ColourText,
 					ColourTextBorder:       guildSettingsWelcomerImages.ColourTextBorder,

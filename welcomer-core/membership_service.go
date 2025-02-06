@@ -3,13 +3,12 @@ package welcomer
 import (
 	"context"
 	"errors"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 	"github.com/rs/zerolog"
+	"time"
 )
 
 var (

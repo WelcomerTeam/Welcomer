@@ -3,14 +3,13 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	"net/http"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 // Route GET /api/guild/:guildID/autoroles
@@ -82,9 +81,13 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 
 			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(*autoroles)
 
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *autoroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild autoroles settings")
+
 			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateAutoRolesGuildSettings(ctx, databaseAutoRolesGuildSettings)
+
 					return err
 				},
 				func() error {

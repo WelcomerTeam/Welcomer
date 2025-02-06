@@ -3,12 +3,11 @@ package service
 import (
 	"bytes"
 	"fmt"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/gofrs/uuid"
 	"image"
 	"image/color"
 	"image/gif"
-
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/gofrs/uuid"
 )
 
 const (
@@ -113,10 +112,10 @@ func getCommonLuminance(src image.Image, threshold float64) (colour color.RGBA, 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			// Extract RGB values of the pixel
-			r, g, b, _ := src.At(x, y).RGBA()
+			r, g, b, a := src.At(x, y).RGBA()
 
 			// Check if the color is considered light based on the provided threshold
-			if isLightColorLuminance(r, g, b, threshold) {
+			if a > 0 && isLightColorLuminance(r, g, b, threshold) {
 				// Store the color in the map and count its occurrences
 				colorCount[color.RGBA{uint8(r), uint8(g), uint8(b), 255}]++
 			}

@@ -4,14 +4,13 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"net/http"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 const (
@@ -88,6 +87,9 @@ func setGuildSettingsRules(ctx *gin.Context) {
 			rules := PartialToGuildSettingsRulesSettings(int64(guildID), partial)
 
 			databaseRulesGuildSettings := database.CreateOrUpdateRulesGuildSettingsParams(*rules)
+
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *rules).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild rule settings")
 
 			err = utils.RetryWithFallback(
 				func() error {

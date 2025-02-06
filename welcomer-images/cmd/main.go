@@ -4,17 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/WelcomerTeam/Welcomer/welcomer-images/service"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/rs/zerolog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/WelcomerTeam/Welcomer/welcomer-images/service"
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rs/zerolog"
-
-	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {

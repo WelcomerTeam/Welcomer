@@ -1,16 +1,17 @@
 package backend
 
 import (
-	"net"
-	"net/http"
-	"time"
-
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 	"github.com/plutov/paypal/v4"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
 )
 
 // ISO 3166-1 alpha-2 country codes for the Eurozone.
@@ -29,15 +30,16 @@ func getAvailableCurrencies(ipintelResponse utils.IPIntelResponse) []welcomer.Cu
 }
 
 func getDefaultCurrency(ipIntelResponse utils.IPIntelResponse) welcomer.Currency {
-	if ipIntelResponse.Country == "GB" {
+	switch {
+	case ipIntelResponse.Country == "GB":
 		return welcomer.CurrencyGBP
-	} else if ipIntelResponse.Country == "IN" {
+	case ipIntelResponse.Country == "IN":
 		return welcomer.CurrencyINR
-	} else if utils.SliceContains(euroZone, ipIntelResponse.Country) {
+	case utils.SliceContains(euroZone, ipIntelResponse.Country):
 		return welcomer.CurrencyEUR
+	default:
+		return welcomer.CurrencyUSD
 	}
-
-	return welcomer.CurrencyUSD
 }
 
 type GetSKUsResponse struct {
@@ -46,22 +48,35 @@ type GetSKUsResponse struct {
 	SKUs                []welcomer.PricingSKU `json:"skus"`
 }
 
+func getSKUPricing() map[welcomer.SKUName]welcomer.PricingSKU {
+	index, err := strconv.Atoi(os.Getenv("PRICING_TABLE"))
+	if err != nil || index < 0 || index >= len(welcomer.SKUPricingTable) {
+		backend.Logger.Error().Err(err).Msg("Invalid PRICING_TABLE environment variable")
+
+		return nil
+	}
+
+	return welcomer.SKUPricingTable[index]
+}
+
 // Route GET /api/billing/skus
 func getSKUs(ctx *gin.Context) {
-	response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
+	response, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 	if err != nil {
 		backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
 	}
 
 	currencies := getAvailableCurrencies(response)
 
+	skuPricing := getSKUPricing()
+
 	pricingStructure := GetSKUsResponse{
 		AvailableCurrencies: currencies,
 		DefaultCurrency:     getDefaultCurrency(response),
-		SKUs:                make([]welcomer.PricingSKU, 0, len(welcomer.SKUPricing)),
+		SKUs:                make([]welcomer.PricingSKU, 0, len(skuPricing)),
 	}
 
-	for _, sku := range welcomer.SKUPricing {
+	for _, sku := range skuPricing {
 		pricingStructure.SKUs = append(pricingStructure.SKUs, sku)
 	}
 
@@ -105,7 +120,9 @@ func createPayment(ctx *gin.Context) {
 			return
 		}
 
-		sku, ok := welcomer.SKUPricing[welcomer.SKUName(request.SKU)]
+		pricing := getSKUPricing()
+
+		sku, ok := pricing[welcomer.SKUName(request.SKU)]
 		if !ok {
 			backend.Logger.Warn().Str("sku", string(request.SKU)).Msg("Invalid SKU")
 
@@ -117,7 +134,7 @@ func createPayment(ctx *gin.Context) {
 			return
 		}
 
-		response, err := backend.IPChecker.CheckIP(ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
+		response, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 		if err != nil {
 			backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
 		}
@@ -172,7 +189,7 @@ func createPayment(ctx *gin.Context) {
 
 		// Create a user transaction.
 		userTransaction, err := welcomer.CreateTransactionForUser(
-			backend.ctx,
+			ctx,
 			backend.Database,
 			user.ID,
 			database.PlatformTypePaypal,
@@ -220,7 +237,7 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		// Send order request to paypal.
-		order, err := backend.PaypalClient.CreateOrder(backend.ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, &paypal.ApplicationContext{
+		order, err := backend.PaypalClient.CreateOrder(ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, &paypal.ApplicationContext{
 			BrandName:          "Welcomer",
 			ShippingPreference: paypal.ShippingPreferenceNoShipping,
 			UserAction:         paypal.UserActionPayNow,
@@ -250,7 +267,7 @@ func createPayment(ctx *gin.Context) {
 		// Update the user transaction with the order ID.
 		userTransaction.TransactionID = order.ID
 
-		_, err = backend.Database.UpdateUserTransaction(backend.ctx, database.UpdateUserTransactionParams{
+		_, err = backend.Database.UpdateUserTransaction(ctx, database.UpdateUserTransactionParams{
 			TransactionUuid:   userTransaction.TransactionUuid,
 			UserID:            userTransaction.UserID,
 			PlatformType:      userTransaction.PlatformType,
@@ -338,7 +355,7 @@ func paymentCallback(ctx *gin.Context) {
 				return ErrMissingParameter
 			}
 
-			transactions, err := queries.GetUserTransactionsByTransactionID(backend.ctx, token)
+			transactions, err := queries.GetUserTransactionsByTransactionID(ctx, token)
 			if err != nil {
 				backend.Logger.Error().Err(err).Str("token", token).Msg("Failed to get user transactions by transaction ID")
 
@@ -383,7 +400,7 @@ func paymentCallback(ctx *gin.Context) {
 			}
 
 			// Get order
-			order, err := backend.PaypalClient.GetOrder(backend.ctx, token)
+			order, err := backend.PaypalClient.GetOrder(ctx, token)
 			if err != nil {
 				backend.Logger.Error().Err(err).Str("token", token).Msg("Failed to get order")
 
@@ -407,7 +424,9 @@ func paymentCallback(ctx *gin.Context) {
 			// Fetch SKU from the order.
 			skuName := order.PurchaseUnits[0].Items[0].SKU
 
-			sku, ok := welcomer.SKUPricing[welcomer.SKUName(skuName)]
+			pricing := getSKUPricing()
+
+			sku, ok := pricing[welcomer.SKUName(skuName)]
 			if !ok {
 				backend.Logger.Warn().Str("sku", skuName).Msg("Invalid SKU")
 
@@ -420,13 +439,13 @@ func paymentCallback(ctx *gin.Context) {
 			}
 
 			// Capture the order
-			authorizeResponse, err := backend.PaypalClient.CaptureOrder(backend.ctx, token, paypal.CaptureOrderRequest{})
+			authorizeResponse, err := backend.PaypalClient.CaptureOrder(ctx, token, paypal.CaptureOrderRequest{})
 			if err != nil || authorizeResponse.Status != paypal.OrderStatusCompleted {
 				backend.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
 
 				// Create a user transaction.
 				_, err = welcomer.CreateTransactionForUser(
-					backend.ctx,
+					ctx,
 					queries,
 					user.ID,
 					database.PlatformTypePaypal,
@@ -448,7 +467,7 @@ func paymentCallback(ctx *gin.Context) {
 
 			// Create a user transaction.
 			userTransaction, err := welcomer.CreateTransactionForUser(
-				backend.ctx,
+				ctx,
 				queries,
 				user.ID,
 				database.PlatformTypePaypal,
@@ -473,7 +492,7 @@ func paymentCallback(ctx *gin.Context) {
 
 			// Create a new membership for the user.
 			err = welcomer.CreateMembershipForUser(
-				backend.ctx,
+				ctx,
 				queries,
 				user.ID,
 				userTransaction.TransactionUuid,

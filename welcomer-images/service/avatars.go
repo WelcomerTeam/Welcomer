@@ -2,16 +2,14 @@ package service
 
 import (
 	"context"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
 	"image"
 	"image/color"
 	"math"
 	"net/http"
 	"net/url"
-
-	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/disintegration/imaging"
-	"github.com/fogleman/gg"
 )
 
 var (
@@ -22,7 +20,7 @@ const (
 	UserAgent = "WelcomerImageService (https://github.com/WelcomerTeam/Welcomer, " + VERSION + ")"
 )
 
-func (is *ImageService) FetchAvatar(ctx context.Context, userID discord.Snowflake, avatarURL string) (image.Image, error) {
+func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (image.Image, error) {
 	parsedURL, isValidURL := utils.IsValidURL(avatarURL)
 	if parsedURL == nil || !isValidURL {
 		return nil, ErrInvalidURL

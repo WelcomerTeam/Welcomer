@@ -1,15 +1,16 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"sync"
-
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -23,16 +24,34 @@ type IPIntelResponse struct {
 	Country      string  `json:"Country"`
 }
 
-var errorCodes = map[float64]string{
-	-1: "Invalid no input",
-	-2: "Invalid IP address",
-	-3: "Unroutable address / private address",
-	-4: "Unable to reach database",
-	-5: "Your connecting IP has been banned from the system or you do not have permission to access a particular service.",
-	-6: "You did not provide any contact information with your query or the contact information is invalid.",
+type IPIntelError struct {
+	Code float64 `json:"code"`
+}
+
+func (e IPIntelError) Error() string {
+	return fmt.Sprintf("IPIntel error: %f", e.Code)
+}
+
+var (
+	ErrInvalidNoInput                = errors.New("invalid no input")
+	ErrInvalidIPAddress              = errors.New("invalid ip address")
+	ErrUnroutableAddress             = errors.New("unroutable address / private address")
+	ErrUnableToReachDatabase         = errors.New("unable to reach database")
+	ErrIPBannedOrNoPermission        = errors.New("your connecting ip has been banned from the system or you do not have permission to access a particular service")
+	ErrNoContactInfoOrInvalidContact = errors.New("you did not provide any contact information with your query or the contact information is invalid")
+)
+
+var errorCodes = map[float64]error{
+	-1: ErrInvalidNoInput,
+	-2: ErrInvalidIPAddress,
+	-3: ErrUnroutableAddress,
+	-4: ErrUnableToReachDatabase,
+	-5: ErrIPBannedOrNoPermission,
+	-6: ErrNoContactInfoOrInvalidContact,
 }
 
 type IPIntelFlags string
+
 type IPIntelOFlags string
 
 const (
@@ -48,7 +67,7 @@ const (
 )
 
 type IPChecker interface {
-	CheckIP(ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error)
+	CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error)
 }
 
 type BasicIPChecker struct {
@@ -62,8 +81,8 @@ func NewBasicIPChecker(logger zerolog.Logger) *BasicIPChecker {
 	}
 }
 
-func (c *BasicIPChecker) CheckIP(ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error) {
-	return checkIPIntel(c.logger, ipaddress, flags, oflags)
+func (c *BasicIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
+	return checkIPIntel(ctx, c.logger, ipaddress, flags, oflags)
 }
 
 type LRUIPChecker struct {
@@ -85,7 +104,7 @@ func NewLRUIPChecker(logger zerolog.Logger, maxSize int) *LRUIPChecker {
 	}
 }
 
-func (c *LRUIPChecker) CheckIP(ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error) {
+func (c *LRUIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
 	// Check if the IP address is already in the cache
 	c.mutex.RLock()
 	cachedResponse, ok := c.cache[ipaddress]
@@ -101,7 +120,7 @@ func (c *LRUIPChecker) CheckIP(ipaddress string, flags IPIntelFlags, oflags IPIn
 	}
 
 	// Perform the IP check using the basic IP checker
-	response, err = checkIPIntel(c.logger, ipaddress, flags, oflags)
+	response, err := checkIPIntel(ctx, c.logger, ipaddress, flags, oflags)
 	if err != nil {
 		return response, err
 	}
@@ -126,9 +145,11 @@ func (c *LRUIPChecker) CheckIP(ipaddress string, flags IPIntelFlags, oflags IPIn
 func (c *LRUIPChecker) moveToFront(ipaddress string) {
 	// Find the index of the IP address in the access order
 	index := -1
+
 	for i, addr := range c.accessOrder {
 		if addr == ipaddress {
 			index = i
+
 			break
 		}
 	}
@@ -142,10 +163,11 @@ func (c *LRUIPChecker) moveToFront(ipaddress string) {
 	for i := index; i > 0; i-- {
 		c.accessOrder[i] = c.accessOrder[i-1]
 	}
+
 	c.accessOrder[0] = ipaddress
 }
 
-func checkIPIntel(logger zerolog.Logger, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error) {
+func checkIPIntel(ctx context.Context, logger zerolog.Logger, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
 	reqParams := url.Values{}
 	reqParams.Set("ip", ipaddress)
 	reqParams.Set("contact", os.Getenv("IPINTEL_CONTACT"))
@@ -156,24 +178,26 @@ func checkIPIntel(logger zerolog.Logger, ipaddress string, flags IPIntelFlags, o
 		reqParams.Set("oflags", string(oflags))
 	}
 
-	req, err := http.NewRequest(http.MethodGet, IPIntelEndpoint+"?"+reqParams.Encode(), nil)
+	var response IPIntelResponse
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, IPIntelEndpoint+"?"+reqParams.Encode(), nil)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to create IPIntel request")
 
-		return
+		return response, err
 	}
 
 	req.Header.Set("User-Agent", UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp == nil {
-		return
+		return response, err
 	}
 
 	if err != nil {
 		logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send IPIntel request")
 
-		return
+		return response, err
 	}
 
 	defer resp.Body.Close()
@@ -182,24 +206,24 @@ func checkIPIntel(logger zerolog.Logger, ipaddress string, flags IPIntelFlags, o
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to decode IPIntel response")
 
-		return
+		return response, err
 	}
 
 	response.Result, err = strconv.ParseFloat(response.ResultString, 64)
 	if err != nil {
 		logger.Error().Err(err).Str("response", response.ResultString).Msg("Failed to parse IPIntel response result")
 
-		return
+		return response, err
 	}
 
 	if response.Result < 0 {
 		logger.Error().Float64("result", response.Result).Msg("IPIntel returned an error")
 
-		if message, ok := errorCodes[response.Result]; ok {
-			return response, fmt.Errorf(fmt.Sprintf("ipintel failed with code %f: %s", response.Result, message))
+		if ipintelError, ok := errorCodes[response.Result]; ok {
+			return response, ipintelError
 		}
 
-		return response, fmt.Errorf(fmt.Sprintf("ipintel failed with code %f: unknown error", response.Result))
+		return response, IPIntelError{Code: response.Result}
 	}
 
 	return response, nil

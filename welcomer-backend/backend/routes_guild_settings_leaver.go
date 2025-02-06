@@ -3,14 +3,13 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	"net/http"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 // Route GET /api/guild/:guildID/leaver
@@ -82,6 +81,9 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			leaver := PartialToGuildSettingsLeaverSettings(int64(guildID), partial)
 
 			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
+
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *leaver).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild leaver settings")
 
 			err = utils.RetryWithFallback(
 				func() error {

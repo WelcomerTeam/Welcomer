@@ -30,6 +30,7 @@ type GuildSettingsWelcomerImages struct {
 	ImageProfileBorderType string `json:"profile_border_type"`
 	ToggleEnabled          bool   `json:"enabled"`
 	ToggleImageBorder      bool   `json:"enable_border"`
+	ToggleShowAvatar       bool   `json:"show_avatar"`
 }
 
 type GuildSettingsWelcomerDms struct {
@@ -53,6 +54,7 @@ func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerT
 		Images: &GuildSettingsWelcomerImages{
 			ToggleEnabled:          images.ToggleEnabled,
 			ToggleImageBorder:      images.ToggleImageBorder,
+			ToggleShowAvatar:       images.ToggleShowAvatar,
 			BackgroundName:         images.BackgroundName,
 			ColourText:             images.ColourText,
 			ColourTextBorder:       images.ColourTextBorder,
@@ -85,6 +87,7 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 			GuildID:                guildID,
 			ToggleEnabled:          guildSettings.Images.ToggleEnabled,
 			ToggleImageBorder:      guildSettings.Images.ToggleImageBorder,
+			ToggleShowAvatar:       guildSettings.Images.ToggleShowAvatar,
 			BackgroundName:         guildSettings.Images.BackgroundName,
 			ColourText:             guildSettings.Images.ColourText,
 			ColourTextBorder:       guildSettings.Images.ColourTextBorder,

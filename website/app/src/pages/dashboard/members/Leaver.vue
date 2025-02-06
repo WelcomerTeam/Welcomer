@@ -63,6 +63,7 @@ import {
   getSuccessToast,
   getValidationToast,
   navigateToErrors,
+  isValidJson,
 } from "@/utilities";
 
 export default {
@@ -91,7 +92,10 @@ export default {
         message_json: {
           required: helpers.withMessage("The message is required", requiredIf(
             config.value.enabled
-          ))
+          )),
+          isValidJson: helpers.withMessage("The message is not valid JSON", (value) => {
+            return !value || isValidJson(value);
+          }),
         },
       };
 

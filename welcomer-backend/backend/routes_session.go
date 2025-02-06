@@ -1,14 +1,13 @@
 package backend
 
 import (
-	"net/http"
-	"strings"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strings"
+	"time"
 )
 
 // Send user to OAuth2 Authorize URL.
@@ -59,7 +58,7 @@ func callback(ctx *gin.Context) {
 		return
 	}
 
-	token, err := DiscordOAuth2Config.Exchange(backend.ctx, queryCode)
+	token, err := DiscordOAuth2Config.Exchange(ctx, queryCode)
 	if err != nil {
 		backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
@@ -72,7 +71,7 @@ func callback(ctx *gin.Context) {
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(backend.ctx, token.Type()+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(ctx, token.Type()+" "+token.AccessToken, httpInterface)
 
 	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(discordSession)
 	if err != nil || authorizationInformation == nil {

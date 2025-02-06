@@ -3,14 +3,13 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	"net/http"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 // Route GET /api/guild/:guildID/timeroles
@@ -81,6 +80,9 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 			timeroles := PartialToGuildSettingsTimeRolesSettings(int64(guildID), partial)
 
 			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(*timeroles)
+
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *timeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild timeroles settings")
 
 			err = utils.RetryWithFallback(
 				func() error {

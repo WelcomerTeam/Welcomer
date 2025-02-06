@@ -3,7 +3,6 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"
@@ -97,6 +96,7 @@ var DefaultWelcomerText GuildSettingsWelcomerText = GuildSettingsWelcomerText{
 var DefaultWelcomerImages GuildSettingsWelcomerImages = GuildSettingsWelcomerImages{
 	ToggleEnabled:          false,
 	ToggleImageBorder:      true,
+	ToggleShowAvatar:       true,
 	BackgroundName:         "solid:profile",
 	ColourText:             "#FFFFFF",
 	ColourTextBorder:       "#000000",

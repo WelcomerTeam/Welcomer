@@ -7,13 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image/jpeg"
-	"image/png"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -24,6 +17,12 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
+	"image/jpeg"
+	"image/png"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"time"
 )
 
 //go:embed imageFailure.png
@@ -70,6 +69,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 						GuildID:                int64(guildID),
 						ToggleEnabled:          database.DefaultWelcomerImages.ToggleEnabled,
 						ToggleImageBorder:      database.DefaultWelcomerImages.ToggleImageBorder,
+						ToggleShowAvatar:       database.DefaultWelcomerImages.ToggleShowAvatar,
 						BackgroundName:         database.DefaultWelcomerImages.BackgroundName,
 						ColourText:             database.DefaultWelcomerImages.ColourText,
 						ColourTextBorder:       database.DefaultWelcomerImages.ColourTextBorder,
@@ -336,6 +336,9 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(*welcomerText)
 
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerText).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerText settings")
+
 			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateWelcomerTextGuildSettings(ctx, databaseWelcomerTextGuildSettings)
@@ -358,6 +361,8 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
 
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")
+
 			_, err = backend.Database.CreateOrUpdateWelcomerImagesGuildSettings(ctx, databaseWelcomerImagesGuildSettings)
 			if err != nil {
 				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
@@ -370,6 +375,8 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			}
 
 			databaseWelcomerDMsGuildSettings := database.CreateOrUpdateWelcomerDMsGuildSettingsParams(*welcomerDMs)
+
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerDMs).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerDMs settings")
 
 			_, err = backend.Database.CreateOrUpdateWelcomerDMsGuildSettings(ctx, databaseWelcomerDMsGuildSettings)
 			if err != nil {

@@ -1,12 +1,9 @@
 package plugins
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-
-	"encoding/json"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
@@ -17,6 +14,7 @@ import (
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
+	"net/http"
 )
 
 type LeaverCog struct {
@@ -200,14 +198,33 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 	// Send the message if it's not empty.
 	if !utils.IsMessageParamsEmpty(serverMessage) {
-		channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
-
-		_, err = channel.Send(eventCtx.Session, serverMessage)
+		validGuild, err := core.CheckChannelGuild(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
 		if err != nil {
-			eventCtx.Logger.Warn().Err(err).
+			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsLeaver.Channel).
-				Msg("Failed to send leaver message to channel")
+				Msg("Failed to check channel guild")
+		} else if !validGuild {
+			eventCtx.Logger.Warn().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsLeaver.Channel).
+				Msg("Channel does not belong to guild")
+		} else {
+			channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
+
+			_, err = channel.Send(eventCtx.Session, serverMessage)
+
+			eventCtx.Logger.Info().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", guildSettingsLeaver.Channel).
+				Msg("Sent leaver message to channel")
+
+			if err != nil {
+				eventCtx.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("channel_id", guildSettingsLeaver.Channel).
+					Msg("Failed to send leaver message to channel")
+			}
 		}
 	}
 

@@ -3,7 +3,6 @@ package welcomer
 import (
 	"context"
 	"encoding/json"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"

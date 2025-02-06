@@ -8,54 +8,54 @@ import (
 )
 
 var assets = map[string]image.Image{
-    "brokeimage": assetsBrokeImageImage,
-    "defaultavatar": assetsDefaultAvatarImage,
+	"brokeimage":    assetsBrokeImageImage,
+	"defaultavatar": assetsDefaultAvatarImage,
 }
 
 var backgrounds = map[string]image.Image{
-    "aesthetics": backgroundsAestheticsImage,
-    "afterwork": backgroundsAfterworkImage,
-    "airship": backgroundsAirshipImage,
-    "alone": backgroundsAloneImage,
-    "autumn": backgroundsAutumnImage,
-    "clouds": backgroundsCloudsImage,
-    "collision": backgroundsCollisionImage,
-    "cybergeek": backgroundsCybergeekImage,
-    "default": backgroundsDefaultImage,
-    "fall": backgroundsFallImage,
-    "garden": backgroundsGardenImage,
-    "glare": backgroundsGlareImage,
-    "lodge": backgroundsLodgeImage,
-    "meteorshower": backgroundsMeteorshowerImage,
-    "midnightride": backgroundsMidnightrideImage,
-    "mountains": backgroundsMountainsImage,
-    "neko": backgroundsNekoImage,
-    "nightview": backgroundsNightviewImage,
-    "paint": backgroundsPaintImage,
-    "peace": backgroundsPeaceImage,
-    "pika": backgroundsPikaImage,
-    "rainbow": backgroundsRainbowImage,
-    "rem": backgroundsRemImage,
-    "ribbons": backgroundsRibbonsImage,
-    "riot": backgroundsRiotImage,
-    "riversource": backgroundsRiversourceImage,
-    "sea": backgroundsSeaImage,
-    "shards": backgroundsShardsImage,
-    "solarglare": backgroundsSolarglareImage,
-    "spots": backgroundsSpotsImage,
-    "squares": backgroundsSquaresImage,
-    "stacks": backgroundsStacksImage,
-    "summer": backgroundsSummerImage,
-    "sun": backgroundsSunImage,
-    "sunrise": backgroundsSunriseImage,
-    "sunset": backgroundsSunsetImage,
-    "tanya": backgroundsTanyaImage,
-    "unova": backgroundsUnovaImage,
-    "upland": backgroundsUplandImage,
-    "utopia": backgroundsUtopiaImage,
-    "vampire": backgroundsVampireImage,
-    "vectors": backgroundsVectorsImage,
-    "wood": backgroundsWoodImage,
+	"aesthetics":   backgroundsAestheticsImage,
+	"afterwork":    backgroundsAfterworkImage,
+	"airship":      backgroundsAirshipImage,
+	"alone":        backgroundsAloneImage,
+	"autumn":       backgroundsAutumnImage,
+	"clouds":       backgroundsCloudsImage,
+	"collision":    backgroundsCollisionImage,
+	"cybergeek":    backgroundsCybergeekImage,
+	"default":      backgroundsDefaultImage,
+	"fall":         backgroundsFallImage,
+	"garden":       backgroundsGardenImage,
+	"glare":        backgroundsGlareImage,
+	"lodge":        backgroundsLodgeImage,
+	"meteorshower": backgroundsMeteorshowerImage,
+	"midnightride": backgroundsMidnightrideImage,
+	"mountains":    backgroundsMountainsImage,
+	"neko":         backgroundsNekoImage,
+	"nightview":    backgroundsNightviewImage,
+	"paint":        backgroundsPaintImage,
+	"peace":        backgroundsPeaceImage,
+	"pika":         backgroundsPikaImage,
+	"rainbow":      backgroundsRainbowImage,
+	"rem":          backgroundsRemImage,
+	"ribbons":      backgroundsRibbonsImage,
+	"riot":         backgroundsRiotImage,
+	"riversource":  backgroundsRiversourceImage,
+	"sea":          backgroundsSeaImage,
+	"shards":       backgroundsShardsImage,
+	"solarglare":   backgroundsSolarglareImage,
+	"spots":        backgroundsSpotsImage,
+	"squares":      backgroundsSquaresImage,
+	"stacks":       backgroundsStacksImage,
+	"summer":       backgroundsSummerImage,
+	"sun":          backgroundsSunImage,
+	"sunrise":      backgroundsSunriseImage,
+	"sunset":       backgroundsSunsetImage,
+	"tanya":        backgroundsTanyaImage,
+	"unova":        backgroundsUnovaImage,
+	"upland":       backgroundsUplandImage,
+	"utopia":       backgroundsUtopiaImage,
+	"vampire":      backgroundsVampireImage,
+	"vectors":      backgroundsVectorsImage,
+	"wood":         backgroundsWoodImage,
 }
 
 func mustDecodeBytes(n string, src []byte) image.Image {
@@ -239,7 +239,6 @@ var backgroundsVectorsImage = mustDecodeBytes("backgroundsVectorsImage", backgro
 var backgroundsWoodImageBytes []byte
 var backgroundsWoodImage = mustDecodeBytes("backgroundsWoodImage", backgroundsWoodImageBytes)
 
-
 //go:embed assets/broke_image.png
 var assetsBrokeImageImageBytes []byte
 var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBrokeImageImageBytes)
@@ -247,5 +246,3 @@ var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBroke
 //go:embed assets/default_avatar.png
 var assetsDefaultAvatarImageBytes []byte
 var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)
-
-

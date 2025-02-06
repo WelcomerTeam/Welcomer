@@ -1,10 +1,9 @@
 package utils
 
 import (
+	"github.com/WelcomerTeam/Discord/discord"
 	"regexp"
 	"strings"
-
-	"github.com/WelcomerTeam/Discord/discord"
 )
 
 var (
@@ -25,6 +24,7 @@ var (
 )
 
 type GenerateImageOptionsRaw struct {
+	ShowAvatar         bool
 	AvatarURL          string
 	Background         string
 	Text               string
@@ -72,6 +72,8 @@ func (i ImageFileType) GetExtension() string {
 		return "gif"
 	case ImageFileTypeImageWebp:
 		return "webp"
+	case ImageFileTypeUnknown:
+		fallthrough
 	default:
 		return "png"
 	}

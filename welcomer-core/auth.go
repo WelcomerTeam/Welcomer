@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"os"
 )
 
 var elevatedUsers []discord.Snowflake
@@ -19,12 +18,34 @@ var elevatedUsers []discord.Snowflake
 func init() {
 	elevatedUsersStr := os.Getenv("ELEVATED_USERS")
 
-	if elevatedUsersStr == "" {
+	if elevatedUsersStr != "" {
 		err := json.Unmarshal([]byte(elevatedUsersStr), &elevatedUsers)
 		if err != nil {
 			panic(fmt.Errorf("failed to parse ELEVATED_USERS: %w", err))
 		}
 	}
+}
+
+func CheckChannelGuild(ctx context.Context, c protobuf.SandwichClient, guildID, channelID discord.Snowflake) (bool, error) {
+	channels, err := c.FetchGuildChannels(ctx, &protobuf.FetchGuildChannelsRequest{
+		GuildID: int64(guildID),
+	})
+	if err != nil {
+		fmt.Printf("Failed to fetch guild channels channelId=%d guildId=%d: %v", channelID, guildID, err)
+
+		return false, err
+	}
+
+	for channel := range channels.GuildChannels {
+		if channel == int64(channelID) {
+			return true, nil
+		}
+	}
+
+	fmt.Printf("Channel %d not found in guild %d. Channels: %v", channelID, guildID, channels.GuildChannels)
+
+	return false, nil
+
 }
 
 func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
@@ -82,7 +103,7 @@ func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) 
 		}
 	}
 
-	// Backdoor here :)
+	println(member.User.ID, "is not elevated")
 
 	return false
 }

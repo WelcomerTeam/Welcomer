@@ -3,14 +3,13 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	"net/http"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"net/http"
 )
 
 // Route GET /api/guild/:guildID/tempchannels
@@ -84,6 +83,9 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 			tempchannels := PartialToGuildSettingsTempChannelsSettings(int64(guildID), partial)
 
 			databaseTempChannelsGuildSettings := database.CreateOrUpdateTempChannelsGuildSettingsParams(*tempchannels)
+
+			user := tryGetUser(ctx)
+			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *tempchannels).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild tempchannel settings")
 
 			err = utils.RetryWithFallback(
 				func() error {

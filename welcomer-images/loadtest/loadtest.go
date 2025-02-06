@@ -3,16 +3,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	_ "github.com/joho/godotenv/autoload"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-
-	_ "github.com/joho/godotenv/autoload"
 )
 
 var fonts = []string{

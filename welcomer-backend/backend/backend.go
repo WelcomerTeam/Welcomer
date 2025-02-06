@@ -4,27 +4,25 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"net/http"
-	"os"
-	"strings"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/gin-contrib/sessions"
-	limits "github.com/gin-contrib/size"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/plutov/paypal/v4"
-	gin_prometheus "github.com/zsais/go-gin-prometheus"
-
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
+	"github.com/gin-contrib/sessions"
+	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/plutov/paypal/v4"
 	"github.com/rs/zerolog"
+	gin_prometheus "github.com/zsais/go-gin-prometheus"
 	"google.golang.org/grpc"
+	"net/http"
+	"os"
+	"strings"
+	"time"
 )
 
 const VERSION = "0.1"
@@ -101,12 +99,12 @@ type BackendOptions struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptions) (b *Backend, err error) {
+func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptions) (*Backend, error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
 
-	b = &Backend{
+	b := &Backend{
 		ctx: ctx,
 
 		Logger: logger,
@@ -142,7 +140,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	b.DonatorBotSession = discord.NewSession(b.ctx, b.Options.DonatorBotToken, b.RESTInterface)
 
 	if options.NginxAddress != "" {
-		err = b.Route.SetTrustedProxies([]string{options.NginxAddress})
+		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
 		if err != nil {
 			return nil, fmt.Errorf("failed to set trusted proxies: %w", err)
 		}

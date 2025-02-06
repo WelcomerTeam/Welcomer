@@ -5,6 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WelcomerTeam/Discord/discord"
+	urlverifier "github.com/davidmytton/url-verifier"
+	"github.com/jackc/pgtype"
+	gotils_strconv "github.com/savsgio/gotils/strconv"
 	"image/color"
 	"math/rand"
 	"net"
@@ -14,11 +18,6 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
-	"github.com/WelcomerTeam/Discord/discord"
-	urlverifier "github.com/davidmytton/url-verifier"
-	"github.com/jackc/pgtype"
-	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
 
 var (

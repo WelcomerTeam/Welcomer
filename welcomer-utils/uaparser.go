@@ -6,7 +6,7 @@ import (
 
 var userAgentParser, _ = uaparser.NewFromBytes(uaparser.DefinitionYaml)
 
-func ParseUserAgent(userAgent string) (family, familyVersion, os, osVersion string) {
+func ParseUserAgent(userAgent string) (familyName, familyVersion, osName, osVersion string) {
 	client := userAgentParser.Parse(userAgent)
 
 	return client.UserAgent.Family, client.UserAgent.ToVersionString(), client.Os.Family, client.Os.ToVersionString()

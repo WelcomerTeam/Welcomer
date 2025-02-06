@@ -1,11 +1,10 @@
 package welcomer
 
 import (
-	"testing"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/stretchr/testify/assert"
+	"testing"
+	"time"
 )
 
 func TestFormatString(t *testing.T) {

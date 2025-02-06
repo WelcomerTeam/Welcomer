@@ -3,8 +3,6 @@ package plugins
 import (
 	"errors"
 	"fmt"
-	"regexp"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
@@ -14,6 +12,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
+	"regexp"
 )
 
 type TempChannelsCog struct {

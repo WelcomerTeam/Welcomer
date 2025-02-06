@@ -1,13 +1,12 @@
 package service
 
 import (
-	"image"
-	"image/color"
-	"strings"
-
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
+	"image"
+	"image/color"
+	"strings"
 )
 
 const (

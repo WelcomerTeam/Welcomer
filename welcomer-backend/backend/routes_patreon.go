@@ -12,6 +12,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"golang.org/x/oauth2"
 )
 
 // Send user to OAuth2 Authorize URL.
@@ -56,7 +57,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		token, err := PatreonOAuth2Config.Exchange(backend.ctx, queryCode)
+		token, err := PatreonOAuth2Config.Exchange(ctx, queryCode)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
@@ -65,7 +66,7 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		patreonUser, err := core.IdentifyPatreonMember(backend.ctx, token.Type()+" "+token.AccessToken)
+		patreonUser, err := core.IdentifyPatreonMember(ctx, token.Type()+" "+token.AccessToken)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to identify member")
 
@@ -74,7 +75,10 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		patreonUsers, err := core.GetAllPatreonMembers(ctx, token.Type()+" "+token.AccessToken)
+		tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
+		tc.Transport = utils.NewUserAgentSetterTransport(tc.Transport, utils.UserAgent)
+
+		patreonUsers, err := core.GetAllPatreonMembers(ctx, tc)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to get all patreon members")
 

@@ -5,10 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"runtime/debug"
-	"strings"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -16,6 +12,9 @@ import (
 	plugins "github.com/WelcomerTeam/Welcomer/welcomer-interactions/plugins"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"
+	"runtime/debug"
+	"strings"
+	"time"
 )
 
 func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subway {

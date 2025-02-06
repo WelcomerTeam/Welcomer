@@ -5,15 +5,14 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
+	"net/http"
+	"time"
 )
 
 const (
@@ -72,19 +71,17 @@ func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
 	return guild.IsOwner || guild.HasElevation
 }
 
-func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) (newToken *oauth2.Token, changed bool, err error) {
+func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) (*oauth2.Token, bool, error) {
 	source := config.TokenSource(ctx, &token)
 
-	newToken, err = source.Token()
+	newToken, err := source.Token()
 	if err != nil {
 		backend.Logger.Warn().Err(err).Msg("Failed to check token")
 
-		return
+		return nil, false, err
 	}
 
-	changed = newToken.AccessToken != token.AccessToken
-
-	return
+	return newToken, newToken.AccessToken != token.AccessToken, nil
 }
 
 func checkOAuthAuthorization(ctx *gin.Context) error {
@@ -106,7 +103,7 @@ func checkOAuthAuthorization(ctx *gin.Context) error {
 		return ErrMissingToken
 	}
 
-	newToken, changed, err := checkToken(backend.ctx, DiscordOAuth2Config, token)
+	newToken, changed, err := checkToken(ctx, DiscordOAuth2Config, token)
 	if err != nil {
 		ClearTokenSession(session)
 

@@ -1,9 +1,8 @@
 package service
 
 import (
-	"image"
-
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"image"
 )
 
 var (

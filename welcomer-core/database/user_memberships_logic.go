@@ -2,9 +2,8 @@ package database
 
 import (
 	"context"
-	"time"
-
 	"github.com/WelcomerTeam/Discord/discord"
+	"time"
 )
 
 // Returns all valid user memberships based on a guild ID.

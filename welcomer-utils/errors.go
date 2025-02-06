@@ -1,15 +1,15 @@
 package utils
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidJSON       = fmt.Errorf("invalid json")
-	ErrInvalidColour     = fmt.Errorf("colour format is not recognised")
-	ErrInvalidBackground = fmt.Errorf("invalid background")
+	ErrInvalidJSON       = errors.New("invalid json")
+	ErrInvalidColour     = errors.New("colour format is not recognised")
+	ErrInvalidBackground = errors.New("invalid background")
 
-	ErrMissingGuild           = fmt.Errorf("missing guild")
-	ErrMissingChannel         = fmt.Errorf("missing channel")
-	ErrMissingApplicationUser = fmt.Errorf("missing application user")
+	ErrMissingGuild           = errors.New("missing guild")
+	ErrMissingChannel         = errors.New("missing channel")
+	ErrMissingApplicationUser = errors.New("missing application user")
 
-	ErrInvalidTempChannel = fmt.Errorf("channel is not a temporary channel")
+	ErrInvalidTempChannel = errors.New("channel is not a temporary channel")
 )
