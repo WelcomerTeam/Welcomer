@@ -2,19 +2,18 @@ package service
 
 import (
 	"context"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/disintegration/imaging"
-	"github.com/fogleman/gg"
 	"image"
 	"image/color"
 	"math"
 	"net/http"
 	"net/url"
+
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
 )
 
-var (
-	transparent = color.RGBA{0, 0, 0, 0}
-)
+var transparent = color.RGBA{0, 0, 0, 0}
 
 const (
 	UserAgent = "WelcomerImageService (https://github.com/WelcomerTeam/Welcomer, " + VERSION + ")"

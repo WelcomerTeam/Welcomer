@@ -1,13 +1,14 @@
 package backend
 
 import (
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strings"
-	"time"
 )
 
 // Send user to OAuth2 Authorize URL.
@@ -23,7 +24,7 @@ func doDiscordOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
 	ctx.Redirect(http.StatusTemporaryRedirect, DiscordOAuth2Config.AuthCodeURL(state))
 }
 
-// Route GET /login
+// Route GET /login.
 func login(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 
@@ -34,7 +35,7 @@ func login(ctx *gin.Context) {
 	doDiscordOAuthAuthorize(session, ctx)
 }
 
-// Route GET /logout
+// Route GET /logout.
 func logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 
@@ -44,7 +45,7 @@ func logout(ctx *gin.Context) {
 	ctx.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
-// Route POST /callback
+// Route POST /callback.
 func callback(ctx *gin.Context) {
 	queryCode := ctx.Query("code")
 	queryState := ctx.Query("state")

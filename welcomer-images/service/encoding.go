@@ -3,18 +3,17 @@ package service
 import (
 	"bytes"
 	"fmt"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	gotils_strconv "github.com/savsgio/gotils/strconv"
-	"github.com/ultimate-guitar/go-imagequant"
 	"image"
 	"image/gif"
 	"image/png"
 	"sync"
+
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	gotils_strconv "github.com/savsgio/gotils/strconv"
+	"github.com/ultimate-guitar/go-imagequant"
 )
 
-var (
-	attr, _ = imagequant.NewAttributes()
-)
+var attr, _ = imagequant.NewAttributes()
 
 func encodeFrames(frames []image.Image, background FullImage) ([]byte, utils.ImageFileType, error) {
 	if len(frames) == 0 {

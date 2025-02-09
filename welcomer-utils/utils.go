@@ -5,10 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WelcomerTeam/Discord/discord"
-	urlverifier "github.com/davidmytton/url-verifier"
-	"github.com/jackc/pgtype"
-	gotils_strconv "github.com/savsgio/gotils/strconv"
 	"image/color"
 	"math/rand"
 	"net"
@@ -18,6 +14,11 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/WelcomerTeam/Discord/discord"
+	urlverifier "github.com/davidmytton/url-verifier"
+	"github.com/jackc/pgtype"
+	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
 
 var (
@@ -72,7 +73,7 @@ func Atoi(s string) (int64, error) {
 // RetryWithFallback will attempt to run a function. If the function fails, it will run a fallback function.
 // predictate is a function that will determine if the error is retryable and is optional.
 // When the fallback function succeeds, the original function will be called again.
-func RetryWithFallback(function func() error, fallbackFunction func() error, predictate func(error) bool) (err error) {
+func RetryWithFallback(function, fallbackFunction func() error, predictate func(error) bool) (err error) {
 	err = function()
 	if err != nil && (predictate == nil || predictate(err)) {
 		err = fallbackFunction()
@@ -244,7 +245,7 @@ func isValidHostname(host string) bool {
 // #FFAAAAFF
 // RGBA(255, 255, 255, 0.1)
 // RGB(255, 255, 255)
-func ParseColour(str string, defaultValue string) (*color.RGBA, error) {
+func ParseColour(str, defaultValue string) (*color.RGBA, error) {
 	str = strings.TrimSpace(str)
 
 	if str == "" {

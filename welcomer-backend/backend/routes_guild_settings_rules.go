@@ -1,16 +1,15 @@
 package backend
 
 import (
-	_ "embed"
 	"errors"
 	"fmt"
-	discord "github.com/WelcomerTeam/Discord/discord"
+	"net/http"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
 )
 
 const (
@@ -18,7 +17,7 @@ const (
 	MaxRuleLength = 250
 )
 
-// Route GET /api/guild/:guildID/rules
+// Route GET /api/guild/:guildID/rules.
 func getGuildSettingsRules(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -54,7 +53,7 @@ func getGuildSettingsRules(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/rules
+// Route POST /api/guild/:guildID/rules.
 func setGuildSettingsRules(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -97,7 +96,7 @@ func setGuildSettingsRules(ctx *gin.Context) {
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
 				},
 				nil,
 			)
@@ -116,7 +115,7 @@ func setGuildSettingsRules(ctx *gin.Context) {
 	})
 }
 
-// Validates rule settings
+// Validates rule settings.
 func doValidateRules(guildSettings *GuildSettingsRules) error {
 	if len(guildSettings.Rules) > MaxRuleCount {
 		return fmt.Errorf("too many rules (%d): %w", len(guildSettings.Rules), ErrListTooLong)

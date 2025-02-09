@@ -7,6 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image/jpeg"
+	"image/png"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -17,12 +24,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
-	"image/jpeg"
-	"image/png"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"time"
 )
 
 //go:embed imageFailure.png
@@ -42,7 +43,7 @@ const (
 
 var RecoderQuantizationAttributes = recoder.NewQuantizationAttributes()
 
-// Route GET /api/guild/:guildID/welcomer
+// Route GET /api/guild/:guildID/welcomer.
 func getGuildSettingsWelcomer(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -124,13 +125,14 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/welcomer
+// Route POST /api/guild/:guildID/welcomer.
 func setGuildSettingsWelcomer(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			partial := &GuildSettingsWelcomer{}
 
 			var fileValue *multipart.FileHeader
+
 			var err error
 
 			switch ctx.ContentType() {
@@ -279,7 +281,6 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 								errors.Is(err, ErrFileSizeTooLarge),
 								errors.Is(err, ErrFileNotSupported),
 								errors.Is(err, ErrConversionFailed):
-
 								ctx.JSON(http.StatusBadRequest, BaseResponse{
 									Ok:    false,
 									Error: err.Error(),
@@ -345,7 +346,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
 				},
 				nil,
 			)
@@ -394,7 +395,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 	})
 }
 
-// Route GET /api/welcomer/preview/:key
+// Route GET /api/welcomer/preview/:key.
 func getGuildWelcomerPreview(ctx *gin.Context) {
 	key := ctx.Param(KeyKey)
 
@@ -441,11 +442,11 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 		return nil, err
 	}
 
-	var welcomerImageUuid uuid.UUID
-	welcomerImageUuid, _ = gen.NewV7()
+	var welcomerImageUUID uuid.UUID
+	welcomerImageUUID, _ = gen.NewV7()
 
 	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-		ImageUuid: welcomerImageUuid,
+		ImageUuid: welcomerImageUUID,
 		GuildID:   int64(guildID),
 		CreatedAt: time.Now(),
 		ImageType: utils.ImageFileTypeImageGif.String(),
@@ -480,11 +481,11 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 		return nil, err
 	}
 
-	var welcomerImageUuid uuid.UUID
-	welcomerImageUuid, _ = gen.NewV7()
+	var welcomerImageUUID uuid.UUID
+	welcomerImageUUID, _ = gen.NewV7()
 
 	return backend.Database.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-		ImageUuid: welcomerImageUuid,
+		ImageUuid: welcomerImageUUID,
 		GuildID:   int64(guildID),
 		CreatedAt: time.Now(),
 		ImageType: utils.ImageFileTypeImagePng.String(),
@@ -531,7 +532,7 @@ func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Sno
 	})
 }
 
-// Validates welcomer guild settings
+// Validates welcomer guild settings.
 func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
 	if guildSettings.Text.MessageFormat != "" {
 		if !utils.IsValidEmbed(guildSettings.Text.MessageFormat) {

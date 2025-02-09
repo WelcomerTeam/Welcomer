@@ -6,15 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/gofrs/uuid"
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx/v4/pgxpool"
-	_ "github.com/joho/godotenv/autoload"
-	"gopkg.in/yaml.v3"
 	"image/gif"
 	"io"
 	"net"
@@ -24,6 +15,16 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/gofrs/uuid"
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/joho/godotenv/autoload"
+	"gopkg.in/yaml.v3"
 )
 
 type ShareServiceStructure struct {
@@ -568,7 +569,7 @@ type UserInfo struct {
 	IP []string `json:"ip"`
 }
 
-func maxTime(a time.Time, b time.Time) time.Time {
+func maxTime(a, b time.Time) time.Time {
 	if a.After(b) {
 		return a
 	}
@@ -793,10 +794,10 @@ func migrateGuildData(id int64, structure GuildInfo) {
 				panic(err)
 			}
 
-			var welcomerImageUuid uuid.UUID
+			var welcomerImageUUID uuid.UUID
 
-			var gen = uuid.NewGen()
-			welcomerImageUuid, _ = gen.NewV7()
+			gen := uuid.NewGen()
+			welcomerImageUUID, _ = gen.NewV7()
 
 			var imageType string
 
@@ -816,7 +817,7 @@ func migrateGuildData(id int64, structure GuildInfo) {
 			}
 
 			_, err = q.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-				ImageUuid: welcomerImageUuid,
+				ImageUuid: welcomerImageUUID,
 				GuildID:   id,
 				CreatedAt: time.Now(),
 				ImageType: imageType,
@@ -826,7 +827,7 @@ func migrateGuildData(id int64, structure GuildInfo) {
 				log("Cannot create welcomer images", id, err.Error())
 				structure.Welcomer.Images.Background = "default"
 			} else {
-				structure.Welcomer.Images.Background = "custom:" + StringNumber(welcomerImageUuid.String())
+				structure.Welcomer.Images.Background = "custom:" + StringNumber(welcomerImageUUID.String())
 			}
 		} else {
 			structure.Welcomer.Images.Background = "default"
@@ -1170,9 +1171,11 @@ func migrateBorderwallData(id uuid.UUID, structure BorderwallInfo) {
 	}
 }
 
-var q *database.Queries
-var ctx context.Context
-var client http.Client
+var (
+	q      *database.Queries
+	ctx    context.Context
+	client http.Client
+)
 
 func main() {
 	migrateGuilds := false

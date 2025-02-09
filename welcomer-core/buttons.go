@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"fmt"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )

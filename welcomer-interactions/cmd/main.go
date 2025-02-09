@@ -26,7 +26,6 @@ const (
 )
 
 func main() {
-
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
 	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
@@ -58,15 +57,12 @@ func main() {
 	var level zerolog.Level
 
 	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-
 		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-
 	}
 
 	zerolog.SetGlobalLevel(level)
 
 	writer := zerolog.ConsoleWriter{
-
 		Out: os.Stdout,
 
 		TimeFormat: time.Stamp,
@@ -83,9 +79,7 @@ func main() {
 	var proxyURL *url.URL
 
 	if proxyURL, err = url.Parse(*proxyAddress); err != nil {
-
 		panic(fmt.Sprintf("url.Parse(%s): %v", *proxyAddress, err.Error()))
-
 	}
 
 	restInterface := welcomer.NewTwilightProxy(*proxyURL)
@@ -97,17 +91,11 @@ func main() {
 	var grpcConnection *grpc.ClientConn
 
 	if grpcConnection, err = grpc.NewClient(
-
 		*sandwichGRPCHost,
-
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
-
 	); err != nil {
-
 		panic(fmt.Sprintf(`grpc.NewClient(%s): %v`, *sandwichGRPCHost, err.Error()))
-
 	}
 
 	sandwichClient := protobuf.NewSandwichClient(grpcConnection)
@@ -115,40 +103,28 @@ func main() {
 	// Setup postgres pool.
 
 	pool, err := pgxpool.Connect(ctx, *postgresURL)
-
 	if err != nil {
-
 		panic(fmt.Sprintf("pgxpool.Connect(%s): %v", *postgresURL, err))
-
 	}
 
 	queries := database.New(pool)
 
 	ctx = welcomer.AddPoolToContext(ctx, pool)
-
 	ctx = welcomer.AddQueriesToContext(ctx, queries)
-
 	ctx = welcomer.AddManagerNameToContext(ctx, *sandwichManagerName)
 
 	// Setup app.
 
 	app := interactions.NewWelcomer(ctx, subway.SubwayOptions{
-
-		SandwichClient: sandwichClient,
-
-		RESTInterface: restInterface,
-
-		Logger: logger,
-
-		PublicKeys: *publicKeys,
-
+		SandwichClient:    sandwichClient,
+		RESTInterface:     restInterface,
+		Logger:            logger,
+		PublicKeys:        *publicKeys,
 		PrometheusAddress: *prometheusAddress,
 	})
 
 	if err != nil {
-
 		logger.Panic().Err(err).Msg("Exception creating app")
-
 	}
 
 	if *syncCommands {
@@ -156,32 +132,23 @@ func main() {
 		grpcInterface := sandwich.NewDefaultGRPCClient()
 
 		configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
-
 			Context: ctx,
 
 			SandwichClient: sandwichClient,
 		}, *sandwichManagerName)
-
 		if err != nil {
-
 			panic(fmt.Errorf(`failed to sync command: grpcInterface.FetchConsumerConfiguration(): %w`, err))
-
 		}
 
 		configuration, ok := configurations.Identifiers[*sandwichManagerName]
 
 		if !ok {
-
 			panic(fmt.Errorf(`failed to sync command: could not find manager matching "%s"`, *sandwichManagerName))
-
 		}
 
 		err = app.SyncCommands(ctx, "Bot "+configuration.Token, configuration.ID)
-
 		if err != nil {
-
 			panic(fmt.Errorf(`failed to sync commands. app.SyncCommands(): %w`, err))
-
 		}
 
 		logger.Info().Msg("Successfully synced commands")
@@ -191,23 +158,16 @@ func main() {
 	// We return if it a dry run. Any issues loading up the bot would've already caused a panic.
 
 	if *dryRun {
-
 		return
-
 	}
 
 	if err = app.ListenAndServe("", *host); err != nil {
-
 		logger.Panic().Err(err).Msg("Exceptions whilst starting app")
-
 	}
 
 	cancel()
 
 	if err = grpcConnection.Close(); err != nil {
-
 		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
-
 	}
-
 }

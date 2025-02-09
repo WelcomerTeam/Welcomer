@@ -3,12 +3,13 @@ package welcomer
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 	"github.com/rs/zerolog"
-	"time"
 )
 
 var (
@@ -20,7 +21,7 @@ var (
 	ErrTransactionNotComplete = errors.New("transaction not completed")
 )
 
-func CreateTransactionForUser(ctx context.Context, queries *database.Queries, userID discord.Snowflake, platformType database.PlatformType, transactionStatus database.TransactionStatus, transactionID string, currencyCode string, amount string) (*database.UserTransactions, error) {
+func CreateTransactionForUser(ctx context.Context, queries *database.Queries, userID discord.Snowflake, platformType database.PlatformType, transactionStatus database.TransactionStatus, transactionID, currencyCode, amount string) (*database.UserTransactions, error) {
 	return queries.CreateUserTransaction(ctx, database.CreateUserTransactionParams{
 		UserID:            int64(userID),
 		PlatformType:      int32(platformType),
@@ -215,7 +216,6 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 		LastChargeStatus: patreonUser.LastChargeStatus,
 		PatronStatus:     patreonUser.PatronStatus,
 	})
-
 	if err != nil {
 		logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).

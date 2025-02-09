@@ -3,6 +3,7 @@ package plugins
 import (
 	"errors"
 	"fmt"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -40,7 +41,6 @@ func (p *RulesCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (p *RulesCog) RegisterCog(bot *sandwich.Bot) error {
-
 	// Trigger OnInvokeRules when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
 		return p.OnInvokeRules(eventCtx, member)

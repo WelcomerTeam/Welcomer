@@ -3,16 +3,17 @@ package backend
 import (
 	_ "embed"
 	"errors"
+	"net/http"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
 )
 
-// Route GET /api/guild/:guildID/freeroles
+// Route GET /api/guild/:guildID/freeroles.
 func getGuildSettingsFreeRoles(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -47,7 +48,7 @@ func getGuildSettingsFreeRoles(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/freeroles
+// Route POST /api/guild/:guildID/freeroles.
 func setGuildSettingsFreeRoles(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -109,7 +110,7 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 	})
 }
 
-// Validates freerole settings
+// Validates freerole settings.
 func doValidateFreeRoles(guildSettings *GuildSettingsFreeRoles) error {
 	// TODO: validate freeroles
 

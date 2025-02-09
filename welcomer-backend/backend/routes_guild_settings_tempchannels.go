@@ -3,16 +3,16 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	discord "github.com/WelcomerTeam/Discord/discord"
+	"net/http"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
 )
 
-// Route GET /api/guild/:guildID/tempchannels
+// Route GET /api/guild/:guildID/tempchannels.
 func getGuildSettingsTempChannels(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -50,7 +50,7 @@ func getGuildSettingsTempChannels(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/tempchannels
+// Route POST /api/guild/:guildID/tempchannels.
 func setGuildSettingsTempChannels(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -93,7 +93,7 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
 				},
 				nil,
 			)
@@ -112,7 +112,7 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 	})
 }
 
-// Validates tempchannel settings
+// Validates tempchannel settings.
 func doValidateTempChannels(guildSettings *GuildSettingsTempChannels) error {
 	// TODO: validate tempchannels
 

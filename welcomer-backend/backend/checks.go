@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -10,11 +11,10 @@ import (
 
 func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnBotGuildMembers bool) (ok bool, guild discord.Guild, guildMembers []discord.GuildMember, err error) {
 	guild, err = backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), guildID)
-
 	if err != nil {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer presence")
 
-		return false, guild, nil, err
+		return false, guild, nil, fmt.Errorf("failed to get welcomer presence: %w", err)
 	}
 
 	if guild.ID.IsNil() {
@@ -23,7 +23,6 @@ func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnB
 
 	if returnBotGuildMembers {
 		guildMembers, err = fetchBotUsersForGuild(ctx, guildID)
-
 		if err != nil {
 			backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get bot users for guild")
 		}
@@ -38,7 +37,7 @@ func fetchBotUsersForGuild(ctx context.Context, guildID discord.Snowflake) (guil
 	if err != nil {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to do guild lookup")
 
-		return nil, err
+		return nil, fmt.Errorf("failed to do guild lookup: %w", err)
 	}
 
 	guildMembers = make([]discord.GuildMember, 0, len(locations))
@@ -56,7 +55,7 @@ func fetchManagersForGuild(ctx context.Context, guildID discord.Snowflake) (mana
 	if err != nil {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to do guild lookup")
 
-		return nil, err
+		return nil, fmt.Errorf("failed to do guild lookup: %w", err)
 	}
 
 	managers = make([]string, 0, len(locations))
@@ -68,9 +67,8 @@ func fetchManagersForGuild(ctx context.Context, guildID discord.Snowflake) (mana
 	return managers, nil
 }
 
-func getGuildMembership(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro bool, hasCustomBackgrounds bool, err error) {
+func getGuildMembership(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, err error) {
 	memberships, err := backend.Database.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
-
 	if err != nil {
 		backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer memberships")
 

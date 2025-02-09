@@ -37,7 +37,6 @@ func (c *EventsCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
-
 	// Register event for when a guild is joined.
 	c.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
 		queries := welcomer.GetQueriesFromContext(eventCtx.Context)

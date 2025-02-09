@@ -5,14 +5,15 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
-	"net/http"
-	"time"
 )
 
 const (
@@ -78,7 +79,7 @@ func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) 
 	if err != nil {
 		backend.Logger.Warn().Err(err).Msg("Failed to check token")
 
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to get new token: %w", err)
 	}
 
 	return newToken, newToken.AccessToken != token.AccessToken, nil

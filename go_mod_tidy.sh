@@ -1,7 +1,7 @@
 #!/bin/bash
 
 gci write --skip-generated -s default *
-
+gofumpt -d -e -extra -l -w *
 
 # Loop through all directories in the current folder
 for dir in */; do

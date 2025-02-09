@@ -1,13 +1,12 @@
 package service
 
 import (
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"image"
+
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
-var (
-	themes = make(map[utils.ImageTheme]func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error))
-)
+var themes = make(map[utils.ImageTheme]func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error))
 
 func registerThemeFunc(theme utils.ImageTheme, f func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error)) {
 	themes[theme] = f

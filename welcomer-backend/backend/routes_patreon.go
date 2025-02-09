@@ -28,7 +28,7 @@ func doPatreonOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
 	ctx.Redirect(http.StatusTemporaryRedirect, PatreonOAuth2Config.AuthCodeURL(state))
 }
 
-// Route GET /patreon_link
+// Route GET /patreon_link.
 func getPatreonLink(ctx *gin.Context) {
 	err := checkOAuthAuthorization(ctx)
 	if err != nil {
@@ -42,7 +42,7 @@ func getPatreonLink(ctx *gin.Context) {
 	doPatreonOAuthAuthorize(session, ctx)
 }
 
-// Route POST /patreon_callback
+// Route POST /patreon_callback.
 func getPatreonCallback(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		queryCode := ctx.Query("code")
@@ -87,11 +87,11 @@ func getPatreonCallback(ctx *gin.Context) {
 			return
 		}
 
-		var patreonMember *core.PatreonMember
+		var patreonMember core.PatreonMember
 
 		for _, puser := range patreonUsers {
 			if puser.PatreonUserID == patreonUser.ID {
-				patreonMember = &puser
+				patreonMember = puser
 			}
 		}
 
@@ -107,13 +107,15 @@ func getPatreonCallback(ctx *gin.Context) {
 		}
 
 		var pledgeCreatedAt time.Time
+
 		var pledgeEndedAt time.Time
+
 		var tierID int64
 
 		pledgeCreatedAt = databasePatreonUser.PledgeCreatedAt
 		pledgeEndedAt = databasePatreonUser.PledgeEndedAt
 
-		if patreonMember != nil && len(patreonMember.EntitledTiers) > 0 {
+		if patreonMember.PatreonUserID != 0 && len(patreonMember.EntitledTiers) > 0 {
 			if pledgeCreatedAt.IsZero() {
 				pledgeCreatedAt = time.Now()
 			}
@@ -169,7 +171,7 @@ func getPatreonCallback(ctx *gin.Context) {
 	})
 }
 
-// Route DELETE /api/patreon/link/:patreonID
+// Route DELETE /api/patreon/link/:patreonID.
 func deletePatreonLink(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		rawPatreonID := ctx.Param(PatreonIDKey)
@@ -185,7 +187,7 @@ func deletePatreonLink(ctx *gin.Context) {
 			return
 		}
 
-		rec, err := backend.Database.GetPatreonUser(ctx, int64(patreonIDInt))
+		rec, err := backend.Database.GetPatreonUser(ctx, patreonIDInt)
 		if err != nil {
 			backend.Logger.Warn().Err(err).Msg("Failed to get patreon user")
 
@@ -197,7 +199,7 @@ func deletePatreonLink(ctx *gin.Context) {
 		}
 
 		_, err = backend.Database.DeletePatreonUser(ctx, database.DeletePatreonUserParams{
-			PatreonUserID: int64(patreonIDInt),
+			PatreonUserID: patreonIDInt,
 			UserID:        int64(tryGetUser(ctx).ID),
 		})
 		if err != nil {

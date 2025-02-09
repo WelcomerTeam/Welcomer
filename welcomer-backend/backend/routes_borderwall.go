@@ -3,6 +3,12 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"net"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -12,11 +18,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
-	"net"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (
@@ -39,7 +40,7 @@ type BorderwallResponse struct {
 	Valid     bool   `json:"valid"`
 }
 
-// Route GET /api/borderwall/:key
+// Route GET /api/borderwall/:key.
 func getBorderwall(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		key := ctx.Param("key")
@@ -83,7 +84,7 @@ func getBorderwall(ctx *gin.Context) {
 
 			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Msg("Failed to fetch guild")
+				backend.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
 			} else if !guild.ID.IsNil() {
 				borderwallResponse.GuildName = guild.Name
 			}
@@ -96,7 +97,7 @@ func getBorderwall(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/borderwall/:key
+// Route POST /api/borderwall/:key.
 func setBorderwall(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		key := ctx.Param("key")
@@ -238,7 +239,7 @@ func setBorderwall(ctx *gin.Context) {
 		// Broadcast borderwall completion.
 		managers, err := fetchManagersForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
 		if err != nil || len(managers) == 0 {
-			logger.Error().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Int("len", len(managers)).Msg("Failed to get managers for guild")
+			logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
 
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
