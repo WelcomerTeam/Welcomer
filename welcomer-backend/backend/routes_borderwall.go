@@ -18,7 +18,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
+	"github.com/ua-parser/uap-go/uaparser"
 )
+
+var userAgentParser, _ = uaparser.NewFromBytes(uaparser.DefinitionYaml)
 
 const (
 	// Recaptcha must return a value higher than this threshold to be considered valid.
@@ -286,7 +289,11 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		clientIP := net.ParseIP(ctx.ClientIP())
-		familyName, familyVersion, osName, osVersion := utils.ParseUserAgent(userAgent)
+
+		client := userAgentParser.Parse(userAgent)
+
+		osName := client.Os.Family
+		osVersion := client.Os.ToVersionString()
 
 		// If platform version is 13 or higher, we assume it's Windows 11.
 		// https://learn.microsoft.com/en-us/microsoft-edge/web-platform/how-to-detect-win11
@@ -308,8 +315,8 @@ func setBorderwall(ctx *gin.Context) {
 			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: clientIP, Mask: clientIP.DefaultMask()}, Status: pgtype.Present},
 			RecaptchaScore:  sql.NullFloat64{Float64: recaptchaScore, Valid: true},
 			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
-			UaFamily:        sql.NullString{String: familyName, Valid: true},
-			UaFamilyVersion: sql.NullString{String: familyVersion, Valid: true},
+			UaFamily:        sql.NullString{String: client.UserAgent.Family, Valid: true},
+			UaFamilyVersion: sql.NullString{String: client.UserAgent.ToVersionString(), Valid: true},
 			UaOs:            sql.NullString{String: osName, Valid: true},
 			UaOsVersion:     sql.NullString{String: osVersion, Valid: true},
 		}); err != nil {
