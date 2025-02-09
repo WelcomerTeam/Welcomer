@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -12,8 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
-	"net/http"
-	"time"
 )
 
 type getUserMembershipResponse struct {
@@ -72,7 +73,7 @@ func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
 	return accounts
 }
 
-// Route GET /api/memberships
+// Route GET /api/memberships.
 func getMemberships(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		userMemberships := make([]userMembership, 0)
@@ -109,7 +110,7 @@ func getMemberships(ctx *gin.Context) {
 
 				guilds = map[int64]*pb.Guild{}
 			} else {
-				guilds = guildResponse.Guilds
+				guilds = guildResponse.GetGuilds()
 			}
 		} else {
 			guilds = map[int64]*pb.Guild{}
@@ -140,8 +141,8 @@ func getMemberships(ctx *gin.Context) {
 				guildName = ""
 				guildIcon = ""
 			} else if guild, ok := guilds[membership.GuildID]; ok {
-				guildName = guild.Name
-				guildIcon = guild.Icon
+				guildName = guild.GetName()
+				guildIcon = guild.GetIcon()
 			} else {
 				guildName = fmt.Sprintf("Unknown Guild %d", membership.GuildID)
 				guildIcon = ""
@@ -172,7 +173,7 @@ type postMembershipSubscribeBody struct {
 	GuildID *string `json:"guild_id"`
 }
 
-// Route POST /api/membership/:membershipID/subscribe
+// Route POST /api/membership/:membershipID/subscribe.
 func postMembershipSubscribe(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		body := postMembershipSubscribeBody{}

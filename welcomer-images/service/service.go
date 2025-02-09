@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
@@ -10,8 +13,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
-	"net/http"
-	"time"
 )
 
 // VERSION follows semantic versioning.

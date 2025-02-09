@@ -2,13 +2,14 @@ package backend
 
 import (
 	"encoding/json"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/structs"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/atomic"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/atomic"
 )
 
 type GetStatusResponse struct {
@@ -38,7 +39,7 @@ var statusResponseLifetime time.Duration = 10 * time.Second
 
 var statusResponseMu sync.RWMutex
 
-// Route GET /api/status
+// Route GET /api/status.
 func getStatus(ctx *gin.Context) {
 	if time.Since(statusLastFetchedAt.Load()) < statusResponseLifetime {
 		statusResponseMu.RLock()

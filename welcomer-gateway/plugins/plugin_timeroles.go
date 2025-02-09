@@ -2,6 +2,8 @@ package plugins
 
 import (
 	"errors"
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
@@ -9,7 +11,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
-	"time"
 )
 
 type TimeRolesCog struct {
@@ -41,7 +42,6 @@ func (p *TimeRolesCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
-
 	// Trigger OnInvokeTimeRoles when ON_MESSAGE_CREATE event is received.
 	p.EventHandler.RegisterOnMessageCreateEvent(func(eventCtx *sandwich.EventContext, message discord.Message) error {
 		if message.Author.Bot || message.GuildID == nil {

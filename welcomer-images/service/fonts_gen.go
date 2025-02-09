@@ -29,7 +29,6 @@ func getFontFiles(folderPath string) ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

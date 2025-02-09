@@ -3,6 +3,7 @@ package welcomer
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
@@ -26,7 +27,7 @@ func MarshalTimeRolesJSON(roles []GuildSettingsTimeRolesRole) (rolesJSON []byte)
 	return
 }
 
-func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient, logger zerolog.Logger, guildID int64, applicationID int64, roleIDs []int64) (out []discord.Snowflake, err error) {
+func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient, logger zerolog.Logger, guildID, applicationID int64, roleIDs []int64) (out []discord.Snowflake, err error) {
 	guildRoles, err := sandwichClient.FetchGuildRoles(ctx, &pb.FetchGuildRolesRequest{
 		GuildID: int64(guildID),
 	})
@@ -85,7 +86,7 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 	return out, nil
 }
 
-func FilterAssignableTimeRoles(ctx context.Context, sandwichClient pb.SandwichClient, logger zerolog.Logger, guildID int64, applicationID int64, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
+func FilterAssignableTimeRoles(ctx context.Context, sandwichClient pb.SandwichClient, logger zerolog.Logger, guildID, applicationID int64, timeRoles []GuildSettingsTimeRolesRole) (out []GuildSettingsTimeRolesRole, err error) {
 	roleIDs := make([]int64, len(timeRoles))
 	for i, timeRole := range timeRoles {
 		roleIDs[i] = int64(timeRole.Role)

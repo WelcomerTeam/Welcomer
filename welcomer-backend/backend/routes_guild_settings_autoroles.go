@@ -1,18 +1,17 @@
 package backend
 
 import (
-	_ "embed"
 	"errors"
-	"github.com/WelcomerTeam/Discord/discord"
+	"net/http"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
 )
 
-// Route GET /api/guild/:guildID/autoroles
+// Route GET /api/guild/:guildID/autoroles.
 func getGuildSettingsAutoRoles(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -47,7 +46,7 @@ func getGuildSettingsAutoRoles(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/autoroles
+// Route POST /api/guild/:guildID/autoroles.
 func setGuildSettingsAutoRoles(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -91,7 +90,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
 				},
 				nil,
 			)
@@ -110,7 +109,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 	})
 }
 
-// Validates autorole settings
+// Validates autorole settings.
 func doValidateAutoRoles(guildSettings *GuildSettingsAutoRoles) error {
 	// TODO: validate autoroles
 

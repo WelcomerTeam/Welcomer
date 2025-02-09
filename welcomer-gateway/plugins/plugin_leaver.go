@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
@@ -14,7 +16,6 @@ import (
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
-	"net/http"
 )
 
 type LeaverCog struct {
@@ -48,7 +49,6 @@ func (p *LeaverCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
-
 	// Register CustomEventInvokeLeaver event.
 	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var invokeLeaverPayload core.CustomEventInvokeLeaverStructure

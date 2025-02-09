@@ -1,11 +1,9 @@
 package backend
 
 import (
-	_ "embed"
 	"errors"
 	"net/http"
 
-	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
@@ -13,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-// Route GET /api/guild/:guildID/borderwall
+// Route GET /api/guild/:guildID/borderwall.
 func getGuildSettingsBorderwall(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -53,7 +51,7 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/borderwall
+// Route POST /api/guild/:guildID/borderwall.
 func setGuildSettingsBorderwall(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -96,7 +94,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
 				},
 				nil,
 			)
@@ -115,7 +113,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 	})
 }
 
-// Validates borderwall settings
+// Validates borderwall settings.
 func doValidateBorderwall(guildSettings *GuildSettingsBorderwall) error {
 	// TODO: validate borderwall
 

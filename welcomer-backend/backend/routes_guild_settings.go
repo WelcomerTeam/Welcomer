@@ -3,13 +3,14 @@ package backend
 import (
 	_ "embed"
 	"errors"
+	"net/http"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
 )
 
-// Route GET /api/guild/:guildID/settings
+// Route GET /api/guild/:guildID/settings.
 func getGuildSettingsSettings(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -35,7 +36,6 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 
 					return
 				}
-
 			}
 
 			partial := GuildSettingsToPartial(settings)
@@ -48,7 +48,7 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/settings
+// Route POST /api/guild/:guildID/settings.
 func setGuildSettingsSettings(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -95,7 +95,7 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 	})
 }
 
-// Validates settings
+// Validates settings.
 func doValidateSettings(guildSettings *GuildSettingsSettings) error {
 	// TODO: validate settings
 

@@ -3,16 +3,16 @@ package backend
 import (
 	_ "embed"
 	"errors"
-	discord "github.com/WelcomerTeam/Discord/discord"
+	"net/http"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
-	"net/http"
 )
 
-// Route GET /api/guild/:guildID/leaver
+// Route GET /api/guild/:guildID/leaver.
 func getGuildSettingsLeaver(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -48,7 +48,7 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/guild/:guildID/leaver
+// Route POST /api/guild/:guildID/leaver.
 func setGuildSettingsLeaver(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
@@ -88,10 +88,11 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			err = utils.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
+
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
 				},
 				nil,
 			)
@@ -110,7 +111,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 	})
 }
 
-// Validates leaver settings
+// Validates leaver settings.
 func doValidateLeaver(guildSettings *GuildSettingsLeaver) error {
 	// TODO: validate leaver
 

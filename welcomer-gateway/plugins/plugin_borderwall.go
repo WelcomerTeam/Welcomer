@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
@@ -48,7 +49,6 @@ func (p *BorderwallCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (p *BorderwallCog) RegisterCog(bot *sandwich.Bot) error {
-
 	// Register CustomEventInvokeBorderwallCompletion event.
 	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeBorderwallCompletion, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var invokeBorderwallCompletionPayload core.CustomEventInvokeBorderwallCompletionStructure
@@ -84,7 +84,6 @@ func (p *BorderwallCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeBorderwallStructure) (err error) {
-
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
@@ -365,7 +364,6 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 }
 
 func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeBorderwallCompletionStructure) (err error) {
-
 	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 	guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
@@ -566,8 +564,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 			return err
 		}
 
-		guild =
-			grpcGuild
+		guild = grpcGuild
 	} else {
 		eventCtx.Logger.Error().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

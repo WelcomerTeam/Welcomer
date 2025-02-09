@@ -2,12 +2,13 @@ package utils
 
 import (
 	"encoding/json"
-	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -29,7 +30,7 @@ type RecaptchaResponse struct {
 	Success            bool      `json:"success"`
 }
 
-func ValidateRecaptcha(logger zerolog.Logger, response string, ipAddress string) (float64, error) {
+func ValidateRecaptcha(logger zerolog.Logger, response, ipAddress string) (float64, error) {
 	reqBody := url.Values{}
 	reqBody.Set("secret", os.Getenv("RECAPTCHA_SECRET"))
 	reqBody.Set("response", response)

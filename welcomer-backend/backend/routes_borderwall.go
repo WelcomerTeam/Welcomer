@@ -3,6 +3,12 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"net"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -12,12 +18,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
-	"net"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
+	"github.com/ua-parser/uap-go/uaparser"
 )
+
+var userAgentParser, _ = uaparser.NewFromBytes(uaparser.DefinitionYaml)
 
 const (
 	// Recaptcha must return a value higher than this threshold to be considered valid.
@@ -39,7 +43,7 @@ type BorderwallResponse struct {
 	Valid     bool   `json:"valid"`
 }
 
-// Route GET /api/borderwall/:key
+// Route GET /api/borderwall/:key.
 func getBorderwall(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		key := ctx.Param("key")
@@ -83,7 +87,7 @@ func getBorderwall(ctx *gin.Context) {
 
 			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Msg("Failed to fetch guild")
+				backend.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
 			} else if !guild.ID.IsNil() {
 				borderwallResponse.GuildName = guild.Name
 			}
@@ -96,7 +100,7 @@ func getBorderwall(ctx *gin.Context) {
 	})
 }
 
-// Route POST /api/borderwall/:key
+// Route POST /api/borderwall/:key.
 func setBorderwall(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		key := ctx.Param("key")
@@ -238,7 +242,7 @@ func setBorderwall(ctx *gin.Context) {
 		// Broadcast borderwall completion.
 		managers, err := fetchManagersForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
 		if err != nil || len(managers) == 0 {
-			logger.Error().Err(err).Int64("guildID", int64(borderwallRequest.GuildID)).Int("len", len(managers)).Msg("Failed to get managers for guild")
+			logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
 
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -285,7 +289,11 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		clientIP := net.ParseIP(ctx.ClientIP())
-		familyName, familyVersion, osName, osVersion := utils.ParseUserAgent(userAgent)
+
+		client := userAgentParser.Parse(userAgent)
+
+		osName := client.Os.Family
+		osVersion := client.Os.ToVersionString()
 
 		// If platform version is 13 or higher, we assume it's Windows 11.
 		// https://learn.microsoft.com/en-us/microsoft-edge/web-platform/how-to-detect-win11
@@ -307,8 +315,8 @@ func setBorderwall(ctx *gin.Context) {
 			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: clientIP, Mask: clientIP.DefaultMask()}, Status: pgtype.Present},
 			RecaptchaScore:  sql.NullFloat64{Float64: recaptchaScore, Valid: true},
 			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
-			UaFamily:        sql.NullString{String: familyName, Valid: true},
-			UaFamilyVersion: sql.NullString{String: familyVersion, Valid: true},
+			UaFamily:        sql.NullString{String: client.UserAgent.Family, Valid: true},
+			UaFamilyVersion: sql.NullString{String: client.UserAgent.ToVersionString(), Valid: true},
 			UaOs:            sql.NullString{String: osName, Valid: true},
 			UaOsVersion:     sql.NullString{String: osVersion, Valid: true},
 		}); err != nil {

@@ -1,11 +1,12 @@
 package service
 
 import (
+	"image"
+
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
-	"image"
 )
 
 func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {

@@ -207,7 +207,6 @@ func getAllPatreonMembers(ctx context.Context, client *http.Client, l []PatreonM
 		u,
 		nil,
 	)
-
 	if err != nil {
 		return l, err
 	}

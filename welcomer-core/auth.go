@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"os"
 )
 
 var elevatedUsers []discord.Snowflake
@@ -45,10 +46,9 @@ func CheckChannelGuild(ctx context.Context, c protobuf.SandwichClient, guildID, 
 	fmt.Printf("Channel %d not found in guild %d. Channels: %v", channelID, guildID, channels.GuildChannels)
 
 	return false, nil
-
 }
 
-func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro bool, hasCustomBackgrounds bool) {
+func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro, hasCustomBackgrounds bool) {
 	for _, membership := range memberships {
 		if IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)) {
 			hasCustomBackgrounds = true
@@ -176,7 +176,6 @@ func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord
 		SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
 		SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
 	})
-
 	if err != nil {
 		return fmt.Errorf("failed to ensure guild: %w", err)
 	}

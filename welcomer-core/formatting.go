@@ -2,15 +2,16 @@ package welcomer
 
 import (
 	"fmt"
+	"html"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/Knetic/govaluate"
 	"github.com/WelcomerTeam/Discord/discord"
 	mustache "github.com/WelcomerTeam/Mustachvulate"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"html"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // ordinal takes 1 argument but 0 was given

@@ -149,7 +149,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	for _, keyPairString := range keyPairStrings {
 		byteSlice, err := hex.DecodeString(keyPairString)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse keyPairString %s to hex: %v", keyPairString, err.Error())
+			return nil, fmt.Errorf("failed to parse keyPairString %s to hex: %w", keyPairString, err)
 		}
 
 		keyPairs = append(keyPairs, byteSlice)

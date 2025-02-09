@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"time"
 )
 
 const (
@@ -118,7 +119,7 @@ func (b *Backend) GetUserMemberships(ctx context.Context, session sessions.Sessi
 	return memberships, nil
 }
 
-// Route GET /api/users/@me
+// Route GET /api/users/@me.
 func usersMe(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
@@ -152,7 +153,7 @@ func usersMe(ctx *gin.Context) {
 	})
 }
 
-// Route GET /api/users/@me/memberships
+// Route GET /api/users/@me/memberships.
 func usersMeMemberships(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		var refreshFrequency time.Duration
@@ -204,7 +205,7 @@ func usersMeMemberships(ctx *gin.Context) {
 	})
 }
 
-// ROUTE GET /api/users/guilds
+// ROUTE GET /api/users/guilds.
 func usersGuilds(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		var refreshFrequency time.Duration
@@ -226,7 +227,6 @@ func usersGuilds(ctx *gin.Context) {
 
 		if refresh {
 			mappedGuilds, err = backend.GetUserGuilds(ctx, session)
-
 			if err != nil {
 				if errors.Is(err, discord.ErrUnauthorized) {
 					ctx.JSON(http.StatusUnauthorized, BaseResponse{

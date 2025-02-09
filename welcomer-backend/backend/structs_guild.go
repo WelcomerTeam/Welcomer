@@ -1,8 +1,9 @@
 package backend
 
 import (
-	"github.com/WelcomerTeam/Discord/discord"
 	"time"
+
+	"github.com/WelcomerTeam/Discord/discord"
 )
 
 type Guild struct {

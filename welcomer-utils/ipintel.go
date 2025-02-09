@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"sync"
+
+	"github.com/rs/zerolog"
 )
 
 const (

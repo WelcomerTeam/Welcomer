@@ -1,15 +1,17 @@
 package service
 
 import (
+	"image"
+
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
-	"image"
 )
 
 func CreateRegularImage(
-	is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
+	is *ImageService, args GenerateImageArguments,
+) (resp *GenerateThemeResponse, err error) {
 	imageSize := image.Rect(0, 0, 1000, 300)
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 936, 236)

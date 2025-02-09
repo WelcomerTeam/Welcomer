@@ -1,17 +1,18 @@
 package backend
 
 import (
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 	"github.com/plutov/paypal/v4"
-	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
 )
 
 // ISO 3166-1 alpha-2 country codes for the Eurozone.
@@ -59,7 +60,7 @@ func getSKUPricing() map[welcomer.SKUName]welcomer.PricingSKU {
 	return welcomer.SKUPricingTable[index]
 }
 
-// Route GET /api/billing/skus
+// Route GET /api/billing/skus.
 func getSKUs(ctx *gin.Context) {
 	response, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
 	if err != nil {
@@ -95,7 +96,7 @@ type CreatePaymentResponse struct {
 	URL string `json:"url"`
 }
 
-// Route POST /api/billing/payments
+// Route POST /api/billing/payments.
 func createPayment(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		// Read "request" text from the post json body.
@@ -122,7 +123,7 @@ func createPayment(ctx *gin.Context) {
 
 		pricing := getSKUPricing()
 
-		sku, ok := pricing[welcomer.SKUName(request.SKU)]
+		sku, ok := pricing[request.SKU]
 		if !ok {
 			backend.Logger.Warn().Str("sku", string(request.SKU)).Msg("Invalid SKU")
 

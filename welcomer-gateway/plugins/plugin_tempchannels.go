@@ -3,6 +3,8 @@ package plugins
 import (
 	"errors"
 	"fmt"
+	"regexp"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
@@ -12,7 +14,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
-	"regexp"
 )
 
 type TempChannelsCog struct {
@@ -44,7 +45,6 @@ func (p *TempChannelsCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
-
 	// Register CustomEventInvokeTempChannels event.
 	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
 		var invokeTempChannelsPayload core.CustomEventInvokeTempChannelsStructure
@@ -243,7 +243,7 @@ func (p *TempChannelsCog) isTempChannel(name string) bool {
 	return tempChannelRegex.MatchString(name)
 }
 
-func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category discord.Snowflake, lobby discord.Snowflake, channelID discord.Snowflake) (ok bool, err error) {
+func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, guildID, category, lobby, channelID discord.Snowflake) (ok bool, err error) {
 	channel := sandwich.NewChannel(&guildID, channelID)
 
 	channel, err = sandwich.FetchChannel(eventCtx.ToGRPCContext(), channel)
