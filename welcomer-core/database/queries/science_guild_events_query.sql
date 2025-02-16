@@ -4,6 +4,10 @@ INSERT INTO science_guild_events (guild_event_uuid, guild_id, created_at, event_
 RETURNING
     *;
 
+-- name: CreateManyScienceGuildEvents :copyfrom
+INSERT INTO science_guild_events (guild_event_uuid, guild_id, created_at, event_type, data)
+    VALUES ($1, $2, $3, $4, $5);
+
 -- name: GetScienceGuildEvent :one
 SELECT
     *
