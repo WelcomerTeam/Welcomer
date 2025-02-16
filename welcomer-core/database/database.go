@@ -2,10 +2,10 @@ package database
 
 //go:generate go-enum -f=$GOFILE --marshal
 
-// ENUM(unknown, guildJoin, guildLeave)
+// ENUM(unknown)
 type ScienceEventType int32
 
-// ENUM(unknown, userJoin, userLeave, userWelcomed, timeRoleGiven, borderwallChallenge, borderwallCompleted, tempChannelCreated, membershipReceived, membershipRemoved)
+// ENUM(unknown, userJoin, userLeave, userWelcomed, timeRoleGiven, borderwallChallenge, borderwallCompleted, tempChannelCreated, membershipReceived, membershipRemoved, guildJoin, guildLeave)
 type ScienceGuildEventType int32
 
 // ENUM(unknown, idle, active, expired, refunded, removed)

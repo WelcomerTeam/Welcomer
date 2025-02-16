@@ -230,20 +230,14 @@ func (x *PlatformType) UnmarshalText(text []byte) error {
 const (
 	// ScienceEventTypeUnknown is a ScienceEventType of type Unknown.
 	ScienceEventTypeUnknown ScienceEventType = iota
-	// ScienceEventTypeGuildJoin is a ScienceEventType of type GuildJoin.
-	ScienceEventTypeGuildJoin
-	// ScienceEventTypeGuildLeave is a ScienceEventType of type GuildLeave.
-	ScienceEventTypeGuildLeave
 )
 
 var ErrInvalidScienceEventType = errors.New("not a valid ScienceEventType")
 
-const _ScienceEventTypeName = "unknownguildJoinguildLeave"
+const _ScienceEventTypeName = "unknown"
 
 var _ScienceEventTypeMap = map[ScienceEventType]string{
-	ScienceEventTypeUnknown:    _ScienceEventTypeName[0:7],
-	ScienceEventTypeGuildJoin:  _ScienceEventTypeName[7:16],
-	ScienceEventTypeGuildLeave: _ScienceEventTypeName[16:26],
+	ScienceEventTypeUnknown: _ScienceEventTypeName[0:7],
 }
 
 // String implements the Stringer interface.
@@ -262,9 +256,7 @@ func (x ScienceEventType) IsValid() bool {
 }
 
 var _ScienceEventTypeValue = map[string]ScienceEventType{
-	_ScienceEventTypeName[0:7]:   ScienceEventTypeUnknown,
-	_ScienceEventTypeName[7:16]:  ScienceEventTypeGuildJoin,
-	_ScienceEventTypeName[16:26]: ScienceEventTypeGuildLeave,
+	_ScienceEventTypeName[0:7]: ScienceEventTypeUnknown,
 }
 
 // ParseScienceEventType attempts to convert a string to a ScienceEventType.
@@ -312,11 +304,15 @@ const (
 	ScienceGuildEventTypeMembershipReceived
 	// ScienceGuildEventTypeMembershipRemoved is a ScienceGuildEventType of type MembershipRemoved.
 	ScienceGuildEventTypeMembershipRemoved
+	// ScienceGuildEventTypeGuildJoin is a ScienceGuildEventType of type GuildJoin.
+	ScienceGuildEventTypeGuildJoin
+	// ScienceGuildEventTypeGuildLeave is a ScienceGuildEventType of type GuildLeave.
+	ScienceGuildEventTypeGuildLeave
 )
 
 var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
 
-const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemoved"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeave"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeUnknown:             _ScienceGuildEventTypeName[0:7],
@@ -329,6 +325,8 @@ var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeTempChannelCreated:  _ScienceGuildEventTypeName[87:105],
 	ScienceGuildEventTypeMembershipReceived:  _ScienceGuildEventTypeName[105:123],
 	ScienceGuildEventTypeMembershipRemoved:   _ScienceGuildEventTypeName[123:140],
+	ScienceGuildEventTypeGuildJoin:           _ScienceGuildEventTypeName[140:149],
+	ScienceGuildEventTypeGuildLeave:          _ScienceGuildEventTypeName[149:159],
 }
 
 // String implements the Stringer interface.
@@ -357,6 +355,8 @@ var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[87:105]:  ScienceGuildEventTypeTempChannelCreated,
 	_ScienceGuildEventTypeName[105:123]: ScienceGuildEventTypeMembershipReceived,
 	_ScienceGuildEventTypeName[123:140]: ScienceGuildEventTypeMembershipRemoved,
+	_ScienceGuildEventTypeName[140:149]: ScienceGuildEventTypeGuildJoin,
+	_ScienceGuildEventTypeName[149:159]: ScienceGuildEventTypeGuildLeave,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.
