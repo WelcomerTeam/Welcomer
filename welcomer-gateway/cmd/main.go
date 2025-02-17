@@ -120,6 +120,11 @@ func main() {
 
 	queries := database.New(pool)
 
+	pushGuildScienceHandler := welcomer.NewPushGuildScienceHandler(queries, logger, 1024)
+	pushGuildScienceHandler.Run(ctx, time.Second*30)
+
+	ctx = welcomer.AddPushGuildScienceToContext(ctx, pushGuildScienceHandler)
+
 	ctx = welcomer.AddPoolToContext(ctx, pool)
 
 	ctx = welcomer.AddQueriesToContext(ctx, queries)
@@ -146,13 +151,14 @@ func main() {
 		logger.Panic().Err(err).Msg("Failed to listen to channel")
 	}
 
-	cancel()
-
-	// Close sandwich
+	pushGuildScienceHandler.Flush(ctx)
 
 	jetstreamClient.Unsubscribe(ctx)
 
 	if err = grpcConnection.Close(); err != nil {
 		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
+
+	// Close sandwich
+	cancel()
 }

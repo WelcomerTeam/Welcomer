@@ -91,6 +91,14 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+			eventCtx.Context,
+			eventCtx.Guild.ID,
+			database.ScienceGuildEventTypeUserJoin,
+			welcomer.GuildScienceUserJoin{
+				UserID: member.User.ID,
+			})
+
 		if !member.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
@@ -665,6 +673,19 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	} else if dmerr != nil {
 		err = dmerr
 	}
+
+	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		eventCtx.Context,
+		eventCtx.Guild.ID,
+		database.ScienceGuildEventTypeUserWelcomed,
+		welcomer.GuildScienceUserWelcomed{
+			UserID:            event.Member.User.ID,
+			HasImage:          file != nil,
+			HasMessage:        !utils.IsMessageParamsEmpty(serverMessage),
+			HasDM:             !utils.IsMessageParamsEmpty(directMessage),
+			HasInviteTracking: hasInviteVariable,
+			IsInviteTracked:   usedInvite != nil,
+		})
 
 	return nil
 }

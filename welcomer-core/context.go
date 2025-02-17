@@ -14,6 +14,7 @@ const (
 	PoolKey WelcomerInteractionsContextKey = iota
 	QueriesKey
 	ManagerNameKey
+	PushGuildScienceHandlerKey
 )
 
 // Arguments context handler.
@@ -34,6 +35,17 @@ func AddQueriesToContext(ctx context.Context, v *database.Queries) context.Conte
 
 func GetQueriesFromContext(ctx context.Context) *database.Queries {
 	value, _ := ctx.Value(QueriesKey).(*database.Queries)
+
+	return value
+}
+
+// PushGuildScience context handler.
+func AddPushGuildScienceToContext(ctx context.Context, v *PushGuildScienceHandler) context.Context {
+	return context.WithValue(ctx, PushGuildScienceHandlerKey, v)
+}
+
+func GetPushGuildScienceFromContext(ctx context.Context) *PushGuildScienceHandler {
+	value, _ := ctx.Value(PushGuildScienceHandlerKey).(*PushGuildScienceHandler)
 
 	return value
 }
