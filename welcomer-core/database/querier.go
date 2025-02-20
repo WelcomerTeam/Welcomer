@@ -73,7 +73,6 @@ type Querier interface {
 	GetPatreonUsersByUserID(ctx context.Context, userID int64) ([]*PatreonUsers, error)
 	GetRulesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsRules, error)
 	GetScienceEvent(ctx context.Context, eventUuid uuid.UUID) (*ScienceEvents, error)
-	// VALUES (uuid_generate_v7(), $1, now(), $2, $3);
 	GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.UUID) (*ScienceGuildEvents, error)
 	GetTempChannelsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTempchannels, error)
 	GetTimeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTimeroles, error)

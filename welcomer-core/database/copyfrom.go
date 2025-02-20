@@ -31,6 +31,7 @@ func (r iteratorForCreateManyScienceGuildEvents) Values() ([]interface{}, error)
 	return []interface{}{
 		r.rows[0].GuildEventUuid,
 		r.rows[0].GuildID,
+		r.rows[0].UserID,
 		r.rows[0].CreatedAt,
 		r.rows[0].EventType,
 		r.rows[0].Data,
@@ -42,5 +43,5 @@ func (r iteratorForCreateManyScienceGuildEvents) Err() error {
 }
 
 func (q *Queries) CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"science_guild_events"}, []string{"guild_event_uuid", "guild_id", "created_at", "event_type", "data"}, &iteratorForCreateManyScienceGuildEvents{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"science_guild_events"}, []string{"guild_event_uuid", "guild_id", "user_id", "created_at", "event_type", "data"}, &iteratorForCreateManyScienceGuildEvents{rows: arg})
 }

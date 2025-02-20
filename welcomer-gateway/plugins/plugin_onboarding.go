@@ -41,6 +41,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
+			0,
 			database.ScienceGuildEventTypeGuildJoin,
 			nil,
 		)
@@ -52,6 +53,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
+			0,
 			database.ScienceGuildEventTypeGuildLeave,
 			nil,
 		)

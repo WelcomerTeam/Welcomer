@@ -233,10 +233,10 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
+		member.User.ID,
 		database.ScienceGuildEventTypeTempChannelCreated,
-		welcomer.GuildScienceTempChannelCreated{
-			UserID: member.User.ID,
-		})
+		nil,
+	)
 
 	return nil
 }

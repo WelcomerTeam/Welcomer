@@ -171,11 +171,12 @@ type ScienceEvents struct {
 }
 
 type ScienceGuildEvents struct {
-	GuildEventUuid uuid.UUID    `json:"guild_event_uuid"`
-	GuildID        int64        `json:"guild_id"`
-	CreatedAt      time.Time    `json:"created_at"`
-	EventType      int32        `json:"event_type"`
-	Data           pgtype.JSONB `json:"data"`
+	GuildEventUuid uuid.UUID   `json:"guild_event_uuid"`
+	GuildID        int64       `json:"guild_id"`
+	UserID         int64       `json:"user_id"`
+	CreatedAt      time.Time   `json:"created_at"`
+	EventType      int32       `json:"event_type"`
+	Data           pgtype.JSON `json:"data"`
 }
 
 type UserMemberships struct {

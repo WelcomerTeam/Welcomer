@@ -178,9 +178,9 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 			welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 				eventCtx.Context,
 				eventCtx.Guild.ID,
+				member.User.ID,
 				database.ScienceGuildEventTypeTimeRoleGiven,
 				welcomer.GuildScienceTimeRoleGiven{
-					UserID: member.User.ID,
 					RoleID: role,
 				})
 		}

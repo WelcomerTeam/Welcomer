@@ -47,13 +47,13 @@ func (h *PushGuildScienceHandler) Run(ctx context.Context, interval time.Duratio
 	}()
 }
 
-func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID discord.Snowflake, eventType database.ScienceGuildEventType, data interface{}) {
+func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID discord.Snowflake, eventType database.ScienceGuildEventType, data interface{}) {
 	guildEventUUID, err := utils.UUIDGen.NewV7()
 	if err != nil {
 		panic(fmt.Errorf("failed to generate UUID: %w", err))
 	}
 
-	guildEventData := pgtype.JSONB{
+	guildEventData := pgtype.JSON{
 		Status: pgtype.Null,
 	}
 
@@ -70,6 +70,7 @@ func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID discord.Snow
 	h.PushRaw(ctx, database.CreateManyScienceGuildEventsParams{
 		GuildEventUuid: guildEventUUID,
 		GuildID:        int64(guildID),
+		UserID:         int64(userID),
 		CreatedAt:      time.Now(),
 		EventType:      int32(eventType),
 		Data:           guildEventData,
@@ -80,8 +81,6 @@ func (h *PushGuildScienceHandler) PushRaw(ctx context.Context, event database.Cr
 	h.Lock()
 	h.buffer = append(h.buffer, event)
 	defer h.Unlock()
-
-	println(event.EventType, event.GuildID, string(event.Data.Bytes))
 
 	if len(h.buffer) >= h.limit {
 		h.flushWithoutLock(ctx)

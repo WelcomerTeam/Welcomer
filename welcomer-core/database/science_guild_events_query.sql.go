@@ -14,32 +14,40 @@ import (
 )
 
 type CreateManyScienceGuildEventsParams struct {
-	GuildEventUuid uuid.UUID    `json:"guild_event_uuid"`
-	GuildID        int64        `json:"guild_id"`
-	CreatedAt      time.Time    `json:"created_at"`
-	EventType      int32        `json:"event_type"`
-	Data           pgtype.JSONB `json:"data"`
+	GuildEventUuid uuid.UUID   `json:"guild_event_uuid"`
+	GuildID        int64       `json:"guild_id"`
+	UserID         int64       `json:"user_id"`
+	CreatedAt      time.Time   `json:"created_at"`
+	EventType      int32       `json:"event_type"`
+	Data           pgtype.JSON `json:"data"`
 }
 
 const CreateScienceGuildEvent = `-- name: CreateScienceGuildEvent :one
-INSERT INTO science_guild_events (guild_event_uuid, guild_id, created_at, event_type, data)
-    VALUES (uuid_generate_v7(), $1, now(), $2, $3)
+INSERT INTO science_guild_events (guild_event_uuid, guild_id, user_id, created_at, event_type, data)
+    VALUES (uuid_generate_v7(), $1, $2, now(), $3, $4)
 RETURNING
-    guild_event_uuid, guild_id, created_at, event_type, data
+    guild_event_uuid, guild_id, user_id, created_at, event_type, data
 `
 
 type CreateScienceGuildEventParams struct {
-	GuildID   int64        `json:"guild_id"`
-	EventType int32        `json:"event_type"`
-	Data      pgtype.JSONB `json:"data"`
+	GuildID   int64       `json:"guild_id"`
+	UserID    int64       `json:"user_id"`
+	EventType int32       `json:"event_type"`
+	Data      pgtype.JSON `json:"data"`
 }
 
 func (q *Queries) CreateScienceGuildEvent(ctx context.Context, arg CreateScienceGuildEventParams) (*ScienceGuildEvents, error) {
-	row := q.db.QueryRow(ctx, CreateScienceGuildEvent, arg.GuildID, arg.EventType, arg.Data)
+	row := q.db.QueryRow(ctx, CreateScienceGuildEvent,
+		arg.GuildID,
+		arg.UserID,
+		arg.EventType,
+		arg.Data,
+	)
 	var i ScienceGuildEvents
 	err := row.Scan(
 		&i.GuildEventUuid,
 		&i.GuildID,
+		&i.UserID,
 		&i.CreatedAt,
 		&i.EventType,
 		&i.Data,
@@ -48,22 +56,21 @@ func (q *Queries) CreateScienceGuildEvent(ctx context.Context, arg CreateScience
 }
 
 const GetScienceGuildEvent = `-- name: GetScienceGuildEvent :one
-
 SELECT
-    guild_event_uuid, guild_id, created_at, event_type, data
+    guild_event_uuid, guild_id, user_id, created_at, event_type, data
 FROM
     science_guild_events
 WHERE
     guild_event_uuid = $1
 `
 
-// VALUES (uuid_generate_v7(), $1, now(), $2, $3);
 func (q *Queries) GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.UUID) (*ScienceGuildEvents, error) {
 	row := q.db.QueryRow(ctx, GetScienceGuildEvent, guildEventUuid)
 	var i ScienceGuildEvents
 	err := row.Scan(
 		&i.GuildEventUuid,
 		&i.GuildID,
+		&i.UserID,
 		&i.CreatedAt,
 		&i.EventType,
 		&i.Data,

@@ -75,10 +75,10 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
+			user.ID,
 			database.ScienceGuildEventTypeUserLeave,
-			welcomer.GuildScienceUserLeave{
-				UserID: user.ID,
-			})
+			nil,
+		)
 
 		return p.OnInvokeLeaverEvent(eventCtx, core.CustomEventInvokeLeaverStructure{
 			Interaction: nil,

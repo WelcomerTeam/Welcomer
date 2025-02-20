@@ -94,10 +94,10 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
+			member.User.ID,
 			database.ScienceGuildEventTypeUserJoin,
-			welcomer.GuildScienceUserJoin{
-				UserID: member.User.ID,
-			})
+			nil,
+		)
 
 		if !member.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
@@ -677,9 +677,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
+		event.Member.User.ID,
 		database.ScienceGuildEventTypeUserWelcomed,
 		welcomer.GuildScienceUserWelcomed{
-			UserID:            event.Member.User.ID,
 			HasImage:          file != nil,
 			HasMessage:        !utils.IsMessageParamsEmpty(serverMessage),
 			HasDM:             !utils.IsMessageParamsEmpty(directMessage),
