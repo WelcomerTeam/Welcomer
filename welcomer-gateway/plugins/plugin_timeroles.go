@@ -173,6 +173,17 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 				Interface("roles", roles).
 				Msg("Failed to add roles to member for timeroles")
 		}
+
+		for _, role := range roles {
+			welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+				eventCtx.Context,
+				eventCtx.Guild.ID,
+				member.User.ID,
+				database.ScienceGuildEventTypeTimeRoleGiven,
+				welcomer.GuildScienceTimeRoleGiven{
+					RoleID: role,
+				})
+		}
 	}
 
 	return nil

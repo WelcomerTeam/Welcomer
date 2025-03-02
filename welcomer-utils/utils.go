@@ -17,6 +17,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	urlverifier "github.com/davidmytton/url-verifier"
+	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
@@ -27,6 +28,8 @@ var (
 )
 
 var verifier = urlverifier.NewVerifier()
+
+var UUIDGen = uuid.NewGen()
 
 const (
 	hexBase      = 16

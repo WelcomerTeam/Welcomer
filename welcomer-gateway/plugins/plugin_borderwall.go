@@ -360,6 +360,16 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		}
 	}
 
+	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		eventCtx.Context,
+		eventCtx.Guild.ID,
+		event.Member.User.ID,
+		database.ScienceGuildEventTypeBorderwallChallenge,
+		welcomer.GuildScienceBorderwallChallenge{
+			HasMessage: !utils.IsMessageParamsEmpty(serverMessage),
+			HasDM:      !utils.IsMessageParamsEmpty(directMessage),
+		})
+
 	return nil
 }
 
@@ -668,6 +678,16 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 				Msg("Failed to send message to user")
 		}
 	}
+
+	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		eventCtx.Context,
+		eventCtx.Guild.ID,
+		event.Member.User.ID,
+		database.ScienceGuildEventTypeBorderwallCompleted,
+		welcomer.GuildScienceBorderwallCompleted{
+			HasMessage: !utils.IsMessageParamsEmpty(serverMessage),
+			HasDM:      !utils.IsMessageParamsEmpty(directMessage),
+		})
 
 	return nil
 }
