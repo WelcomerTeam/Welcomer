@@ -2,7 +2,29 @@ package backend
 
 // BaseResponse represents the base response sent to a client.
 type BaseResponse struct {
-	Data  interface{} `json:"data,omitempty"`
-	Error string      `json:"error,omitempty"`
-	Ok    bool        `json:"ok"`
+	Ok    bool   `json:"ok"`
+	Code  int    `json:"code,omitempty"`
+	Error string `json:"error,omitempty"`
+	Data  any    `json:"data,omitempty"`
+}
+
+func NewBaseResponse(err error, data any) BaseResponse {
+	var code int
+
+	var errString string
+
+	if err != nil {
+		if errWithCode, ok := err.(BackendError); ok {
+			code = errWithCode.Code
+		}
+
+		errString = err.Error()
+	}
+
+	return BaseResponse{
+		Ok:    errString == "",
+		Data:  data,
+		Code:  code,
+		Error: errString,
+	}
 }
