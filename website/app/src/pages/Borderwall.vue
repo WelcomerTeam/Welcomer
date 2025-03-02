@@ -4,66 +4,72 @@
 
     <main>
       <div class="hero-preview">
-        <div class="px-4 mx-auto max-w-7xl sm:px-6">
-          <div class="sm:flex sm:flex-col sm:align-center">
-            <div class="prose-lg text-center">
-              <img src="/assets/peek.png" alt="" class="mx-auto w-24 h-24 mb-4 select-none" />
-              <h1 class="font-black leading-8 tracking-tight">
-                This server is protected by Borderwall
-              </h1>
-              <div v-if="this.$route.params.key == ''">
-                Missing Key
+        <div class="px-4 mx-auto max-w-4xl sm:px-6">
+          <div class="sm:flex sm:flex-col sm:align-center prose-lg text-center">
+            <img src="/assets/peek.png" alt="" class="mx-auto w-24 h-24 select-none" />
+            <h2 class="font-black leading-8 tracking-tight">
+              This server is protected by Borderwall
+            </h2>
+            <div v-if="this.$route.params.key == ''">
+              Missing Key
+            </div>
+            <div v-else-if="this.responseCode == ErrBorderwallUserInvalid" class="max-w-prose mx-auto">
+              <span class="text-lg section-subtitle">You are not logged in as the user this request was for. Please try
+                logging in again.</span>
+              <div class="mt-8">
+                <a :href="'/login?path=' + encodeURIComponent(this.$route.fullPath)"
+                  class="cta-button bg-primary hover:bg-primary-dark">Log in</a>
               </div>
-              <div v-else-if="this.isDataError">
-                <div class="mb-4">Data Error</div>
-                <button @click="this.fetchBorderwall">Retry</button>
-              </div>
-              <div v-else-if="!this.isDataFetched" class="flex py-5 w-full justify-center">
-                <LoadingIcon />
-              </div>
-              <span v-else-if="this.isValidKey" class="mt-3 text-lg section-subtitle max-w-prose mx-auto">
-                You are verifying for <b> {{ guildName }} </b>. Please verify below.
-              </span>
-              <span v-else class="mt-3 text-lg section-subtitle max-w-prose mx-auto">
-                Your BorderWall link has expired or already been used.
-              </span>
+            </div>
+            <div v-else-if="this.isDataError">
+              <div class="mb-4">Data Error</div>
+              <button @click="this.fetchBorderwall">Retry</button>
+            </div>
+            <div v-else-if="!this.isDataFetched" class="flex py-5 w-full justify-center">
+              <LoadingIcon />
+            </div>
+            <span v-else-if="this.isValidKey" class="max-w-prose mx-auto">
+              You are verifying for <b> {{ guildName }} </b>. Please verify below.
+            </span>
+            <span v-else class="max-w-prose mx-auto">
+              Your BorderWall link has expired or already been used.
+            </span>
+          </div>
+
+          <div v-if="this.isDataFetched && this.isValidKey"
+            :class="['text-white px-6 py-8 rounded-lg p-4 mb-4 text-center shadow-sm transition-all duration-500 min-h-52 flex items-center justify-center mt-8', this.isCompleted ? 'bg-green-600' : 'bg-secondary dark:bg-secondary-dark']">
+            <div v-if="this.isCompleted" class="text-center space-y-4">
+              <font-awesome-icon icon="fa-sharp fa-light fa-badge-check" class="w-16 h-16" aria-hidden="" />
+              <h2 class="text-xl font-semibold">
+                You have been verified. You can now close this tab.
+              </h2>
+            </div>
+            <div v-else class="space-y-8">
+              <button @click="execute" :disabled="!this.isDataFetched && !this.isValidKey"
+                class="cta-button bg-primary hover:bg-primary-dark w-full max-w-xl">
+                <LoadingIcon v-if="this.isExecuting" class="mr-3" />
+                Verify
+              </button>
+
+              <recaptcha ref="recaptcha" action="borderwall" @verify="verify" />
+
+              <p class="text-xs text-neutral-400">
+                This site is protected by reCAPTCHA and the Google
+                <a href="https://policies.google.com/privacy" target="_blank"
+                  class="font-semibold underline hover:text-gray-300">Privacy Policy</a>
+                and
+                <a href="https://policies.google.com/terms" target="_blank"
+                  class="font-semibold underline hover:text-gray-300">Terms of Service</a>
+                apply.
+              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="pb-48 max-w-7xl mx-auto px-6 lg:px-7">
-        <div v-if="this.isDataFetched && this.isValidKey"
-          :class="['text-white px-6 py-8 rounded-lg p-4 mb-4 text-center shadow-sm transition-all duration-500 min-h-52 flex items-center justify-center', this.isCompleted ? 'bg-green-600' : 'bg-secondary dark:bg-secondary-dark']">
-          <div v-if="this.isCompleted" class="text-center space-y-4">
-            <font-awesome-icon icon="fa-sharp fa-light fa-badge-check" class="W-24 h-24" aria-hidden="" />
-            <h2 class="text-2xl font-semibold">
-              You have been verified. You can now close this tab.
-            </h2>
-          </div>
-          <div v-else class="space-y-4">
-            <button @click="execute" :disabled="!this.isDataFetched && !this.isValidKey"
-              class="cta-button bg-primary hover:bg-primary-dark w-full max-w-xl">
-              <LoadingIcon v-if="this.isExecuting" class="mr-3" />
-              Verify
-            </button>
-
-            <recaptcha ref="recaptcha" action="borderwall" @verify="verify" />
-
-            <p>
-              This site is protected by reCAPTCHA and the Google
-              <a href="https://policies.google.com/privacy" target="_blank"
-                class="font-semibold underline hover:text-gray-300">Privacy Policy</a>
-              and
-              <a href="https://policies.google.com/terms" target="_blank"
-                class="font-semibold underline hover:text-gray-300">Terms of Service</a>
-              apply.
-            </p>
-          </div>
-        </div>
-        <div class="text-center font-semibold">
-          Welcomer or Borderwall will never ask you to scan any QR codes. <a href="https://welcomer.gg/phishing"
-            target="_blank" class="font-semibold underline hover:text-gray-700 dark:hover:text-gray-300">Learn More</a>.
+        <div class="text-center font-semibold text-neutral-500 dark:text-neutral-400 mt-8">
+          Welcomer or Borderwall will never ask you to scan any QR codes.
+          <a href="https://welcomer.gg/phishing" target="_blank"
+            class="font-semibold underline hover:text-gray-700 dark:hover:text-gray-300">Learn More</a>.
         </div>
       </div>
     </main>
@@ -104,8 +110,11 @@ export default {
     let isCompleted = ref(false);
     let isExecuting = ref(false);
     let isValidKey = ref(false);
+    let responseCode = ref(0);
     let guildName = ref("");
     let response = ref(null);
+
+    const ErrBorderwallUserInvalid = 12002;
 
     return {
       isDataFetched,
@@ -113,8 +122,11 @@ export default {
       isCompleted,
       isExecuting,
       isValidKey,
+      responseCode,
       guildName,
       response,
+
+      ErrBorderwallUserInvalid,
     };
   },
 
@@ -131,16 +143,23 @@ export default {
 
       dashboardAPI.getBorderwall(
         this.$route.params.key,
-        (response) => {
+        ({ code, data }) => {
           this.isDataFetched = true;
-          this.isValidKey = response.valid;
-          this.guildName = response.guild_name;
+          this.isDataError = false;
+
+          this.responseCode = code;
+          this.isValidKey = data.valid;
+          this.guildName = data.guild_name;
         },
-        (error) => {
-          this.$store.dispatch("createToast", getErrorToast(error));
+        ({ code, error }) => {
+          if (code != this.ErrBorderwallUserInvalid) {
+            this.$store.dispatch("createToast", getErrorToast(error));
+          }
 
           this.isDataFetched = true;
           this.isDataError = true;
+
+          this.responseCode = code;
         }
       );
     },

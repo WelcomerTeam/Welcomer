@@ -232,9 +232,9 @@ export default {
             .json()
             .then((res) => {
               if (res.ok) {
-                callback(res.data);
+                callback({ code: res.code, data: res.data });
               } else {
-                errorCallback(res.error);
+                errorCallback({ code: res.code, error: res.error });
               }
             })
             .catch((error) => {
