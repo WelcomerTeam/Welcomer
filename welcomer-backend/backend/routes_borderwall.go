@@ -39,7 +39,7 @@ type BorderwallRequest struct {
 }
 
 type BorderwallResponse struct {
-	GuildName string `json:"guild_name"`
+	GuildName string `json:"guild_name,omitempty"`
 	Valid     bool   `json:"valid"`
 }
 
@@ -49,10 +49,7 @@ func getBorderwall(ctx *gin.Context) {
 		key := ctx.Param("key")
 
 		if key == "" {
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: "missing key",
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrBorderwallInvalidKey, nil))
 
 			return
 		}
@@ -76,11 +73,7 @@ func getBorderwall(ctx *gin.Context) {
 					Int64("borderwallRequestUserID", borderwallRequest.UserID).
 					Msg("User ID does not match")
 
-				ctx.JSON(http.StatusForbidden, BaseResponse{
-					Ok:    false,
-					Error: ErrBorderwallUserInvalid.Error(),
-					Data:  borderwallResponse,
-				})
+				ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrBorderwallUserInvalid, borderwallResponse))
 
 				return
 			}
@@ -93,10 +86,7 @@ func getBorderwall(ctx *gin.Context) {
 			}
 		}
 
-		ctx.JSON(http.StatusOK, BaseResponse{
-			Ok:   true,
-			Data: borderwallResponse,
-		})
+		ctx.JSON(http.StatusOK, NewBaseResponse(nil, borderwallResponse))
 	})
 }
 
@@ -106,9 +96,7 @@ func setBorderwall(ctx *gin.Context) {
 		key := ctx.Param("key")
 
 		if key == "" {
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrBorderwallInvalidKey, nil))
 
 			return
 		}
@@ -117,9 +105,7 @@ func setBorderwall(ctx *gin.Context) {
 
 		userAgent := ctx.GetHeader("User-Agent")
 		if userAgent == "" {
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("user-agent"), nil))
 
 			return
 		}
@@ -130,9 +116,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err := ctx.ShouldBindJSON(&request); err != nil {
 			logger.Warn().Err(err).Msg("Failed to bind JSON")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInvalidJSON, nil))
 
 			return
 		}
@@ -140,9 +124,7 @@ func setBorderwall(ctx *gin.Context) {
 		if request.Response == "" {
 			logger.Warn().Msg("Missing response")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("response"), nil))
 
 			return
 		}
@@ -153,10 +135,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if borderwallRequest.RequestUuid.IsNil() {
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: ErrBorderwallInvalidKey.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrBorderwallInvalidKey, nil))
 
 			return
 		}
@@ -167,10 +146,7 @@ func setBorderwall(ctx *gin.Context) {
 		if !ok {
 			backend.Logger.Warn().Msg("Failed to get user session")
 
-			ctx.JSON(http.StatusUnauthorized, BaseResponse{
-				Ok:    false,
-				Error: ErrMissingUser.Error(),
-			})
+			ctx.JSON(http.StatusUnauthorized, NewBaseResponse(ErrMissingUser, nil))
 
 			return
 		}
@@ -181,19 +157,13 @@ func setBorderwall(ctx *gin.Context) {
 				Int64("borderwallRequestUserID", borderwallRequest.UserID).
 				Msg("User ID does not match")
 
-			ctx.JSON(http.StatusForbidden, BaseResponse{
-				Ok:    false,
-				Error: ErrBorderwallUserInvalid.Error(),
-			})
+			ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrBorderwallUserInvalid, nil))
 
 			return
 		}
 
 		if borderwallRequest.IsVerified {
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: ErrBorderwallRequestAlreadyVerified.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrBorderwallRequestAlreadyVerified, nil))
 
 			return
 		}
@@ -203,10 +173,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			logger.Error().Err(err).Msg("Failed to validate recaptcha")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: ErrRecaptchaValidationFailed.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrRecaptchaValidationFailed, nil))
 
 			return
 		}
@@ -214,10 +181,7 @@ func setBorderwall(ctx *gin.Context) {
 		if recaptchaScore < RecaptchaThreshold {
 			logger.Warn().Float64("score", recaptchaScore).Float64("threshold", RecaptchaThreshold).Msg("Recaptcha score is too low")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: ErrInsecureUser.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
 			return
 		}
@@ -231,10 +195,7 @@ func setBorderwall(ctx *gin.Context) {
 		if ipIntelResponse.Result > IPIntelThreshold {
 			logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Msg("IPIntel score is too high")
 
-			ctx.JSON(http.StatusBadRequest, BaseResponse{
-				Ok:    false,
-				Error: ErrInsecureUser.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
 			return
 		}
@@ -244,9 +205,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil || len(managers) == 0 {
 			logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
 
 			return
 		}
@@ -266,9 +225,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to marshal borderwall completion data")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
 
 			return
 		}
@@ -281,9 +238,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to relay borderwall completion")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
 
 			return
 		}
@@ -322,16 +277,12 @@ func setBorderwall(ctx *gin.Context) {
 		}); err != nil {
 			logger.Warn().Err(err).Msg("Failed to update borderwall request")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
 
 			return
 		}
 
-		ctx.JSON(http.StatusOK, BaseResponse{
-			Ok: true,
-		})
+		ctx.JSON(http.StatusOK, NewBaseResponse(nil, nil))
 	})
 }
 
