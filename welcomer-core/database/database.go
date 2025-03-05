@@ -14,7 +14,7 @@ type MembershipStatus int32
 // ENUM(unknown, legacyCustomBackgrounds, legacyWelcomerPro, welcomerPro, customBackgrounds)
 type MembershipType int32
 
-// ENUM(unknown, paypal, patreon, stripe)
+// ENUM(unknown, paypal, patreon, stripe, paypal_subscription, discord)
 type PlatformType int32
 
 // ENUM(unknown, pending, completed, refunded)

@@ -74,7 +74,7 @@
         <div class="hero-preview">
           <div class="sm:flex sm:flex-col sm:align-center">
             <div class="prose-lg text-center">
-              <div class="mb-16 bg-secondary-dark rounded-md p-2 text-white font-semibold prose-sm">Save 25% off a monthly and annual membership this black friday!</div>
+              <!-- <div class="mb-16 bg-secondary-dark rounded-md p-2 text-white font-semibold prose-sm">Save 25% off a monthly and annual membership this black friday!</div> -->
               <h1 class="font-black leading-8 tracking-tight text-gray-900">
                 Choose the plan you want
               </h1>
@@ -91,6 +91,11 @@
                   'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
                 ]">
                   Monthly
+                  <span
+                    v-if="isMonthlyRecurring"
+                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                    Recurring
+                  </span>
                 </button>
                 <button type="button" @click="selectDuration(durationBiAnnually)" :class="[
                   'ml-0.5',
@@ -170,7 +175,7 @@
                 
                 <router-link :to="{ name: 'invite' }"><button type="button" class="border-gray-300 hover:bg-gray-300 text-gray-900 border flex items-center justify-center px-5 py-3 mt-8 text-base font-medium rounded-md cursor-pointer w-full">Invite Welcomer</button></router-link>
               </div>
-              <div class="-order-1 lg:order-1">
+              <div class="-order-1">
                 <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit">
                   <h3 class="text-2xl font-bold sm:text-3xl">
                     Welcomer Pro
@@ -185,14 +190,16 @@
                       this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
                   </p>
 
+                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring) || this.durationSelected == durationPatreon" class="text-sm font-medium leading-6"> 7 days free </p>
+                  <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">Billed as {{ formatCurrency(this.currency,
+                      this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}
+                  </p>
+
+
                   <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())"
                     :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">
                     <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />{{ durationSelected == durationPatreon ? 'Become a Patron' : 'Get Started' }}</button>
                 </div>
-                <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="mt-2 text-center">
-                  <span class="text-sm font-medium leading-6 text-gray-500">*Billed as {{ formatCurrency(this.currency,
-                    this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}</span>
-                </p>
               </div>
             </div>
           </div>
@@ -382,10 +389,10 @@ const faqs = [
   },
 ];
 
-const durationMonthly = 0;
-const durationBiAnnually = 1;
-const durationAnnually = 2;
-const durationPatreon = 3;
+const durationPatreon = 0;
+const durationMonthly = 1;
+const durationBiAnnually = 2;
+const durationAnnually = 3;
 
 const skuCustomBackgrounds = "WEL/CBG";
 const skuWelcomerPro = "WEL/1P1";
@@ -421,6 +428,7 @@ export default {
     let isDataFetched = ref(false);
     let isDataError = ref(false);
     let isCreatePaymentInProgress = ref(false);
+    let isMonthlyRecurring = ref(false);
 
     return {
       features,
@@ -436,6 +444,7 @@ export default {
       isDataError,
 
       isCreatePaymentInProgress,
+      isMonthlyRecurring,
 
       durationMonthly,
       durationBiAnnually,
@@ -538,6 +547,12 @@ export default {
           this.skus = response.skus;
           this.currency = response.default_currency;
           this.currencies = response.available_currencies;
+
+          this.skus.forEach((sku) => {
+            if (sku.id === this.skuWelcomerPro) {
+              this.isMonthlyRecurring = sku.is_recurring && sku.paypal_subscription_id !== "";
+            }
+          });
         },
         (error) => {
           this.$store.dispatch("createToast", getErrorToast(error));

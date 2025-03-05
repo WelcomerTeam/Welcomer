@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 )
 
@@ -45,6 +46,17 @@ func NewInvalidParameterError(parameter string) error {
 	return NewErrorWithCode(10004, fmt.Sprintf("invalid parameter \"%s\" in request", parameter))
 }
 
+func NewGenericErrorWithLineNumber() error {
+	// Get the line number of the caller.
+	_, _, lineNo, ok := runtime.Caller(1)
+
+	if ok {
+		return NewErrorWithCode(11000, fmt.Sprintf("general error: l%d", lineNo))
+	}
+
+	return ErrGeneralError
+}
+
 // Validation errors.
 var (
 	ErrGeneralError = NewErrorWithCode(11000, "general error")
@@ -71,6 +83,21 @@ var (
 	ErrBorderwallRequestAlreadyVerified = NewErrorWithCode(12000, "borderwall request already verified")
 	ErrBorderwallInvalidKey             = NewErrorWithCode(12001, "invalid key")
 	ErrBorderwallUserInvalid            = NewErrorWithCode(12002, "user is not the owner of this request")
-	ErrRecaptchaValidationFailed        = NewErrorWithCode(12003, "reCAPTCHA validation failed")
-	ErrInsecureUser                     = NewErrorWithCode(12004, "failed to verify your request. Please disable any proxy or VPN and try again")
+
+	ErrRecaptchaValidationFailed = NewErrorWithCode(12003, "reCAPTCHA validation failed")
+	ErrInsecureUser              = NewErrorWithCode(12004, "failed to verify your request. Please disable any proxy or VPN and try again")
+)
+
+// Billing errors.
+var (
+	ErrInvalidSKU                 = NewErrorWithCode(13000, "invalid sku")
+	ErrCurrencyNotAvailable       = NewErrorWithCode(13001, "currency is not available")
+	ErrCurrencyNotAvailableForSKU = NewErrorWithCode(13002, "no currency pricing is available for this sku")
+	ErrInvalidCost                = NewErrorWithCode(13003, "invalid cost")
+	ErrCreateOrderFailed          = NewErrorWithCode(13004, "failed to create paypal order")
+	ErrGetOrderValidationFailed   = NewErrorWithCode(13005, "failed to validate paypal order")
+	ErrCaptureOrderFailed         = NewErrorWithCode(13006, "failed to capture paypal order")
+	ErrCreateTransactionFailed    = NewErrorWithCode(13007, "failed to create transaction")
+	ErrCreateMembershipFailed     = NewErrorWithCode(13008, "failed to create membership")
+	ErrWebhookValidationFailed    = NewErrorWithCode(13009, "failed to validate webhook message")
 )

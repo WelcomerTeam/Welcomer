@@ -205,7 +205,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil || len(managers) == 0 {
 			logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -225,7 +225,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to marshal borderwall completion data")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -238,7 +238,7 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to relay borderwall completion")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -277,7 +277,7 @@ func setBorderwall(ctx *gin.Context) {
 		}); err != nil {
 			logger.Warn().Err(err).Msg("Failed to update borderwall request")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGeneralError, nil))
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}

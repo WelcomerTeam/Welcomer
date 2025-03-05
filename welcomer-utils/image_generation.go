@@ -96,7 +96,7 @@ type UserProvidedEmbed struct {
 // solid:profile - Solid colour based on user profile picture.
 // unsplash:Bnr_ZSmqbDY - Unsplash along with Id.
 // custom:018c186a-4ce5-74c7-b2d1-b0639c2f4686 - per-guild utils.background
-func ParseBackground(str string) (Background, error) {
+func ParseBackground(str string) (Background, bool) {
 	str = strings.TrimSpace(str)
 
 	switch {
@@ -108,12 +108,12 @@ func ParseBackground(str string) (Background, error) {
 			return Background{
 				Type:  BackgroundTypeSolidProfile,
 				Value: "",
-			}, nil
+			}, true
 		} else if IsValidColour(value) {
 			return Background{
 				Type:  BackgroundTypeSolid,
 				Value: value,
-			}, nil
+			}, true
 		}
 	case strings.HasPrefix(str, UnsplashPrefix):
 		// extract value
@@ -123,7 +123,7 @@ func ParseBackground(str string) (Background, error) {
 			return Background{
 				Type:  BackgroundTypeUnsplash,
 				Value: value,
-			}, nil
+			}, true
 		}
 	case strings.HasPrefix(str, CustomBackgroundPrefix):
 		// extract value
@@ -132,13 +132,13 @@ func ParseBackground(str string) (Background, error) {
 		return Background{
 			Type:  BackgroundTypeWelcomer,
 			Value: value,
-		}, nil
+		}, true
 	default:
 		return Background{
 			Type:  BackgroundTypeDefault,
 			Value: str,
-		}, nil
+		}, true
 	}
 
-	return Background{}, ErrInvalidBackground
+	return Background{}, false
 }

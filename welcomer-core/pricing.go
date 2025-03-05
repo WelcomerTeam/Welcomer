@@ -1,6 +1,8 @@
 package welcomer
 
 import (
+	"os"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -38,7 +40,10 @@ type PricingSKU struct {
 	SoftDescriptor    string                  `json:"-"` // This should be 13 characters or less.
 	MonthCount        int                     `json:"month_count"`
 	Costs             map[Currency]string     `json:"costs"`
-	PatreonCheckoutId string                  `json:"patreon_checkout_id"`
+	PatreonCheckoutID string                  `json:"patreon_checkout_id"`
+
+	IsRecurring          bool                `json:"is_recurring"`
+	PaypalSubscriptionID map[Currency]string `json:"paypal_subscription_id"`
 }
 
 var SKUPricingTable = map[int]map[SKUName]PricingSKU{
@@ -69,6 +74,12 @@ var SKUPricingTable = map[int]map[SKUName]PricingSKU{
 				CurrencyGBP: "7.00",
 				CurrencyUSD: "8.00",
 				CurrencyINR: "300",
+			},
+			IsRecurring: os.Getenv("WELCOMER_PRO_RECURRING") == "true",
+			PaypalSubscriptionID: map[Currency]string{
+				CurrencyEUR: os.Getenv("WELCOMER_PRO_PAYPAL_SUBSCRIPTION_EUR_ID"),
+				CurrencyGBP: os.Getenv("WELCOMER_PRO_PAYPAL_SUBSCRIPTION_GBP_ID"),
+				CurrencyUSD: os.Getenv("WELCOMER_PRO_PAYPAL_SUBSCRIPTION_USD_ID"),
 			},
 		},
 		SKUWelcomerProBiAnnual: {
