@@ -86,11 +86,11 @@ const navigation = [
         linkname: "dashboard.guild.overview",
         icon: "fa-chart-line",
       },
-      {
-        name: "Bot Settings",
-        linkname: "dashboard.guild.settings",
-        icon: "fa-wrench",
-      },
+      // {
+      //   name: "Bot Settings",
+      //   linkname: "dashboard.guild.settings",
+      //   icon: "fa-wrench",
+      // },
     ],
   },
   {
