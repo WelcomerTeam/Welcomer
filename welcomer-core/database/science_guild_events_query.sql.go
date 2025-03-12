@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -14,12 +15,12 @@ import (
 )
 
 type CreateManyScienceGuildEventsParams struct {
-	GuildEventUuid uuid.UUID   `json:"guild_event_uuid"`
-	GuildID        int64       `json:"guild_id"`
-	UserID         int64       `json:"user_id"`
-	CreatedAt      time.Time   `json:"created_at"`
-	EventType      int32       `json:"event_type"`
-	Data           pgtype.JSON `json:"data"`
+	GuildEventUuid uuid.UUID     `json:"guild_event_uuid"`
+	GuildID        int64         `json:"guild_id"`
+	UserID         sql.NullInt64 `json:"user_id"`
+	CreatedAt      time.Time     `json:"created_at"`
+	EventType      int32         `json:"event_type"`
+	Data           pgtype.JSON   `json:"data"`
 }
 
 const CreateScienceGuildEvent = `-- name: CreateScienceGuildEvent :one
@@ -30,10 +31,10 @@ RETURNING
 `
 
 type CreateScienceGuildEventParams struct {
-	GuildID   int64       `json:"guild_id"`
-	UserID    int64       `json:"user_id"`
-	EventType int32       `json:"event_type"`
-	Data      pgtype.JSON `json:"data"`
+	GuildID   int64         `json:"guild_id"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	EventType int32         `json:"event_type"`
+	Data      pgtype.JSON   `json:"data"`
 }
 
 func (q *Queries) CreateScienceGuildEvent(ctx context.Context, arg CreateScienceGuildEventParams) (*ScienceGuildEvents, error) {
