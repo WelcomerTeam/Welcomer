@@ -200,6 +200,8 @@ func createPayment(ctx *gin.Context) {
 			subscriptionID, ok := sku.PaypalSubscriptionID[request.Currency]
 			if ok && subscriptionID != "" {
 				applicationContext.UserAction = paypal.UserActionSubscribeNow
+				applicationContext.ReturnURL = "https://" + backend.Options.Domain + "/api/billing/subscription_callback"
+
 				createPaymentSubscription(ctx, sku, applicationContext, user, money, subscriptionID)
 
 				return
@@ -445,6 +447,154 @@ func paymentCancelled(ctx *gin.Context) {
 	ctx.Status(http.StatusTemporaryRedirect)
 }
 
+// Route POST /api/billing/subscription_callback?
+func paymentSubscriptionCallback(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		err := backend.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			// https://beta.welcomer.gg/api/billing/callback?subscription_id=I-TMR758P4PW2C&ba_token=BA-1UW93399KE424124U&token=6YC07506GL255092S
+
+			queries := backend.Database.WithTx(tx)
+
+			// Read "subscription_id" from the query string.
+			subscriptionID := ctx.Query("subscription_id")
+
+			if subscriptionID == "" {
+				backend.Logger.Warn().Msg("Missing subscription_id")
+
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("subscription_id"), nil))
+
+				return ErrMissingParameter
+			}
+
+			transactions, err := queries.GetUserTransactionsByTransactionID(ctx, subscriptionID)
+			if err != nil {
+				backend.Logger.Error().Err(err).Str("subscription_id", subscriptionID).Msg("Failed to get user transactions by transaction ID")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return err
+			}
+
+			if len(transactions) == 0 {
+				backend.Logger.Warn().Str("subscription_id", subscriptionID).Msg("No user transactions found")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return err
+			}
+
+			user := tryGetUser(ctx)
+			transaction := transactions[0]
+
+			if transaction.UserID != int64(user.ID) {
+				backend.Logger.Warn().Str("subscription_id", subscriptionID).Int64("userID", transaction.UserID).Int64("user.ID", int64(user.ID)).Msg("User ID does not match")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return err
+			}
+
+			// TODO: If we receive the webhook before the user navigates
+			// to the success page, it may be completed.
+			if transaction.TransactionStatus != int32(database.TransactionStatusPending) {
+				backend.Logger.Warn().Str("subscription_id", subscriptionID).Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).Msg("Transaction is not pending")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return err
+			}
+
+			// Get subscription
+			subscription, err := backend.PaypalClient.GetSubscriptionDetails(ctx, subscriptionID)
+			if err != nil {
+				backend.Logger.Error().Err(err).Str("subscription_id", subscriptionID).Msg("Failed to get subscription")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGetOrderValidationFailed, nil))
+
+				return err
+			}
+
+			// Fetch SKU from the plan ID.
+			pricing := getSKUPricing()
+
+			var sku welcomer.PricingSKU
+
+			for _, pricingSKU := range pricing {
+				if pricingSKU.IsRecurring {
+					for _, plan := range pricingSKU.PaypalSubscriptionID {
+						if plan == subscription.PlanID {
+							sku = pricingSKU
+
+							break
+						}
+					}
+				}
+			}
+
+			if sku.ID == "" {
+				backend.Logger.Warn().Str("planID", subscription.PlanID).Msg("Invalid plan ID")
+
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInvalidSKU, nil))
+
+				return err
+			}
+
+			// Create a user transaction.
+			userTransaction, err := welcomer.CreateTransactionForUser(
+				ctx,
+				queries,
+				user.ID,
+				database.PlatformTypePaypalSubscription,
+				database.TransactionStatusPending,
+				subscriptionID,
+				transaction.CurrencyCode,
+				transaction.Amount,
+			)
+			if err != nil {
+				backend.Logger.Error().Err(err).Msg("Failed to create user transaction")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCreateTransactionFailed, nil))
+
+				return err
+			}
+
+			startedAt := time.Now()
+			expiresAt := startedAt.AddDate(0, 0, 7)
+
+			// TODO: Create paypal_subscriptions record
+
+			// Create a temporary membership until we receive
+			// a payment confirmation from paypal.
+			err = welcomer.CreateMembershipForUser(
+				ctx,
+				queries,
+				user.ID,
+				userTransaction.TransactionUuid,
+				sku.MembershipType,
+				expiresAt,
+				nil,
+			)
+			if err != nil {
+				backend.Logger.Error().Err(err).Msg("Failed to create new membership")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCreateMembershipFailed, nil))
+
+				return err
+			}
+
+			ctx.Header("Location", "https://"+backend.Options.Domain+"/premium#success")
+			ctx.Status(http.StatusTemporaryRedirect)
+
+			return nil
+		})
+		if err != nil && !ctx.Writer.Written() {
+			backend.Logger.Error().Err(err).Msg("Failed to process payment")
+
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		}
+	})
+}
+
 // Route POST /api/billing/callback?token=...&PayerID=...
 func paymentCallback(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
@@ -660,34 +810,34 @@ func validatePaypalWebhook(ctx *gin.Context) ([]byte, bool) {
 		return nil, false
 	}
 	crc := crc32.ChecksumIEEE(event)
-	message := fmt.Sprintf("%s|%s|%s|%d", transmissionID, timeStamp, "WEBHOOK_ID", crc)
+	message := fmt.Sprintf("%s|%s|%s|%d", transmissionID, timeStamp, os.Getenv("PAYPAL_WEBHOOK_ID"), crc)
 
 	certPemBytes, err := downloadAndCache(certURL)
 	if err != nil {
 		backend.Logger.Error().Err(err).Msg("Failed to download and cache certificate")
 
-		return nil, false
+		return event, false
 	}
 
 	block, _ := pem.Decode(certPemBytes)
 	if block == nil {
 		backend.Logger.Error().Msg("Failed to decode PEM block containing the certificate")
 
-		return nil, false
+		return event, false
 	}
 
 	certPem, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		backend.Logger.Error().Err(err).Msg("Failed to decode certificate")
 
-		return nil, false
+		return event, false
 	}
 
 	signature, err := base64.StdEncoding.DecodeString(headers.Get("Paypal-Transmission-Sig"))
 	if err != nil {
 		backend.Logger.Error().Err(err).Msg("Failed to decode signature")
 
-		return nil, false
+		return event, false
 	}
 
 	hashed := crypto.SHA256.New()
@@ -697,214 +847,153 @@ func validatePaypalWebhook(ctx *gin.Context) ([]byte, bool) {
 	if !ok {
 		backend.Logger.Error().Msg("Failed to get public key")
 
-		return nil, false
+		return event, false
 	}
 
 	err = rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed.Sum(nil), signature)
 	if err != nil {
 		backend.Logger.Error().Msg("Failed to verify signature")
 
-		return nil, false
+		return event, false
 	}
 
 	return event, true
 }
 
+type PaypalWebhookEvent string
+
+const (
+	WebhookEventPaymentSaleCompleted             PaypalWebhookEvent = "PAYMENT.SALE.COMPLETED"
+	WebhookEventBillingSubscriptionCreated       PaypalWebhookEvent = "BILLING.SUBSCRIPTION.CREATED"
+	WebhookEventBillingSubscriptionActivated     PaypalWebhookEvent = "BILLING.SUBSCRIPTION.ACTIVATED"
+	WebhookEventBillingSubscriptionUpdated       PaypalWebhookEvent = "BILLING.SUBSCRIPTION.UPDATED"
+	WebhookEventBillingSubscriptionReactivated   PaypalWebhookEvent = "BILLING.SUBSCRIPTION.RE-ACTIVATED"
+	WebhookEventBillingSubscriptionExpired       PaypalWebhookEvent = "BILLING.SUBSCRIPTION.EXPIRED"
+	WebhookEventBillingSubscriptionCancelled     PaypalWebhookEvent = "BILLING.SUBSCRIPTION.CANCELLED"
+	WebhookEventBillingSubscriptionSuspended     PaypalWebhookEvent = "BILLING.SUBSCRIPTION.SUSPENDED"
+	WebhookEventBillingSubscriptionPaymentFailed PaypalWebhookEvent = "BILLING.SUBSCRIPTION.PAYMENT.FAILED"
+)
+
 // Route POST /api/billing/paypal_webhook
 func paypalWebhook(ctx *gin.Context) {
 	event, ok := validatePaypalWebhook(ctx)
 	if !ok {
-		ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrWebhookValidationFailed, nil))
+		// ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrWebhookValidationFailed, nil))
 
-		return
+		// return
 	}
 
 	// Handle different event types
-	var webhookEvent paypal.Event
+	var webhookEvent paypal.AnyEvent
 	if err := json.Unmarshal(event, &webhookEvent); err != nil {
 		backend.Logger.Error().Err(err).Msg("Failed to unmarshal webhook event")
+
 		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
 		return
 	}
 
-	switch webhookEvent.EventType {
-	case "BILLING.SUBSCRIPTION.CREATED":
-		// Handle subscription created
-	case "BILLING.SUBSCRIPTION.ACTIVATED":
-		// Handle subscription activated
-	case "BILLING.SUBSCRIPTION.EXPIRED":
-		// Handle subscription expired
-	case "BILLING.SUBSCRIPTION.CANCELLED":
-		// Handle subscription cancelled
-	case "BILLING.SUBSCRIPTION.SUSPENDED":
-		// Handle subscription suspended
-	case "BILLING.SUBSCRIPTION.PAYMENT.FAILED":
-		// Handle subscription payment failed
+	if PaypalWebhookEvent(webhookEvent.EventType) == WebhookEventPaymentSaleCompleted {
+
+		var sale welcomer.PaypalSale
+
+		if err := json.Unmarshal(webhookEvent.Resource, &sale); err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to unmarshal resource ID")
+
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+			return
+		}
+
+		err := welcomer.HandlePaypalSale(ctx, backend.Logger, backend.Database, sale)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(err, nil))
+
+			return
+		}
+
+		ctx.JSON(http.StatusOK, NewBaseResponse(nil, nil))
+	}
+
+	var subscription paypal.Subscription
+
+	if err := json.Unmarshal(webhookEvent.Resource, &subscription); err != nil {
+		backend.Logger.Error().Err(err).Msg("Failed to unmarshal resource ID")
+
+		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+		return
+	}
+
+	var err error
+
+	switch PaypalWebhookEvent(webhookEvent.EventType) {
+	case WebhookEventBillingSubscriptionCreated:
+		err = welcomer.OnPaypalSubscriptionCreated(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription created event")
+		}
+
+	case WebhookEventBillingSubscriptionActivated:
+		err = welcomer.HandlePaypalSubscription(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription activated event")
+		}
+
+	case WebhookEventBillingSubscriptionUpdated:
+		err = welcomer.OnPaypalSubscriptionUpdated(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription updated event")
+		}
+
+	case WebhookEventBillingSubscriptionReactivated:
+		err = welcomer.OnPaypalSubscriptionReactivated(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription re-activated event")
+		}
+
+	case WebhookEventBillingSubscriptionExpired:
+		err = welcomer.OnPaypalSubscriptionExpired(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription expired event")
+		}
+
+	case WebhookEventBillingSubscriptionCancelled:
+		err = welcomer.OnPaypalSubscriptionCancelled(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription cancelled event")
+		}
+
+	case WebhookEventBillingSubscriptionSuspended:
+		err = welcomer.OnPaypalSubscriptionSuspended(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription suspended event")
+		}
+
+	case WebhookEventBillingSubscriptionPaymentFailed:
+		err = welcomer.OnPaypalSubscriptionPaymentFailed(ctx, backend.Logger, backend.Database, subscription)
+		if err != nil {
+			backend.Logger.Error().Err(err).Msg("Failed to handle subscription payment failed event")
+		}
+
 	default:
 		backend.Logger.Warn().Str("event_type", webhookEvent.EventType).Msg("Unhandled event type")
 	}
 
-	ctx.JSON(http.StatusOK, BaseResponse{Ok: true})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(err, nil))
 
-	// BILLING.SUBSCRIPTION.CREATED
-	// BILLING.SUBSCRIPTION.ACTIVATED
-	// BILLING.SUBSCRIPTION.EXPIRED
-	// BILLING.SUBSCRIPTION.CANCELLED
-	// BILLING.SUBSCRIPTION.SUSPENDED
-	// BILLING.SUBSCRIPTION.PAYMENT.FAILED
+		return
+	}
 
-	// https://beta.welcomer.gg/api/billing/callback?subscription_id=I-TMR758P4PW2C&ba_token=BA-1UW93399KE424124U&token=6YC07506GL255092S
-
-	// Headers
-	// Cf-Timezone America/Chicago
-	// Paypal-Auth-Version v2
-	// Cf-Iplatitude 37.75100
-	// Paypal-Transmission-Id a05ce04f-f7bf-11ef-be09-87c28fdcff97
-	// Paypal-Cert-Url https://api.paypal.com/v1/notifications/certs/CERT-360caa42-fca2a594-b0d12406
-	// X-Real-Ip 172.69.34.129
-	// Cf-Ray 91a4bd36c8a152b3-LAX
-	// X-B3-Spanid c012cba11785d09b
-	// Paypal-Transmission-Sig fzvDj44jMCaBlyMkSJQbC+RkGjGlE492u9PAVaqDvNHm3BHez5PNHIVCblKB4+tdkjADWPhgkqUfn3RRy9TSZLNpsooqgEWDxWQ+ccW0LJweXQt7B07ihXgjXDEeElqApGAih9EBgjX1TIbRGDitUau4d9uCITGIwwkm1xC/rvqT2UW1dvq11/TEJVEUR3FQmzveiumNP1sAEb9CmpqKYUA2GW6tfzIHIoBxdvTh3rCm1Ehw2zypk4Zm537hpc3i9gy1qPc/Ik8V5tlPMfPOwwC9/PIQgq5GKUInGtcMclYXFOeYyigU2SKGiOBQ2Qc++j5PCm3SiE3xktrYDsLWrw==
-	// Correlation-Id e3bb88e4c2d53
-	// Content-Length 2305
-	// Cdn-Loop cloudflare; loops=1
-	// Paypal-Auth-Algo SHA256withRSA
-	// Cf-Ipcontinent NA
-	// Cf-Iplongitude -97.82200
-	// Accept-Encoding gzip, br
-	// Cf-Visitor {"scheme":"https"}
-	// Accept */*
-	// Paypal-Transmission-Time 2025-03-02T23:39:47Z
-	// Content-Type application/json
-	// X-Forwarded-Proto https
-	// Connection close
-	// X-Forwarded-For 173.0.81.65, 172.69.34.129
-	// Cf-Ipcountry US
-	// User-Agent PayPal/AUHD-214.0-58843824
-	// Cf-Connecting-Ip 173.0.81.65
-	// 173.0.81.65
-	// /api/billing/paypal_webhook
-	// {
-	// 	"id": "WH-77687562XN25889J8-8Y6T55435R66168T6",
-	// 	"create_time": "2018-19-12T22:20:32.000Z",
-	// 	"event_type": "BILLING.SUBSCRIPTION.ACTIVATED",
-	// 	"event_version": "1.0",
-	// 	"resource_type": "subscription",
-	// 	"resource_version": "2.0",
-	// 	"summary": "A billing agreement was activated.",
-	// 	"resource": {
-	// 		"id": "I-BW452GLLEP1G",
-	// 		"status": "ACTIVE",
-	// 		"status_update_time": "2018-12-10T21:20:49Z",
-	// 		"plan_id": "P-5ML4271244454362WXNWU5NQ",
-	// 		"start_time": "2018-11-01T00:00:00Z",
-	// 		"quantity": "20",
-	// 		"shipping_amount": {
-	// 			"currency_code": "USD",
-	// 			"value": "10.00"
-	// 		},
-	// 		"subscriber": {
-	// 			"name": {
-	// 				"given_name": "John",
-	// 				"surname": "Doe"
-	// 			},
-	// 			"email_address": "customer@example.com",
-	// 			"shipping_address": {
-	// 				"name": {
-	// 					"full_name": "John Doe"
-	// 				},
-	// 				"address": {
-	// 					"address_line_1": "2211 N First Street",
-	// 					"address_line_2": "Building 17",
-	// 					"admin_area_2": "San Jose",
-	// 					"admin_area_1": "CA",
-	// 					"postal_code": "95131",
-	// 					"country_code": "US"
-	// 				}
-	// 			}
-	// 		},
-	// 		"auto_renewal": true,
-	// 		"billing_info": {
-	// 			"outstanding_balance": {
-	// 				"currency_code": "USD",
-	// 				"value": "10.00"
-	// 			},
-	// 			"cycle_executions": [
-	// 				{
-	// 					"tenure_type": "TRIAL",
-	// 					"sequence": 1,
-	// 					"cycles_completed": 1,
-	// 					"cycles_remaining": 0,
-	// 					"current_pricing_scheme_version": 1
-	// 				},
-	// 				{
-	// 					"tenure_type": "REGULAR",
-	// 					"sequence": 2,
-	// 					"cycles_completed": 1,
-	// 					"cycles_remaining": 0,
-	// 					"current_pricing_scheme_version": 2
-	// 				}
-	// 			],
-	// 			"last_payment": {
-	// 				"amount": {
-	// 					"currency_code": "USD",
-	// 					"value": "500.00"
-	// 				},
-	// 				"time": "2018-12-01T01:20:49Z"
-	// 			},
-	// 			"next_billing_time": "2019-01-01T00:20:49Z",
-	// 			"final_payment_time": "2020-01-01T00:20:49Z",
-	// 			"failed_payments_count": 2
-	// 		},
-	// 		"create_time": "2018-12-10T21:20:49Z",
-	// 		"update_time": "2018-12-10T21:20:49Z",
-	// 		"links": [
-	// 			{
-	// 				"href": "https://api.paypal.com/v1/billing/subscriptions/I-BW452GLLEP1G",
-	// 				"rel": "self",
-	// 				"method": "GET"
-	// 			},
-	// 			{
-	// 				"href": "https://api.paypal.com/v1/billing/subscriptions/I-BW452GLLEP1G",
-	// 				"rel": "edit",
-	// 				"method": "PATCH"
-	// 			},
-	// 			{
-	// 				"href": "https://api.paypal.com/v1/billing/subscriptions/I-BW452GLLEP1G/suspend",
-	// 				"rel": "suspend",
-	// 				"method": "POST"
-	// 			},
-	// 			{
-	// 				"href": "https://api.paypal.com/v1/billing/subscriptions/I-BW452GLLEP1G/cancel",
-	// 				"rel": "cancel",
-	// 				"method": "POST"
-	// 			},
-	// 			{
-	// 				"href": "https://api.paypal.com/v1/billing/subscriptions/I-BW452GLLEP1G/capture",
-	// 				"rel": "capture",
-	// 				"method": "POST"
-	// 			}
-	// 		]
-	// 	},
-	// 	"links": [
-	// 		{
-	// 			"href": "https://api.paypal.com/v1/notifications/webhooks-events/WH-77687562XN25889J8-8Y6T55435R66168T6",
-	// 			"rel": "self",
-	// 			"method": "GET"
-	// 		},
-	// 		{
-	// 			"href": "https://api.paypal.com/v1/notifications/webhooks-events/WH-77687562XN25889J8-8Y6T55435R66168T6/resend",
-	// 			"rel": "resend",
-	// 			"method": "POST"
-	// 		}
-	// 	]
-	// }
+	ctx.JSON(http.StatusOK, NewBaseResponse(nil, nil))
 }
 
 func registerBillingRoutes(g *gin.Engine) {
 	g.GET("/api/billing/skus", getSKUs)
 	g.POST("/api/billing/payments", createPayment)
 	g.GET("/api/billing/callback", paymentCallback)
+	g.GET("/api/billing/subscription_callback", paymentSubscriptionCallback)
 	g.Any("/api/billing/cancelled", paymentCancelled)
 
 	g.POST("/api/billing/paypal_webhook", paypalWebhook)
