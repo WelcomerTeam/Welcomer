@@ -1,5 +1,7 @@
 package backend
 
+import "errors"
+
 // BaseResponse represents the base response sent to a client.
 type BaseResponse struct {
 	Ok    bool   `json:"ok"`
@@ -14,7 +16,8 @@ func NewBaseResponse(err error, data any) BaseResponse {
 	var errString string
 
 	if err != nil {
-		if errWithCode, ok := err.(BackendError); ok {
+		var errWithCode BackendError
+		if errors.As(err, &errWithCode) {
 			code = errWithCode.Code
 		}
 
