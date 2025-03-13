@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-func MustConvertToJSONB(v interface{}) pgtype.JSONB {
+func MustConvertToJSONB(v any) pgtype.JSONB {
 	jsonValue, err := json.Marshal(v)
 	if err != nil {
 		panic(fmt.Sprintf("MustConvertToJSONB(%v): %v", v, err))

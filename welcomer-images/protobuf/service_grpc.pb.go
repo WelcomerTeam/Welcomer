@@ -89,7 +89,7 @@ func RegisterImageGenerationServiceServer(s grpc.ServiceRegistrar, srv ImageGene
 	s.RegisterService(&ImageGenerationService_ServiceDesc, srv)
 }
 
-func _ImageGenerationService_GenerateImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ImageGenerationService_GenerateImage_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(GenerateImageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func _ImageGenerationService_GenerateImage_Handler(srv interface{}, ctx context.
 		Server:     srv,
 		FullMethod: ImageGenerationService_GenerateImage_FullMethodName,
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(ImageGenerationServiceServer).GenerateImage(ctx, req.(*GenerateImageRequest))
 	}
 	return interceptor(ctx, in, info, handler)

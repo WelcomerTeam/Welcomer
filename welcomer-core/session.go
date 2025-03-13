@@ -109,7 +109,7 @@ func (tl *TwilightProxy) Fetch(session *discord.Session, method, endpoint, conte
 	return response, nil
 }
 
-func (tl *TwilightProxy) FetchBJ(session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header, response interface{}) error {
+func (tl *TwilightProxy) FetchBJ(session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header, response any) error {
 	resp, err := tl.Fetch(session, method, endpoint, contentType, body, headers)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (tl *TwilightProxy) FetchBJ(session *discord.Session, method, endpoint, con
 	return nil
 }
 
-func (tl *TwilightProxy) FetchJJ(session *discord.Session, method, endpoint string, payload interface{}, headers http.Header, response interface{}) error {
+func (tl *TwilightProxy) FetchJJ(session *discord.Session, method, endpoint string, payload any, headers http.Header, response any) error {
 	var body []byte
 	var err error
 

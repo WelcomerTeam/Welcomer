@@ -99,7 +99,7 @@ func main() {
 
 	jetstreamClient := messaging.NewJetstreamMQClient()
 
-	if err = jetstreamClient.Connect(ctx, *jetstreamClientName, map[string]interface{}{
+	if err = jetstreamClient.Connect(ctx, *jetstreamClientName, map[string]any{
 		"Address": *stanAddress,
 
 		"Channel": *stanChannel,

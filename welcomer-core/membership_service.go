@@ -96,23 +96,23 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 		return err
 	}
 
-	var patreonTxs *database.UserTransactions
+	var patreonTransaction *database.UserTransactions
 
 	for _, tx := range txs {
 		if tx.PlatformType == int32(database.PlatformTypePatreon) {
-			patreonTxs = tx
+			patreonTransaction = tx
 
 			break
 		}
 	}
 
 	// If no patreon transaction is found, create one.
-	if patreonTxs == nil {
+	if patreonTransaction == nil {
 		logger.Warn().
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("No patreon transaction found")
 
-		tx, err := CreateTransactionForUser(ctx, queries, discord.Snowflake(patreonUser.UserID), database.PlatformTypePatreon, database.TransactionStatusCompleted, "", "", "")
+		transaction, err := CreateTransactionForUser(ctx, queries, discord.Snowflake(patreonUser.UserID), database.PlatformTypePatreon, database.TransactionStatusCompleted, "", "", "")
 		if err != nil {
 			logger.Error().Err(err).
 				Int64("user_id", int64(patreonUser.UserID)).
@@ -121,7 +121,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 			return err
 		}
 
-		patreonTxs = tx
+		patreonTransaction = transaction
 	}
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(patreonUser.UserID))
@@ -137,7 +137,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 	for _, membership := range memberships {
 		if database.MembershipType(membership.PlatformType.Int32) == database.MembershipType(database.PlatformTypePatreon) &&
-			membership.TransactionUuid == patreonTxs.TransactionUuid &&
+			membership.TransactionUuid == patreonTransaction.TransactionUuid &&
 			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) &&
 			membership.ExpiresAt.After(time.Now()) {
 			patreonMemberships = append(patreonMemberships, membership)
@@ -169,7 +169,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 		// Add memberships
 
 		for i := len(patreonMemberships); i < eligibleMemberships; i++ {
-			err = CreateMembershipForUser(ctx, queries, discord.Snowflake(patreonUser.UserID), patreonTxs.TransactionUuid, membershipType, membershipExpiration, nil)
+			err = CreateMembershipForUser(ctx, queries, discord.Snowflake(patreonUser.UserID), patreonTransaction.TransactionUuid, membershipType, membershipExpiration, nil)
 			if err != nil {
 				logger.Error().Err(err).
 					Int64("user_id", int64(patreonUser.UserID)).

@@ -48,7 +48,7 @@ func (h *PushGuildScienceHandler) Run(ctx context.Context, interval time.Duratio
 	}()
 }
 
-func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID discord.Snowflake, eventType database.ScienceGuildEventType, data interface{}) {
+func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID discord.Snowflake, eventType database.ScienceGuildEventType, data any) {
 	guildEventUUID, err := utils.UUIDGen.NewV7()
 	if err != nil {
 		panic(fmt.Errorf("failed to generate UUID: %w", err))

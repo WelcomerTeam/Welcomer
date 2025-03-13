@@ -8,10 +8,10 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type WelcomerInteractionsContextKey int
+type InteractionsContextKey int
 
 const (
-	PoolKey WelcomerInteractionsContextKey = iota
+	PoolKey InteractionsContextKey = iota
 	QueriesKey
 	ManagerNameKey
 	PushGuildScienceHandlerKey
@@ -62,9 +62,9 @@ func GetManagerNameFromContext(ctx context.Context) string {
 	manager := query.Get("manager")
 	if manager != "" {
 		return manager
-	} else {
-		value, _ := ctx.Value(ManagerNameKey).(string)
-
-		return value
 	}
+
+	value, _ := ctx.Value(ManagerNameKey).(string)
+
+	return value
 }

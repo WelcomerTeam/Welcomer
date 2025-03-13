@@ -17,7 +17,7 @@ import (
 // ordinal takes 1 argument but 0 was given
 // ordinal argument 1 type "string" is not supported
 
-func AssertLength(name string, expectedLength int, arguments ...interface{}) (err error) {
+func AssertLength(name string, expectedLength int, arguments ...any) (err error) {
 	if len(arguments) != expectedLength {
 		return fmt.Errorf("%s takes %d argument(s) but %d was given", name, expectedLength, len(arguments))
 	}
@@ -28,7 +28,7 @@ func AssertLength(name string, expectedLength int, arguments ...interface{}) (er
 func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 	funcs = map[string]govaluate.ExpressionFunction{}
 
-	funcs["Ordinal"] = func(arguments ...interface{}) (interface{}, error) {
+	funcs["Ordinal"] = func(arguments ...any) (any, error) {
 		if err := AssertLength("Ordinal", 1, arguments...); err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 		return utils.Itoa(int64(argument)) + suffix, nil
 	}
 
-	return
+	return funcs
 }
 
 // EscapeStringForJSON escapes a string for JSON.
@@ -67,8 +67,8 @@ func EscapeStringForJSON(value string) string {
 	return strings.ReplaceAll(value, `"`, `\"`)
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, invite *discord.Invite, extraValues map[string]interface{}) (vars map[string]interface{}) {
-	vars = make(map[string]interface{})
+func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
+	vars = make(map[string]any)
 
 	vars["User"] = StubUser{
 		ID:            member.User.ID,
@@ -158,7 +158,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember
 	return vars
 }
 
-func FormatString(funcs map[string]govaluate.ExpressionFunction, vars map[string]interface{}, message string) (string, error) {
+func FormatString(funcs map[string]govaluate.ExpressionFunction, vars map[string]any, message string) (string, error) {
 	tmpl, err := mustache.ParseString(message)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse string: %v", err)
