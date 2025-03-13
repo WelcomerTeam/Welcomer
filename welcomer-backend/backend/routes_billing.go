@@ -330,7 +330,6 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 }
 
 func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationContext *paypal.ApplicationContext, user SessionUser, money *paypal.Money) {
-
 	// Create a user transaction.
 	userTransaction, err := welcomer.CreateTransactionForUser(
 		ctx,
@@ -514,6 +513,27 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 				return err
 			}
 
+			// Create a paypal subscription entry.
+			_, err = queries.CreateOrUpdatePaypalSubscription(ctx, database.CreateOrUpdatePaypalSubscriptionParams{
+				SubscriptionID:     subscriptionID,
+				UserID:             int64(user.ID),
+				PayerID:            subscription.Subscriber.PayerID,
+				LastBilledAt:       subscription.BillingInfo.LastPayment.Time,
+				NextBillingAt:      subscription.BillingInfo.NextBillingTime,
+				SubscriptionStatus: string(subscription.SubscriptionStatus),
+				PlanID:             subscription.PlanID,
+				Quantity:           subscription.Quantity,
+			})
+			if err != nil {
+				backend.Logger.Error().Err(err).
+					Str("subscription_id", subscription.ID).
+					Msg("Failed to create paypal subscription")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return err
+			}
+
 			// Fetch SKU from the plan ID.
 			pricing := getSKUPricing()
 
@@ -560,8 +580,6 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 
 			startedAt := time.Now()
 			expiresAt := startedAt.AddDate(0, 0, 7)
-
-			// TODO: Create paypal_subscriptions record
 
 			// Create a temporary membership until we receive
 			// a payment confirmation from paypal.
@@ -894,7 +912,6 @@ func paypalWebhook(ctx *gin.Context) {
 	}
 
 	if PaypalWebhookEvent(webhookEvent.EventType) == WebhookEventPaymentSaleCompleted {
-
 		var sale welcomer.PaypalSale
 
 		if err := json.Unmarshal(webhookEvent.Resource, &sale); err != nil {
@@ -918,7 +935,7 @@ func paypalWebhook(ctx *gin.Context) {
 	var subscription paypal.Subscription
 
 	if err := json.Unmarshal(webhookEvent.Resource, &subscription); err != nil {
-		backend.Logger.Error().Err(err).Msg("Failed to unmarshal resource ID")
+		backend.Logger.Error().Err(err).Msg("Failed to unmarshal subscription")
 
 		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
@@ -977,7 +994,10 @@ func paypalWebhook(ctx *gin.Context) {
 		}
 
 	default:
-		backend.Logger.Warn().Str("event_type", webhookEvent.EventType).Msg("Unhandled event type")
+		backend.Logger.Warn().
+			Str("event_type", webhookEvent.EventType).
+			RawJSON("data", webhookEvent.Resource).
+			Msg("Unhandled event type")
 	}
 
 	if err != nil {
@@ -997,5 +1017,4 @@ func registerBillingRoutes(g *gin.Engine) {
 	g.Any("/api/billing/cancelled", paymentCancelled)
 
 	g.POST("/api/billing/paypal_webhook", paypalWebhook)
-
 }

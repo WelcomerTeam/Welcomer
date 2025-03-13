@@ -152,6 +152,7 @@ type PaypalSubscriptions struct {
 	UserID             int64     `json:"user_id"`
 	PayerID            string    `json:"payer_id"`
 	LastBilledAt       time.Time `json:"last_billed_at"`
+	NextBillingAt      time.Time `json:"next_billing_at"`
 	SubscriptionStatus string    `json:"subscription_status"`
 	PlanID             string    `json:"plan_id"`
 	Quantity           string    `json:"quantity"`

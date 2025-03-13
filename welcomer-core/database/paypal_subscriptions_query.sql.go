@@ -11,18 +11,19 @@ import (
 )
 
 const CreateOrUpdatePaypalSubscription = `-- name: CreateOrUpdatePaypalSubscription :one
-INSERT INTO paypal_subscriptions (subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, subscription_status, plan_id, quantity)
-    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7)
+INSERT INTO paypal_subscriptions (subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, next_billing_at, subscription_status, plan_id, quantity)
+    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT(subscription_id) DO UPDATE
     SET updated_at = EXCLUDED.updated_at,
         user_id = EXCLUDED.user_id,
         payer_id = EXCLUDED.payer_id,
         last_billed_at = EXCLUDED.last_billed_at,
+        next_billing_at = EXCLUDED.next_billing_at,
         subscription_status = EXCLUDED.subscription_status,
         plan_id = EXCLUDED.plan_id,
         quantity = EXCLUDED.quantity
 RETURNING
-    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, subscription_status, plan_id, quantity
+    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, next_billing_at, subscription_status, plan_id, quantity
 `
 
 type CreateOrUpdatePaypalSubscriptionParams struct {
@@ -30,6 +31,7 @@ type CreateOrUpdatePaypalSubscriptionParams struct {
 	UserID             int64     `json:"user_id"`
 	PayerID            string    `json:"payer_id"`
 	LastBilledAt       time.Time `json:"last_billed_at"`
+	NextBillingAt      time.Time `json:"next_billing_at"`
 	SubscriptionStatus string    `json:"subscription_status"`
 	PlanID             string    `json:"plan_id"`
 	Quantity           string    `json:"quantity"`
@@ -41,6 +43,7 @@ func (q *Queries) CreateOrUpdatePaypalSubscription(ctx context.Context, arg Crea
 		arg.UserID,
 		arg.PayerID,
 		arg.LastBilledAt,
+		arg.NextBillingAt,
 		arg.SubscriptionStatus,
 		arg.PlanID,
 		arg.Quantity,
@@ -53,6 +56,7 @@ func (q *Queries) CreateOrUpdatePaypalSubscription(ctx context.Context, arg Crea
 		&i.UserID,
 		&i.PayerID,
 		&i.LastBilledAt,
+		&i.NextBillingAt,
 		&i.SubscriptionStatus,
 		&i.PlanID,
 		&i.Quantity,
@@ -60,33 +64,17 @@ func (q *Queries) CreateOrUpdatePaypalSubscription(ctx context.Context, arg Crea
 	return &i, err
 }
 
-const CreatePaypalSubscription = `-- name: CreatePaypalSubscription :one
-INSERT INTO paypal_subscriptions (subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, subscription_status, plan_id, quantity)
-    VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7)
-RETURNING
-    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, subscription_status, plan_id, quantity
+const GetPaypalSubscriptionBySubscriptionID = `-- name: GetPaypalSubscriptionBySubscriptionID :one
+SELECT
+    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, next_billing_at, subscription_status, plan_id, quantity
+FROM
+    paypal_subscriptions
+WHERE
+    subscription_id = $1
 `
 
-type CreatePaypalSubscriptionParams struct {
-	SubscriptionID     string    `json:"subscription_id"`
-	UserID             int64     `json:"user_id"`
-	PayerID            string    `json:"payer_id"`
-	LastBilledAt       time.Time `json:"last_billed_at"`
-	SubscriptionStatus string    `json:"subscription_status"`
-	PlanID             string    `json:"plan_id"`
-	Quantity           string    `json:"quantity"`
-}
-
-func (q *Queries) CreatePaypalSubscription(ctx context.Context, arg CreatePaypalSubscriptionParams) (*PaypalSubscriptions, error) {
-	row := q.db.QueryRow(ctx, CreatePaypalSubscription,
-		arg.SubscriptionID,
-		arg.UserID,
-		arg.PayerID,
-		arg.LastBilledAt,
-		arg.SubscriptionStatus,
-		arg.PlanID,
-		arg.Quantity,
-	)
+func (q *Queries) GetPaypalSubscriptionBySubscriptionID(ctx context.Context, subscriptionID string) (*PaypalSubscriptions, error) {
+	row := q.db.QueryRow(ctx, GetPaypalSubscriptionBySubscriptionID, subscriptionID)
 	var i PaypalSubscriptions
 	err := row.Scan(
 		&i.SubscriptionID,
@@ -95,6 +83,7 @@ func (q *Queries) CreatePaypalSubscription(ctx context.Context, arg CreatePaypal
 		&i.UserID,
 		&i.PayerID,
 		&i.LastBilledAt,
+		&i.NextBillingAt,
 		&i.SubscriptionStatus,
 		&i.PlanID,
 		&i.Quantity,
@@ -104,7 +93,7 @@ func (q *Queries) CreatePaypalSubscription(ctx context.Context, arg CreatePaypal
 
 const GetPaypalSubscriptionsByUserID = `-- name: GetPaypalSubscriptionsByUserID :many
 SELECT
-    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, subscription_status, plan_id, quantity
+    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, next_billing_at, subscription_status, plan_id, quantity
 FROM
     paypal_subscriptions
 WHERE
@@ -127,6 +116,7 @@ func (q *Queries) GetPaypalSubscriptionsByUserID(ctx context.Context, userID int
 			&i.UserID,
 			&i.PayerID,
 			&i.LastBilledAt,
+			&i.NextBillingAt,
 			&i.SubscriptionStatus,
 			&i.PlanID,
 			&i.Quantity,

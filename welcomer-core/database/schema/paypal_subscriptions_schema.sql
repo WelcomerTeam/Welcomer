@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS paypal_subscriptions (
     user_id bigint NOT NULL,
     payer_id text NOT NULL,
     last_billed_at timestamp NOT NULL,
+    next_billing_at timestamp NOT NULL,
     subscription_status text NOT NULL,
     plan_id text NOT NULL,
     quantity text NOT NULL

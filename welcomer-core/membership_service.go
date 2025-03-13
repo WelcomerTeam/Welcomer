@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strconv"
 	"time"
@@ -37,7 +38,7 @@ func CreateTransactionForUser(ctx context.Context, queries *database.Queries, us
 	})
 }
 
-func CreateMembershipForUser(ctx context.Context, queries *database.Queries, userID discord.Snowflake, transactionUuid uuid.UUID, membershipType database.MembershipType, expiresAt time.Time, guildID *discord.Snowflake) error {
+func CreateMembershipForUser(ctx context.Context, queries *database.Queries, userID discord.Snowflake, transactionUUID uuid.UUID, membershipType database.MembershipType, expiresAt time.Time, guildID *discord.Snowflake) error {
 	var guildIDInt int64
 	if guildID != nil {
 		guildIDInt = int64(*guildID)
@@ -49,7 +50,7 @@ func CreateMembershipForUser(ctx context.Context, queries *database.Queries, use
 		ExpiresAt:       expiresAt,
 		Status:          int32(database.MembershipStatusIdle),
 		MembershipType:  int32(membershipType),
-		TransactionUuid: transactionUuid,
+		TransactionUuid: transactionUUID,
 		UserID:          int64(userID),
 		GuildID:         guildIDInt,
 	})
@@ -61,7 +62,7 @@ func CreateMembershipForUser(ctx context.Context, queries *database.Queries, use
 
 // Triggers when a patreon tier has changed.
 func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams) error {
-	println("OnPatreonTierChanged", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID)
+	println("HandlePatreonTierChanged", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID)
 
 	eligibleMemberships := 0
 
@@ -82,6 +83,8 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 	case PatreonTierWelcomerPro:
 		eligibleMemberships = 1
 		membershipType = database.MembershipTypeWelcomerPro
+	case PatreonTierFree:
+		eligibleMemberships = 0
 	}
 
 	txs, err := queries.GetUserTransactionsByUserID(ctx, int64(patreonUser.UserID))
@@ -239,7 +242,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 // Triggers when a patreon tier has changed. Ran if OnPatreonTierChange failed to run.
 func OnPatreonTierChanged_Fallback(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams, e error) error {
-	println("OnPatreonTierChanged_Fallback", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID, e.Error())
+	println("HandlePatreonTierChanged_Fallback", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID, e.Error())
 
 	// TODO: Log to file/webhook
 
@@ -248,7 +251,7 @@ func OnPatreonTierChanged_Fallback(ctx context.Context, logger zerolog.Logger, q
 
 // Triggers when a patron is no longer pledging
 func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
-	println("OnPatreonNoLongerPledging", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus)
+	println("HandlePatreonNoLongerPledging", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus)
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(patreonUser.UserID))
 	if err != nil {
@@ -316,7 +319,7 @@ func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queri
 
 // Triggered when a patron is still pledging.
 func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
-	println("OnPatreonActive", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus, patreonMember.Attributes.LastChargeStatus)
+	println("HandlePatreonActive", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus, patreonMember.Attributes.LastChargeStatus)
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(patreonUser.UserID))
 	if err != nil {
@@ -384,7 +387,7 @@ func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *databa
 
 // Triggers when a patreon account has been linked.
 func OnPatreonLinked(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser PatreonUser, automatic bool) error {
-	println("OnPatreonLinked", patreonUser.SocialConnections.Discord.UserID.String(), patreonUser.ID, automatic)
+	println("HandlePatreonLinked", patreonUser.SocialConnections.Discord.UserID.String(), patreonUser.ID, automatic)
 
 	// TODO: Notify of linked if not automatic or automatic and has tier.
 
@@ -393,7 +396,7 @@ func OnPatreonLinked(ctx context.Context, logger zerolog.Logger, queries *databa
 
 // Triggers when a patreon account has been unlinked.
 func OnPatreonUnlinked(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser *database.PatreonUsers) error {
-	println("OnPatreonUnlinked", patreonUser.PatreonUserID, patreonUser.UserID)
+	println("HandlePatreonUnlinked", patreonUser.PatreonUserID, patreonUser.UserID)
 
 	// TODO: Figure out what to do. Let people know when it is unlinked?
 
@@ -417,23 +420,89 @@ type PaypalSale struct {
 
 // Handles all paypal sales.
 func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSale PaypalSale) error {
-	println("OnPaypalSale", paypalSale.ID, paypalSale.State, paypalSale.Amount.Total, paypalSale.Amount.Currency, paypalSale.BillingAgreementID)
+	println("HandlePaypalSale", paypalSale.ID, paypalSale.State, paypalSale.Amount.Total, paypalSale.Amount.Currency, paypalSale.BillingAgreementID)
+
+	if paypalSale.State != "completed" {
+		return nil
+	}
+
+	if paypalSale.BillingAgreementID == "" {
+		return nil
+	}
+
+	memberships, err := queries.GetUserMembershipsByTransactionID(ctx, paypalSale.BillingAgreementID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		logger.Error().Err(err).
+			Str("transaction_id", paypalSale.BillingAgreementID).
+			Msg("Failed to get user memberships")
+
+		return err
+	}
+
+	paypalMemberships := make([]*database.GetUserMembershipsByTransactionIDRow, 0, len(memberships))
+
+	for _, membership := range memberships {
+		if database.MembershipType(membership.PlatformType) == database.MembershipType(database.PlatformTypePaypalSubscription) &&
+			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) &&
+			membership.ExpiresAt.After(time.Now()) {
+			paypalMemberships = append(paypalMemberships, membership)
+		}
+	}
+
+	membershipExpiration := time.Now().AddDate(0, 1, 0)
+
+	for _, membership := range paypalMemberships {
+		membership.ExpiresAt = membershipExpiration
+
+		_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
+			MembershipUuid:  membership.MembershipUuid,
+			StartedAt:       membership.StartedAt,
+			ExpiresAt:       membership.ExpiresAt,
+			Status:          membership.Status,
+			TransactionUuid: membership.TransactionUuid,
+			UserID:          membership.UserID,
+			GuildID:         membership.GuildID,
+		})
+		if err != nil {
+			logger.Error().Err(err).
+				Msg("Failed to update membership")
+
+			return err
+		}
+
+		logger.Info().
+			Str("membership_uuid", membership.MembershipUuid.String()).
+			Int64("user_id", membership.UserID).
+			Int64("guild_id", membership.GuildID).
+			Time("expires_at", membership.ExpiresAt).
+			Msg("Updated membership expiration due to paypal sale")
+	}
 
 	return nil
 }
 
 // Handles all subscription events.
 func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionActivated", paypalSubscription.ID)
+	println("HandlePaypalSubscription", paypalSubscription.ID, paypalSubscription.PlanID, paypalSubscription.SubscriptionStatus, paypalSubscription.Quantity)
 
-	eligibleMemberships, err := strconv.Atoi(paypalSubscription.Quantity)
+	if paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusApprovalPending ||
+		paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusCancelled ||
+		paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusExpired ||
+		paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusSuspended {
+		paypalSubscription.Quantity = "0"
+	}
+
+	paypalSub, err := queries.GetPaypalSubscriptionBySubscriptionID(ctx, paypalSubscription.ID)
 	if err != nil {
-		logger.Warn().Err(err).
+		logger.Error().Err(err).
 			Str("subscription_id", paypalSubscription.ID).
-			Str("quantity", paypalSubscription.Quantity).
-			Msg("Failed to parse quantity")
+			Msg("Failed to get paypal subscription")
+	}
 
-		eligibleMemberships = 1
+	var userID discord.Snowflake
+
+	if paypalSub != nil {
+		userID = discord.Snowflake(paypalSub.UserID)
 	}
 
 	txs, err := queries.GetUserTransactionsByTransactionID(ctx, paypalSubscription.ID)
@@ -455,7 +524,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 		}
 	}
 
-	// If no paypal transaction is found, create one.
+	// If no paypal transaction is found, error.
 	if paypalTxs == nil {
 		logger.Error().
 			Str("subscription_id", paypalSubscription.ID).
@@ -464,9 +533,33 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 		return ErrMissingPaypalTransaction
 	}
 
-	userID := discord.Snowflake(paypalTxs.UserID)
+	if userID.IsNil() {
+		userID = discord.Snowflake(paypalTxs.UserID)
 
-	if userID == 0 {
+		logger.Warn().
+			Str("subscription_id", paypalSubscription.ID).
+			Int64("user_id", int64(userID)).
+			Msg("Falling back to transaction user ID")
+	}
+
+	// Update paypal subscription entry.
+	_, err = queries.CreateOrUpdatePaypalSubscription(ctx, database.CreateOrUpdatePaypalSubscriptionParams{
+		SubscriptionID:     paypalSubscription.ID,
+		UserID:             int64(userID),
+		PayerID:            paypalSubscription.Subscriber.PayerID,
+		LastBilledAt:       paypalSubscription.BillingInfo.LastPayment.Time,
+		NextBillingAt:      paypalSubscription.BillingInfo.NextBillingTime,
+		SubscriptionStatus: string(paypalSubscription.SubscriptionStatus),
+		PlanID:             paypalSubscription.PlanID,
+		Quantity:           paypalSubscription.Quantity,
+	})
+	if err != nil {
+		logger.Error().Err(err).
+			Str("subscription_id", paypalSubscription.ID).
+			Msg("Failed to create or update paypal subscription")
+	}
+
+	if userID.IsNil() {
 		logger.Error().
 			Str("subscription_id", paypalSubscription.ID).
 			Msg("No user ID found")
@@ -500,6 +593,16 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 	} else {
 		// Payment failed
 		membershipExpiration = time.Now().AddDate(0, 0, 7)
+	}
+
+	eligibleMemberships, err := strconv.Atoi(paypalSubscription.Quantity)
+	if err != nil {
+		logger.Warn().Err(err).
+			Str("subscription_id", paypalSubscription.ID).
+			Str("quantity", paypalSubscription.Quantity).
+			Msg("Failed to parse quantity")
+
+		eligibleMemberships = 1
 	}
 
 	if len(paypalMemberships) > eligibleMemberships {
@@ -549,6 +652,13 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 				return err
 			}
+
+			logger.Info().
+				Str("membership_uuid", membership.MembershipUuid.String()).
+				Int64("user_id", membership.UserID).
+				Int64("guild_id", membership.GuildID).
+				Time("expires_at", membership.ExpiresAt).
+				Msg("Updated membership expiration paypal subscription")
 		}
 	} else {
 		logger.Info().
@@ -565,35 +675,35 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 // Triggers when a subscription is created.
 func OnPaypalSubscriptionCreated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionCreated", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionCreated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, logger, queries, paypalSubscription)
 }
 
 // Triggers when a subscription has been activated.
 func OnPaypalSubscriptionActivated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionActivated", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionActivated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, logger, queries, paypalSubscription)
 }
 
 // Triggers when a subscription has been updated.
 func OnPaypalSubscriptionUpdated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionUpdated", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionUpdated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, logger, queries, paypalSubscription)
 }
 
 // Triggers when a subscription has been re-activated.
 func OnPaypalSubscriptionReactivated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionReactivated", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionReactivated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, logger, queries, paypalSubscription)
 }
 
 // Triggers when a subscription has expired.
 func OnPaypalSubscriptionExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionExpired", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionExpired", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
 
@@ -602,7 +712,7 @@ func OnPaypalSubscriptionExpired(ctx context.Context, logger zerolog.Logger, que
 
 // Triggers when a subscription has been cancelled.
 func OnPaypalSubscriptionCancelled(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionCancelled", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionCancelled", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
 
@@ -611,7 +721,7 @@ func OnPaypalSubscriptionCancelled(ctx context.Context, logger zerolog.Logger, q
 
 // Triggers when a subscription has been suspended.
 func OnPaypalSubscriptionSuspended(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionSuspended", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionSuspended", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
 
@@ -620,7 +730,7 @@ func OnPaypalSubscriptionSuspended(ctx context.Context, logger zerolog.Logger, q
 
 // Triggers when a subscription payment has failed.
 func OnPaypalSubscriptionPaymentFailed(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
-	println("OnPaypalSubscriptionPaymentFailed", paypalSubscription.ID)
+	println("HandlePaypalSubscriptionPaymentFailed", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, logger, queries, paypalSubscription)
 }
@@ -629,7 +739,7 @@ func OnPaypalSubscriptionPaymentFailed(ctx context.Context, logger zerolog.Logge
 
 // Triggers when a membership has been added to the server.
 func onMembershipAdded(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
-	println("onMembershipAdded", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
+	println("HandleMembershipAdded", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
 
 	// Notify of new membership?
 
@@ -638,7 +748,7 @@ func onMembershipAdded(ctx context.Context, logger zerolog.Logger, queries *data
 
 // Triggers when a membership has had its guild transferred.
 func onMembershipUpdated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
-	println("onMembershipUpdated", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
+	println("HandleMembershipUpdated", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
 
 	// Notify of transfer?
 
@@ -647,7 +757,7 @@ func onMembershipUpdated(ctx context.Context, logger zerolog.Logger, queries *da
 
 // Triggers when a membership has been removed from the server.
 func onMembershipRemoved(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
-	println("onMembershipRemoved", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+	println("HandleMembershipRemoved", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
 
 	// Notify of removal?
 
@@ -658,7 +768,7 @@ func onMembershipRemoved(ctx context.Context, logger zerolog.Logger, queries *da
 func onMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
 	// TODO: implement action
 
-	println("onMembershipExpired", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+	println("HandleMembershipExpired", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
 
 	return nil
 }
@@ -667,7 +777,7 @@ func onMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *da
 func onMembershipRenewed(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
 	// TODO: implement action
 
-	println("onMembershipRenewed", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+	println("HandleMembershipRenewed", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
 
 	return nil
 }
