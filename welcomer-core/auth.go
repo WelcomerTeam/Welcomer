@@ -32,8 +32,6 @@ func CheckChannelGuild(ctx context.Context, c protobuf.SandwichClient, guildID, 
 		GuildID: int64(guildID),
 	})
 	if err != nil {
-		fmt.Printf("Failed to fetch guild channels channelId=%d guildId=%d: %v", channelID, guildID, err)
-
 		return false, err
 	}
 
@@ -42,8 +40,6 @@ func CheckChannelGuild(ctx context.Context, c protobuf.SandwichClient, guildID, 
 			return true, nil
 		}
 	}
-
-	fmt.Printf("Channel %d not found in guild %d. Channels: %v", channelID, guildID, channels.GuildChannels)
 
 	return false, nil
 }
@@ -103,8 +99,6 @@ func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) 
 		}
 	}
 
-	println(member.User.ID, "is not elevated")
-
 	return false
 }
 
@@ -127,7 +121,7 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, handler BasicInteractionHandler) (*discord.InteractionResponse, error) {
 	return RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 		// Query state cache for guild.
-		guilds, err := sub.SandwichClient.FetchGuild(sub.Context, &protobuf.FetchGuildRequest{
+		guildsResponse, err := sub.SandwichClient.FetchGuild(sub.Context, &protobuf.FetchGuildRequest{
 			GuildIDs: []int64{int64(*interaction.GuildID)},
 		})
 		if err != nil {
@@ -135,9 +129,10 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 		}
 
 		var guild discord.Guild
-		guildPb, ok := guilds.Guilds[int64(*interaction.GuildID)]
+		guildPb, ok := guildsResponse.Guilds[int64(*interaction.GuildID)]
 		if ok {
 			guild, err = protobuf.GRPCToGuild(guildPb)
+
 			if err != nil {
 				return nil, err
 			}

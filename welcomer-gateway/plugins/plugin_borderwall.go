@@ -244,7 +244,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	)
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil, map[string]interface{}{
+	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil, map[string]any{
 		"Borderwall": BorderwallVariables{
 			Link: borderwallLink,
 		},

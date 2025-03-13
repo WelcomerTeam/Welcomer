@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -47,7 +48,7 @@ func (h *PushGuildScienceHandler) Run(ctx context.Context, interval time.Duratio
 	}()
 }
 
-func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID discord.Snowflake, eventType database.ScienceGuildEventType, data interface{}) {
+func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID discord.Snowflake, eventType database.ScienceGuildEventType, data any) {
 	guildEventUUID, err := utils.UUIDGen.NewV7()
 	if err != nil {
 		panic(fmt.Errorf("failed to generate UUID: %w", err))
@@ -70,7 +71,7 @@ func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID disc
 	h.PushRaw(ctx, database.CreateManyScienceGuildEventsParams{
 		GuildEventUuid: guildEventUUID,
 		GuildID:        int64(guildID),
-		UserID:         int64(userID),
+		UserID:         sql.NullInt64{Int64: int64(userID), Valid: !userID.IsNil()},
 		CreatedAt:      time.Now(),
 		EventType:      int32(eventType),
 		Data:           guildEventData,

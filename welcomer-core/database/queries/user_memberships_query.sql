@@ -52,6 +52,15 @@ FROM
 WHERE
     user_memberships.guild_id = $1;
 
+-- name: GetUserMembershipsByTransactionID :many
+SELECT
+    *
+FROM
+    user_memberships
+    JOIN user_transactions ON (user_memberships.transaction_uuid = user_transactions.transaction_uuid)
+WHERE
+    user_transactions.transaction_id = $1;
+
 -- name: UpdateUserMembership :execrows
 UPDATE
     user_memberships

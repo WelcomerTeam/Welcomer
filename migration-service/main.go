@@ -101,7 +101,7 @@ func fixFormats(i pgtype.JSONB) pgtype.JSONB {
 }
 
 func (s *StringNumber) UnmarshalJSON(data []byte) error {
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (s *PossibleStringList) NewLines() string {
 }
 
 func (s *PossibleStringList) UnmarshalJSON(data []byte) error {
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (s *PossibleStringList) UnmarshalJSON(data []byte) error {
 	switch v := v.(type) {
 	case string:
 		*s = PossibleStringList{StringNumber(v)}
-	case []interface{}:
+	case []any:
 		arr := v
 		l := make(PossibleStringList, len(arr))
 		for i, item := range arr {
@@ -176,7 +176,7 @@ type Embed struct {
 	Content     string                  `json:"content,omitempty" yaml:"content,omitempty"`
 	Video       *discord.EmbedVideo     `json:"video,omitempty" yaml:"video,omitempty"`
 	Timestamp   *time.Time              `json:"timestamp,omitempty" yaml:"timestamp,omitempty"`
-	Footer      interface{}             `json:"footer,omitempty" yaml:"footer,omitempty"`
+	Footer      any                     `json:"footer,omitempty" yaml:"footer,omitempty"`
 	Image       *discord.EmbedImage     `json:"image,omitempty" yaml:"image,omitempty"`
 	Thumbnail   *discord.EmbedThumbnail `json:"thumbnail,omitempty" yaml:"thumbnail,omitempty"`
 	Provider    *discord.EmbedProvider  `json:"provider,omitempty" yaml:"provider,omitempty"`
@@ -225,8 +225,8 @@ func funnyWelcomerEmbedToEmbedJSON(v []string) pgtype.JSONB {
 		switch e.Footer.(type) {
 		case string:
 			footer.Text = e.Footer.(string)
-		case map[interface{}]interface{}:
-			footerMap := e.Footer.(map[interface{}]interface{})
+		case map[any]any:
+			footerMap := e.Footer.(map[any]any)
 			footer.Text = footerMap["text"].(string)
 			footer.IconURL = footerMap["icon_url"].(string)
 			footer.ProxyIconURL = footerMap["proxy_icon_url"].(string)
@@ -285,8 +285,8 @@ func funnyWelcomerEmbedToEmbedJSON(v []string) pgtype.JSONB {
 			switch e.Footer.(type) {
 			case string:
 				footer.Text = e.Footer.(string)
-			case map[interface{}]interface{}:
-				footerMap := e.Footer.(map[interface{}]interface{})
+			case map[any]any:
+				footerMap := e.Footer.(map[any]any)
 				footer.Text = footerMap["text"].(string)
 				footer.IconURL = footerMap["icon_url"].(string)
 				footer.ProxyIconURL = footerMap["proxy_icon_url"].(string)
@@ -590,8 +590,8 @@ func migrateGuildData(id int64, structure GuildInfo) {
 		}
 	}()
 
-	log := func(args ...interface{}) {
-		v := make([]interface{}, 0)
+	log := func(args ...any) {
+		v := make([]any, 0)
 		v = append(v, fmt.Sprintf("[Guild %d]", id))
 		v = append(v, args...)
 		fmt.Println(v...)

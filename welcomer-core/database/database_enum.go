@@ -168,17 +168,23 @@ const (
 	PlatformTypePatreon
 	// PlatformTypeStripe is a PlatformType of type Stripe.
 	PlatformTypeStripe
+	// PlatformTypePaypalSubscription is a PlatformType of type Paypal_subscription.
+	PlatformTypePaypalSubscription
+	// PlatformTypeDiscord is a PlatformType of type Discord.
+	PlatformTypeDiscord
 )
 
 var ErrInvalidPlatformType = errors.New("not a valid PlatformType")
 
-const _PlatformTypeName = "unknownpaypalpatreonstripe"
+const _PlatformTypeName = "unknownpaypalpatreonstripepaypal_subscriptiondiscord"
 
 var _PlatformTypeMap = map[PlatformType]string{
-	PlatformTypeUnknown: _PlatformTypeName[0:7],
-	PlatformTypePaypal:  _PlatformTypeName[7:13],
-	PlatformTypePatreon: _PlatformTypeName[13:20],
-	PlatformTypeStripe:  _PlatformTypeName[20:26],
+	PlatformTypeUnknown:            _PlatformTypeName[0:7],
+	PlatformTypePaypal:             _PlatformTypeName[7:13],
+	PlatformTypePatreon:            _PlatformTypeName[13:20],
+	PlatformTypeStripe:             _PlatformTypeName[20:26],
+	PlatformTypePaypalSubscription: _PlatformTypeName[26:45],
+	PlatformTypeDiscord:            _PlatformTypeName[45:52],
 }
 
 // String implements the Stringer interface.
@@ -201,6 +207,8 @@ var _PlatformTypeValue = map[string]PlatformType{
 	_PlatformTypeName[7:13]:  PlatformTypePaypal,
 	_PlatformTypeName[13:20]: PlatformTypePatreon,
 	_PlatformTypeName[20:26]: PlatformTypeStripe,
+	_PlatformTypeName[26:45]: PlatformTypePaypalSubscription,
+	_PlatformTypeName[45:52]: PlatformTypeDiscord,
 }
 
 // ParsePlatformType attempts to convert a string to a PlatformType.

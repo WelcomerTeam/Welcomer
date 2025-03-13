@@ -145,6 +145,19 @@ type PatreonUsers struct {
 	PatronStatus     string    `json:"patron_status"`
 }
 
+type PaypalSubscriptions struct {
+	SubscriptionID     string    `json:"subscription_id"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+	UserID             int64     `json:"user_id"`
+	PayerID            string    `json:"payer_id"`
+	LastBilledAt       time.Time `json:"last_billed_at"`
+	NextBillingAt      time.Time `json:"next_billing_at"`
+	SubscriptionStatus string    `json:"subscription_status"`
+	PlanID             string    `json:"plan_id"`
+	Quantity           string    `json:"quantity"`
+}
+
 type ScienceCommandErrors struct {
 	CommandUuid uuid.UUID    `json:"command_uuid"`
 	CreatedAt   time.Time    `json:"created_at"`
@@ -171,12 +184,12 @@ type ScienceEvents struct {
 }
 
 type ScienceGuildEvents struct {
-	GuildEventUuid uuid.UUID   `json:"guild_event_uuid"`
-	GuildID        int64       `json:"guild_id"`
-	UserID         int64       `json:"user_id"`
-	CreatedAt      time.Time   `json:"created_at"`
-	EventType      int32       `json:"event_type"`
-	Data           pgtype.JSON `json:"data"`
+	GuildEventUuid uuid.UUID     `json:"guild_event_uuid"`
+	GuildID        int64         `json:"guild_id"`
+	UserID         sql.NullInt64 `json:"user_id"`
+	CreatedAt      time.Time     `json:"created_at"`
+	EventType      int32         `json:"event_type"`
+	Data           pgtype.JSON   `json:"data"`
 }
 
 type UserMemberships struct {

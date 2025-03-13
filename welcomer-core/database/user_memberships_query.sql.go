@@ -294,6 +294,78 @@ func (q *Queries) GetUserMembershipsByGuildID(ctx context.Context, guildID int64
 	return items, nil
 }
 
+const GetUserMembershipsByTransactionID = `-- name: GetUserMembershipsByTransactionID :many
+SELECT
+    membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount
+FROM
+    user_memberships
+    JOIN user_transactions ON (user_memberships.transaction_uuid = user_transactions.transaction_uuid)
+WHERE
+    user_transactions.transaction_id = $1
+`
+
+type GetUserMembershipsByTransactionIDRow struct {
+	MembershipUuid    uuid.UUID `json:"membership_uuid"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	StartedAt         time.Time `json:"started_at"`
+	ExpiresAt         time.Time `json:"expires_at"`
+	Status            int32     `json:"status"`
+	MembershipType    int32     `json:"membership_type"`
+	TransactionUuid   uuid.UUID `json:"transaction_uuid"`
+	UserID            int64     `json:"user_id"`
+	GuildID           int64     `json:"guild_id"`
+	TransactionUuid_2 uuid.UUID `json:"transaction_uuid_2"`
+	CreatedAt_2       time.Time `json:"created_at_2"`
+	UpdatedAt_2       time.Time `json:"updated_at_2"`
+	UserID_2          int64     `json:"user_id_2"`
+	PlatformType      int32     `json:"platform_type"`
+	TransactionID     string    `json:"transaction_id"`
+	TransactionStatus int32     `json:"transaction_status"`
+	CurrencyCode      string    `json:"currency_code"`
+	Amount            string    `json:"amount"`
+}
+
+func (q *Queries) GetUserMembershipsByTransactionID(ctx context.Context, transactionID string) ([]*GetUserMembershipsByTransactionIDRow, error) {
+	rows, err := q.db.Query(ctx, GetUserMembershipsByTransactionID, transactionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetUserMembershipsByTransactionIDRow{}
+	for rows.Next() {
+		var i GetUserMembershipsByTransactionIDRow
+		if err := rows.Scan(
+			&i.MembershipUuid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StartedAt,
+			&i.ExpiresAt,
+			&i.Status,
+			&i.MembershipType,
+			&i.TransactionUuid,
+			&i.UserID,
+			&i.GuildID,
+			&i.TransactionUuid_2,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+			&i.UserID_2,
+			&i.PlatformType,
+			&i.TransactionID,
+			&i.TransactionStatus,
+			&i.CurrencyCode,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetUserMembershipsByUserID = `-- name: GetUserMembershipsByUserID :many
 SELECT
     membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, user_memberships.guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount, guilds.guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites

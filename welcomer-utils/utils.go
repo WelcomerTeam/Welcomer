@@ -177,9 +177,9 @@ func IsValidHex(str string, allowAlpha bool) bool {
 }
 
 func IsValidBackground(s string) bool {
-	_, err := ParseBackground(s)
+	_, ok := ParseBackground(s)
 
-	return err == nil
+	return ok
 }
 
 func IsValidEmbed(s string) bool {
