@@ -264,27 +264,27 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 		AutoRenewal:        true,
 		ApplicationContext: applicationContext,
 		CustomID:           userTransaction.TransactionUuid.String(),
-		Plan: &paypal.PlanOverride{
-			BillingCycles: []paypal.BillingCycleOverride{
-				{
-					Sequence:    utils.ToPointer(1),
-					TotalCycles: utils.ToPointer(1),
-					PricingScheme: paypal.PricingScheme{
-						FixedPrice: paypal.Money{
-							Currency: money.Currency,
-							Value:    "0",
-						},
-					},
-				},
-				{
-					Sequence:    utils.ToPointer(2),
-					TotalCycles: utils.ToPointer(0),
-					PricingScheme: paypal.PricingScheme{
-						FixedPrice: *money,
-					},
-				},
-			},
-		},
+		// Plan: &paypal.PlanOverride{
+		// 	BillingCycles: []paypal.BillingCycleOverride{
+		// 		{
+		// 			Sequence:    utils.ToPointer(1),
+		// 			TotalCycles: utils.ToPointer(1),
+		// 			PricingScheme: paypal.PricingScheme{
+		// 				FixedPrice: paypal.Money{
+		// 					Currency: money.Currency,
+		// 					Value:    "0",
+		// 				},
+		// 			},
+		// 		},
+		// 		{
+		// 			Sequence:    utils.ToPointer(2),
+		// 			TotalCycles: utils.ToPointer(0),
+		// 			PricingScheme: paypal.PricingScheme{
+		// 				FixedPrice: *money,
+		// 			},
+		// 		},
+		// 	},
+		// },
 	}
 
 	// Send subscription request to paypal.
