@@ -73,9 +73,20 @@ func getSKUPricing() map[welcomer.SKUName]welcomer.PricingSKU {
 
 // Route GET /api/billing/skus.
 func getSKUs(ctx *gin.Context) {
-	response, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
-	if err != nil {
-		backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
+	var response utils.IPIntelResponse
+
+	var err error
+
+	if os.Getenv("FT_USE_CLOUDFLARE_IPCOUNTRY") == "true" {
+		response = utils.IPIntelResponse{
+			Result:  0,
+			Country: ctx.GetHeader("CF-IPCountry"),
+		}
+	} else {
+		response, err = backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
+		if err != nil {
+			backend.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
+		}
 	}
 
 	currencies := getAvailableCurrencies(response)
