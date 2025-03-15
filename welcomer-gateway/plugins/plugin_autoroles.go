@@ -92,7 +92,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return nil
 	}
 
-	err = member.AddRoles(eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with AutoRoles"), true)
+	err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with AutoRoles"), true)
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).

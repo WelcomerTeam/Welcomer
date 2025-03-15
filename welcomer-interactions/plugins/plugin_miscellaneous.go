@@ -59,7 +59,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
 
-				messageHistory, err := channel.History(session, nil, nil, nil, nil)
+				messageHistory, err := channel.History(ctx, session, nil, nil, nil, nil)
 				if err != nil {
 					return nil, err
 				}
@@ -79,7 +79,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				go func() {
 					time.Sleep(time.Second * 15)
 
-					err = interaction.DeleteOriginalResponse(sub.EmptySession)
+					err = interaction.DeleteOriginalResponse(ctx, sub.EmptySession)
 					if err != nil {
 						sub.Logger.Error().Err(err).Msg("Failed to delete original response")
 					}
@@ -98,14 +98,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				if len(messagesToDelete) == 1 {
 					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
 
-					err = message.Delete(session, nil)
+					err = message.Delete(ctx, session, nil)
 					if err != nil {
 						sub.Logger.Error().Err(err).Msg("Failed to delete message")
 
 						return nil, err
 					}
 				} else if len(messagesToDelete) > 1 {
-					err = channel.DeleteMessages(session, messagesToDelete, nil)
+					err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
 					if err != nil {
 						sub.Logger.Error().Err(err).Msg("Failed to delete messages")
 
@@ -278,7 +278,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guild := discord.Guild{ID: *interaction.GuildID}
-				invites, err := guild.Invites(session)
+				invites, err := guild.Invites(ctx, session)
 				if err != nil {
 					sub.Logger.Error().Err(err).Msg("Failed to get invites")
 
@@ -445,7 +445,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					embeds = append(embeds, embed)
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
 					if err != nil {
@@ -524,7 +524,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					embeds = append(embeds, embed)
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
 					if err != nil {
@@ -603,7 +603,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					embeds = append(embeds, embed)
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
 					if err != nil {
@@ -627,7 +627,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			start := time.Now()
 
 			err := interaction.SendResponse(
-				sub.EmptySession,
+				ctx, sub.EmptySession,
 				discord.InteractionCallbackTypeChannelMessageSource,
 				&discord.InteractionCallbackData{
 					Content: fmt.Sprintf(
@@ -640,7 +640,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			_, err = interaction.EditOriginalResponse(
-				sub.EmptySession,
+				ctx, sub.EmptySession,
 				discord.WebhookMessageParams{
 					Content: fmt.Sprintf(
 						"Interaction Delay: %dms\nHTTP Latency: %dms",
@@ -723,7 +723,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					limit = utils.ToPointer(int32(argumentLimit))
 				}
 
-				messageHistory, err := channel.History(session, nil, nil, nil, limit)
+				messageHistory, err := channel.History(ctx, session, nil, nil, nil, limit)
 				if err != nil {
 					return nil, err
 				}
@@ -764,7 +764,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
 
 					err = message.Delete(
-						session,
+						ctx, session,
 						utils.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
@@ -779,7 +779,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				} else if len(messageHistory) > 1 {
 					err = channel.DeleteMessages(
-						session,
+						ctx, session,
 						messagesToDelete,
 						utils.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
@@ -799,7 +799,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				for userID := range usersToTimeout {
 					guildMember := discord.GuildMember{GuildID: interaction.GuildID, User: &discord.User{ID: userID}}
-					err = guildMember.Edit(session,
+					err = guildMember.Edit(ctx, session,
 						discord.GuildMemberParams{
 							CommunicationDisabledUntil: communicationDisabledUntil,
 						},
@@ -938,7 +938,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Reader:      &buf,
 					})
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, responseMessage)
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, responseMessage)
 					if err != nil {
 						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
 					}

@@ -72,9 +72,9 @@ func callback(ctx *gin.Context) {
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(ctx, token.Type()+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(token.Type()+" "+token.AccessToken, httpInterface)
 
-	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(discordSession)
+	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(ctx, discordSession)
 	if err != nil || authorizationInformation == nil {
 		doDiscordOAuthAuthorize(session, ctx)
 

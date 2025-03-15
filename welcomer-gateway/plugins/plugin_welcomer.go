@@ -145,7 +145,7 @@ func (p *WelcomerCog) FetchWelcomerImage(options utils.GenerateImageOptionsRaw) 
 func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (*discord.Invite, error) {
 	var potentialInvite *discord.Invite
 
-	invites, err := discord.GetGuildInvites(eventCtx.Session, guildID)
+	invites, err := discord.GetGuildInvites(eventCtx.Context, eventCtx.Session, guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				}
 			}
 
-			_, err = event.Interaction.SendFollowup(eventCtx.Session, message)
+			_, err = event.Interaction.SendFollowup(eventCtx.Context, eventCtx.Session, message)
 			if err != nil {
 				eventCtx.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -632,7 +632,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
-			_, serr = channel.Send(eventCtx.Session, serverMessage)
+			_, serr = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			eventCtx.Logger.Info().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -653,7 +653,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, dmerr = user.Send(eventCtx.Session, directMessage)
+		_, dmerr = user.Send(eventCtx.Context, eventCtx.Session, directMessage)
 
 		eventCtx.Logger.Info().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

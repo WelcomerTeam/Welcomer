@@ -132,7 +132,6 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 		guildPb, ok := guildsResponse.Guilds[int64(*interaction.GuildID)]
 		if ok {
 			guild, err = protobuf.GRPCToGuild(guildPb)
-
 			if err != nil {
 				return nil, err
 			}
@@ -192,5 +191,5 @@ func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string)
 		return nil, utils.ErrMissingApplicationUser
 	}
 
-	return discord.NewSession(ctx, "Bot "+configuration.Token, sub.RESTInterface), nil
+	return discord.NewSession("Bot "+configuration.Token, sub.RESTInterface), nil
 }

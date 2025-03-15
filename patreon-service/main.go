@@ -391,8 +391,8 @@ func entrypoint(ctx context.Context, logger zerolog.Logger, db *database.Queries
 		})
 	}
 
-	// Only include missing when there are no other fields.
-	if len(processPatreonUsersMissing) > 0 && len(embedFields) == 0 {
+	// Only include missing when there is other fields.
+	if len(processPatreonUsersMissing) > 0 && len(embedFields) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
 			Name:  "Missing",
 			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersMissing), processPatreonUsersMissing),

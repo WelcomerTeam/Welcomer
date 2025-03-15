@@ -110,7 +110,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 				}
 			}
 
-			_, err = event.Interaction.SendFollowup(eventCtx.Session, message)
+			_, err = event.Interaction.SendFollowup(eventCtx.Context, eventCtx.Session, message)
 			if err != nil {
 				eventCtx.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -220,7 +220,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
 
-			_, err = channel.Send(eventCtx.Session, serverMessage)
+			_, err = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			eventCtx.Logger.Info().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

@@ -165,7 +165,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		member.GuildID = &guildID
 
-		err = member.AddRoles(eventCtx.Session, roles, utils.ToPointer("Automatically assigned with TimeRoles"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, roles, utils.ToPointer("Automatically assigned with TimeRoles"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).

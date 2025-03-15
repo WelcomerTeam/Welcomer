@@ -205,7 +205,7 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 		}
 
 		guild := sandwich.NewGuild(guildID)
-		channel, err = guild.CreateChannel(eventCtx.Session, discord.ChannelParams{
+		channel, err = guild.CreateChannel(eventCtx.Context, eventCtx.Session, discord.ChannelParams{
 			Name:     p.formatChannelName(member),
 			Type:     discord.ChannelTypeGuildVoice,
 			ParentID: category,
@@ -219,7 +219,7 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 		}
 	}
 
-	err = member.MoveTo(eventCtx.Session, &channel.ID, utils.ToPointer("Automatically move by TempChannels"))
+	err = member.MoveTo(eventCtx.Context, eventCtx.Session, &channel.ID, utils.ToPointer("Automatically move by TempChannels"))
 	if err != nil {
 		eventCtx.Logger.Error().Err(err).
 			Str("guild_id", guildID.String()).
@@ -268,7 +268,7 @@ func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 		return false, utils.ErrInvalidTempChannel
 	}
 	if (channel.ParentID != nil && *channel.ParentID == category) && channel.MemberCount == 0 && channel.ID != lobby {
-		err = channel.Delete(eventCtx.Session, utils.ToPointer("Automatically deleted by TempChannels"))
+		err = channel.Delete(eventCtx.Context, eventCtx.Session, utils.ToPointer("Automatically deleted by TempChannels"))
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
@@ -321,7 +321,7 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 	}
 
 	if channel != nil && channel.ID != discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
-		err = channel.Delete(eventCtx.Session, utils.ToPointer("Automatically deleted by TempChannels"))
+		err = channel.Delete(eventCtx.Context, eventCtx.Session, utils.ToPointer("Automatically deleted by TempChannels"))
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Str("guild_id", payload.Member.GuildID.String()).

@@ -125,7 +125,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	if len(assignableRoles) > 0 {
 		member := sandwich.NewGuildMember(&eventCtx.Guild.ID, event.Member.User.ID)
 
-		err = member.AddRoles(eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with BorderWall"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with BorderWall"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -323,7 +323,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			serverMessage = welcomer.IncludeBorderwallVerifyButton(serverMessage, borderwallLink)
 			serverMessage = welcomer.IncludeScamsButton(serverMessage)
 
-			_, err = channel.Send(eventCtx.Session, serverMessage)
+			_, err = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			eventCtx.Logger.Debug().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -345,7 +345,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, err = user.Send(eventCtx.Session, directMessage)
+		_, err = user.Send(eventCtx.Context, eventCtx.Session, directMessage)
 
 		eventCtx.Logger.Debug().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -433,7 +433,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 			Int64("user_id", int64(event.Member.User.ID)).
 			Msg("Failed to get member from state cache, falling back to event.Member")
 
-		discordMember, err := discord.GetGuildMember(eventCtx.Session, eventCtx.Guild.ID, event.Member.User.ID)
+		discordMember, err := discord.GetGuildMember(eventCtx.Context, eventCtx.Session, eventCtx.Guild.ID, event.Member.User.ID)
 		if err != nil || discordMember == nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -497,7 +497,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	if len(assignableJoinRoles) > 0 {
-		err = member.RemoveRoles(eventCtx.Session, assignableJoinRoles, utils.ToPointer("Automatically removed with BorderWall"), true)
+		err = member.RemoveRoles(eventCtx.Context, eventCtx.Session, assignableJoinRoles, utils.ToPointer("Automatically removed with BorderWall"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -511,7 +511,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	if len(assignableVerifyRoles) > 0 {
-		err = member.AddRoles(eventCtx.Session, assignableVerifyRoles, utils.ToPointer("Automatically assigned with BorderWall"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableVerifyRoles, utils.ToPointer("Automatically assigned with BorderWall"), true)
 		if err != nil {
 			eventCtx.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -643,7 +643,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsBorderwall.Channel)}
 
-			_, err = channel.Send(eventCtx.Session, serverMessage)
+			_, err = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			eventCtx.Logger.Debug().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -664,7 +664,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, err = user.Send(eventCtx.Session, directMessage)
+		_, err = user.Send(eventCtx.Context, eventCtx.Session, directMessage)
 
 		eventCtx.Logger.Debug().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

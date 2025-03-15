@@ -132,9 +132,9 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	PatreonOAuth2Config.RedirectURL = options.PatreonRedirectURL
 
 	// Setup sessions
-	b.EmptySession = discord.NewSession(ctx, "", b.RESTInterface)
-	b.BotSession = discord.NewSession(ctx, b.Options.BotToken, b.RESTInterface)
-	b.DonatorBotSession = discord.NewSession(ctx, b.Options.DonatorBotToken, b.RESTInterface)
+	b.EmptySession = discord.NewSession("", b.RESTInterface)
+	b.BotSession = discord.NewSession(b.Options.BotToken, b.RESTInterface)
+	b.DonatorBotSession = discord.NewSession(b.Options.DonatorBotToken, b.RESTInterface)
 
 	if options.NginxAddress != "" {
 		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})

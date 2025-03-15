@@ -356,7 +356,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			// GuildID may be missing, fill it in.
 			interaction.Member.GuildID = interaction.GuildID
 
-			err = interaction.Member.AddRoles(session,
+			err = interaction.Member.AddRoles(ctx, session,
 				[]discord.Snowflake{role.ID},
 				utils.ToPointer("Assigned with FreeRoles"),
 				true,
@@ -483,8 +483,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			// GuildID may be missing, fill it in.
 			interaction.Member.GuildID = interaction.GuildID
 
-			err = interaction.Member.RemoveRoles(
-				session,
+			err = interaction.Member.RemoveRoles(ctx, session,
 				[]discord.Snowflake{role.ID},
 				utils.ToPointer("Unassigned with FreeRoles"),
 				false,
