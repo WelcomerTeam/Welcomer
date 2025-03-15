@@ -30,6 +30,22 @@ type BorderwallRequests struct {
 	UaOsVersion     sql.NullString  `json:"ua_os_version"`
 }
 
+type DiscordSubscriptions struct {
+	SubscriptionID  string        `json:"subscription_id"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
+	UserID          int64         `json:"user_id"`
+	GiftCodeFlags   sql.NullInt64 `json:"gift_code_flags"`
+	GuildID         sql.NullInt64 `json:"guild_id"`
+	StartsAt        sql.NullTime  `json:"starts_at"`
+	EndsAt          sql.NullTime  `json:"ends_at"`
+	SkuID           int64         `json:"sku_id"`
+	ApplicationID   int64         `json:"application_id"`
+	EntitlementType int64         `json:"entitlement_type"`
+	Deleted         bool          `json:"deleted"`
+	Consumed        bool          `json:"consumed"`
+}
+
 type GuildInvites struct {
 	InviteCode string    `json:"invite_code"`
 	GuildID    int64     `json:"guild_id"`
