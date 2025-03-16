@@ -49,7 +49,7 @@ func (c *EntitlementsCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Register event when entitlement is deleted.
-	c.EventHandlers.RegisterOnEntitlementUpdate(func(eventCtx *sandwich.EventContext, entitlement discord.Entitlement) error {
+	c.EventHandlers.RegisterOnEntitlementDelete(func(eventCtx *sandwich.EventContext, entitlement discord.Entitlement) error {
 		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
 		return welcomer.OnDiscordEntitlementDeleted(eventCtx.Context, eventCtx.Logger, queries, entitlement)

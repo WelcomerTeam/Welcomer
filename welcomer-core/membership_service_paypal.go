@@ -58,7 +58,7 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 		}
 	}
 
-	membershipExpiration := time.Now().AddDate(0, 1, 0)
+	membershipExpiration := time.Now().AddDate(0, 1, 7)
 
 	for _, membership := range paypalMemberships {
 		membership.ExpiresAt = membershipExpiration
@@ -199,7 +199,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 	var membershipExpiration time.Time
 	if paypalSubscription.BillingInfo.FailedPaymentsCount == 0 {
-		membershipExpiration = time.Now().AddDate(0, 1, 0)
+		membershipExpiration = time.Now().AddDate(0, 1, 7)
 	} else {
 		// Payment failed
 		membershipExpiration = time.Now().AddDate(0, 0, 7)

@@ -124,7 +124,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 	var membershipExpiration time.Time
 	if LastChargeStatus(patreonUser.LastChargeStatus) == LastChargeStatusPaid {
-		membershipExpiration = time.Now().AddDate(0, 1, 0)
+		membershipExpiration = time.Now().AddDate(0, 1, 7)
 	} else {
 		membershipExpiration = time.Now().AddDate(0, 0, 7)
 	}
@@ -235,7 +235,7 @@ func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queri
 
 	var membershipExpiration time.Time
 	if patreonMember.Attributes.LastChargeStatus == LastChargeStatusPaid {
-		membershipExpiration = patreonMember.Attributes.LastChargeDate.AddDate(0, 1, 0)
+		membershipExpiration = patreonMember.Attributes.LastChargeDate.AddDate(0, 1, 7)
 	} else {
 		membershipExpiration = time.Now().AddDate(0, 0, 7)
 	}
@@ -303,7 +303,7 @@ func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *databa
 
 	var membershipExpiration time.Time
 	if patreonMember.Attributes.LastChargeStatus == LastChargeStatusPaid {
-		membershipExpiration = patreonMember.Attributes.LastChargeDate.AddDate(0, 1, 0)
+		membershipExpiration = patreonMember.Attributes.LastChargeDate.AddDate(0, 1, 7)
 	} else {
 		membershipExpiration = time.Now().AddDate(0, 0, 7)
 	}

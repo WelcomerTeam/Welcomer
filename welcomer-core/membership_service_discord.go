@@ -34,7 +34,35 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 		return nil
 	}
 
-	println("HandleDiscordEntitlement", entitlement.ID, entitlement.SkuID, entitlement.StartsAt.String(), entitlement.EndsAt.String(), returnSnowflakeIfNotNull(entitlement.UserID).String(), returnSnowflakeIfNotNull(entitlement.GuildID).String(), entitlement.Consumed, entitlement.Deleted)
+	giftCodeFlags := sql.NullInt64{Valid: false}
+	if entitlement.GiftCodeFlags != nil {
+		giftCodeFlags = sql.NullInt64{Valid: true, Int64: int64(*entitlement.GiftCodeFlags)}
+	}
+
+	guildID := sql.NullInt64{Valid: false}
+	if entitlement.GuildID != nil {
+		guildID = sql.NullInt64{Valid: true, Int64: int64(*entitlement.GuildID)}
+	}
+
+	startsAt := sql.NullTime{Valid: false}
+	if entitlement.StartsAt != nil {
+		startsAt = sql.NullTime{Valid: true, Time: *entitlement.StartsAt}
+	} else {
+		logger.Warn().
+			Int64("entitlement_id", int64(entitlement.ID)).
+			Msg("entitlement starts_at is nil")
+
+		startsAt = sql.NullTime{Valid: true, Time: time.Now()}
+	}
+
+	endsAt := sql.NullTime{Valid: false}
+	if entitlement.EndsAt != nil {
+		endsAt = sql.NullTime{Valid: true, Time: *entitlement.EndsAt}
+	} else {
+		endsAt = sql.NullTime{Valid: true, Time: startsAt.Time.AddDate(0, 1, 7)}
+	}
+
+	println("HandleDiscordEntitlement", entitlement.ID, entitlement.SkuID, startsAt.Time.String(), endsAt.Time.String(), returnSnowflakeIfNotNull(entitlement.UserID).String(), returnSnowflakeIfNotNull(entitlement.GuildID).String(), entitlement.Consumed, entitlement.Deleted)
 
 	var membershipType database.MembershipType
 
@@ -54,7 +82,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 	var quantity int = 1
 
-	if entitlement.Deleted || entitlement.EndsAt.Before(time.Now()) {
+	if endsAt.Time.Before(time.Now()) && !endsAt.Time.IsZero() {
 		quantity = 0
 	}
 
@@ -63,6 +91,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 		logger.Error().Err(err).
 			Int64("user_id", int64(*entitlement.UserID)).
 			Msg("failed to get user transactions")
+
 		return err
 	}
 
@@ -91,26 +120,6 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 			return err
 		}
-	}
-
-	giftCodeFlags := sql.NullInt64{Valid: false}
-	if entitlement.GiftCodeFlags != nil {
-		giftCodeFlags = sql.NullInt64{Valid: true, Int64: int64(*entitlement.GiftCodeFlags)}
-	}
-
-	guildID := sql.NullInt64{Valid: false}
-	if entitlement.GuildID != nil {
-		guildID = sql.NullInt64{Valid: true, Int64: int64(*entitlement.GuildID)}
-	}
-
-	startsAt := sql.NullTime{Valid: false}
-	if entitlement.StartsAt != nil {
-		startsAt = sql.NullTime{Valid: true, Time: *entitlement.StartsAt}
-	}
-
-	endsAt := sql.NullTime{Valid: false}
-	if entitlement.EndsAt != nil {
-		endsAt = sql.NullTime{Valid: true, Time: *entitlement.EndsAt}
 	}
 
 	// Update discord subscription entity.
