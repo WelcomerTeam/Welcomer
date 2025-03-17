@@ -51,7 +51,7 @@ func (w *TempChannelsCog) GetInteractionCommandable() *subway.InteractionCommand
 func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 	tempchannelsGroup := subway.NewSubcommandGroup(
 		"tempchannels",
-		"Welcome new users to your server with fancy images, text or send them a direct message.",
+		"Allow users to create temporary voice channels in a category of your choice.",
 	)
 
 	// Disable the tempchannels module for DM channels.

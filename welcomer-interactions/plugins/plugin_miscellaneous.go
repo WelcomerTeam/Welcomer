@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sort"
 	"time"
 
@@ -183,6 +184,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						{
 							Type: discord.InteractionComponentTypeActionRow,
 							Components: []discord.InteractionComponent{
+								{
+									Type:  discord.InteractionComponentTypeButton,
+									Style: discord.InteractionComponentStylePremium,
+									SKUID: discord.Snowflake(utils.TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID"))),
+								},
 								{
 									Type:  discord.InteractionComponentTypeButton,
 									Style: discord.InteractionComponentStyleLink,

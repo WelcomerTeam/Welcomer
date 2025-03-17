@@ -44,7 +44,7 @@ func (r *AutoRolesCog) GetInteractionCommandable() *subway.InteractionCommandabl
 func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 	ruleGroup := subway.NewSubcommandGroup(
 		"autoroles",
-		"Provides autoroles for the server.",
+		"Automatically give roles to users when they join the server.",
 	)
 
 	// Disable the autoroles module for DM channels.

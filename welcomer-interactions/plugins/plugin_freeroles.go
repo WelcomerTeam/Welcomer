@@ -44,7 +44,7 @@ func (r *FreeRolesCog) GetInteractionCommandable() *subway.InteractionCommandabl
 func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 	ruleGroup := subway.NewSubcommandGroup(
 		"freeroles",
-		"Provides freeroles for the server.",
+		"Provides a set of roles that users can assign to themselves at any time.",
 	)
 
 	// Disable the freeroles module for DM channels.

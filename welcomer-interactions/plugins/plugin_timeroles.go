@@ -46,7 +46,7 @@ func (r *TimeRolesCog) GetInteractionCommandable() *subway.InteractionCommandabl
 func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 	ruleGroup := subway.NewSubcommandGroup(
 		"timeroles",
-		"Provides timeroles for the server.",
+		"Automatically assign roles to users depending on how long they have been in the server.",
 	)
 
 	// Disable the TimeRoles module for DM channels.

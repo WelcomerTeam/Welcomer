@@ -51,7 +51,7 @@ func (w *LeaverCog) GetInteractionCommandable() *subway.InteractionCommandable {
 func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 	leaverGroup := subway.NewSubcommandGroup(
 		"leaver",
-		"Welcome new users to your server with fancy images, text or send them a direct message.",
+		"Say farewell to users to your server with a unique message.",
 	)
 
 	// Disable the leaver module for DM channels.
