@@ -83,59 +83,78 @@
               </p>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 mt-8">
-              <div class="col-span-1 lg:col-span-5 w-full lg:w-fit relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
-                <button type="button" @click="selectDuration(durationMonthly)" :class="[
-                  durationSelected === durationMonthly
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Monthly
-                  <span
-                    v-if="isMonthlyRecurring"
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
-                    Recurring
-                  </span>
-                </button>
-                <button type="button" @click="selectDuration(durationBiAnnually)" :class="[
-                  'ml-0.5',
-                  durationSelected === durationBiAnnually
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Biannual
-                  <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
-                    20% off
-                  </span>
-                </button>
-                <button type="button" @click="selectDuration(durationAnnually)" :class="[
-                  'ml-0.5',
-                  durationSelected === durationAnnually
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Yearly
-                  <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
-                    20% off
-                  </span>
-                </button>
-                <button type="button" @click="selectDuration(durationPatreon)" :class="[
-                  'ml-0.5',
-                  durationSelected === durationPatreon
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-patreon focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Patreon
-                  <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
-                    Recurring
-                  </span>
-                </button>
+              <div class="flex gap-4 col-span-1 lg:col-span-5 w-full lg:w-fit">
+                <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
+                  <button type="button" @click="selectDuration(durationMonthly)" :class="[
+                    durationSelected === durationMonthly
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Monthly
+                    <span
+                      v-if="isMonthlyRecurring"
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                      Recurring
+                    </span>
+                  </button>
+                  <button type="button" @click="selectDuration(durationBiAnnually)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationBiAnnually
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Biannual
+                    <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                      20% off
+                    </span>
+                  </button>
+                  <button type="button" @click="selectDuration(durationAnnually)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationAnnually
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Yearly
+                    <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                      20% off
+                    </span>
+                  </button>
+                </div>
+                <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
+                  <a href="https://discord.com/discovery/applications/330416853971107840/store/1192217547316142130" target="_blank">
+                    <button type="button" :class="[
+                      'ml-0.5',
+                      'border-transparent text-white bg-[#5865f2]',
+                      'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#5865f2] focus:z-10 lg:w-auto lg:px-8',
+                    ]">
+                    <font-awesome-icon :icon="['fab', 'discord']" />
+                    Discord
+                    <!-- <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                      Recurring
+                    </span> -->
+                    </button>
+                  </a>
+                  <button type="button" @click="selectDuration(durationPatreon)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationPatreon
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-black focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    <font-awesome-icon :icon="['fab', 'patreon']" />
+                    Patreon
+                    <!-- <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                      Recurring
+                    </span> -->
+                  </button>
+                </div>
               </div>
               <Menu as="div" class="relative inline-block col-span-1 text-right align-middle">
                 <MenuButton

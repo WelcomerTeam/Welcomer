@@ -90,17 +90,34 @@
                         <div class="truncate">
                           <div class="flex text-sm">
                             <p class="truncate dark:text-gray-50 text-left">
-                              <span class="text-sm font-semibold text-primary">{{ getMembershipTypeLabel(membership) }}</span>
+                              <span class="text-sm font-semibold text-primary">
+                                <font-awesome-icon title="Discord subscription" v-if="membership.platform_type == PlatformTypeDiscord" :icon="['fab','discord']" />
+                                <font-awesome-icon title="Patreon subscription" v-if="membership.platform_type == PlatformTypePatreon" :icon="['fab','patreon']" />
+                                <font-awesome-icon title="Paypal purchase" v-if="membership.platform_type == PlatformTypePaypal || membership.platform_type == PlatformTypePaypalSubscription" :icon="['fab','paypal']" />
+                                <font-awesome-icon title="Paypal subscription" v-if="membership.platform_type == PlatformTypePaypalSubscription" :icon="['fas','rotate-right']" />
+                                {{ getMembershipTypeLabel(membership) }}
+                              </span>
                               <br />
                               {{ membership.guild_id > 0 ? membership.guild_name : 'Unassigned' }}
                               <br />
-                              <span class="text-xs text-gray-600 dark:text-gray-400">{{ getMembershipStatusLabel(membership) }} <span v-if="membershipExpiresInFuture(membership) && !isCustomBackgroundsMembership(membership)">• {{ getMembershipDurationLeft(membership) }}</span></span>
+                              <span class="text-xs text-gray-600 dark:text-gray-400">
+                                {{ getMembershipStatusLabel(membership) }}
+                                <span v-if="
+                                  membershipExpiresInFuture(membership) &&
+                                  !isCustomBackgroundsMembership(membership) &&
+                                  (
+                                    (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon)
+                                    || getDaysLeftOfMembership(membership) <= 30
+                                  )
+                                ">• {{ getMembershipDurationLeft(membership) }}</span>
+                              </span>
                             </p>
                           </div>
                         </div>
                       </div>
                       <div class="flex-shrink-0">
-                        <Menu as="div" class="relative inline-block text-left" v-if="isMembershipAssignable(membership)">
+                        <button class="items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" @click="showDiscordPopup = true" v-if="membership.platform_type == PlatformTypeDiscord">?</button>
+                        <Menu as="div" class="relative inline-block text-left" v-else-if="isMembershipAssignable(membership)">
                           <div>
                             <MenuButton class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                               <span class="sr-only">Open options</span>
@@ -129,6 +146,38 @@
 
           </div>
         </div>
+
+        <Popup :open="showDiscordPopup" @close="showDiscordPopup = false">
+          <template v-slot:title>
+            Managing your Discord subscription
+          </template>
+
+          <p>
+            To manage your Discord subscription, go to <b>User Settings</b> → <b>Subscriptions</b> → <b>App Subscriptions</b> on your discord client.
+            This will let you see all the current and past subscriptions you have with Welcomer. You can cancel or change your payment method from there.
+          </p>
+          <p class=" text-sm opacity-75">
+            Discord subscriptions are not fully supported on mobile devices. Please use the desktop app or use your web browser to manage your subscriptions.
+          </p>
+          <p class="mt-8">
+            <a href="/support" target="_blank" class="mt-4 text-primary">Need help?</a>
+          </p>
+
+          <img src="/assets/discord_subscription.png" alt="Screenshot of an active discord subscription on the discord web client" class="mt-4" />
+        </Popup>
+
+        <Popup :open="showPaypalPopup" @close="showPaypalPopup = false">
+          <template v-slot:title>
+            Managing your Paypal subscription
+          </template>
+        </Popup>
+
+        <Popup :open="showPatreonPopup" @close="showPatreonPopup = false">
+          <template v-slot:title>
+            Managing your Patreon subscription
+          </template>
+        </Popup>
+
         <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit mt-16">
           <h3 class="text-2xl font-bold sm:text-3xl">
             Like what you see?
@@ -159,6 +208,7 @@ import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
 import FormValue from "@/components/dashboard/FormValue.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
+import Popup from "@/components/Popup.vue";
 
 import userAPI from "@/api/user";
 import endpoints from "@/api/endpoints";
@@ -172,7 +222,13 @@ import {
 
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { DotsVerticalIcon } from '@heroicons/vue/solid'
-import { OpenPatreonLink } from "../../constants";
+import {
+  OpenPatreonLink,
+  PlatformTypePatreon,
+  PlatformTypePaypal,
+  PlatformTypePaypalSubscription,
+  PlatformTypeDiscord,
+} from "../../constants";
 
 export default {
   components: {
@@ -185,6 +241,7 @@ export default {
     MenuItem,
     MenuItems,
     DotsVerticalIcon,
+    Popup,
   },
   setup() {
     let isDataFetched = ref(false);
@@ -194,6 +251,10 @@ export default {
 
     let memberships = ref([]);
     let accounts = ref([]);
+
+    let showDiscordPopup = ref(false);
+    let showPaypalPopup = ref(false);
+    let showPatreonPopup = ref(false);
 
     return {
       FormTypeBlank,
@@ -206,6 +267,15 @@ export default {
 
       accounts,
       memberships,
+
+      PlatformTypeDiscord,
+      PlatformTypePatreon,
+      PlatformTypePaypal,
+      PlatformTypePaypalSubscription,
+
+      showDiscordPopup,
+      showPaypalPopup,
+      showPatreonPopup,
     };
   },
 
@@ -215,7 +285,7 @@ export default {
 
   methods: {
     isMembershipAssignable(membership) {
-      return this.isMembershipIdle(membership) || this.isMembershipActive(membership);
+      return (this.isMembershipIdle(membership) || this.isMembershipActive(membership)) && membership.platform_type !== PlatformTypeDiscord;
     },
 
     isMembershipActive(membership) {
@@ -293,7 +363,7 @@ export default {
             title: "🎉 Membership assigned from your server.",
             icon: "check",
             class: "text-green-500 bg-green-100",
-           });
+          });
 
           this.fetchConfig();
         },
@@ -310,13 +380,19 @@ export default {
       return expiresAt > now;
     },
 
-    getMembershipDurationLeft(membership) {
+    getDaysLeftOfMembership(membership) {
       const expiresAt = new Date(membership.expires_at);
       const now = new Date();
 
       const diff = expiresAt - now;
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      return days;
+    },
+
+    getMembershipDurationLeft(membership) {
+      const days = this.getDaysLeftOfMembership(membership);
 
       if (days > 0) {
         return `Expires in ${days} days`;
