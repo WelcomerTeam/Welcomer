@@ -44,6 +44,7 @@ type userMembership struct {
 	ExpiresAt        time.Time                 `json:"expires_at"`
 	MembershipStatus database.MembershipStatus `json:"membership_status"`
 	MembershipType   database.MembershipType   `json:"membership_type"`
+	PlatformType     database.PlatformType     `json:"platform_type"`
 }
 
 func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
@@ -156,6 +157,7 @@ func getMemberships(ctx *gin.Context) {
 				ExpiresAt:        membership.ExpiresAt,
 				MembershipStatus: membershipStatus,
 				MembershipType:   membershipType,
+				PlatformType:     database.PlatformType(membership.PlatformType.Int32),
 			})
 		}
 
@@ -219,6 +221,14 @@ func postMembershipSubscribe(ctx *gin.Context) {
 
 		for _, membership := range memberships {
 			if membership.MembershipUuid == membershipID {
+				if database.PlatformType(membership.PlatformType.Int32) == database.PlatformTypeDiscord {
+					// Discord memberships cannot be transferred or modified.
+
+					ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrCannotTransferMembership, nil))
+
+					return
+				}
+
 				var err error
 
 				var newMembership database.UpdateUserMembershipParams

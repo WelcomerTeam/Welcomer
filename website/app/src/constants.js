@@ -10,6 +10,12 @@ export const Toggle_ShowFeaturesOnDashboard = false;
 
 export const BotPermissions = 399397809407; // Temporary catch-all permissions
 
+export const PlatformTypePaypal = "paypal";
+export const PlatformTypePatreon = "patreon";
+export const PlatformTypeStripe = "stripe";
+export const PlatformTypePaypalSubscription = "paypal_subscription";
+export const PlatformTypeDiscord = "discord";
+
 export const GetBotInvite = (bot_id, guild_id) => {
     return `https://discord.com/oauth2/authorize?client_id=${bot_id}&scope=bot%20applications.commands&permissions=${BotPermissions}${guild_id ? '&guild_id='+guild_id : ''}`
 }

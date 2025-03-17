@@ -100,4 +100,5 @@ var (
 	ErrCreateTransactionFailed    = NewErrorWithCode(13007, "failed to create transaction")
 	ErrCreateMembershipFailed     = NewErrorWithCode(13008, "failed to create membership")
 	ErrWebhookValidationFailed    = NewErrorWithCode(13009, "failed to validate webhook message")
+	ErrCannotTransferMembership   = NewErrorWithCode(13010, "cannot transfer membership")
 )
