@@ -133,9 +133,11 @@ func main() {
 
 	sandwichClient := sandwich.NewSandwich(grpcConnection, restInterface, writer)
 
-	welcomer := gateway.NewWelcomer(*sandwichProducerName, sandwichClient)
+	bot := gateway.NewWelcomer(*sandwichProducerName, sandwichClient)
 
-	sandwichClient.RegisterBot(*sandwichProducerName, welcomer.Bot)
+	sandwichClient.RegisterBot(*sandwichProducerName, bot.Bot)
+
+	ctx = welcomer.AddSandwichClientToContext(ctx, sandwichClient.SandwichClient)
 
 	// We return if it a dry run. Any issues loading up the bot would've already caused a panic.
 

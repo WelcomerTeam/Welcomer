@@ -5,9 +5,9 @@ go 1.23.0
 toolchain go1.23.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20250315090755-a93bc321fe5c
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250315120638-61ebebccab0a
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250315093219-f03512f69893
+	github.com/WelcomerTeam/Discord v0.0.0-20250316082708-323691d5cebf
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250318184740-b3144fb8ec39
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250315135409-ce282e75b94a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible

@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20250315090755-a93bc321fe5c
+	github.com/WelcomerTeam/Discord v0.0.0-20250316082708-323691d5cebf
 	github.com/WelcomerTeam/Sandwich v0.0.0-20250315102642-ec7fce2619f8
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250315093219-f03512f69893
 	github.com/WelcomerTeam/Subway v0.0.0-20250315103958-d4fdff66e557
