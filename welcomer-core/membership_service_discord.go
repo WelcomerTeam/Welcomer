@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/rs/zerolog"
@@ -17,12 +19,62 @@ var (
 	WelcomerCustomBackgroundsDiscordSKU = discord.Snowflake(utils.TryParseInt(os.Getenv("WELCOMER_CUSTOM_BACKGROUNDS_DISCORD_SKU_ID")))
 )
 
+func getSKUNameFromID(skuID discord.Snowflake) string {
+	switch skuID {
+	case WelcomerProDiscordSKU:
+		return "Welcomer Pro"
+	case WelcomerCustomBackgroundsDiscordSKU:
+		return "Welcomer Custom Backgrounds"
+	default:
+		return "Unknown"
+	}
+}
+
 func returnSnowflakeIfNotNull(i *discord.Snowflake) discord.Snowflake {
 	if i == nil {
 		return discord.Snowflake(0)
 	}
 
 	return *i
+}
+
+func FetchGuildName(ctx context.Context, logger zerolog.Logger, guildID discord.Snowflake) string {
+	sandwichClient := GetSandwichClientFromContext(ctx)
+	if sandwichClient == nil {
+		logger.Error().Msg("Failed to get sandwich client from context")
+
+		return ""
+	}
+
+	guilds, err := sandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
+		GuildIDs: []int64{int64(guildID)},
+	})
+	if err != nil {
+		logger.Warn().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to fetch guild")
+
+		return ""
+	}
+
+	var guild discord.Guild
+
+	guildPb, ok := guilds.GetGuilds()[int64(guildID)]
+
+	if !ok {
+		return ""
+	}
+
+	guild, err = pb.GRPCToGuild(guildPb)
+	if err != nil {
+		logger.Warn().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to convert guild")
+
+		return ""
+	}
+
+	return guild.Name
 }
 
 func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, queries *database.Queries, entitlement discord.Entitlement) error {
@@ -63,6 +115,75 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	}
 
 	println("HandleDiscordEntitlement", entitlement.ID, entitlement.SkuID, startsAt.Time.String(), endsAt.Time.String(), returnSnowflakeIfNotNull(entitlement.UserID).String(), returnSnowflakeIfNotNull(entitlement.GuildID).String(), entitlement.Consumed, entitlement.Deleted)
+
+	var guildName string
+
+	if guildID.Valid {
+		guildName = FetchGuildName(ctx, logger, discord.Snowflake(guildID.Int64))
+	}
+
+	if guildName == "" {
+		guildName = "Unknown"
+	}
+
+	if DiscordPaymentsWebhookURL != "" {
+		err := utils.SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
+			Embeds: []discord.Embed{
+				{
+					Title:     "Discord Sale",
+					Color:     0x5865F2,
+					Timestamp: utils.ToPointer(time.Now()),
+					Fields: []discord.EmbedField{
+						{
+							Name:   "ID",
+							Value:  entitlement.ID.String(),
+							Inline: true,
+						},
+						{
+							Name:   "User",
+							Value:  "<@" + entitlement.UserID.String() + "> " + entitlement.UserID.String(),
+							Inline: true,
+						},
+						{
+							Name:  "Application",
+							Value: entitlement.ApplicationID.String(),
+						},
+						{
+							Name:  "SKU",
+							Value: getSKUNameFromID(entitlement.SkuID),
+						},
+						{
+							Name:  "Starts At",
+							Value: "<t:" + utils.Itoa(startsAt.Time.Unix()) + ":R>",
+						},
+						{
+							Name:  "Ends At",
+							Value: "<t:" + utils.Itoa(endsAt.Time.Unix()) + ":R>",
+						},
+						{
+							Name:  "Gift Code Flags",
+							Value: utils.Itoa(giftCodeFlags.Int64),
+						},
+						{
+							Name:  "Guild",
+							Value: utils.If(guildID.Valid, "`"+guildName+"` ", "") + utils.Itoa(guildID.Int64),
+						},
+						{
+							Name:  "Consumed",
+							Value: utils.If(entitlement.Consumed, "TRUE", "FALSE"),
+						},
+						{
+							Name:  "Deleted",
+							Value: utils.If(entitlement.Deleted, "TRUE", "FALSE"),
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			logger.Error().Err(err).Msg("Failed to send webhook message")
+		}
+	}
 
 	var membershipType database.MembershipType
 

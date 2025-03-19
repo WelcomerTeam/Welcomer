@@ -4,14 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/plutov/paypal/v4"
 	"github.com/rs/zerolog"
 )
+
+var DiscordPaymentsWebhookURL = os.Getenv("DISCORD_PAYMENTS_WEBHOOK_URL")
 
 type PaypalSale struct {
 	ID string `json:"id"`
@@ -30,14 +34,6 @@ type PaypalSale struct {
 func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSale PaypalSale) error {
 	println("HandlePaypalSale", paypalSale.ID, paypalSale.State, paypalSale.Amount.Total, paypalSale.Amount.Currency, paypalSale.BillingAgreementID)
 
-	if paypalSale.State != "completed" {
-		return nil
-	}
-
-	if paypalSale.BillingAgreementID == "" {
-		return nil
-	}
-
 	memberships, err := queries.GetUserMembershipsByTransactionID(ctx, paypalSale.BillingAgreementID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		logger.Error().Err(err).
@@ -49,13 +45,81 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 
 	paypalMemberships := make([]*database.GetUserMembershipsByTransactionIDRow, 0, len(memberships))
 
+	var userID discord.Snowflake
+
 	for _, membership := range memberships {
 		if database.PlatformType(membership.PlatformType) == database.PlatformTypePaypalSubscription &&
 			membership.TransactionID == paypalSale.BillingAgreementID &&
 			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) &&
 			membership.ExpiresAt.After(time.Now()) {
 			paypalMemberships = append(paypalMemberships, membership)
+			userID = discord.Snowflake(membership.UserID)
 		}
+	}
+
+	if DiscordPaymentsWebhookURL != "" {
+		err := utils.SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
+			Embeds: []discord.Embed{
+				{
+					Title:     "Paypal Sale",
+					Color:     0x009CDE,
+					Timestamp: utils.ToPointer(time.Now()),
+					Fields: []discord.EmbedField{
+						{
+							Name:   "ID",
+							Value:  paypalSale.ID,
+							Inline: true,
+						},
+						{
+							Name:   "Billing Agreement ID",
+							Value:  paypalSale.BillingAgreementID,
+							Inline: true,
+						},
+						{
+							Name:   "User",
+							Value:  "<@" + userID.String() + "> " + userID.String(),
+							Inline: true,
+						},
+						{
+							Name:   "Amount",
+							Value:  paypalSale.Amount.Total + " " + paypalSale.Amount.Currency,
+							Inline: true,
+						},
+						{
+							Name:   "State",
+							Value:  paypalSale.State,
+							Inline: true,
+						},
+						{
+							Name:   "Created",
+							Value:  "<t:" + utils.Itoa(time.Time(paypalSale.CreateTime).Unix()) + ":R>",
+							Inline: true,
+						},
+						{
+							Name:   "Cleared",
+							Value:  "<t:" + utils.Itoa(time.Time(paypalSale.ClearingTime).Unix()) + ":R>",
+							Inline: true,
+						},
+						{
+							Name:   "Updated",
+							Value:  "<t:" + utils.Itoa(time.Time(paypalSale.UpdateTime).Unix()) + ":R>",
+							Inline: true,
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			logger.Error().Err(err).Msg("Failed to send webhook message")
+		}
+	}
+
+	if paypalSale.State != "completed" {
+		return nil
+	}
+
+	if paypalSale.BillingAgreementID == "" {
+		return nil
 	}
 
 	membershipExpiration := time.Now().AddDate(0, 1, 7)

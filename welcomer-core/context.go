@@ -3,6 +3,7 @@ package welcomer
 import (
 	"context"
 
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -15,6 +16,7 @@ const (
 	QueriesKey
 	ManagerNameKey
 	PushGuildScienceHandlerKey
+	SandwichClientKey
 )
 
 // Arguments context handler.
@@ -46,6 +48,17 @@ func AddPushGuildScienceToContext(ctx context.Context, v *PushGuildScienceHandle
 
 func GetPushGuildScienceFromContext(ctx context.Context) *PushGuildScienceHandler {
 	value, _ := ctx.Value(PushGuildScienceHandlerKey).(*PushGuildScienceHandler)
+
+	return value
+}
+
+// SandwichClient context handler.
+func AddSandwichClientToContext(ctx context.Context, v sandwich.SandwichClient) context.Context {
+	return context.WithValue(ctx, SandwichClientKey, v)
+}
+
+func GetSandwichClientFromContext(ctx context.Context) sandwich.SandwichClient {
+	value, _ := ctx.Value(SandwichClientKey).(sandwich.SandwichClient)
 
 	return value
 }
