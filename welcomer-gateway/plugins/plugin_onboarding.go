@@ -171,7 +171,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 							},
 							{
 								Name:   "Retention",
-								Value:  utils.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds())),
+								Value:  utils.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
 								Inline: true,
 							},
 						},
@@ -211,7 +211,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 							},
 							{
 								Name:   "Retention",
-								Value:  utils.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds())),
+								Value:  utils.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
 								Inline: true,
 							},
 						},

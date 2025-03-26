@@ -374,7 +374,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				})
 
 				for _, role := range timeRoleList {
-					roleMessage := fmt.Sprintf("- <@&%d> - `%s`\n", role.Role, utils.HumanizeDuration(role.Seconds))
+					roleMessage := fmt.Sprintf("- <@&%d> - `%s`\n", role.Role, utils.HumanizeDuration(role.Seconds, true))
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {

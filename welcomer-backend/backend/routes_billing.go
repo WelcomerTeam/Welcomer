@@ -942,7 +942,7 @@ func paypalWebhook(ctx *gin.Context) {
 		}
 
 	case WebhookEventBillingSubscriptionActivated:
-		err = welcomer.HandlePaypalSubscription(ctx, backend.Logger, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionActivated(ctx, backend.Logger, backend.Database, subscription)
 		if err != nil {
 			backend.Logger.Error().Err(err).Msg("Failed to handle subscription activated event")
 		}
