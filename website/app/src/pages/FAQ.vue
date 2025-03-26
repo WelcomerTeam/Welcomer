@@ -65,15 +65,15 @@ const faqs = [
 
   {
     question: "I have donated, now what?",
-    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server. Currently Patreon pledges will require a support ticket on our [support server](/support), however you will be able to soon link your Patreon to your Discord account on the Welcomer website. Currently managing memberships is only done through the membership commands, but memberships within the website will be coming soon.",
+    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server. Currently Patreon pledges will require a support ticket on our [support server](/support), however you will be able to soon link your Patreon to your Discord account on the Welcomer website.",
   },
   {
     question: "I have donated through Patreon but I have not received my membership.",
-    answer: "Currently we cannot automatically link Patreon pledges to Discord accounts. Please join our [support server](/support) and open a ticket with your Patreon email and Discord ID, and we will manually add the membership to your account. Automatic linking will be coming soon.",
+    answer: "If you have not received your membership, you have to make sure your Discord account is linked to your Patreon account. You can do this by going to the [Patreon settings](https://www.patreon.com/settings/apps) and linking your Discord account. You can also link your Patreon account in the **Memberships** section on the dashboard.",
   },
   {
     question: "How can I automatically pay monthly for my membership with PayPal?",
-    answer: "Currently we do not support recurring payments through PayPal, but this is planned. You can currently buy a month, 6 months or a year. If you would like to pay monthly, you can [pledge via our Patreon](/premium).",
+    answer: "We now support monthly subscription plans. You can view the plans on [our premium page](/premium). We currently support monthly subscriptions, Patreon and Discord subscriptions. 6 month and 12 month plans do not automatically renew.",
   },
   {
     question: "How long do I keep custom backgrounds for?",
