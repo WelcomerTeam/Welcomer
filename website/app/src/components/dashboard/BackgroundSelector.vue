@@ -26,7 +26,7 @@
           <PopoverButton
             :class="[
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary',
               'relative py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]"
@@ -234,7 +234,7 @@
                 <ListboxButton :class="[
                   $props.modelValue ==
                     solidColourPrefix + solidColourProfileBased
-                    ? 'bg-gray-100 dark:bg-secondary-light'
+                    ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                     : 'bg-white dark:bg-secondary-dark',
                   'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
                 ]">

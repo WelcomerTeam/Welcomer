@@ -19,7 +19,7 @@
               ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
               : '',
             $props.disabled
-              ? 'bg-gray-100 dark:bg-secondary-light'
+              ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
               : modelValue
                 ? 'bg-green-500 focus:ring-green-500'
                 : 'bg-gray-400 focus:ring-gray-400',
@@ -62,12 +62,12 @@
         <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'border-red-500 ring-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">
@@ -159,12 +159,12 @@
         <Listbox :id="componentId" as="div" :disabled="$props.disabled" :modelValue="modelValue"
           @update:modelValue="updateValue($event)" @blur="blur">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">
@@ -262,12 +262,12 @@
         <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">
@@ -361,12 +361,12 @@
         <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">
@@ -486,12 +486,12 @@
         <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">
@@ -583,12 +583,12 @@
         <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">
@@ -621,7 +621,7 @@
             ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
             : '',
           $props.disabled
-            ? 'bg-gray-100 dark:bg-secondary-light'
+            ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
@@ -637,7 +637,7 @@
             ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
             : '',
           $props.disabled
-            ? 'bg-gray-100 dark:bg-secondary-light'
+            ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" :disabled="$props.disabled" :value="modelValue" @input="updateValue($event.target.value)" @blur="blur" />
@@ -652,7 +652,7 @@
             ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
             : '',
           $props.disabled
-            ? 'bg-gray-100 dark:bg-secondary-light'
+            ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" rows="4" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
@@ -666,12 +666,12 @@
         <Listbox :id="componentId" as="div" :disabled="$props.disabled" :modelValue="modelValue"
           @update:modelValue="updateValue($event)" @blur="blur">
           <div class="relative">
-            <ListboxButton :class="[
+            <ListboxButton :disabled="$props.disabled" :class="[
               $props.validation?.$invalid
                 ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
                 : '',
               $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light'
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
                 : 'bg-white dark:bg-secondary-dark',
               'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
             ]">

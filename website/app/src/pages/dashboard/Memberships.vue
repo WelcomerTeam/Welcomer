@@ -116,8 +116,7 @@
                         </div>
                       </div>
                       <div class="flex-shrink-0">
-                        <button class="items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" @click="showDiscordPopup = true" v-if="membership.platform_type == PlatformTypeDiscord">?</button>
-                        <Menu as="div" class="relative inline-block text-left" v-else-if="isMembershipAssignable(membership)">
+                        <Menu as="div" class="relative inline-block text-left">
                           <div>
                             <MenuButton class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                               <span class="sr-only">Open options</span>
@@ -129,9 +128,13 @@
                             <MenuItems class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-secondary shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
-                                  <button v-if="membership.guild_id == this.$store.getters.getSelectedGuildID" @click="removeMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Remove membership</button>
-                                  <button v-else-if="membership.guild_id > 0" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Transfer membership</button>
-                                  <button v-else @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Add membership</button>
+                                  <button v-if="membership.guild_id == this.$store.getters.getSelectedGuildID" @click="removeMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Remove membership from this server</button>
+                                  <button v-else-if="membership.guild_id > 0" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Transfer membership to this server</button>
+                                  <button v-else="isMembershipAssignable(membership)" :disabled="!isMembershipAssignable(membership)" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full disabled:bg-gray-100 disabled:dark:bg-secondary-light disabled:text-neutral-500']">Add membership to this server</button>
+                                </MenuItem>
+                                <MenuItem v-slot="{ active }" v-if="membership.platform_type == PlatformTypeDiscord || membership.platform_type == PlatformTypePatreon">
+                                  <button v-if="membership.platform_type == PlatformTypeDiscord" @click="showDiscordPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
+                                  <button v-else-if="membership.platform_type == PlatformTypePatreon" @click="showPatreonPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
                                 </MenuItem>
                               </div>
                             </MenuItems>
@@ -170,12 +173,28 @@
           <template v-slot:title>
             Managing your Paypal subscription
           </template>
+
+          <p>
+            There are two ways of paying via PayPal, one-time payments or a subscription. Newer Welcomer Pro monthly memberships will be subscriptions, and 6-monthly and yearly memberships will remain as one-time payments.
+            Once you have purchased a one-time payment, make sure to assign it to a server if you have not done so yet.
+          </p>
         </Popup>
 
         <Popup :open="showPatreonPopup" @close="showPatreonPopup = false">
           <template v-slot:title>
             Managing your Patreon subscription
           </template>
+
+          <p>
+            To manage your Patreon pledge, please go to <a href="https://www.patreon.com/Welcomer" target="_blank" class="text-primary">our Patreon page</a>.
+            You can use the <b>Memberships</b> tab to see your current membership, change your tier and cancel.
+          </p>
+          <p>
+            You can see more information about linking your Discord to Patreon <a href="https://support.patreon.com/hc/en-gb/articles/212052266-Getting-Discord-access" target="_blank" class="text-primary">here</a>.
+          </p>
+          <p class="mt-8">
+            <a href="/support" target="_blank" class="mt-4 text-primary">Need help?</a>
+          </p>
         </Popup>
 
         <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit mt-16">
@@ -285,7 +304,7 @@ export default {
 
   methods: {
     isMembershipAssignable(membership) {
-      return (this.isMembershipIdle(membership) || this.isMembershipActive(membership)) && membership.platform_type !== PlatformTypeDiscord;
+      return (this.isMembershipIdle(membership) || this.isMembershipActive(membership)) && (membership.platform_type !== PlatformTypeDiscord || membership.guild_id === 0);
     },
 
     isMembershipActive(membership) {
