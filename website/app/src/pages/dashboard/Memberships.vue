@@ -135,6 +135,8 @@
                                 <MenuItem v-slot="{ active }" v-if="membership.platform_type == PlatformTypeDiscord || membership.platform_type == PlatformTypePatreon">
                                   <button v-if="membership.platform_type == PlatformTypeDiscord" @click="showDiscordPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
                                   <button v-else-if="membership.platform_type == PlatformTypePatreon" @click="showPatreonPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
+                                  <button v-else-if="membership.platform_type == PlatformTypePaypal" @click="showPaypalPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
+                                  <button v-else-if="membership.platform_type == PlatformTypePaypalSubscription" @click="showPaypalPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
                                 </MenuItem>
                               </div>
                             </MenuItems>
@@ -176,7 +178,11 @@
 
           <p>
             There are two ways of paying via PayPal, one-time payments or a subscription. Newer Welcomer Pro monthly memberships will be subscriptions, and 6-monthly and yearly memberships will remain as one-time payments.
-            Once you have purchased a one-time payment, make sure to assign it to a server if you have not done so yet.
+            You can check if you have a one-time payment or a subscription by seeing if there is an <font-awesome-icon title="Paypal subscription" :icon="['fas','rotate-right']" /> icon next to your membership.
+            Once you have purchased a one-time payment, make sure to assign it to a server if you have not done so yet. To manage PayPal subscriptions, please go to your paypal account dashboard.
+          </p>
+          <p class="mt-8">
+            <a href="/support" target="_blank" class="mt-4 text-primary">Need help?</a>
           </p>
         </Popup>
 
