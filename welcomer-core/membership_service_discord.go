@@ -315,6 +315,10 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 		for _, membership := range discordMemberships {
 			membership.ExpiresAt = endsAt.Time
+			membership.Status = utils.If(
+				membership.Status == int32(database.MembershipStatusIdle),
+				int32(database.MembershipStatusActive),
+				membership.Status)
 
 			_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
 				MembershipUuid:  membership.MembershipUuid,

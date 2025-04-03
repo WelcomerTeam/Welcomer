@@ -16,7 +16,7 @@ import (
 )
 
 // TwilightProxy is a proxy that requests are sent through, instead of directly to discord that will handle
-// distributed requests and ratelimits automatically. See more at: https://github.com/twilight-rs/http-proxy
+// distributed requests and ratelimit automatically. See more at: https://github.com/twilight-rs/http-proxy
 type TwilightProxy struct {
 	HTTP       *http.Client
 	APIVersion string
