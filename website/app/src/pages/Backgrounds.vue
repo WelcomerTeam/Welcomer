@@ -16,61 +16,36 @@
 
       <div id="backgrounds">
         <div class="bg-white text-neutral-900">
-          <div class="hero-preview">
-            <div class="px-4 mx-auto max-w-7xl sm:px-6">
-              <div class="sm:flex sm:flex-col sm:align-center">
-                <!-- <div class="mb-4 grid grid-cols-4 gap-4">
-                  <input type="text"
-                    class="col-span-4 sm:col-span-3 border-gray-300 dark:border-secondary-light bg-white dark:bg-secondary-dark rounded-md sm:text-sm"
-                    placeholder="" v-model="query" @input="onQueryChange()" />
-
-                  <Listbox as="div" class="col-span-4 sm:col-span-1">
-                    <div class="relative">
-                      <ListboxButton
-                        class="bg-white dark:bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                        <span class="block truncate">Groups</span>
-                        <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                          <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
-                        </span>
-                      </ListboxButton>
-
-                      <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                        leave-to-class="opacity-0">
-                        <ListboxOptions
-                          class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          <ListboxOption as="template" v-for="group in groups" :key="group.id" :value="group.id">
-                            <li
-                              class="text-gray-900 dark:text-gray-50 cursor-default select-none relative py-2 pl-3 pr-9 hover:font-semibold font-normal block truncate hover:bg-primary"
-                              @click="scrollTo(group.id)">
-                              {{ group.name }}
-                            </li>
-                          </ListboxOption>
-                        </ListboxOptions>
-                      </transition>
-                    </div>
-                  </Listbox>
-                </div> -->
-
-                <div class="space-y-12">
-                  <div v-for="category in backgrounds" :key="category" :id="category.id">
-                    <div class="text-xs font-bold uppercase my-4 text-gray-900">
-                      {{ category.name }}
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      <button as="template" v-for="image in category.images" :key="image">
-                        <img :title="image.name" :alt="'Background image ' + image.name" v-lazy="{
-                          src: `/assets/backgrounds/${image.name}.webp`,
-                        }" :class="[
-                          $props.modelValue == image.name
-                            ? 'border-primary ring-primary ring-4'
-                            : '',
-                          'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
-                        ]" />
-                      </button>
-                    </div>
-                  </div>
+          <div class="hero-preview px-4 mx-auto max-w-7xl sm:px-6 sm:flex sm:flex-col sm:align-center">
+            <div class="space-y-12">
+              <div v-for="category in backgrounds" :key="category" :id="category.id">
+                <div class="text-xs font-bold uppercase my-4 text-gray-900">
+                  {{ category.name }}
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  <button as="template" v-for="image in category.images" :key="image">
+                    <img :title="image.name" :alt="'Background image ' + image.name" v-lazy="{
+                      src: `/assets/backgrounds/${image.name}.webp`,
+                    }" :class="[
+                        $props.modelValue == image.name
+                          ? 'border-primary ring-primary ring-4'
+                          : '',
+                        'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
+                      ]" />
+                  </button>
                 </div>
               </div>
+            </div>
+
+            <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit mt-16">
+              <h3 class="text-2xl font-bold sm:text-3xl">
+                Looking for more?
+              </h3>
+              <p class="mt-4 text-sm leading-6">If you do not like these images, you can always use your own! You can unlock custom backgrounds forever for your server with a one-time purchase. Unlock animated backgrounds and more Welcomer features on any server you choose. Select from monthly, biannual or yearly plans to suit your needs.</p>
+
+              <a href="/premium" target="_blank" type="button" class="bg-white hover:bg-gray-200 flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full">
+                Learn More
+              </a>
             </div>
           </div>
         </div>
