@@ -386,7 +386,7 @@ const checklist = [
   "Custom Backgrounds",
   "Dedicated Pro Bot",
   "Flexible plans",
-  "No Recurring Payments",
+  "No recurring payments*",
 ];
 
 const faqs = [

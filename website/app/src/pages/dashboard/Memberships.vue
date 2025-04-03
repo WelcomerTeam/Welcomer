@@ -77,7 +77,7 @@
                           <div v-if="membership.guild_id == 0" class="w-10 h-10 rounded-lg dark:bg-white bg-black opacity-20"></div>
                           <img v-else alt=""
                             :class="[
-                              membership.guild_id > 0 || isMembershipActive(membership) ? '' : 'saturate-0', 'w-10 h-10 rounded-lg']"
+                              (membership.guild_id > 0 || isMembershipActive(membership)) && !hasMembershipExpired(membership) ? '' : 'saturate-0', 'w-10 h-10 rounded-lg']"
                             v-lazy="{
                               src: membership.guild_icon !== ''
                                 ? `https://cdn.discordapp.com/icons/${membership.guild_id}/${membership.guild_icon}.webp?size=128`
@@ -101,15 +101,18 @@
                               {{ membership.guild_id > 0 ? membership.guild_name : 'Unassigned' }}
                               <br />
                               <span class="text-xs text-gray-600 dark:text-gray-400">
-                                {{ getMembershipStatusLabel(membership) }}
-                                <span v-if="
-                                  membershipExpiresInFuture(membership) &&
-                                  !isCustomBackgroundsMembership(membership) &&
-                                  (
-                                    (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon)
-                                    || getDaysLeftOfMembership(membership) <= 30
-                                  )
-                                ">• {{ getMembershipDurationLeft(membership) }}</span>
+                                <span v-if="hasMembershipExpired(membership)">Expired</span>
+                                <span v-else>
+                                  {{ getMembershipStatusLabel(membership) }}
+                                  <span v-if="
+                                    membershipExpiresInFuture(membership) &&
+                                    !isCustomBackgroundsMembership(membership) &&
+                                    (
+                                      (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon)
+                                      || getDaysLeftOfMembership(membership) <= 30
+                                    )
+                                  ">• {{ getMembershipDurationLeft(membership) }}</span>
+                                </span>
                               </span>
                             </p>
                           </div>
@@ -310,11 +313,11 @@ export default {
 
   methods: {
     isMembershipAssignable(membership) {
-      return (this.isMembershipIdle(membership) || this.isMembershipActive(membership)) && (membership.platform_type !== PlatformTypeDiscord || membership.guild_id === 0);
+      return (this.isMembershipIdle(membership) || this.isMembershipActive(membership)) && (membership.platform_type !== PlatformTypeDiscord || membership.guild_id === 0) && !(this.hasMembershipExpired(membership));
     },
 
     isMembershipActive(membership) {
-      return membership.membership_status === "active";
+      return membership.membership_status === "active" && !this.hasMembershipExpired(membership);
     },
 
     isMembershipIdle(membership) {
@@ -341,10 +344,22 @@ export default {
 
       userAPI.getMemberships(
         ({ memberships, accounts }) => {
-          this.memberships = memberships
+          this.memberships = memberships;
+
+          // Hide expired memberships if the query param is not set
+          if (this.$route.query.show_expired != "1") {
+            this.memberships = this.memberships
+            .filter((membership) => {
+              return !this.hasMembershipExpired(membership);
+            });
+          }
+
+          // Sort memberships by guild_id, assignable, membership_type and expires_at
+          this.memberships = this.memberships
             .sort((a, b) => {
               return cmp(b.guild_id == this.$store.getters.getSelectedGuildID, a.guild_id == this.$store.getters.getSelectedGuildID) || cmp(this.isMembershipAssignable(b), this.isMembershipAssignable(a)) || cmp(b.membership_type, a.membership_type) || cmp(a.expires_at, b.expires_at);
             });
+
           this.accounts = accounts;
           this.isDataFetched = true;
           this.isDataError = false;
@@ -403,6 +418,13 @@ export default {
       const now = new Date();
 
       return expiresAt > now;
+    },
+
+    hasMembershipExpired(membership) {
+      const expiresAt = new Date(membership.expires_at);
+      const now = new Date();
+
+      return expiresAt < now;
     },
 
     getDaysLeftOfMembership(membership) {

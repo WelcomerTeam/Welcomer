@@ -100,7 +100,7 @@ const checklist = [
   "Custom Backgrounds",
   "Dedicated Donator Bot",
   "Flexible plans",
-  "No recurring payments",
+  "No recurring payments*",
 ];
 
 // Data below will be fetched from API
