@@ -14,8 +14,13 @@
       <div class="pb-32">
         <div class="hero-preview">
           <div class="px-4 mx-auto max-w-7xl sm:px-6 space-y-8">
+            <p class="mt-4 text-lg p-8 border border-gray-300 rounded-lg shadow-sm">
+              Can't find what you are looking for? Reach out to us on our
+              <a class="underline" href="/support">support server</a>.
+            </p>
+
             <ul class="mb-8 gap-y-1">
-              <li><a :href="'#' + getAnchor(faq.question)" class="text-primary underline font-bold block" v-for="faq in faqs" :key="faq.question">{{ faq.question }}</a></li>
+              <li v-for="faq in faqs" :key="faq.question"><a :href="'#' + getAnchor(faq.question)" class="text-primary underline font-bold block">{{ faq.question }}</a></li>
             </ul>
             <div class="faq-container space-y-8">
               <div v-for="faq in faqs" :key="faq.question" :id="getAnchor(faq.question)">
@@ -56,7 +61,7 @@ import { toHTML } from "@/components/discord-markdown";
 const faqs = [
   {
     question: "How can I add Welcomer to my server?",
-    answer: "[You can invite Welcomer to your server here](/invite).",
+    answer: "You can invite Welcomer to your server [here](/invite).",
   },
   {
     question: "My server is not showing up on the dashboard.",
@@ -65,7 +70,7 @@ const faqs = [
 
   {
     question: "I have donated, now what?",
-    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server. Currently Patreon pledges will require a support ticket on our [support server](/support), however you will be able to soon link your Patreon to your Discord account on the Welcomer website.",
+    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server.",
   },
   {
     question: "I have donated through Patreon but I have not received my membership.",
