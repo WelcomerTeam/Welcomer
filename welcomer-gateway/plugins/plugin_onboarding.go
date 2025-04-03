@@ -138,7 +138,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 			eventCtx.Guild.ID,
 			0,
 			database.ScienceGuildEventTypeGuildLeave,
-			nil,
+			int(time.Since(guild.JoinedAt).Seconds()),
 		)
 
 		if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
