@@ -348,7 +348,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+			session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
 			if err != nil {
 				return nil, err
 			}
@@ -475,7 +475,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+			session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
 			if err != nil {
 				return nil, err
 			}

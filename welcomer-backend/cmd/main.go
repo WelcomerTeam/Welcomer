@@ -79,6 +79,8 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	ctx = welcomer.AddLoggerToContext(ctx, logger)
+
 	// Setup Rest
 
 	var proxyURL *url.URL

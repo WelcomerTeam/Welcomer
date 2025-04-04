@@ -42,7 +42,7 @@ func CreateMembershipForUser(ctx context.Context, queries *database.Queries, use
 	}
 
 	// Create a new membership for the user.
-	_, err := queries.CreateNewMembership(ctx, database.CreateNewMembershipParams{
+	membership, err := queries.CreateNewMembership(ctx, database.CreateNewMembershipParams{
 		StartedAt:       time.Time{},
 		ExpiresAt:       expiresAt,
 		Status:          int32(database.MembershipStatusIdle),
@@ -52,18 +52,27 @@ func CreateMembershipForUser(ctx context.Context, queries *database.Queries, use
 		GuildID:         guildIDInt,
 	})
 
+	if err == nil {
+		session, err := AcquireSession(ctx, GetGRPCInterfaceFromContext(ctx), GetRESTInterfaceFromContext(ctx), GetSandwichClientFromContext(ctx), GetManagerNameFromContext(ctx))
+		if err != nil {
+			logger.Error().Err(err).
+				Str("membership_uuid", membership.MembershipUuid.String()).
+				Msg("Failed to acquire session")
+
+			return err
+		}
+
+		err = notifyMembershipCreated(ctx, logger, queries, session, *membership)
+	}
+
 	return err
 }
-
-// Membership Events
-
-// Meta Actions
 
 // Triggers when a membership has been added to the server.
 func onMembershipAdded(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
 	println("HandleMembershipAdded", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
 
-	// Notify of new membership?
+	// Notify of addition?
 
 	return nil
 }
@@ -87,10 +96,39 @@ func onMembershipRemoved(ctx context.Context, logger zerolog.Logger, queries *da
 }
 
 // Triggers when a membership has expired and not renewed.
-func onMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
+func OnMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
 	// TODO: implement action
 
 	println("HandleMembershipExpired", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+
+	// Notify of new membership?
+
+	session, err := AcquireSession(ctx, GetGRPCInterfaceFromContext(ctx), GetRESTInterfaceFromContext(ctx), GetSandwichClientFromContext(ctx), GetManagerNameFromContext(ctx))
+	if err != nil {
+		logger.Error().Err(err).
+			Str("membership_uuid", membership.MembershipUuid.String()).
+			Msg("Failed to acquire session")
+
+		return err
+	}
+
+	err = notifyMembershipExpired(ctx, logger, queries, session, database.UserMemberships{
+		MembershipUuid:  membership.MembershipUuid,
+		CreatedAt:       membership.CreatedAt,
+		UpdatedAt:       membership.UpdatedAt,
+		StartedAt:       membership.StartedAt,
+		ExpiresAt:       membership.ExpiresAt,
+		Status:          membership.Status,
+		MembershipType:  membership.MembershipType,
+		TransactionUuid: membership.TransactionUuid,
+		UserID:          membership.UserID,
+		GuildID:         membership.GuildID,
+	})
+	if err != nil {
+		logger.Error().Err(err).
+			Str("membership_uuid", membership.MembershipUuid.String()).
+			Msg("Failed to trigger onMembershipAdded")
+	}
 
 	return nil
 }

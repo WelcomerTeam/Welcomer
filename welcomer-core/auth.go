@@ -177,10 +177,10 @@ func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord
 	return nil
 }
 
-func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string) (session *discord.Session, err error) {
-	configurations, err := sub.GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
+func AcquireSession(ctx context.Context, grpcInterface sandwich.GRPC, restInterface discord.RESTInterface, client protobuf.SandwichClient, managerName string) (session *discord.Session, err error) {
+	configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
 		Context:        ctx,
-		SandwichClient: sub.SandwichClient,
+		SandwichClient: client,
 	}, managerName)
 	if err != nil {
 		return nil, err
@@ -191,5 +191,5 @@ func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string)
 		return nil, utils.ErrMissingApplicationUser
 	}
 
-	return discord.NewSession("Bot "+configuration.Token, sub.RESTInterface), nil
+	return discord.NewSession("Bot "+configuration.Token, restInterface), nil
 }

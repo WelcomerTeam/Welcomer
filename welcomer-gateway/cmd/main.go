@@ -139,6 +139,10 @@ func main() {
 
 	ctx = welcomer.AddSandwichClientToContext(ctx, sandwichClient.SandwichClient)
 
+	ctx = welcomer.AddGRPCInterfaceToContext(ctx, sandwichClient.GRPCInterface)
+
+	ctx = welcomer.AddRESTInterfaceToContext(ctx, sandwichClient.RESTInterface)
+
 	// We return if it a dry run. Any issues loading up the bot would've already caused a panic.
 
 	if *dryRun {

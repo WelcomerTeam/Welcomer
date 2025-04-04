@@ -3,10 +3,13 @@ package welcomer
 import (
 	"context"
 
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	"github.com/WelcomerTeam/Discord/discord"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rs/zerolog"
 )
 
 type InteractionsContextKey int
@@ -17,6 +20,9 @@ const (
 	ManagerNameKey
 	PushGuildScienceHandlerKey
 	SandwichClientKey
+	GRPCInterfaceKey
+	RESTInterfaceKey
+	LoggerKey
 )
 
 // Arguments context handler.
@@ -53,12 +59,36 @@ func GetPushGuildScienceFromContext(ctx context.Context) *PushGuildScienceHandle
 }
 
 // SandwichClient context handler.
-func AddSandwichClientToContext(ctx context.Context, v sandwich.SandwichClient) context.Context {
+func AddSandwichClientToContext(ctx context.Context, v pb.SandwichClient) context.Context {
 	return context.WithValue(ctx, SandwichClientKey, v)
 }
 
-func GetSandwichClientFromContext(ctx context.Context) sandwich.SandwichClient {
-	value, _ := ctx.Value(SandwichClientKey).(sandwich.SandwichClient)
+func GetSandwichClientFromContext(ctx context.Context) pb.SandwichClient {
+	value, _ := ctx.Value(SandwichClientKey).(pb.SandwichClient)
+
+	return value
+}
+
+// GRPCInterface context handler.
+
+func AddGRPCInterfaceToContext(ctx context.Context, v sandwich.GRPC) context.Context {
+	return context.WithValue(ctx, GRPCInterfaceKey, v)
+}
+
+func GetGRPCInterfaceFromContext(ctx context.Context) sandwich.GRPC {
+	value, _ := ctx.Value(GRPCInterfaceKey).(sandwich.GRPC)
+
+	return value
+}
+
+// RESTInterface context handler.
+
+func AddRESTInterfaceToContext(ctx context.Context, v discord.RESTInterface) context.Context {
+	return context.WithValue(ctx, RESTInterfaceKey, v)
+}
+
+func GetRESTInterfaceFromContext(ctx context.Context) discord.RESTInterface {
+	value, _ := ctx.Value(RESTInterfaceKey).(discord.RESTInterface)
 
 	return value
 }
@@ -78,6 +108,18 @@ func GetManagerNameFromContext(ctx context.Context) string {
 	}
 
 	value, _ := ctx.Value(ManagerNameKey).(string)
+
+	return value
+}
+
+// Logger context handler.
+
+func AddLoggerToContext(ctx context.Context, v zerolog.Logger) context.Context {
+	return context.WithValue(ctx, LoggerKey, v)
+}
+
+func GetLoggerFromContext(ctx context.Context) zerolog.Logger {
+	value, _ := ctx.Value(LoggerKey).(zerolog.Logger)
 
 	return value
 }
