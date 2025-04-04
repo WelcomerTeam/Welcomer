@@ -10,7 +10,6 @@ require (
 	github.com/WelcomerTeam/Sandwich v0.0.0-20250315102642-ec7fce2619f8
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250315093219-f03512f69893
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
-	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gin-contrib/cache v1.3.1
 	github.com/gin-contrib/gzip v1.2.2
 	github.com/gin-contrib/logger v1.2.3
@@ -22,7 +21,6 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/plutov/paypal/v4 v4.11.0
-	github.com/rs/zerolog v1.33.0
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38
 	github.com/ua-parser/uap-go v0.0.0-20250213224047-9c035f085b90
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
@@ -86,6 +84,7 @@ require (
 	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
@@ -103,5 +102,3 @@ require (
 )
 
 replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core
-
-replace github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0 => ../welcomer-utils

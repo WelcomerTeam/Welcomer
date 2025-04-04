@@ -7,9 +7,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
-	"github.com/rs/zerolog"
 )
 
 var (
@@ -55,21 +53,21 @@ func CreateMembershipForUser(ctx context.Context, queries *database.Queries, use
 	if err == nil {
 		session, err := AcquireSession(ctx, GetGRPCInterfaceFromContext(ctx), GetRESTInterfaceFromContext(ctx), GetSandwichClientFromContext(ctx), GetManagerNameFromContext(ctx))
 		if err != nil {
-			logger.Error().Err(err).
+			Logger.Error().Err(err).
 				Str("membership_uuid", membership.MembershipUuid.String()).
 				Msg("Failed to acquire session")
 
 			return err
 		}
 
-		err = notifyMembershipCreated(ctx, logger, queries, session, *membership)
+		err = notifyMembershipCreated(ctx, queries, session, *membership)
 	}
 
 	return err
 }
 
 // Triggers when a membership has been added to the server.
-func onMembershipAdded(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
+func onMembershipAdded(ctx context.Context, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
 	println("HandleMembershipAdded", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
 
 	// Notify of addition?
@@ -78,7 +76,7 @@ func onMembershipAdded(ctx context.Context, logger zerolog.Logger, queries *data
 }
 
 // Triggers when a membership has had its guild transferred.
-func onMembershipUpdated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
+func onMembershipUpdated(ctx context.Context, queries *database.Queries, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
 	println("HandleMembershipUpdated", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
 
 	// Notify of transfer?
@@ -87,7 +85,7 @@ func onMembershipUpdated(ctx context.Context, logger zerolog.Logger, queries *da
 }
 
 // Triggers when a membership has been removed from the server.
-func onMembershipRemoved(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
+func onMembershipRemoved(ctx context.Context, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
 	println("HandleMembershipRemoved", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
 
 	// Notify of removal?
@@ -96,7 +94,7 @@ func onMembershipRemoved(ctx context.Context, logger zerolog.Logger, queries *da
 }
 
 // Triggers when a membership has expired and not renewed.
-func OnMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
+func OnMembershipExpired(ctx context.Context, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
 	// TODO: implement action
 
 	println("HandleMembershipExpired", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
@@ -105,14 +103,14 @@ func OnMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *da
 
 	session, err := AcquireSession(ctx, GetGRPCInterfaceFromContext(ctx), GetRESTInterfaceFromContext(ctx), GetSandwichClientFromContext(ctx), GetManagerNameFromContext(ctx))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("membership_uuid", membership.MembershipUuid.String()).
 			Msg("Failed to acquire session")
 
 		return err
 	}
 
-	err = notifyMembershipExpired(ctx, logger, queries, session, database.UserMemberships{
+	err = notifyMembershipExpired(ctx, queries, session, database.UserMemberships{
 		MembershipUuid:  membership.MembershipUuid,
 		CreatedAt:       membership.CreatedAt,
 		UpdatedAt:       membership.UpdatedAt,
@@ -125,7 +123,7 @@ func OnMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *da
 		GuildID:         membership.GuildID,
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("membership_uuid", membership.MembershipUuid.String()).
 			Msg("Failed to trigger onMembershipAdded")
 	}
@@ -134,7 +132,7 @@ func OnMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *da
 }
 
 // Triggers when a membership has been renewed on expiry.
-func onMembershipRenewed(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
+func onMembershipRenewed(ctx context.Context, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) error {
 	// TODO: implement action
 
 	println("HandleMembershipRenewed", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
@@ -142,9 +140,9 @@ func onMembershipRenewed(ctx context.Context, logger zerolog.Logger, queries *da
 	return nil
 }
 
-func AddMembershipToServer(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow, guildID discord.Snowflake) (newMembership database.UpdateUserMembershipParams, err error) {
+func AddMembershipToServer(ctx context.Context, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow, guildID discord.Snowflake) (newMembership database.UpdateUserMembershipParams, err error) {
 	// if membership.GuildID != 0 {
-	// 	logger.Error().
+	// 	Logger.Error().
 	// 		Str("membership_uuid", membership.MembershipUuid.String()).
 	// 		Int64("guild_id", membership.GuildID).
 	// 		Int64("new_guild_id", int64(guildID)).
@@ -164,7 +162,7 @@ func AddMembershipToServer(ctx context.Context, logger zerolog.Logger, queries *
 
 		// Check if the transaction is completed.
 		if database.TransactionStatus(membership.TransactionStatus.Int32) != database.TransactionStatusCompleted {
-			logger.Error().
+			Logger.Error().
 				Str("membership_uuid", membership.MembershipUuid.String()).
 				Int32("transaction_status", membership.TransactionStatus.Int32).
 				Msg("Membership transaction is not completed")
@@ -200,7 +198,7 @@ func AddMembershipToServer(ctx context.Context, logger zerolog.Logger, queries *
 
 		_, err = queries.UpdateUserMembership(ctx, newMembership)
 		if err != nil {
-			logger.Error().Err(err).
+			Logger.Error().Err(err).
 				Str("membership_uuid", membership.MembershipUuid.String()).
 				Msg("Failed to update user membership")
 
@@ -208,17 +206,17 @@ func AddMembershipToServer(ctx context.Context, logger zerolog.Logger, queries *
 		}
 
 		if database.MembershipStatus(membership.Status) == database.MembershipStatusIdle {
-			err = onMembershipAdded(ctx, logger, queries, membership, newMembership)
+			err = onMembershipAdded(ctx, queries, membership, newMembership)
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Str("membership_uuid", membership.MembershipUuid.String()).
 					Msg("Failed to trigger onMembershipAdded")
 			}
 		} else if database.MembershipStatus(membership.Status) == database.MembershipStatusActive {
 			// Triggered when a membership has been transferred to a new guild.
-			err = onMembershipUpdated(ctx, logger, queries, membership, newMembership)
+			err = onMembershipUpdated(ctx, queries, membership, newMembership)
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Str("membership_uuid", membership.MembershipUuid.String()).
 					Msg("Failed to trigger onMembershipUpdated")
 			}
@@ -226,7 +224,7 @@ func AddMembershipToServer(ctx context.Context, logger zerolog.Logger, queries *
 
 		return newMembership, nil
 	default:
-		logger.Error().
+		Logger.Error().
 			Str("membership_uuid", membership.MembershipUuid.String()).
 			Int32("status", membership.Status).
 			Msg("Unhandled membership status")
@@ -235,13 +233,13 @@ func AddMembershipToServer(ctx context.Context, logger zerolog.Logger, queries *
 	}
 }
 
-func RemoveMembershipFromServer(ctx context.Context, logger zerolog.Logger, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) (newMembership database.UpdateUserMembershipParams, err error) {
+func RemoveMembershipFromServer(ctx context.Context, queries *database.Queries, membership database.GetUserMembershipsByUserIDRow) (newMembership database.UpdateUserMembershipParams, err error) {
 	if membership.GuildID == 0 {
 		return database.UpdateUserMembershipParams{}, ErrMembershipNotInUse
 	}
 
 	// Only set the status to Idle if the membership is currently Active.
-	membership.Status = utils.If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
+	membership.Status = If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
 	membership.GuildID = 0
 
 	newMembership = database.UpdateUserMembershipParams{
@@ -256,16 +254,16 @@ func RemoveMembershipFromServer(ctx context.Context, logger zerolog.Logger, quer
 
 	_, err = queries.UpdateUserMembership(ctx, newMembership)
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("membership_uuid", membership.MembershipUuid.String()).
 			Msg("Failed to update user membership")
 
 		return database.UpdateUserMembershipParams{}, err
 	}
 
-	err = onMembershipRemoved(ctx, logger, queries, membership)
+	err = onMembershipRemoved(ctx, queries, membership)
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("membership_uuid", membership.MembershipUuid.String()).
 			Msg("Failed to trigger onMembershipRemoved")
 	}

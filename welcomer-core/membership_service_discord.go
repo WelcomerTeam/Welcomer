@@ -10,13 +10,11 @@ import (
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/rs/zerolog"
 )
 
 var (
-	WelcomerProDiscordSKU               = discord.Snowflake(utils.TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID")))
-	WelcomerCustomBackgroundsDiscordSKU = discord.Snowflake(utils.TryParseInt(os.Getenv("WELCOMER_CUSTOM_BACKGROUNDS_DISCORD_SKU_ID")))
+	WelcomerProDiscordSKU               = discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID")))
+	WelcomerCustomBackgroundsDiscordSKU = discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_CUSTOM_BACKGROUNDS_DISCORD_SKU_ID")))
 )
 
 func getSKUNameFromID(skuID discord.Snowflake) string {
@@ -38,10 +36,10 @@ func returnSnowflakeIfNotNull(i *discord.Snowflake) discord.Snowflake {
 	return *i
 }
 
-func FetchGuildName(ctx context.Context, logger zerolog.Logger, guildID discord.Snowflake) string {
+func FetchGuildName(ctx context.Context, guildID discord.Snowflake) string {
 	sandwichClient := GetSandwichClientFromContext(ctx)
 	if sandwichClient == nil {
-		logger.Error().Msg("Failed to get sandwich client from context")
+		Logger.Error().Msg("Failed to get sandwich client from context")
 
 		return ""
 	}
@@ -50,7 +48,7 @@ func FetchGuildName(ctx context.Context, logger zerolog.Logger, guildID discord.
 		GuildIDs: []int64{int64(guildID)},
 	})
 	if err != nil {
-		logger.Warn().Err(err).
+		Logger.Warn().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to fetch guild")
 
@@ -67,7 +65,7 @@ func FetchGuildName(ctx context.Context, logger zerolog.Logger, guildID discord.
 
 	guild, err = pb.GRPCToGuild(guildPb)
 	if err != nil {
-		logger.Warn().Err(err).
+		Logger.Warn().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to convert guild")
 
@@ -77,9 +75,9 @@ func FetchGuildName(ctx context.Context, logger zerolog.Logger, guildID discord.
 	return guild.Name
 }
 
-func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, queries *database.Queries, entitlement discord.Entitlement) error {
+func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
 	if entitlement.UserID == nil {
-		logger.Error().
+		Logger.Error().
 			Int64("entitlement_id", int64(entitlement.ID)).
 			Msg("entitlement user_id is nil")
 
@@ -100,7 +98,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	if entitlement.StartsAt != nil {
 		startsAt = sql.NullTime{Valid: true, Time: *entitlement.StartsAt}
 	} else {
-		logger.Warn().
+		Logger.Warn().
 			Int64("entitlement_id", int64(entitlement.ID)).
 			Msg("entitlement starts_at is nil")
 
@@ -119,7 +117,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	var guildName string
 
 	if guildID.Valid {
-		guildName = FetchGuildName(ctx, logger, discord.Snowflake(guildID.Int64))
+		guildName = FetchGuildName(ctx, discord.Snowflake(guildID.Int64))
 	}
 
 	if guildName == "" {
@@ -127,12 +125,12 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	}
 
 	if DiscordPaymentsWebhookURL != "" {
-		err := utils.SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
+		err := SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
 			Embeds: []discord.Embed{
 				{
 					Title:     "Discord Sale",
 					Color:     0x5865F2,
-					Timestamp: utils.ToPointer(time.Now()),
+					Timestamp: ToPointer(time.Now()),
 					Fields: []discord.EmbedField{
 						{
 							Name:   "ID",
@@ -154,34 +152,34 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 						},
 						{
 							Name:  "Starts At",
-							Value: "<t:" + utils.Itoa(startsAt.Time.Unix()) + ":R>",
+							Value: "<t:" + Itoa(startsAt.Time.Unix()) + ":R>",
 						},
 						{
 							Name:  "Ends At",
-							Value: "<t:" + utils.Itoa(endsAt.Time.Unix()) + ":R>",
+							Value: "<t:" + Itoa(endsAt.Time.Unix()) + ":R>",
 						},
 						{
 							Name:  "Gift Code Flags",
-							Value: utils.Itoa(giftCodeFlags.Int64),
+							Value: Itoa(giftCodeFlags.Int64),
 						},
 						{
 							Name:  "Guild",
-							Value: utils.If(guildID.Valid, "`"+guildName+"` ", "") + utils.Itoa(guildID.Int64),
+							Value: If(guildID.Valid, "`"+guildName+"` ", "") + Itoa(guildID.Int64),
 						},
 						{
 							Name:  "Consumed",
-							Value: utils.If(entitlement.Consumed, "TRUE", "FALSE"),
+							Value: If(entitlement.Consumed, "TRUE", "FALSE"),
 						},
 						{
 							Name:  "Deleted",
-							Value: utils.If(entitlement.Deleted, "TRUE", "FALSE"),
+							Value: If(entitlement.Deleted, "TRUE", "FALSE"),
 						},
 					},
 				},
 			},
 		})
 		if err != nil {
-			logger.Error().Err(err).Msg("Failed to send webhook message")
+			Logger.Error().Err(err).Msg("Failed to send webhook message")
 		}
 	}
 
@@ -193,7 +191,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	case WelcomerCustomBackgroundsDiscordSKU:
 		membershipType = database.MembershipTypeCustomBackgrounds
 	default:
-		logger.Error().
+		Logger.Error().
 			Int64("entitlement_id", int64(entitlement.ID)).
 			Int64("sku_id", int64(entitlement.SkuID)).
 			Msg("Unknown SKU")
@@ -209,7 +207,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 	txs, err := queries.GetUserTransactionsByUserID(ctx, int64(*entitlement.UserID))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(*entitlement.UserID)).
 			Msg("failed to get user transactions")
 
@@ -229,13 +227,13 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 	// If no discord transactions exist, create one.
 	if discordTxs == nil {
-		logger.Info().
+		Logger.Info().
 			Str("entitlement_id", entitlement.ID.String()).
 			Msg("no discord transactions found, creating one")
 
 		discordTxs, err = CreateTransactionForUser(ctx, queries, *entitlement.UserID, database.PlatformTypeDiscord, database.TransactionStatusCompleted, entitlement.ID.String(), "", "")
 		if err != nil {
-			logger.Error().Err(err).
+			Logger.Error().Err(err).
 				Str("entitlement_id", entitlement.ID.String()).
 				Msg("failed to create discord transaction")
 
@@ -258,7 +256,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 		Consumed:        entitlement.Consumed,
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("entitlement_id", entitlement.ID.String()).
 			Msg("failed to create or update discord subscription")
 
@@ -267,7 +265,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 	memberships, err := queries.GetUserMembershipsByTransactionID(ctx, entitlement.ID.String())
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(*entitlement.UserID)).
 			Msg("failed to get user memberships")
 
@@ -286,7 +284,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	}
 
 	if len(discordMemberships) > quantity {
-		logger.Warn().
+		Logger.Warn().
 			Int64("user_id", int64(*entitlement.UserID)).
 			Int("discord_memberships", len(discordMemberships)).
 			Int("eligible_memberships", quantity).
@@ -294,7 +292,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 		// Remove memberships. Let them expire naturally.
 	} else if len(discordMemberships) < quantity {
-		logger.Info().
+		Logger.Info().
 			Int64("user_id", int64(*entitlement.UserID)).
 			Int("current_memberships", len(discordMemberships)).
 			Int("eligible_memberships", quantity).
@@ -305,7 +303,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 		for i := len(discordMemberships); i < quantity; i++ {
 			err = CreateMembershipForUser(ctx, queries, *entitlement.UserID, discordTxs.TransactionUuid, membershipType, endsAt.Time, entitlement.GuildID)
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(*entitlement.UserID)).
 					Msg("failed to create membership")
 
@@ -315,7 +313,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 
 		for _, membership := range discordMemberships {
 			membership.ExpiresAt = endsAt.Time
-			membership.Status = utils.If(
+			membership.Status = If(
 				membership.Status == int32(database.MembershipStatusIdle),
 				int32(database.MembershipStatusActive),
 				membership.Status)
@@ -330,7 +328,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 				GuildID:         membership.GuildID,
 			})
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(*entitlement.UserID)).
 					Msg("Failed to update membership")
 
@@ -338,7 +336,7 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 			}
 		}
 	} else {
-		logger.Info().
+		Logger.Info().
 			Int64("user_id", int64(*entitlement.UserID)).
 			Int("current_memberships", len(discordMemberships)).
 			Int("eligible_memberships", quantity).
@@ -350,14 +348,14 @@ func HandleDiscordEntitlement(ctx context.Context, logger zerolog.Logger, querie
 	return nil
 }
 
-func OnDiscordEntitlementCreated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, entitlement discord.Entitlement) error {
-	return HandleDiscordEntitlement(ctx, logger, queries, entitlement)
+func OnDiscordEntitlementCreated(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
+	return HandleDiscordEntitlement(ctx, queries, entitlement)
 }
 
-func OnDiscordEntitlementUpdated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, entitlement discord.Entitlement) error {
-	return HandleDiscordEntitlement(ctx, logger, queries, entitlement)
+func OnDiscordEntitlementUpdated(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
+	return HandleDiscordEntitlement(ctx, queries, entitlement)
 }
 
-func OnDiscordEntitlementDeleted(ctx context.Context, logger zerolog.Logger, queries *database.Queries, entitlement discord.Entitlement) error {
-	return HandleDiscordEntitlement(ctx, logger, queries, entitlement)
+func OnDiscordEntitlementDeleted(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
+	return HandleDiscordEntitlement(ctx, queries, entitlement)
 }

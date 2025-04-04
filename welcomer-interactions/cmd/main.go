@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"time"
 
 	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
@@ -16,7 +15,6 @@ import (
 	interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -54,23 +52,7 @@ func main() {
 
 	// Setup Logger
 
-	var level zerolog.Level
-
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out: os.Stdout,
-
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-
-	logger.Info().Msg("Logging configured")
+	welcomer.SetupLogger(*loggingLevel)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -118,13 +100,12 @@ func main() {
 	app := interactions.NewWelcomer(ctx, subway.SubwayOptions{
 		SandwichClient:    sandwichClient,
 		RESTInterface:     restInterface,
-		Logger:            logger,
 		PublicKeys:        *publicKeys,
 		PrometheusAddress: *prometheusAddress,
 	})
 
 	if err != nil {
-		logger.Panic().Err(err).Msg("Exception creating app")
+		welcomer.Logger.Panic().Err(err).Msg("Exception creating app")
 	}
 
 	if *syncCommands {
@@ -151,7 +132,7 @@ func main() {
 			panic(fmt.Errorf(`failed to sync commands. app.SyncCommands(): %w`, err))
 		}
 
-		logger.Info().Msg("Successfully synced commands")
+		welcomer.Logger.Info().Msg("Successfully synced commands")
 
 	}
 
@@ -162,12 +143,12 @@ func main() {
 	}
 
 	if err = app.ListenAndServe("", *host); err != nil {
-		logger.Panic().Err(err).Msg("Exceptions whilst starting app")
+		welcomer.Logger.Panic().Err(err).Msg("Exceptions whilst starting app")
 	}
 
 	cancel()
 
 	if err = grpcConnection.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 }

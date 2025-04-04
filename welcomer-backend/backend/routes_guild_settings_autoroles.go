@@ -6,7 +6,6 @@ import (
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -22,11 +21,11 @@ func getGuildSettingsAutoRoles(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					autoroles = &database.GuildSettingsAutoroles{
 						GuildID:       int64(guildID),
-						ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
-						Roles:         database.DefaultAutoroles.Roles,
+						ToggleEnabled: welcomer.DefaultAutoroles.ToggleEnabled,
+						Roles:         welcomer.DefaultAutoroles.Roles,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild autoroles settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild autoroles settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -81,9 +80,9 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(*autoroles)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *autoroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild autoroles settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *autoroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild autoroles settings")
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateAutoRolesGuildSettings(ctx, databaseAutoRolesGuildSettings)
 
@@ -95,7 +94,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,

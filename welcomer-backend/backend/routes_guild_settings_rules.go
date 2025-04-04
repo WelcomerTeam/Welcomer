@@ -7,7 +7,6 @@ import (
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -28,12 +27,12 @@ func getGuildSettingsRules(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					rules = &database.GuildSettingsRules{
 						GuildID:          int64(guildID),
-						ToggleEnabled:    database.DefaultRules.ToggleEnabled,
-						ToggleDmsEnabled: database.DefaultRules.ToggleDmsEnabled,
-						Rules:            database.DefaultRules.Rules,
+						ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
+						ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
+						Rules:            welcomer.DefaultRules.Rules,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild rules settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild rules settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -88,9 +87,9 @@ func setGuildSettingsRules(ctx *gin.Context) {
 			databaseRulesGuildSettings := database.CreateOrUpdateRulesGuildSettingsParams(*rules)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *rules).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild rule settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *rules).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild rule settings")
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)
 					return err
@@ -101,7 +100,7 @@ func setGuildSettingsRules(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild rules settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild rules settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,

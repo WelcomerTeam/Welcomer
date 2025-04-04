@@ -6,12 +6,10 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
-	"github.com/rs/zerolog"
 )
 
 // Triggers when a patreon tier has changed.
-func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams) error {
+func OnPatreonTierChanged(ctx context.Context, queries *database.Queries, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams) error {
 	println("HandlePatreonTierChanged", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID)
 
 	eligibleMemberships := 0
@@ -39,7 +37,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 	txs, err := queries.GetUserTransactionsByUserID(ctx, int64(patreonUser.UserID))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to get user transactions")
 
@@ -58,13 +56,13 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 	// If no patreon transaction is found, create one.
 	if patreonTransaction == nil {
-		logger.Warn().
+		Logger.Warn().
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("No patreon transaction found")
 
 		transaction, err := CreateTransactionForUser(ctx, queries, discord.Snowflake(patreonUser.UserID), database.PlatformTypePatreon, database.TransactionStatusCompleted, "", "", "")
 		if err != nil {
-			logger.Error().Err(err).
+			Logger.Error().Err(err).
 				Int64("user_id", int64(patreonUser.UserID)).
 				Msg("Failed to create patreon transaction")
 
@@ -95,7 +93,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 		PatronStatus:     patreonUser.PatronStatus,
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to create or update patreon user")
 
@@ -104,7 +102,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(patreonUser.UserID))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to get user memberships")
 
@@ -130,7 +128,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 	}
 
 	if len(patreonMemberships) > eligibleMemberships {
-		logger.Warn().
+		Logger.Warn().
 			Int64("user_id", int64(patreonUser.UserID)).
 			Int("current_memberships", len(patreonMemberships)).
 			Int("eligible_memberships", eligibleMemberships).
@@ -138,7 +136,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 
 		// Remove memberships. Let them expire naturally.
 	} else if len(patreonMemberships) < eligibleMemberships {
-		logger.Info().
+		Logger.Info().
 			Int64("user_id", int64(patreonUser.UserID)).
 			Int("current_memberships", len(patreonMemberships)).
 			Int("eligible_memberships", eligibleMemberships).
@@ -149,7 +147,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 		for i := len(patreonMemberships); i < eligibleMemberships; i++ {
 			err = CreateMembershipForUser(ctx, queries, discord.Snowflake(patreonUser.UserID), patreonTransaction.TransactionUuid, membershipType, membershipExpiration, nil)
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(patreonUser.UserID)).
 					Msg("Failed to create membership")
 
@@ -170,7 +168,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 				GuildID:         membership.GuildID,
 			})
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(patreonUser.UserID)).
 					Msg("Failed to update membership")
 
@@ -178,7 +176,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 			}
 		}
 	} else {
-		logger.Info().
+		Logger.Info().
 			Int64("user_id", int64(patreonUser.UserID)).
 			Int("current_memberships", len(patreonMemberships)).
 			Int("eligible_memberships", eligibleMemberships).
@@ -191,7 +189,7 @@ func OnPatreonTierChanged(ctx context.Context, logger zerolog.Logger, queries *d
 }
 
 // Triggers when a patreon tier has changed. Ran if OnPatreonTierChange failed to run.
-func OnPatreonTierChanged_Fallback(ctx context.Context, logger zerolog.Logger, queries *database.Queries, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams, e error) error {
+func OnPatreonTierChanged_Fallback(ctx context.Context, queries *database.Queries, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams, e error) error {
 	println("HandlePatreonTierChanged_Fallback", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID, e.Error())
 
 	// TODO: Log to file/webhook
@@ -200,7 +198,7 @@ func OnPatreonTierChanged_Fallback(ctx context.Context, logger zerolog.Logger, q
 }
 
 // Triggers when a patron is no longer pledging
-func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
+func OnPatreonNoLongerPledging(ctx context.Context, queries *database.Queries, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
 	println("HandlePatreonNoLongerPledging", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus)
 
 	// Update pledge ended at.
@@ -210,14 +208,14 @@ func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queri
 		PledgeCreatedAt:  patreonUser.PledgeCreatedAt,
 		PledgeEndedAt:    time.Now(),
 		TierID:           patreonUser.TierID,
-		FullName:         utils.Coalesce(patreonMember.Attributes.FullName, patreonUser.FullName),
-		Email:            utils.Coalesce(patreonMember.Attributes.Email, patreonUser.Email),
-		ThumbUrl:         utils.Coalesce(patreonMember.Attributes.ThumbUrl, patreonUser.ThumbUrl),
+		FullName:         Coalesce(patreonMember.Attributes.FullName, patreonUser.FullName),
+		Email:            Coalesce(patreonMember.Attributes.Email, patreonUser.Email),
+		ThumbUrl:         Coalesce(patreonMember.Attributes.ThumbUrl, patreonUser.ThumbUrl),
 		LastChargeStatus: string(patreonMember.Attributes.LastChargeStatus),
 		PatronStatus:     string(patreonMember.Attributes.PatronStatus),
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to create or update patreon user")
 
@@ -226,7 +224,7 @@ func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queri
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(patreonUser.UserID))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to get user memberships")
 
@@ -255,7 +253,7 @@ func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queri
 				GuildID:         membership.GuildID,
 			})
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(patreonUser.UserID)).
 					Msg("Failed to update membership")
 
@@ -268,7 +266,7 @@ func OnPatreonNoLongerPledging(ctx context.Context, logger zerolog.Logger, queri
 }
 
 // Triggered when a patron is still pledging.
-func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
+func OnPatreonActive(ctx context.Context, queries *database.Queries, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
 	println("HandlePatreonActive", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus, patreonMember.Attributes.LastChargeStatus)
 
 	// Update patreon user
@@ -278,14 +276,14 @@ func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *databa
 		PledgeCreatedAt:  patreonUser.PledgeCreatedAt,
 		PledgeEndedAt:    patreonUser.PledgeEndedAt,
 		TierID:           patreonUser.TierID,
-		FullName:         utils.Coalesce(patreonMember.Attributes.FullName, patreonUser.FullName),
-		Email:            utils.Coalesce(patreonMember.Attributes.Email, patreonUser.Email),
-		ThumbUrl:         utils.Coalesce(patreonMember.Attributes.ThumbUrl, patreonUser.ThumbUrl),
+		FullName:         Coalesce(patreonMember.Attributes.FullName, patreonUser.FullName),
+		Email:            Coalesce(patreonMember.Attributes.Email, patreonUser.Email),
+		ThumbUrl:         Coalesce(patreonMember.Attributes.ThumbUrl, patreonUser.ThumbUrl),
 		LastChargeStatus: string(patreonMember.Attributes.LastChargeStatus),
 		PatronStatus:     string(patreonMember.Attributes.PatronStatus),
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to create or update patreon user")
 
@@ -294,7 +292,7 @@ func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *databa
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(patreonUser.UserID))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("Failed to get user memberships")
 
@@ -323,7 +321,7 @@ func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *databa
 				GuildID:         membership.GuildID,
 			})
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(patreonUser.UserID)).
 					Msg("Failed to update membership")
 
@@ -336,7 +334,7 @@ func OnPatreonActive(ctx context.Context, logger zerolog.Logger, queries *databa
 }
 
 // Triggers when a patreon account has been linked.
-func OnPatreonLinked(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser PatreonUser, automatic bool) error {
+func OnPatreonLinked(ctx context.Context, queries *database.Queries, patreonUser PatreonUser, automatic bool) error {
 	println("HandlePatreonLinked", patreonUser.SocialConnections.Discord.UserID.String(), patreonUser.ID, automatic)
 
 	// TODO: Notify of linked if not automatic or automatic and has tier.
@@ -345,7 +343,7 @@ func OnPatreonLinked(ctx context.Context, logger zerolog.Logger, queries *databa
 }
 
 // Triggers when a patreon account has been unlinked.
-func OnPatreonUnlinked(ctx context.Context, logger zerolog.Logger, queries *database.Queries, patreonUser *database.PatreonUsers) error {
+func OnPatreonUnlinked(ctx context.Context, queries *database.Queries, patreonUser *database.PatreonUsers) error {
 	println("HandlePatreonUnlinked", patreonUser.PatreonUserID, patreonUser.UserID)
 
 	// TODO: Figure out what to do. Let people know when it is unlinked?

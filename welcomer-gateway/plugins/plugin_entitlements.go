@@ -38,21 +38,21 @@ func (c *EntitlementsCog) RegisterCog(bot *sandwich.Bot) error {
 	c.EventHandlers.RegisterOnEntitlementCreate(func(eventCtx *sandwich.EventContext, entitlement discord.Entitlement) error {
 		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
-		return welcomer.OnDiscordEntitlementCreated(eventCtx.Context, eventCtx.Logger, queries, entitlement)
+		return welcomer.OnDiscordEntitlementCreated(eventCtx.Context, queries, entitlement)
 	})
 
 	// Register event when entitlement is updated.
 	c.EventHandlers.RegisterOnEntitlementUpdate(func(eventCtx *sandwich.EventContext, entitlement discord.Entitlement) error {
 		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
-		return welcomer.OnDiscordEntitlementUpdated(eventCtx.Context, eventCtx.Logger, queries, entitlement)
+		return welcomer.OnDiscordEntitlementUpdated(eventCtx.Context, queries, entitlement)
 	})
 
 	// Register event when entitlement is deleted.
 	c.EventHandlers.RegisterOnEntitlementDelete(func(eventCtx *sandwich.EventContext, entitlement discord.Entitlement) error {
 		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
 
-		return welcomer.OnDiscordEntitlementDeleted(eventCtx.Context, eventCtx.Logger, queries, entitlement)
+		return welcomer.OnDiscordEntitlementDeleted(eventCtx.Context, queries, entitlement)
 	})
 
 	return nil

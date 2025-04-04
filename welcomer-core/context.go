@@ -9,7 +9,6 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rs/zerolog"
 )
 
 type InteractionsContextKey int
@@ -108,18 +107,6 @@ func GetManagerNameFromContext(ctx context.Context) string {
 	}
 
 	value, _ := ctx.Value(ManagerNameKey).(string)
-
-	return value
-}
-
-// Logger context handler.
-
-func AddLoggerToContext(ctx context.Context, v zerolog.Logger) context.Context {
-	return context.WithValue(ctx, LoggerKey, v)
-}
-
-func GetLoggerFromContext(ctx context.Context) zerolog.Logger {
-	value, _ := ctx.Value(LoggerKey).(zerolog.Logger)
 
 	return value
 }

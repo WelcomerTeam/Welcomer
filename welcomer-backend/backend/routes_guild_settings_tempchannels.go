@@ -7,7 +7,6 @@ import (
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -23,14 +22,14 @@ func getGuildSettingsTempChannels(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					tempchannels = &database.GuildSettingsTempchannels{
 						GuildID:          int64(guildID),
-						ToggleEnabled:    database.DefaultTempChannels.ToggleEnabled,
-						ToggleAutopurge:  database.DefaultTempChannels.ToggleAutopurge,
-						ChannelLobby:     database.DefaultTempChannels.ChannelLobby,
-						ChannelCategory:  database.DefaultTempChannels.ChannelCategory,
-						DefaultUserCount: database.DefaultTempChannels.DefaultUserCount,
+						ToggleEnabled:    welcomer.DefaultTempChannels.ToggleEnabled,
+						ToggleAutopurge:  welcomer.DefaultTempChannels.ToggleAutopurge,
+						ChannelLobby:     welcomer.DefaultTempChannels.ChannelLobby,
+						ChannelCategory:  welcomer.DefaultTempChannels.ChannelCategory,
+						DefaultUserCount: welcomer.DefaultTempChannels.DefaultUserCount,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild tempchannels settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild tempchannels settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -85,9 +84,9 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 			databaseTempChannelsGuildSettings := database.CreateOrUpdateTempChannelsGuildSettingsParams(*tempchannels)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *tempchannels).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild tempchannel settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *tempchannels).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild tempchannel settings")
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
 					return err
@@ -98,7 +97,7 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild tempchannels settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild tempchannels settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,

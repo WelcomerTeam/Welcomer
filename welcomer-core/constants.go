@@ -20,5 +20,5 @@ var (
 	EmojiCheckMark    = discord.Emoji{ID: 586907765662941185, Name: "checkboxmarkedoutline"}
 
 	SupportInvite = "https://discord.gg/kQJz33ExK2"
-	WebsiteURL    = "https://" + os.Getenv("DOMAIN") // https://welcomer.gg
+	WebsiteURL    = "https://" + os.Getenv("DOMAIN") // https://gg
 )

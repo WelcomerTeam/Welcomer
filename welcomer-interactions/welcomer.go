@@ -14,7 +14,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	plugins "github.com/WelcomerTeam/Welcomer/welcomer-interactions/plugins"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"
 )
 
@@ -27,7 +26,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.Commands.ErrorHandler = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, err error) (*discord.InteractionResponse, error) {
 		s, _ := json.Marshal(interaction)
 
-		sub.Logger.Error().Err(err).Bytes("json", s).Msg("Exception executing interaction")
+		welcomer.Logger.Error().Err(err).Bytes("json", s).Msg("Exception executing interaction")
 		println(string(debug.Stack()))
 
 		return nil, nil
@@ -72,7 +71,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 
 		var usage *database.ScienceCommandUsages
 
-		err = utils.RetryWithFallback(
+		err = welcomer.RetryWithFallback(
 			func() error {
 				usage, err = queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
 					GuildID:         guildID,
@@ -90,16 +89,16 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 			nil,
 		)
 		if err != nil {
-			sub.Logger.Warn().Err(err).Msg("Failed to create command usage")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to create command usage")
 		}
 
 		if interactionError != nil {
 			interactionJSON, err := json.Marshal(interaction)
 			if err != nil {
-				sub.Logger.Warn().Err(err).Msg("Failed to marshal interaction")
+				welcomer.Logger.Warn().Err(err).Msg("Failed to marshal interaction")
 			}
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
 						CommandUuid: usage.CommandUuid,
@@ -114,10 +113,10 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 				nil,
 			)
 			if err != nil {
-				sub.Logger.Warn().Err(err).Msg("Failed to create command error")
+				welcomer.Logger.Warn().Err(err).Msg("Failed to create command error")
 			}
 
-			sub.Logger.Error().
+			welcomer.Logger.Error().
 				Str("command", usage.Command).
 				Int64("guild_id", usage.GuildID).
 				Int64("user_id", usage.UserID).
@@ -125,7 +124,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 				Err(err).
 				Msg("Command executed with errors")
 		} else {
-			sub.Logger.Info().
+			welcomer.Logger.Info().
 				Str("command", usage.Command).
 				Int64("guild_id", usage.GuildID).
 				Int64("user_id", usage.UserID).

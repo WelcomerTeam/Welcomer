@@ -8,12 +8,11 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	"github.com/rs/zerolog"
 )
 
-func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, session *discord.Session, membership database.UserMemberships) error {
+func notifyMembershipCreated(ctx context.Context, queries *database.Queries, session *discord.Session, membership database.UserMemberships) error {
 	if membership.UserID == 0 {
-		logger.Error().Msg("Cannot notify membership created, user ID is 0")
+		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
 		return nil
 	}
@@ -25,7 +24,7 @@ func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries
 		CreateDMChannel: true,
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", membership.UserID).
 			Msg("Failed to fetch user")
 
@@ -33,7 +32,7 @@ func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries
 	}
 
 	if len(users.Users) == 0 {
-		logger.Error().
+		Logger.Error().
 			Int64("user_id", membership.UserID).
 			Msg("Failed to fetch user, no users found")
 
@@ -44,7 +43,7 @@ func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries
 
 	user, err := sandwich.GRPCToUser(pbUser)
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", pbUser.ID).
 			Msg("Failed to convert user")
 
@@ -53,7 +52,7 @@ func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries
 
 	transactions, err := queries.GetUserTransactionsByTransactionID(ctx, membership.TransactionUuid.String())
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(user.ID)).
 			Str("transaction_uuid", membership.TransactionUuid.String()).
 			Msg("Failed to get user transactions")
@@ -96,14 +95,14 @@ func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries
 		},
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(user.ID)).
 			Msg("Failed to send message")
 
 		return err
 	}
 
-	logger.Info().
+	Logger.Info().
 		Int64("user_id", int64(user.ID)).
 		Str("membership_id", membership.MembershipUuid.String()).
 		Msg("Sent membership created message")
@@ -111,9 +110,9 @@ func notifyMembershipCreated(ctx context.Context, logger zerolog.Logger, queries
 	return nil
 }
 
-func notifyMembershipExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, session *discord.Session, membership database.UserMemberships) error {
+func notifyMembershipExpired(ctx context.Context, queries *database.Queries, session *discord.Session, membership database.UserMemberships) error {
 	if membership.UserID == 0 {
-		logger.Error().Msg("Cannot notify membership created, user ID is 0")
+		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
 		return nil
 	}

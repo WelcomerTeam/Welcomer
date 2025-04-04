@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
@@ -17,12 +17,12 @@ import (
 
 // Send user to OAuth2 Authorize URL.
 func doPatreonOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
-	state := utils.RandStringBytesRmndr(StateStringLength)
+	state := welcomer.RandStringBytesRmndr(StateStringLength)
 
 	SetStateSession(session, state)
 
 	if err := session.Save(); err != nil {
-		backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 	}
 
 	ctx.Redirect(http.StatusTemporaryRedirect, PatreonOAuth2Config.AuthCodeURL(state))
@@ -59,7 +59,7 @@ func getPatreonCallback(ctx *gin.Context) {
 
 		token, err := PatreonOAuth2Config.Exchange(ctx, queryCode)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
 			doPatreonOAuthAuthorize(session, ctx)
 
@@ -68,7 +68,7 @@ func getPatreonCallback(ctx *gin.Context) {
 
 		patreonUser, err := core.IdentifyPatreonMember(ctx, token.Type()+" "+token.AccessToken)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to identify member")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to identify member")
 
 			doPatreonOAuthAuthorize(session, ctx)
 
@@ -76,11 +76,11 @@ func getPatreonCallback(ctx *gin.Context) {
 		}
 
 		tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
-		tc.Transport = utils.NewUserAgentSetterTransport(tc.Transport, utils.UserAgent)
+		tc.Transport = welcomer.NewUserAgentSetterTransport(tc.Transport, welcomer.UserAgent)
 
 		patreonUsers, err := core.GetAllPatreonMembers(ctx, tc)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to get all patreon members")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to get all patreon members")
 
 			doPatreonOAuthAuthorize(session, ctx)
 
@@ -99,7 +99,7 @@ func getPatreonCallback(ctx *gin.Context) {
 
 		databasePatreonUser, err := backend.Database.GetPatreonUser(ctx, int64(patreonUser.ID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			backend.Logger.Warn().Err(err).Msg("Failed to get patreon user")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to get patreon user")
 
 			doPatreonOAuthAuthorize(session, ctx)
 
@@ -143,26 +143,26 @@ func getPatreonCallback(ctx *gin.Context) {
 
 		_, err = backend.Database.CreateOrUpdatePatreonUser(ctx, newPatreonUser)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to create or update patreon user")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to create or update patreon user")
 
 			doPatreonOAuthAuthorize(session, ctx)
 
 			return
 		}
 
-		err = core.OnPatreonLinked(ctx, backend.Logger, backend.Database, patreonUser, false)
+		err = core.OnPatreonLinked(ctx, backend.Database, patreonUser, false)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon linked")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon linked")
 		}
 
 		if tierID != databasePatreonUser.TierID {
-			err = core.OnPatreonTierChanged(ctx, backend.Logger, backend.Database, databasePatreonUser, newPatreonUser)
+			err = core.OnPatreonTierChanged(ctx, backend.Database, databasePatreonUser, newPatreonUser)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed")
+				welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed")
 
-				err = core.OnPatreonTierChanged_Fallback(ctx, backend.Logger, backend.Database, databasePatreonUser, newPatreonUser, err)
+				err = core.OnPatreonTierChanged_Fallback(ctx, backend.Database, databasePatreonUser, newPatreonUser, err)
 				if err != nil {
-					backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed fallback")
+					welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed fallback")
 				}
 			}
 		}
@@ -176,7 +176,7 @@ func deletePatreonLink(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		rawPatreonID := ctx.Param(PatreonIDKey)
 
-		patreonIDInt, err := utils.Atoi(rawPatreonID)
+		patreonIDInt, err := welcomer.Atoi(rawPatreonID)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, BaseResponse{
 				Ok:    false,
@@ -189,7 +189,7 @@ func deletePatreonLink(ctx *gin.Context) {
 
 		rec, err := backend.Database.GetPatreonUser(ctx, patreonIDInt)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to get patreon user")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to get patreon user")
 
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -203,7 +203,7 @@ func deletePatreonLink(ctx *gin.Context) {
 			UserID:        int64(tryGetUser(ctx).ID),
 		})
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to delete patreon user")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to delete patreon user")
 
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -212,9 +212,9 @@ func deletePatreonLink(ctx *gin.Context) {
 			return
 		}
 
-		err = core.OnPatreonUnlinked(ctx, backend.Logger, backend.Database, rec)
+		err = core.OnPatreonUnlinked(ctx, backend.Database, rec)
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to trigger patreon unlinked")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon unlinked")
 		}
 
 		ctx.JSON(http.StatusOK, BaseResponse{

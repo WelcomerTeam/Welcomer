@@ -1,4 +1,4 @@
-package utils
+package welcomer
 
 import (
 	"regexp"
@@ -95,7 +95,7 @@ type UserProvidedEmbed struct {
 // solid:FFAAAA - Solid colour with HEX code.
 // solid:profile - Solid colour based on user profile picture.
 // unsplash:Bnr_ZSmqbDY - Unsplash along with Id.
-// custom:018c186a-4ce5-74c7-b2d1-b0639c2f4686 - per-guild utils.background
+// custom:018c186a-4ce5-74c7-b2d1-b0639c2f4686 - per-guild background
 func ParseBackground(str string) (Background, bool) {
 	str = strings.TrimSpace(str)
 

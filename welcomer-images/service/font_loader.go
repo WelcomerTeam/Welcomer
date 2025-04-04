@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
@@ -33,7 +34,7 @@ func (is *ImageService) CreateFontPack(font string, size float64) *MultiFace {
 
 	f, fo, err := is.FetchFont(font, size)
 	if err != nil {
-		is.Logger.Warn().Err(err).Str("font", font).Msg("Failed to fetch font in font pack")
+		welcomer.Logger.Warn().Err(err).Str("font", font).Msg("Failed to fetch font in font pack")
 	} else {
 		face.AddTrueTypeFace(*f.Face, fo.Font)
 	}
@@ -41,7 +42,7 @@ func (is *ImageService) CreateFontPack(font string, size float64) *MultiFace {
 	for fontName := range fallback {
 		f, fo, err = is.FetchFont(fontName, size)
 		if err != nil {
-			is.Logger.Warn().Err(err).Str("font", fontName).Msg("Failed to fetch fallback font in font pack")
+			welcomer.Logger.Warn().Err(err).Str("font", fontName).Msg("Failed to fetch fallback font in font pack")
 		} else {
 			face.AddTrueTypeFace(*f.Face, fo.Font)
 		}
@@ -66,7 +67,7 @@ func (is *ImageService) FetchFont(f string, size float64) (face *FontFace, font 
 		DPI:  fontDPI,
 	})
 	if err != nil {
-		is.Logger.Error().Err(err).Msg("Failed to create font face")
+		welcomer.Logger.Error().Err(err).Msg("Failed to create font face")
 
 		return nil, nil, err
 	}

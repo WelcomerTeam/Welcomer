@@ -11,7 +11,6 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -50,7 +49,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the TimeRoles module for DM channels.
-	ruleGroup.DMPermission = &utils.False
+	ruleGroup.DMPermission = &welcomer.False
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -58,8 +57,8 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &utils.False,
-		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -70,11 +69,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
 							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     database.DefaultTimeRoles.Timeroles,
+							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 						}
 					} else {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to get TimeRoles guild settings")
 
@@ -82,10 +81,10 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsTimeRoles.Timeroles = utils.SetupJSONB(guildSettingsTimeRoles.Timeroles)
+				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = true
 
-				err = utils.RetryWithFallback(
+				err = welcomer.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -101,7 +100,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					nil,
 				)
 				if err != nil {
-					sub.Logger.Error().Err(err).
+					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
 						Msg("Failed to update TimeRoles guild settings")
 
@@ -111,7 +110,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: utils.NewEmbed("Enabled TimeRoles. Run `/TimeRoles list` to see the list of TimeRoles configured.", utils.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed("Enabled TimeRoles. Run `/TimeRoles list` to see the list of TimeRoles configured.", welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -124,8 +123,8 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &utils.False,
-		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -136,21 +135,21 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
 							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     database.DefaultTimeRoles.Timeroles,
+							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 						}
 					} else {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to get TimeRoles guild settings")
 
 						return nil, err
 					}
 				}
-				guildSettingsTimeRoles.Timeroles = utils.SetupJSONB(guildSettingsTimeRoles.Timeroles)
+				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = false
 
-				err = utils.RetryWithFallback(
+				err = welcomer.RetryWithFallback(
 					func() error {
 						_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
@@ -166,7 +165,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					nil,
 				)
 				if err != nil {
-					sub.Logger.Error().Err(err).
+					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
 						Msg("Failed to update TimeRoles guild settings")
 
@@ -176,7 +175,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: utils.NewEmbed("Disabled TimeRoles.", utils.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed("Disabled TimeRoles.", welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -189,7 +188,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &utils.False,
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -200,11 +199,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
 							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     database.DefaultTimeRoles.Timeroles,
+							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 						}
 					} else {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to get TimeRoles guild settings")
 
@@ -213,13 +212,13 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embeds := []discord.Embed{}
-				embed := discord.Embed{Title: "TimeRoles", Color: utils.EmbedColourInfo}
+				embed := discord.Embed{Title: "TimeRoles", Color: welcomer.EmbedColourInfo}
 
 				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 
-				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
+				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
 				if err != nil {
-					sub.Logger.Error().Err(err).
+					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
 						Msg("Failed to filter assignable roles")
 
@@ -230,7 +229,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: utils.NewEmbed("There are no TimeRoles set for this server.", utils.EmbedColourInfo),
+							Embeds: welcomer.NewEmbed("There are no TimeRoles set for this server.", welcomer.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -290,7 +289,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {
 						embeds = append(embeds, embed)
-						embed = discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 					}
 
 					embed.Description += roleMessage
@@ -321,7 +320,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &utils.False,
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -332,11 +331,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
 							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     database.DefaultTimeRoles.Timeroles,
+							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 						}
 					} else {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to get TimeRoles guild settings")
 
@@ -345,13 +344,13 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embeds := []discord.Embed{}
-				embed := discord.Embed{Title: "TimeRoles", Color: utils.EmbedColourInfo}
+				embed := discord.Embed{Title: "TimeRoles", Color: welcomer.EmbedColourInfo}
 
 				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 
-				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, sub.Logger, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
+				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
 				if err != nil {
-					sub.Logger.Error().Err(err).
+					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
 						Msg("Failed to filter assignable roles")
 
@@ -362,7 +361,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: utils.NewEmbed("There are no TimeRoles set for this server.", utils.EmbedColourInfo),
+							Embeds: welcomer.NewEmbed("There are no TimeRoles set for this server.", welcomer.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -374,12 +373,12 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				})
 
 				for _, role := range timeRoleList {
-					roleMessage := fmt.Sprintf("- <@&%d> - `%s`\n", role.Role, utils.HumanizeDuration(role.Seconds, true))
+					roleMessage := fmt.Sprintf("- <@&%d> - `%s`\n", role.Role, welcomer.HumanizeDuration(role.Seconds, true))
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(roleMessage) > 4000 {
 						embeds = append(embeds, embed)
-						embed = discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 					}
 
 					embed.Description += roleMessage

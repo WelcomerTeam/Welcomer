@@ -5,7 +5,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type EventsCog struct {
@@ -55,7 +54,7 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 		} else if invite.Guild != nil {
 			guildID = int64(invite.Guild.ID)
 		} else {
-			eventCtx.Logger.Warn().Msg("Invite does not have a guild ID")
+			welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
 
 			return nil
 		}
@@ -65,7 +64,7 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 			inviter = invite.Inviter.ID
 		}
 
-		err := utils.RetryWithFallback(
+		err := welcomer.RetryWithFallback(
 			func() error {
 				_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
 					InviteCode: invite.Code,
@@ -82,7 +81,7 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 			nil,
 		)
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guildID", guildID).
 				Msg("Failed to create or update invite")
 		}
@@ -101,7 +100,7 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 		} else if invite.Guild != nil {
 			guildID = int64(invite.Guild.ID)
 		} else {
-			eventCtx.Logger.Warn().Msg("Invite does not have a guild ID")
+			welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
 
 			return nil
 		}
@@ -111,7 +110,7 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 			GuildID:    guildID,
 		})
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guildID", guildID).
 				Msg("Failed to create or update invite")
 		}

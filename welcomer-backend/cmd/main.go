@@ -6,15 +6,12 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"time"
 
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -49,7 +46,7 @@ func main() {
 
 	paypalClientID := flag.String("paypalClientID", os.Getenv("PAYPAL_CLIENT_ID"), "Paypal client ID")
 	paypalClientSecret := flag.String("paypalSecretID", os.Getenv("PAYPAL_CLIENT_SECRET"), "Paypal client secret")
-	paypalIsLive := flag.Bool("paypalIsLive", utils.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
+	paypalIsLive := flag.Bool("paypalIsLive", welcomer.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
 
 	flag.Parse()
 
@@ -59,27 +56,11 @@ func main() {
 
 	// Setup Logger
 
-	var level zerolog.Level
+	welcomer.SetupLogger(*loggingLevel)
 
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out: os.Stdout,
-
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-
-	logger.Info().Msg("Logging configured")
+	welcomer.Logger.Info().Msg("Logging configured")
 
 	ctx, cancel := context.WithCancel(context.Background())
-
-	ctx = welcomer.AddLoggerToContext(ctx, logger)
 
 	// Setup Rest
 
@@ -119,7 +100,7 @@ func main() {
 
 	// Setup app.
 
-	app, err := backend.NewBackend(ctx, logger, backend.BackendOptions{
+	app, err := backend.NewBackend(ctx, backend.BackendOptions{
 		Domain: *domain,
 
 		Host: *host,
@@ -162,11 +143,11 @@ func main() {
 	})
 
 	if err != nil || app == nil {
-		logger.Panic().Err(err).Msg("Exception creating app")
+		welcomer.Logger.Panic().Err(err).Msg("Exception creating app")
 	}
 
 	if err = app.Open(); err != nil {
-		logger.Warn().Err(err).Msg("Exceptions whilst starting app")
+		welcomer.Logger.Warn().Err(err).Msg("Exceptions whilst starting app")
 	}
 
 	cancel()
@@ -174,10 +155,10 @@ func main() {
 	// Close app
 
 	if err = app.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing app")
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing app")
 	}
 
 	if err = grpcConnection.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 }

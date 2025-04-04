@@ -4,19 +4,16 @@ import (
 	"fmt"
 
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	plugins "github.com/WelcomerTeam/Welcomer/welcomer-gateway/plugins"
-	"github.com/rs/zerolog"
 )
 
 type Welcomer struct {
-	Logger zerolog.Logger
-	Bot    *sandwich.Bot
+	Bot *sandwich.Bot
 }
 
 func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welcomer *Welcomer) {
-	welcomer = &Welcomer{
-		Logger: sandwichClient.Logger,
-	}
+	welcomer = &Welcomer{}
 
 	// Register bot (cogs, events)
 	err := welcomer.Register()
@@ -28,7 +25,7 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 }
 
 func (w *Welcomer) Register() error {
-	bot := sandwich.NewBot(w.Logger)
+	bot := sandwich.NewBot(welcomer.Logger)
 
 	// Register cogs
 	bot.MustRegisterCog(plugins.NewWelcomerCog())

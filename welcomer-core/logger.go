@@ -2,15 +2,16 @@ package welcomer
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
 	"github.com/rs/zerolog"
 )
 
-var logger zerolog.Logger
+var Logger zerolog.Logger
 
-func setupLogger(loggingLevel string) {
+func SetupLogger(loggingLevel string) io.Writer {
 	// Setup Logger
 
 	level, err := zerolog.ParseLevel(loggingLevel)
@@ -25,7 +26,8 @@ func setupLogger(loggingLevel string) {
 		TimeFormat: time.Stamp,
 	}
 
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-	logger.Info().Msg("Logging configured")
+	Logger = zerolog.New(writer).With().Timestamp().Logger()
+	Logger.Info().Msg("Logging configured")
 
+	return writer
 }

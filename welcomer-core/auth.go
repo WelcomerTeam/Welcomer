@@ -11,7 +11,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 var elevatedUsers []discord.Snowflake
@@ -109,7 +108,7 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 		return &discord.InteractionResponse{
 			Type: discord.InteractionCallbackTypeChannelMessageSource,
 			Data: &discord.InteractionCallbackData{
-				Embeds: utils.NewEmbed("This command can only be used in a guild.", utils.EmbedColourError),
+				Embeds: NewEmbed("This command can only be used in a guild.", EmbedColourError),
 				Flags:  uint32(discord.MessageFlagEphemeral),
 			},
 		}, nil
@@ -138,14 +137,14 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 		}
 
 		if guild.ID.IsNil() {
-			return nil, utils.ErrMissingGuild
+			return nil, ErrMissingGuild
 		}
 
 		if interaction.Member == nil || !MemberHasElevation(guild, *interaction.Member) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: utils.NewEmbed("You do not have the required permissions to use this command.", utils.EmbedColourError),
+					Embeds: NewEmbed("You do not have the required permissions to use this command.", EmbedColourError),
 					Flags:  uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
@@ -164,11 +163,11 @@ func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord
 
 	_, err := queries.CreateGuild(ctx, database.CreateGuildParams{
 		GuildID:          int64(guildID),
-		EmbedColour:      database.DefaultGuild.EmbedColour,
-		SiteSplashUrl:    database.DefaultGuild.SiteSplashUrl,
-		SiteStaffVisible: database.DefaultGuild.SiteStaffVisible,
-		SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
-		SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
+		EmbedColour:      DefaultGuild.EmbedColour,
+		SiteSplashUrl:    DefaultGuild.SiteSplashUrl,
+		SiteStaffVisible: DefaultGuild.SiteStaffVisible,
+		SiteGuildVisible: DefaultGuild.SiteGuildVisible,
+		SiteAllowInvites: DefaultGuild.SiteAllowInvites,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to ensure guild: %w", err)
@@ -188,7 +187,7 @@ func AcquireSession(ctx context.Context, grpcInterface sandwich.GRPC, restInterf
 
 	configuration, ok := configurations.Identifiers[managerName]
 	if !ok {
-		return nil, utils.ErrMissingApplicationUser
+		return nil, ErrMissingApplicationUser
 	}
 
 	return discord.NewSession("Bot "+configuration.Token, restInterface), nil

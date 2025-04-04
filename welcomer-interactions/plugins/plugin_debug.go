@@ -8,7 +8,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 func NewDebugCog() *DebugCog {
@@ -60,8 +59,8 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &utils.False,
-		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -90,7 +89,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: utils.NewEmbed("Event relayed", utils.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -112,8 +111,8 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &utils.False,
-		DefaultMemberPermission: utils.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -145,7 +144,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: utils.NewEmbed("Event relayed", utils.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})

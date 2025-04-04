@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
@@ -18,7 +19,7 @@ func getGuild(ctx *gin.Context) {
 
 			welcomerPresence, discordGuild, guildMembers, err := hasWelcomerPresence(ctx, guildID, true)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to check welcomer presence")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to check welcomer presence")
 			}
 
 			if !welcomerPresence {
@@ -35,7 +36,7 @@ func getGuild(ctx *gin.Context) {
 
 			channels, err := backend.GRPCInterface.FetchChannelsByName(grpcContext, guildID, "")
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild channels")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild channels")
 			}
 
 			sort.SliceStable(channels, func(i, j int) bool {
@@ -44,7 +45,7 @@ func getGuild(ctx *gin.Context) {
 
 			roles, err := backend.GRPCInterface.FetchRolesByName(grpcContext, guildID, "")
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
 			}
 
 			sort.SliceStable(roles, func(i, j int) bool {
@@ -53,7 +54,7 @@ func getGuild(ctx *gin.Context) {
 
 			emojis, err := backend.GRPCInterface.FetchEmojisByName(grpcContext, guildID, "")
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild emojis")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild emojis")
 			}
 
 			for index, emoji := range emojis {
@@ -71,7 +72,7 @@ func getGuild(ctx *gin.Context) {
 
 			hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, discordGuild.ID)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
+				welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 			}
 
 			guildConfig, err := backend.Database.GetGuild(ctx, int64(discordGuild.ID))
@@ -79,14 +80,14 @@ func getGuild(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildConfig = &database.Guilds{
 						GuildID:          int64(discordGuild.ID),
-						EmbedColour:      database.DefaultGuild.EmbedColour,
-						SiteSplashUrl:    database.DefaultGuild.SiteSplashUrl,
-						SiteStaffVisible: database.DefaultGuild.SiteStaffVisible,
-						SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
-						SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
+						EmbedColour:      welcomer.DefaultGuild.EmbedColour,
+						SiteSplashUrl:    welcomer.DefaultGuild.SiteSplashUrl,
+						SiteStaffVisible: welcomer.DefaultGuild.SiteStaffVisible,
+						SiteGuildVisible: welcomer.DefaultGuild.SiteGuildVisible,
+						SiteAllowInvites: welcomer.DefaultGuild.SiteAllowInvites,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting guild settings")
+					welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting guild settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,

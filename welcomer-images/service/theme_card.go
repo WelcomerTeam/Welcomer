@@ -3,7 +3,7 @@ package service
 import (
 	"image"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
@@ -98,5 +98,5 @@ func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp *Gene
 }
 
 func init() {
-	registerThemeFunc(utils.ImageThemeCard, CreateBadgeImage)
+	registerThemeFunc(welcomer.ImageThemeCard, CreateBadgeImage)
 }

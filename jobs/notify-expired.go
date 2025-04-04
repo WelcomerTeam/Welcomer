@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -27,21 +26,7 @@ func main() {
 
 	flag.Parse()
 
-	// Setup Logger
-	var level zerolog.Level
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-	logger.Info().Msg("Logging configured")
+	welcomer.SetupLogger(*loggingLevel)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -50,19 +35,19 @@ func main() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from panic:", r)
 
-			err = utils.SendWebhookMessage(ctx, *webhookUrl, discord.WebhookMessageParams{
+			err = welcomer.SendWebhookMessage(ctx, *webhookUrl, discord.WebhookMessageParams{
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
 						Title:       "Notify Expired Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   utils.ToPointer(time.Now()),
+						Timestamp:   welcomer.ToPointer(time.Now()),
 					},
 				},
 			})
 			if err != nil {
-				logger.Warn().Err(err).Msg("Failed to send webhook message")
+				welcomer.Logger.Warn().Err(err).Msg("Failed to send webhook message")
 			}
 		}
 	}()
@@ -76,10 +61,10 @@ func main() {
 	// Setup database.
 	db := database.New(pool)
 
-	entrypoint(ctx, logger, db, *webhookUrl, *dryRun)
+	entrypoint(ctx, db, *webhookUrl, *dryRun)
 }
 
-func entrypoint(ctx context.Context, logger zerolog.Logger, db *database.Queries, webhookUrl string, dryRun bool) {
+func entrypoint(ctx context.Context, db *database.Queries, webhookUrl string, dryRun bool) {
 	memberships, err := db.GetExpiringUserMemberships(ctx, int32(database.MembershipStatusExpired))
 	if err != nil {
 		panic(fmt.Sprintf("GetExpiringUserMemberships: %v", err))
@@ -92,13 +77,13 @@ func entrypoint(ctx context.Context, logger zerolog.Logger, db *database.Queries
 
 		// session, err := welcomer.AcquireSession(ctx, nil, nil, nil, "")
 		// if err != nil {
-		// 	logger.Error().Err(err).
+		// 	welcomer.Logger.Error().Err(err).
 		// 		Str("membership_uuid", membership.MembershipUuid.String()).
 		// 		Msg("Failed to acquire session")
 		// } else {
-		// 	err = notifyMembershipCreated(ctx, logger, queries, session, membership)
+		// 	err = notifyMembershipCreated(ctx, queries, session, membership)
 		// 	if err != nil {
-		// 		logger.Error().Err(err).
+		// 		welcomer.Logger.Error().Err(err).
 		// 			Str("membership_uuid", membership.MembershipUuid.String()).
 		// 			Msg("Failed to trigger onMembershipAdded")
 		// 	}
@@ -106,7 +91,6 @@ func entrypoint(ctx context.Context, logger zerolog.Logger, db *database.Queries
 
 		// DM the user
 		// Mark the transaction as expired
-
 	}
 
 	// Notify of new membership?

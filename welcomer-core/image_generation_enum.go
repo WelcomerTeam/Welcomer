@@ -4,7 +4,7 @@
 // Build Date:
 // Built By:
 
-package utils
+package welcomer
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 const (
 	// BackgroundTypeDefault is a BackgroundType of type Default.
 	BackgroundTypeDefault BackgroundType = iota
-	// BackgroundTypeWelcomer is a BackgroundType of type Welcomer.
+	// BackgroundTypeWelcomer is a BackgroundType of type
 	BackgroundTypeWelcomer
 	// BackgroundTypeSolid is a BackgroundType of type Solid.
 	BackgroundTypeSolid

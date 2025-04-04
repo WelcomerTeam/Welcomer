@@ -10,7 +10,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 var (
@@ -58,12 +57,12 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		)
 
 		if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
-			err := utils.SendWebhookMessage(eventCtx.Context, LargeGuildsWebhookURL, discord.WebhookMessageParams{
+			err := welcomer.SendWebhookMessage(eventCtx.Context, LargeGuildsWebhookURL, discord.WebhookMessageParams{
 				Embeds: []discord.Embed{
 					{
 						Title:     "New Large Guild",
-						Color:     utils.EmbedColourSuccess,
-						Timestamp: utils.ToPointer(time.Now()),
+						Color:     welcomer.EmbedColourSuccess,
+						Timestamp: welcomer.ToPointer(time.Now()),
 						Fields: []discord.EmbedField{
 							{
 								Name:   "Name",
@@ -90,15 +89,15 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 				},
 			})
 			if err != nil {
-				eventCtx.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
 			}
 		} else if GuildsWebhookURL != "" {
-			err := utils.SendWebhookMessage(eventCtx.Context, GuildsWebhookURL, discord.WebhookMessageParams{
+			err := welcomer.SendWebhookMessage(eventCtx.Context, GuildsWebhookURL, discord.WebhookMessageParams{
 				Embeds: []discord.Embed{
 					{
 						Title:     "New Guild",
-						Color:     utils.EmbedColourSuccess,
-						Timestamp: utils.ToPointer(time.Now()),
+						Color:     welcomer.EmbedColourSuccess,
+						Timestamp: welcomer.ToPointer(time.Now()),
 						Fields: []discord.EmbedField{
 							{
 								Name:   "Name",
@@ -125,7 +124,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 				},
 			})
 			if err != nil {
-				eventCtx.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
 			}
 		}
 
@@ -142,12 +141,12 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		)
 
 		if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
-			err := utils.SendWebhookMessage(eventCtx.Context, LargeGuildsWebhookURL, discord.WebhookMessageParams{
+			err := welcomer.SendWebhookMessage(eventCtx.Context, LargeGuildsWebhookURL, discord.WebhookMessageParams{
 				Embeds: []discord.Embed{
 					{
 						Title:     "Left Large Guild",
-						Color:     utils.EmbedColourError,
-						Timestamp: utils.ToPointer(time.Now()),
+						Color:     welcomer.EmbedColourError,
+						Timestamp: welcomer.ToPointer(time.Now()),
 						Fields: []discord.EmbedField{
 							{
 								Name:   "Name",
@@ -171,7 +170,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 							},
 							{
 								Name:   "Retention",
-								Value:  utils.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
+								Value:  welcomer.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
 								Inline: true,
 							},
 						},
@@ -179,15 +178,15 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 				},
 			})
 			if err != nil {
-				eventCtx.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
 			}
 		} else if GuildsWebhookURL != "" {
-			err := utils.SendWebhookMessage(eventCtx.Context, GuildsWebhookURL, discord.WebhookMessageParams{
+			err := welcomer.SendWebhookMessage(eventCtx.Context, GuildsWebhookURL, discord.WebhookMessageParams{
 				Embeds: []discord.Embed{
 					{
 						Title:     "Left Guild",
-						Color:     utils.EmbedColourError,
-						Timestamp: utils.ToPointer(time.Now()),
+						Color:     welcomer.EmbedColourError,
+						Timestamp: welcomer.ToPointer(time.Now()),
 						Fields: []discord.EmbedField{
 							{
 								Name:   "Name",
@@ -211,7 +210,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 							},
 							{
 								Name:   "Retention",
-								Value:  utils.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
+								Value:  welcomer.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
 								Inline: true,
 							},
 						},
@@ -219,7 +218,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 				},
 			})
 			if err != nil {
-				eventCtx.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
 			}
 		}
 

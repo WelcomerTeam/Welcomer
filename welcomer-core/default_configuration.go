@@ -1,11 +1,11 @@
-package database
+package welcomer
 
 import (
 	"encoding/json"
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgtype"
 )
 
@@ -25,12 +25,12 @@ func MustConvertToJSONB(v any) pgtype.JSONB {
 	return jb
 }
 
-var DefaultAutoroles GuildSettingsAutoroles = GuildSettingsAutoroles{
+var DefaultAutoroles database.GuildSettingsAutoroles = database.GuildSettingsAutoroles{
 	ToggleEnabled: false,
 	Roles:         []int64{},
 }
 
-var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
+var DefaultBorderwall database.GuildSettingsBorderwall = database.GuildSettingsBorderwall{
 	ToggleEnabled: false,
 	ToggleSendDm:  true,
 	Channel:       0,
@@ -38,7 +38,7 @@ var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
 		Embeds: []discord.Embed{
 			{
 				Description: "This server is protected by Borderwall. Please verify at {{Borderwall.Link}}.",
-				Color:       utils.EmbedColourInfo,
+				Color:       EmbedColourInfo,
 			},
 		},
 	}),
@@ -46,7 +46,7 @@ var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
 		Embeds: []discord.Embed{
 			{
 				Description: "Thank you for verifying! You now have access to the server.",
-				Color:       utils.EmbedColourSuccess,
+				Color:       EmbedColourSuccess,
 			},
 		},
 	}),
@@ -54,12 +54,12 @@ var DefaultBorderwall GuildSettingsBorderwall = GuildSettingsBorderwall{
 	RolesOnVerify: []int64{},
 }
 
-var DefaultFreeRoles GuildSettingsFreeroles = GuildSettingsFreeroles{
+var DefaultFreeRoles database.GuildSettingsFreeroles = database.GuildSettingsFreeroles{
 	ToggleEnabled: false,
 	Roles:         []int64{},
 }
 
-var DefaultLeaver GuildSettingsLeaver = GuildSettingsLeaver{
+var DefaultLeaver database.GuildSettingsLeaver = database.GuildSettingsLeaver{
 	ToggleEnabled: false,
 	Channel:       0,
 	MessageFormat: MustConvertToJSONB(discord.MessageParams{
@@ -67,13 +67,13 @@ var DefaultLeaver GuildSettingsLeaver = GuildSettingsLeaver{
 	}),
 }
 
-var DefaultRules GuildSettingsRules = GuildSettingsRules{
+var DefaultRules database.GuildSettingsRules = database.GuildSettingsRules{
 	ToggleEnabled:    false,
 	ToggleDmsEnabled: true,
 	Rules:            []string{},
 }
 
-var DefaultTempChannels GuildSettingsTempchannels = GuildSettingsTempchannels{
+var DefaultTempChannels database.GuildSettingsTempchannels = database.GuildSettingsTempchannels{
 	ToggleEnabled:    false,
 	ToggleAutopurge:  true,
 	ChannelLobby:     0,
@@ -81,12 +81,12 @@ var DefaultTempChannels GuildSettingsTempchannels = GuildSettingsTempchannels{
 	DefaultUserCount: 0,
 }
 
-var DefaultTimeRoles GuildSettingsTimeroles = GuildSettingsTimeroles{
+var DefaultTimeRoles database.GuildSettingsTimeroles = database.GuildSettingsTimeroles{
 	ToggleEnabled: false,
 	Timeroles:     pgtype.JSONB{Status: pgtype.Null},
 }
 
-var DefaultWelcomerText GuildSettingsWelcomerText = GuildSettingsWelcomerText{
+var DefaultWelcomerText database.GuildSettingsWelcomerText = database.GuildSettingsWelcomerText{
 	ToggleEnabled: false,
 	Channel:       0,
 	MessageFormat: MustConvertToJSONB(discord.MessageParams{
@@ -94,7 +94,7 @@ var DefaultWelcomerText GuildSettingsWelcomerText = GuildSettingsWelcomerText{
 	}),
 }
 
-var DefaultWelcomerImages GuildSettingsWelcomerImages = GuildSettingsWelcomerImages{
+var DefaultWelcomerImages database.GuildSettingsWelcomerImages = database.GuildSettingsWelcomerImages{
 	ToggleEnabled:          false,
 	ToggleImageBorder:      true,
 	ToggleShowAvatar:       true,
@@ -103,13 +103,13 @@ var DefaultWelcomerImages GuildSettingsWelcomerImages = GuildSettingsWelcomerIma
 	ColourTextBorder:       "#000000",
 	ColourImageBorder:      "#FFFFFF",
 	ColourProfileBorder:    "#FFFFFF",
-	ImageAlignment:         int32(utils.ImageAlignmentLeft),
-	ImageTheme:             int32(utils.ImageThemeDefault),
+	ImageAlignment:         int32(ImageAlignmentLeft),
+	ImageTheme:             int32(ImageThemeDefault),
 	ImageMessage:           "Welcome {{User.Name}}\nto {{Guild.Name}}you are the {{Ordinal(Guild.Members)}} member!",
-	ImageProfileBorderType: int32(utils.ImageProfileBorderTypeCircular),
+	ImageProfileBorderType: int32(ImageProfileBorderTypeCircular),
 }
 
-var DefaultWelcomerDms GuildSettingsWelcomerDms = GuildSettingsWelcomerDms{
+var DefaultWelcomerDms database.GuildSettingsWelcomerDms = database.GuildSettingsWelcomerDms{
 	ToggleEnabled:       false,
 	ToggleUseTextFormat: true,
 	ToggleIncludeImage:  true,
@@ -118,8 +118,8 @@ var DefaultWelcomerDms GuildSettingsWelcomerDms = GuildSettingsWelcomerDms{
 	}),
 }
 
-var DefaultGuild Guilds = Guilds{
-	EmbedColour:      utils.EmbedColourInfo,
+var DefaultGuild database.Guilds = database.Guilds{
+	EmbedColour:      EmbedColourInfo,
 	SiteSplashUrl:    "",
 	SiteStaffVisible: false,
 	SiteGuildVisible: false,

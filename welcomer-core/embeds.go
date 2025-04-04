@@ -1,4 +1,4 @@
-package utils
+package welcomer
 
 import "github.com/WelcomerTeam/Discord/discord"
 

@@ -1,4 +1,4 @@
-package utils
+package welcomer
 
 import (
 	"encoding/json"
@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -30,7 +28,7 @@ type RecaptchaResponse struct {
 	Success            bool      `json:"success"`
 }
 
-func ValidateRecaptcha(logger zerolog.Logger, response, ipAddress string) (float64, error) {
+func ValidateRecaptcha(response, ipAddress string) (float64, error) {
 	reqBody := url.Values{}
 	reqBody.Set("secret", os.Getenv("RECAPTCHA_SECRET"))
 	reqBody.Set("response", response)
@@ -38,7 +36,7 @@ func ValidateRecaptcha(logger zerolog.Logger, response, ipAddress string) (float
 
 	req, err := http.NewRequest(http.MethodPost, RecaptchaEndpoint, strings.NewReader(reqBody.Encode()))
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to create reCAPTCHA request")
+		Logger.Error().Err(err).Msg("Failed to create reCAPTCHA request")
 
 		return -1, err
 	}
@@ -52,7 +50,7 @@ func ValidateRecaptcha(logger zerolog.Logger, response, ipAddress string) (float
 	}
 
 	if err != nil {
-		logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send reCAPTCHA request")
+		Logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send reCAPTCHA request")
 
 		return -1, err
 	}
@@ -63,7 +61,7 @@ func ValidateRecaptcha(logger zerolog.Logger, response, ipAddress string) (float
 
 	err = json.NewDecoder(resp.Body).Decode(&recaptchaResponse)
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to parse reCAPTCHA response")
+		Logger.Error().Err(err).Msg("Failed to parse reCAPTCHA response")
 
 		return -1, err
 	}

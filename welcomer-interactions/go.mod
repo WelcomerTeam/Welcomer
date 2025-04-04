@@ -10,12 +10,10 @@ require (
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250315093219-f03512f69893
 	github.com/WelcomerTeam/Subway v0.0.0-20250315103958-d4fdff66e557
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
-	github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgtype v1.14.4
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
-	github.com/rs/zerolog v1.33.0
 	google.golang.org/grpc v1.71.0
 )
 
@@ -50,6 +48,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
@@ -61,5 +60,3 @@ require (
 )
 
 replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core
-
-replace github.com/WelcomerTeam/Welcomer/welcomer-utils v0.0.0 => ../welcomer-utils

@@ -73,7 +73,7 @@ var (
 	ErrFileSizeTooLarge           = NewErrorWithCode(11010, "this file has an image resolution that is too high")
 	ErrFileNotSupported           = NewErrorWithCode(11011, "this file format is not supported")
 	ErrConversionFailed           = NewErrorWithCode(11012, "failed to convert background")
-	ErrCannotUseCustomBackgrounds = NewErrorWithCode(11013, "you cannot upload custom utils.backgrounds")
+	ErrCannotUseCustomBackgrounds = NewErrorWithCode(11013, "you cannot upload custom welcomer.backgrounds")
 	ErrStringTooLong              = NewErrorWithCode(11014, "string is too long")
 	ErrListTooLong                = NewErrorWithCode(11015, "list is too long")
 )

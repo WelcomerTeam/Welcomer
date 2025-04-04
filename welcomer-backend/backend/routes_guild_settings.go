@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
@@ -21,14 +22,14 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					settings = &database.Guilds{
 						GuildID:          int64(guildID),
-						EmbedColour:      database.DefaultGuild.EmbedColour,
-						SiteSplashUrl:    database.DefaultGuild.SiteSplashUrl,
-						SiteStaffVisible: database.DefaultGuild.SiteStaffVisible,
-						SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
-						SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
+						EmbedColour:      welcomer.DefaultGuild.EmbedColour,
+						SiteSplashUrl:    welcomer.DefaultGuild.SiteSplashUrl,
+						SiteStaffVisible: welcomer.DefaultGuild.SiteStaffVisible,
+						SiteGuildVisible: welcomer.DefaultGuild.SiteGuildVisible,
+						SiteAllowInvites: welcomer.DefaultGuild.SiteAllowInvites,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -83,11 +84,11 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			databaseGuildSettings := database.CreateOrUpdateGuildParams(*settings)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
 
 			_, err = backend.Database.CreateOrUpdateGuild(ctx, databaseGuildSettings)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild settings settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild settings settings")
 			}
 
 			getGuildSettingsSettings(ctx)

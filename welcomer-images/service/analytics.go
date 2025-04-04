@@ -3,7 +3,7 @@ package service
 import (
 	"time"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -44,8 +44,8 @@ func onRequest() {
 	imgenRequests.Inc()
 }
 
-func onGenerationComplete(start time.Time, guildID int64, background string, format utils.ImageFileType) {
-	guildIDstring := utils.Itoa(guildID)
+func onGenerationComplete(start time.Time, guildID int64, background string, format welcomer.ImageFileType) {
+	guildIDstring := welcomer.Itoa(guildID)
 	dur := time.Since(start).Seconds()
 
 	imgenTotalRequests.

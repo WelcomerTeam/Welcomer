@@ -1,7 +1,7 @@
 syntax = "proto3";
 package service;
 
-option go_package = "github.com/WelcomerTeam/Welcomer/utils.image";
+option go_package = "github.com/WelcomerTeam/Welcomer/welcomer.image";
 
 service ImageGenerationService {
     // GenerateImage requests for a new image to be generated. Returns the resulting file.

@@ -1,4 +1,4 @@
-package utils
+package welcomer
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"os"
 	"strconv"
 	"sync"
-
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -71,23 +69,18 @@ type IPChecker interface {
 	CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error)
 }
 
-type BasicIPChecker struct {
-	logger zerolog.Logger
-}
+type BasicIPChecker struct{}
 
 // NewBasicIPChecker creates a new basic IP checker.
-func NewBasicIPChecker(logger zerolog.Logger) *BasicIPChecker {
-	return &BasicIPChecker{
-		logger: logger,
-	}
+func NewBasicIPChecker() *BasicIPChecker {
+	return &BasicIPChecker{}
 }
 
 func (c *BasicIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
-	return checkIPIntel(ctx, c.logger, ipaddress, flags, oflags)
+	return checkIPIntel(ctx, ipaddress, flags, oflags)
 }
 
 type LRUIPChecker struct {
-	logger      zerolog.Logger
 	maxSize     int
 	cache       map[string]IPIntelResponse
 	accessOrder []string
@@ -95,9 +88,8 @@ type LRUIPChecker struct {
 }
 
 // NewLRUIPChecker creates a new LRU IP checker with the specified maximum cache size.
-func NewLRUIPChecker(logger zerolog.Logger, maxSize int) *LRUIPChecker {
+func NewLRUIPChecker(maxSize int) *LRUIPChecker {
 	return &LRUIPChecker{
-		logger:      logger,
 		maxSize:     maxSize,
 		cache:       make(map[string]IPIntelResponse),
 		accessOrder: make([]string, 0),
@@ -121,7 +113,7 @@ func (c *LRUIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIn
 	}
 
 	// Perform the IP check using the basic IP checker
-	response, err := checkIPIntel(ctx, c.logger, ipaddress, flags, oflags)
+	response, err := checkIPIntel(ctx, ipaddress, flags, oflags)
 	if err != nil {
 		return response, err
 	}
@@ -168,7 +160,7 @@ func (c *LRUIPChecker) moveToFront(ipaddress string) {
 	c.accessOrder[0] = ipaddress
 }
 
-func checkIPIntel(ctx context.Context, logger zerolog.Logger, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
+func checkIPIntel(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
 	reqParams := url.Values{}
 	reqParams.Set("ip", ipaddress)
 	reqParams.Set("contact", os.Getenv("IPINTEL_CONTACT"))
@@ -183,7 +175,7 @@ func checkIPIntel(ctx context.Context, logger zerolog.Logger, ipaddress string, 
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, IPIntelEndpoint+"?"+reqParams.Encode(), nil)
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to create IPIntel request")
+		Logger.Error().Err(err).Msg("Failed to create IPIntel request")
 
 		return response, err
 	}
@@ -196,7 +188,7 @@ func checkIPIntel(ctx context.Context, logger zerolog.Logger, ipaddress string, 
 	}
 
 	if err != nil {
-		logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send IPIntel request")
+		Logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send IPIntel request")
 
 		return response, err
 	}
@@ -205,20 +197,20 @@ func checkIPIntel(ctx context.Context, logger zerolog.Logger, ipaddress string, 
 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to decode IPIntel response")
+		Logger.Error().Err(err).Msg("Failed to decode IPIntel response")
 
 		return response, err
 	}
 
 	response.Result, err = strconv.ParseFloat(response.ResultString, 64)
 	if err != nil {
-		logger.Error().Err(err).Str("response", response.ResultString).Msg("Failed to parse IPIntel response result")
+		Logger.Error().Err(err).Str("response", response.ResultString).Msg("Failed to parse IPIntel response result")
 
 		return response, err
 	}
 
 	if response.Result < 0 {
-		logger.Error().Float64("result", response.Result).Msg("IPIntel returned an error")
+		Logger.Error().Float64("result", response.Result).Msg("IPIntel returned an error")
 
 		if ipintelError, ok := errorCodes[response.Result]; ok {
 			return response, ipintelError

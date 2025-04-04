@@ -10,7 +10,6 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -77,7 +76,7 @@ func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) 
 
 	newToken, err := source.Token()
 	if err != nil {
-		backend.Logger.Warn().Err(err).Msg("Failed to check token")
+		welcomer.Logger.Warn().Err(err).Msg("Failed to check token")
 
 		return nil, false, fmt.Errorf("failed to get new token: %w", err)
 	}
@@ -90,7 +89,7 @@ func checkOAuthAuthorization(ctx *gin.Context) error {
 
 	user, ok := GetUserSession(session)
 	if !ok {
-		backend.Logger.Warn().Msg("Failed to get user session")
+		welcomer.Logger.Warn().Msg("Failed to get user session")
 
 		return ErrMissingUser
 	}
@@ -99,7 +98,7 @@ func checkOAuthAuthorization(ctx *gin.Context) error {
 
 	token, ok := GetTokenSession(session)
 	if !ok {
-		backend.Logger.Warn().Msg("Failed to get token session")
+		welcomer.Logger.Warn().Msg("Failed to get token session")
 
 		return ErrMissingToken
 	}
@@ -110,7 +109,7 @@ func checkOAuthAuthorization(ctx *gin.Context) error {
 
 		err = session.Save()
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
 
 		return ErrOAuthFailure
@@ -121,7 +120,7 @@ func checkOAuthAuthorization(ctx *gin.Context) error {
 
 		err = session.Save()
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
 	}
 
@@ -147,7 +146,7 @@ func requireOAuthAuthorization(ctx *gin.Context, handler gin.HandlerFunc) {
 func requireGuildIDKey(ctx *gin.Context, handler gin.HandlerFunc) {
 	rawGuildID := ctx.Param(GuildIDKey)
 
-	guildIDInt, err := utils.Atoi(rawGuildID)
+	guildIDInt, err := welcomer.Atoi(rawGuildID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, BaseResponse{
 			Ok:    false,
@@ -173,7 +172,7 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 
 		user, ok := GetUserSession(session)
 		if !ok {
-			backend.Logger.Warn().Msg("Failed to get user session")
+			welcomer.Logger.Warn().Msg("Failed to get user session")
 
 			ctx.JSON(http.StatusUnauthorized, BaseResponse{
 				Ok:    false,
@@ -227,7 +226,7 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 
 		err = session.Save()
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
 
 		for _, guild := range user.Guilds {
@@ -255,7 +254,7 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 
 		user, ok := GetUserSession(session)
 		if !ok {
-			backend.Logger.Warn().Msg("Failed to get user session")
+			welcomer.Logger.Warn().Msg("Failed to get user session")
 
 			ctx.JSON(http.StatusUnauthorized, BaseResponse{
 				Ok:    false,
@@ -268,7 +267,7 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 		guildID := tryGetGuildID(ctx)
 
 		if !userHasElevation(guildID, user) {
-			backend.Logger.Warn().
+			welcomer.Logger.Warn().
 				Int64("user_id", int64(user.ID)).
 				Int64("guild_id", int64(guildID)).
 				Msg("User does not have elevation")

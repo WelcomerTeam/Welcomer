@@ -10,9 +10,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/plutov/paypal/v4"
-	"github.com/rs/zerolog"
 )
 
 var DiscordPaymentsWebhookURL = os.Getenv("DISCORD_PAYMENTS_WEBHOOK_URL")
@@ -31,12 +29,12 @@ type PaypalSale struct {
 }
 
 // Handles all paypal sales.
-func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSale PaypalSale) error {
+func HandlePaypalSale(ctx context.Context, queries *database.Queries, paypalSale PaypalSale) error {
 	println("HandlePaypalSale", paypalSale.ID, paypalSale.State, paypalSale.Amount.Total, paypalSale.Amount.Currency, paypalSale.BillingAgreementID)
 
 	memberships, err := queries.GetUserMembershipsByTransactionID(ctx, paypalSale.BillingAgreementID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("transaction_id", paypalSale.BillingAgreementID).
 			Msg("Failed to get user memberships")
 
@@ -58,12 +56,12 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 	}
 
 	if DiscordPaymentsWebhookURL != "" {
-		err := utils.SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
+		err := SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
 			Embeds: []discord.Embed{
 				{
 					Title:     "Paypal Sale",
 					Color:     0x009CDE,
-					Timestamp: utils.ToPointer(time.Now()),
+					Timestamp: ToPointer(time.Now()),
 					Fields: []discord.EmbedField{
 						{
 							Name:   "ID",
@@ -92,17 +90,17 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 						},
 						{
 							Name:   "Created",
-							Value:  "<t:" + utils.Itoa(time.Time(paypalSale.CreateTime).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(paypalSale.CreateTime).Unix()) + ":R>",
 							Inline: true,
 						},
 						{
 							Name:   "Cleared",
-							Value:  "<t:" + utils.Itoa(time.Time(paypalSale.ClearingTime).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(paypalSale.ClearingTime).Unix()) + ":R>",
 							Inline: true,
 						},
 						{
 							Name:   "Updated",
-							Value:  "<t:" + utils.Itoa(time.Time(paypalSale.UpdateTime).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(paypalSale.UpdateTime).Unix()) + ":R>",
 							Inline: true,
 						},
 					},
@@ -110,7 +108,7 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 			},
 		})
 		if err != nil {
-			logger.Error().Err(err).Msg("Failed to send webhook message")
+			Logger.Error().Err(err).Msg("Failed to send webhook message")
 		}
 	}
 
@@ -137,13 +135,13 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 			GuildID:         membership.GuildID,
 		})
 		if err != nil {
-			logger.Error().Err(err).
+			Logger.Error().Err(err).
 				Msg("Failed to update membership")
 
 			return err
 		}
 
-		logger.Info().
+		Logger.Info().
 			Str("membership_uuid", membership.MembershipUuid.String()).
 			Int64("user_id", membership.UserID).
 			Int64("guild_id", membership.GuildID).
@@ -155,7 +153,7 @@ func HandlePaypalSale(ctx context.Context, logger zerolog.Logger, queries *datab
 }
 
 // Handles all subscription events.
-func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, queries *database.Queries, action string, paypalSubscription paypal.Subscription) error {
+func HandlePaypalSubscription(ctx context.Context, queries *database.Queries, action string, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscription", paypalSubscription.ID, paypalSubscription.PlanID, paypalSubscription.SubscriptionStatus, paypalSubscription.Quantity)
 
 	if paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusApprovalPending ||
@@ -167,7 +165,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 	paypalSub, err := queries.GetPaypalSubscriptionBySubscriptionID(ctx, paypalSubscription.ID)
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("subscription_id", paypalSubscription.ID).
 			Msg("Failed to get paypal subscription")
 	}
@@ -180,7 +178,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 	txs, err := queries.GetUserTransactionsByTransactionID(ctx, paypalSubscription.ID)
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("subscription_id", paypalSubscription.ID).
 			Msg("Failed to get user transactions")
 
@@ -201,7 +199,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 	if userID.IsNil() && paypalTxs != nil {
 		userID = discord.Snowflake(paypalTxs.UserID)
 
-		logger.Warn().
+		Logger.Warn().
 			Str("subscription_id", paypalSubscription.ID).
 			Int64("user_id", int64(userID)).
 			Msg("Falling back to transaction user ID")
@@ -209,7 +207,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 	// If no paypal transaction is found, error.
 	if paypalTxs == nil {
-		logger.Error().
+		Logger.Error().
 			Str("subscription_id", paypalSubscription.ID).
 			Msg("No paypal transaction found")
 
@@ -223,12 +221,12 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 			startTime = time.Time(*paypalSubscription.StartTime)
 		}
 
-		err := utils.SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
+		err := SendWebhookMessage(ctx, DiscordPaymentsWebhookURL, discord.WebhookMessageParams{
 			Embeds: []discord.Embed{
 				{
 					Title:     "Paypal Subscription " + action,
 					Color:     0x009CDE,
-					Timestamp: utils.ToPointer(time.Now()),
+					Timestamp: ToPointer(time.Now()),
 					Fields: []discord.EmbedField{
 						{
 							Name:   "ID",
@@ -267,22 +265,22 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 						},
 						{
 							Name:   "Created",
-							Value:  "<t:" + utils.Itoa(time.Time(utils.TryParseTime(paypalSubscription.CreateTime)).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(TryParseTime(paypalSubscription.CreateTime)).Unix()) + ":R>",
 							Inline: true,
 						},
 						{
 							Name:   "Started",
-							Value:  "<t:" + utils.Itoa(time.Time(startTime).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(startTime).Unix()) + ":R>",
 							Inline: true,
 						},
 						{
 							Name:   "Updated",
-							Value:  "<t:" + utils.Itoa(time.Time(utils.TryParseTime(paypalSubscription.UpdateTime)).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(TryParseTime(paypalSubscription.UpdateTime)).Unix()) + ":R>",
 							Inline: true,
 						},
 						{
 							Name:   "Next Billing",
-							Value:  "<t:" + utils.Itoa(time.Time(paypalSubscription.BillingInfo.NextBillingTime).Unix()) + ":R>",
+							Value:  "<t:" + Itoa(time.Time(paypalSubscription.BillingInfo.NextBillingTime).Unix()) + ":R>",
 							Inline: true,
 						},
 					},
@@ -290,7 +288,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 			},
 		})
 		if err != nil {
-			logger.Error().Err(err).Msg("Failed to send webhook message")
+			Logger.Error().Err(err).Msg("Failed to send webhook message")
 		}
 	}
 
@@ -306,13 +304,13 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 		Quantity:           paypalSubscription.Quantity,
 	})
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Str("subscription_id", paypalSubscription.ID).
 			Msg("Failed to create or update paypal subscription")
 	}
 
 	if userID.IsNil() {
-		logger.Error().
+		Logger.Error().
 			Str("subscription_id", paypalSubscription.ID).
 			Msg("No user ID found")
 
@@ -321,7 +319,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(userID))
 	if err != nil {
-		logger.Error().Err(err).
+		Logger.Error().Err(err).
 			Int64("user_id", int64(userID)).
 			Msg("Failed to get user memberships")
 
@@ -349,7 +347,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 	eligibleMemberships, err := strconv.Atoi(paypalSubscription.Quantity)
 	if err != nil {
-		logger.Warn().Err(err).
+		Logger.Warn().Err(err).
 			Str("subscription_id", paypalSubscription.ID).
 			Str("quantity", paypalSubscription.Quantity).
 			Msg("Failed to parse quantity")
@@ -358,7 +356,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 	}
 
 	if len(paypalMemberships) > eligibleMemberships {
-		logger.Warn().
+		Logger.Warn().
 			Int64("user_id", int64(userID)).
 			Int("current_memberships", len(paypalMemberships)).
 			Int("eligible_memberships", eligibleMemberships).
@@ -366,7 +364,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 
 		// Remove memberships. Let them expire naturally.
 	} else if len(paypalMemberships) < eligibleMemberships {
-		logger.Info().
+		Logger.Info().
 			Int64("user_id", int64(userID)).
 			Int("current_memberships", len(paypalMemberships)).
 			Int("eligible_memberships", eligibleMemberships).
@@ -377,7 +375,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 		for i := len(paypalMemberships); i < eligibleMemberships; i++ {
 			err = CreateMembershipForUser(ctx, queries, userID, paypalTxs.TransactionUuid, database.MembershipTypeWelcomerPro, membershipExpiration, nil)
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(userID)).
 					Msg("Failed to create membership")
 
@@ -398,14 +396,14 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 				GuildID:         membership.GuildID,
 			})
 			if err != nil {
-				logger.Error().Err(err).
+				Logger.Error().Err(err).
 					Int64("user_id", int64(userID)).
 					Msg("Failed to update membership")
 
 				return err
 			}
 
-			logger.Info().
+			Logger.Info().
 				Str("membership_uuid", membership.MembershipUuid.String()).
 				Int64("user_id", membership.UserID).
 				Int64("guild_id", membership.GuildID).
@@ -413,7 +411,7 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 				Msg("Updated membership expiration paypal subscription")
 		}
 	} else {
-		logger.Info().
+		Logger.Info().
 			Int64("user_id", int64(userID)).
 			Int("current_memberships", len(paypalMemberships)).
 			Int("eligible_memberships", eligibleMemberships).
@@ -426,63 +424,63 @@ func HandlePaypalSubscription(ctx context.Context, logger zerolog.Logger, querie
 }
 
 // Triggers when a subscription is created.
-func OnPaypalSubscriptionCreated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionCreated(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionCreated", paypalSubscription.ID)
 
-	return HandlePaypalSubscription(ctx, logger, queries, "created", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "created", paypalSubscription)
 }
 
 // Triggers when a subscription has been activated.
-func OnPaypalSubscriptionActivated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionActivated(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionActivated", paypalSubscription.ID)
 
-	return HandlePaypalSubscription(ctx, logger, queries, "activated", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "activated", paypalSubscription)
 }
 
 // Triggers when a subscription has been updated.
-func OnPaypalSubscriptionUpdated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionUpdated(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionUpdated", paypalSubscription.ID)
 
-	return HandlePaypalSubscription(ctx, logger, queries, "updated", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "updated", paypalSubscription)
 }
 
 // Triggers when a subscription has been re-activated.
-func OnPaypalSubscriptionReactivated(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionReactivated(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionReactivated", paypalSubscription.ID)
 
-	return HandlePaypalSubscription(ctx, logger, queries, "reactivated", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "reactivated", paypalSubscription)
 }
 
 // Triggers when a subscription has expired.
-func OnPaypalSubscriptionExpired(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionExpired(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionExpired", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
 
-	return HandlePaypalSubscription(ctx, logger, queries, "expired", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "expired", paypalSubscription)
 }
 
 // Triggers when a subscription has been cancelled.
-func OnPaypalSubscriptionCancelled(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionCancelled(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionCancelled", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
 
-	return HandlePaypalSubscription(ctx, logger, queries, "cancelled", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "cancelled", paypalSubscription)
 }
 
 // Triggers when a subscription has been suspended.
-func OnPaypalSubscriptionSuspended(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionSuspended(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionSuspended", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
 
-	return HandlePaypalSubscription(ctx, logger, queries, "suspended", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "suspended", paypalSubscription)
 }
 
 // Triggers when a subscription payment has failed.
-func OnPaypalSubscriptionPaymentFailed(ctx context.Context, logger zerolog.Logger, queries *database.Queries, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionPaymentFailed(ctx context.Context, queries *database.Queries, paypalSubscription paypal.Subscription) error {
 	println("HandlePaypalSubscriptionPaymentFailed", paypalSubscription.ID)
 
-	return HandlePaypalSubscription(ctx, logger, queries, "payment failed", paypalSubscription)
+	return HandlePaypalSubscription(ctx, queries, "payment failed", paypalSubscription)
 }

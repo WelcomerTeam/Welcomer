@@ -15,7 +15,6 @@ import (
 	gateway "github.com/WelcomerTeam/Welcomer/welcomer-gateway"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -45,25 +44,7 @@ func main() {
 
 	var err error
 
-	// Setup Logger
-
-	var level zerolog.Level
-
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out: os.Stdout,
-
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-
-	logger.Info().Msg("Logging configured")
+	writer := welcomer.SetupLogger(*loggingLevel)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -120,7 +101,7 @@ func main() {
 
 	queries := database.New(pool)
 
-	pushGuildScienceHandler := welcomer.NewPushGuildScienceHandler(queries, logger, 1024)
+	pushGuildScienceHandler := welcomer.NewPushGuildScienceHandler(queries, 1024)
 	pushGuildScienceHandler.Run(ctx, time.Second*30)
 
 	ctx = welcomer.AddPushGuildScienceToContext(ctx, pushGuildScienceHandler)
@@ -154,7 +135,7 @@ func main() {
 	stanMessages := jetstreamClient.Chan()
 
 	if err = sandwichClient.ListenToChannel(ctx, stanMessages); err != nil {
-		logger.Panic().Err(err).Msg("Failed to listen to channel")
+		welcomer.Logger.Panic().Err(err).Msg("Failed to listen to channel")
 	}
 
 	pushGuildScienceHandler.Flush(ctx)
@@ -162,7 +143,7 @@ func main() {
 	jetstreamClient.Unsubscribe(ctx)
 
 	if err = grpcConnection.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 
 	// Close sandwich

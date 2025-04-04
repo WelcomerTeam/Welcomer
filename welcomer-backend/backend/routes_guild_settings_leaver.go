@@ -7,7 +7,6 @@ import (
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -23,12 +22,12 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					leaver = &database.GuildSettingsLeaver{
 						GuildID:       int64(guildID),
-						ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
-						Channel:       database.DefaultLeaver.Channel,
-						MessageFormat: database.DefaultLeaver.MessageFormat,
+						ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
+						Channel:       welcomer.DefaultLeaver.Channel,
+						MessageFormat: welcomer.DefaultLeaver.MessageFormat,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -83,9 +82,9 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *leaver).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild leaver settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *leaver).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild leaver settings")
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
 
@@ -97,7 +96,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,

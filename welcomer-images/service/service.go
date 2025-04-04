@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/zerolog"
 )
 
 // VERSION follows semantic versioning.
@@ -24,7 +24,6 @@ const VERSION = "0.0.1"
 type ImageService struct {
 	ctx context.Context
 
-	Logger    zerolog.Logger
 	StartTime time.Time
 
 	Options ImageServiceOptions
@@ -47,16 +46,11 @@ type ImageServiceOptions struct {
 }
 
 // NewImageService creates the service and initializes it.
-func NewImageService(ctx context.Context, logger zerolog.Logger, options ImageServiceOptions) (is *ImageService, err error) {
+func NewImageService(ctx context.Context, options ImageServiceOptions) (is *ImageService, err error) {
 	is = &ImageService{
-		ctx: ctx,
-
-		Logger: logger,
-
-		Options: options,
-
-		Client: http.Client{Timeout: 5 * time.Second},
-
+		ctx:      ctx,
+		Options:  options,
+		Client:   http.Client{Timeout: 5 * time.Second},
 		Database: database.New(options.Pool),
 	}
 
@@ -65,7 +59,7 @@ func NewImageService(ctx context.Context, logger zerolog.Logger, options ImageSe
 
 func (is *ImageService) Open() {
 	is.StartTime = time.Now()
-	is.Logger.Info().Msgf("Starting image service. Version %s", VERSION)
+	welcomer.Logger.Info().Msgf("Starting image service. Version %s", VERSION)
 
 	// Setup HTTP
 	go is.setupHTTP()
@@ -82,11 +76,11 @@ func (is *ImageService) setupHTTP() error {
 
 	is.registerRoutes(router)
 
-	is.Logger.Info().Msgf("Serving http at %s", is.Options.Host)
+	welcomer.Logger.Info().Msgf("Serving http at %s", is.Options.Host)
 
 	err := router.Run(is.Options.Host)
 	if err != nil {
-		is.Logger.Error().Err(err).Str("host", is.Options.Host).Msg("Failed to serve gRPC server")
+		welcomer.Logger.Error().Err(err).Str("host", is.Options.Host).Msg("Failed to serve gRPC server")
 
 		return fmt.Errorf("failed to serve grpc: %w", err)
 	}
@@ -105,11 +99,11 @@ func (is *ImageService) setupPrometheus() error {
 		promhttp.HandlerOpts{},
 	))
 
-	is.Logger.Info().Msgf("Serving prometheus at %s", is.Options.PrometheusAddress)
+	welcomer.Logger.Info().Msgf("Serving prometheus at %s", is.Options.PrometheusAddress)
 
 	err := http.ListenAndServe(is.Options.PrometheusAddress, nil)
 	if err != nil {
-		is.Logger.Error().Str("host", is.Options.PrometheusAddress).Err(err).Msg("Failed to serve prometheus server")
+		welcomer.Logger.Error().Str("host", is.Options.PrometheusAddress).Err(err).Msg("Failed to serve prometheus server")
 
 		return fmt.Errorf("failed to serve prometheus: %w", err)
 	}
@@ -118,7 +112,7 @@ func (is *ImageService) setupPrometheus() error {
 }
 
 func (is *ImageService) Close() error {
-	is.Logger.Info().Msg("Closing image service")
+	welcomer.Logger.Info().Msg("Closing image service")
 
 	return nil
 }

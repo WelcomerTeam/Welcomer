@@ -8,7 +8,6 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -24,11 +23,11 @@ func getGuildSettingsFreeRoles(ctx *gin.Context) {
 				if errors.Is(err, pgx.ErrNoRows) {
 					freeroles = &database.GuildSettingsFreeroles{
 						GuildID:       int64(guildID),
-						ToggleEnabled: database.DefaultFreeRoles.ToggleEnabled,
-						Roles:         database.DefaultFreeRoles.Roles,
+						ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+						Roles:         welcomer.DefaultFreeRoles.Roles,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild freeroles settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild freeroles settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -83,9 +82,9 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 			databaseFreeRolesGuildSettings := database.CreateOrUpdateFreeRolesGuildSettingsParams(*freeroles)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *freeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild freerole settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *freeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild freerole settings")
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = backend.Database.CreateOrUpdateFreeRolesGuildSettings(ctx, databaseFreeRolesGuildSettings)
 					return err
@@ -96,7 +95,7 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild freeroles settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild freeroles settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,

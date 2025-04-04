@@ -7,7 +7,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -58,11 +57,11 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
 				GuildID:       int64(eventCtx.Guild.ID),
-				ToggleEnabled: database.DefaultAutoroles.ToggleEnabled,
-				Roles:         database.DefaultAutoroles.Roles,
+				ToggleEnabled: welcomer.DefaultAutoroles.ToggleEnabled,
+				Roles:         welcomer.DefaultAutoroles.Roles,
 			}
 		} else {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Msg("Failed to get autorole settings")
 
@@ -75,9 +74,9 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return nil
 	}
 
-	assignableRoles, err := welcomer.FilterAssignableRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Logger, int64(*member.GuildID), int64(eventCtx.Identifier.ID), guildSettingsAutoRoles.Roles)
+	assignableRoles, err := welcomer.FilterAssignableRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(*member.GuildID), int64(eventCtx.Identifier.ID), guildSettingsAutoRoles.Roles)
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).
 			Msg("Failed to filter assignable roles for autoroles")
 
@@ -85,16 +84,16 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 	}
 
 	if len(assignableRoles) == 0 {
-		eventCtx.Logger.Warn().
+		welcomer.Logger.Warn().
 			Int64("guild_id", int64(*member.GuildID)).
 			Msg("No roles to assign for autoroles")
 
 		return nil
 	}
 
-	err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, utils.ToPointer("Automatically assigned with AutoRoles"), true)
+	err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, welcomer.ToPointer("Automatically assigned with AutoRoles"), true)
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).
 			Int64("member_id", int64(member.User.ID)).
 			Msg("Failed to add roles to member for autoroles")
