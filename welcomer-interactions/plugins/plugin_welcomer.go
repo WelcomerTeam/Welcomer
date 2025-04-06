@@ -84,9 +84,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					member = *interaction.Member
 				}
 
-				queries := core.GetQueriesFromContext(ctx)
-
-				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
@@ -104,7 +102,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
@@ -131,7 +129,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
@@ -231,9 +229,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := core.GetQueriesFromContext(ctx)
-
-				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
@@ -251,7 +247,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
@@ -270,7 +266,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
@@ -325,7 +321,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 							Channel:       guildSettingsWelcomerText.Channel,
@@ -335,7 +331,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -347,7 +343,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				_, err = welcomer.Queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
 					GuildID:                int64(*interaction.GuildID),
 					ToggleEnabled:          guildSettingsWelcomerImages.ToggleEnabled,
 					ToggleImageBorder:      guildSettingsWelcomerImages.ToggleImageBorder,
@@ -370,7 +366,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
+				_, err = welcomer.Queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
 					GuildID:             int64(*interaction.GuildID),
 					ToggleEnabled:       guildSettingsWelcomerDMs.ToggleEnabled,
 					ToggleUseTextFormat: guildSettingsWelcomerDMs.ToggleUseTextFormat,
@@ -450,9 +446,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := core.GetQueriesFromContext(ctx)
-
-				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
@@ -470,7 +464,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerDMs, err := queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
@@ -489,7 +483,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerImages, err := queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
@@ -549,7 +543,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 							Channel:       guildSettingsWelcomerText.Channel,
@@ -558,7 +552,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -570,7 +564,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				_, err = welcomer.Queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
 					GuildID:                int64(*interaction.GuildID),
 					ToggleEnabled:          guildSettingsWelcomerImages.ToggleEnabled,
 					ToggleImageBorder:      guildSettingsWelcomerImages.ToggleImageBorder,
@@ -593,7 +587,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				_, err = queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
+				_, err = welcomer.Queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, database.CreateOrUpdateWelcomerDMsGuildSettingsParams{
 					GuildID:             int64(*interaction.GuildID),
 					ToggleEnabled:       guildSettingsWelcomerDMs.ToggleEnabled,
 					ToggleUseTextFormat: guildSettingsWelcomerDMs.ToggleUseTextFormat,
@@ -666,9 +660,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				queries := core.GetQueriesFromContext(ctx)
-
-				guildSettingsWelcomerText, err := queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
@@ -697,7 +689,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 							Channel:       guildSettingsWelcomerText.Channel,
@@ -706,7 +698,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return core.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return core.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)

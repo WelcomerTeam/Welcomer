@@ -45,8 +45,6 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.MustRegisterCog(plugins.NewMembershipCog())
 
 	sub.OnAfterInteraction = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, resp *discord.InteractionResponse, interactionError error) error {
-		queries := welcomer.GetQueriesFromContext(ctx)
-
 		var guildID int64
 		if interaction.GuildID != nil {
 			guildID = int64(*interaction.GuildID)
@@ -73,7 +71,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 
 		err = welcomer.RetryWithFallback(
 			func() error {
-				usage, err = queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
+				usage, err = welcomer.Queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
 					GuildID:         guildID,
 					UserID:          userID,
 					ChannelID:       channelID,
@@ -84,7 +82,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 				return err
 			},
 			func() error {
-				return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(guildID))
+				return welcomer.EnsureGuild(ctx, discord.Snowflake(guildID))
 			},
 			nil,
 		)
@@ -100,7 +98,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
+					_, err = welcomer.Queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
 						CommandUuid: usage.CommandUuid,
 						Trace:       interactionError.Error(),
 						Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},
@@ -108,7 +106,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, discord.Snowflake(guildID))
 				},
 				nil,
 			)

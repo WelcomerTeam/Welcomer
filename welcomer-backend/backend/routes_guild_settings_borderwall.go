@@ -16,7 +16,7 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			borderwall, err := backend.Database.GetBorderwallGuildSettings(ctx, int64(guildID))
+			borderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					borderwall = &database.GuildSettingsBorderwall{
@@ -89,11 +89,11 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateBorderwallGuildSettings(ctx, databaseBorderwallGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, databaseBorderwallGuildSettings)
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
+					return welcomer.EnsureGuild(ctx, guildID)
 				},
 				nil,
 			)

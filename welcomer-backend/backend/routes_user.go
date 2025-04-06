@@ -86,7 +86,7 @@ func (b *Backend) GetUserMemberships(ctx context.Context, session sessions.Sessi
 		return nil, ErrMissingUser
 	}
 
-	userMemberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(user.ID))
+	userMemberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(user.ID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user memberships: %w", err)
 	}

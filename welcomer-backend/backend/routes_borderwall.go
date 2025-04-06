@@ -53,7 +53,7 @@ func getBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		borderwallRequest, err := backend.Database.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
+		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
@@ -77,7 +77,7 @@ func getBorderwall(ctx *gin.Context) {
 				return
 			}
 
-			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
+			guild, err := welcomer.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
 			} else if !guild.ID.IsNil() {
@@ -126,7 +126,7 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		borderwallRequest, err := backend.Database.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
+		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
@@ -227,7 +227,7 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		_, err = backend.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+		_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
 			Manager: managers[0],
 			Type:    welcomer.CustomEventInvokeBorderwallCompletion,
 			Data:    data,
@@ -260,7 +260,7 @@ func setBorderwall(ctx *gin.Context) {
 			Msg("Borderwall request verified")
 
 		// Update the borderwall request with the response
-		if _, err := backend.Database.UpdateBorderwallRequest(ctx, database.UpdateBorderwallRequestParams{
+		if _, err := welcomer.Queries.UpdateBorderwallRequest(ctx, database.UpdateBorderwallRequestParams{
 			RequestUuid:     borderwallRequest.RequestUuid,
 			IsVerified:      true,
 			VerifiedAt:      sql.NullTime{Time: time.Now(), Valid: true},

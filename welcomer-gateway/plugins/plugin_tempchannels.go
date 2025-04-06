@@ -109,8 +109,6 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
 	var guildID discord.Snowflake
@@ -123,7 +121,7 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 		return nil
 	}
 
-	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, queries, guildID)
+	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, guildID)
 	if err != nil {
 		return err
 	}
@@ -229,7 +227,7 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 		return err
 	}
 
-	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+	welcomer.PushGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		member.User.ID,
@@ -284,11 +282,9 @@ func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 }
 
 func (p *TempChannelsCog) OnInvokeTempChannelsEvent(eventCtx *sandwich.EventContext, payload core.CustomEventInvokeTempChannelsStructure) error {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, queries, *payload.Member.GuildID)
+	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, *payload.Member.GuildID)
 	if err != nil {
 		return err
 	}
@@ -301,11 +297,9 @@ func (p *TempChannelsCog) OnInvokeTempChannelsEvent(eventCtx *sandwich.EventCont
 }
 
 func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.EventContext, payload core.CustomEventInvokeTempChannelsRemoveStructure) error {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, queries, *payload.Member.GuildID)
+	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, *payload.Member.GuildID)
 	if err != nil {
 		return err
 	}
@@ -332,8 +326,8 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 	return nil
 }
 
-func (p *TempChannelsCog) FetchGuildInformation(eventCtx *sandwich.EventContext, queries *database.Queries, guildID discord.Snowflake) (guildSettingsTempChannels *database.GuildSettingsTempchannels, err error) {
-	guildSettingsTempChannels, err = queries.GetTempChannelsGuildSettings(eventCtx.Context, int64(guildID))
+func (p *TempChannelsCog) FetchGuildInformation(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (guildSettingsTempChannels *database.GuildSettingsTempchannels, err error) {
+	guildSettingsTempChannels, err = welcomer.Queries.GetTempChannelsGuildSettings(eventCtx.Context, int64(guildID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsTempChannels = &database.GuildSettingsTempchannels{

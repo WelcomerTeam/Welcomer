@@ -90,7 +90,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		welcomer.PushGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			member.User.ID,
@@ -149,9 +149,7 @@ func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID disc
 		return nil, err
 	}
 
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
-	databaseInvites, err := queries.GetGuildInvites(eventCtx.Context, int64(guildID))
+	databaseInvites, err := welcomer.Queries.GetGuildInvites(eventCtx.Context, int64(guildID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
@@ -215,7 +213,7 @@ func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID disc
 	}
 
 	for _, updatedInvite := range updatedInvites {
-		_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams(updatedInvite))
+		_, err := welcomer.Queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams(updatedInvite))
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).
 				Int64("guild_id", int64(guildID)).
@@ -260,13 +258,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}()
 
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
 	var guildSettingsWelcomerText *database.GuildSettingsWelcomerText
 
-	guildSettingsWelcomerText, err = queries.GetWelcomerTextGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsWelcomerText, err = welcomer.Queries.GetWelcomerTextGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
@@ -286,7 +282,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	var guildSettingsWelcomerImages *database.GuildSettingsWelcomerImages
 
-	guildSettingsWelcomerImages, err = queries.GetWelcomerImagesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsWelcomerImages, err = welcomer.Queries.GetWelcomerImagesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
@@ -315,7 +311,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	var guildSettingsWelcomerDMs *database.GuildSettingsWelcomerDms
 
-	guildSettingsWelcomerDMs, err = queries.GetWelcomerDMsGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsWelcomerDMs, err = welcomer.Queries.GetWelcomerDMsGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
@@ -435,7 +431,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		var memberships []*database.GetUserMembershipsByGuildIDRow
 
 		// Check if the guild has welcomer pro.
-		memberships, err = queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
+		memberships, err = welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			welcomer.Logger.Warn().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -673,7 +669,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		err = dmerr
 	}
 
-	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+	welcomer.PushGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.Member.User.ID,

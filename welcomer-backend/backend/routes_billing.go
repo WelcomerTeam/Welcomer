@@ -226,7 +226,6 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	// Create a user transaction.
 	userTransaction, err := welcomer.CreateTransactionForUser(
 		ctx,
-		backend.Database,
 		user.ID,
 		database.PlatformTypePaypalSubscription,
 		database.TransactionStatusPending,
@@ -283,7 +282,7 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	// Update the user transaction with the subscription ID.
 	userTransaction.TransactionID = subscription.ID
 
-	_, err = backend.Database.UpdateUserTransaction(ctx, database.UpdateUserTransactionParams{
+	_, err = welcomer.Queries.UpdateUserTransaction(ctx, database.UpdateUserTransactionParams{
 		TransactionUuid:   userTransaction.TransactionUuid,
 		UserID:            userTransaction.UserID,
 		PlatformType:      userTransaction.PlatformType,
@@ -322,7 +321,6 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	// Create a user transaction.
 	userTransaction, err := welcomer.CreateTransactionForUser(
 		ctx,
-		backend.Database,
 		user.ID,
 		database.PlatformTypePaypal,
 		database.TransactionStatusPending,
@@ -384,7 +382,7 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	// Update the user transaction with the order ID.
 	userTransaction.TransactionID = order.ID
 
-	_, err = backend.Database.UpdateUserTransaction(ctx, database.UpdateUserTransactionParams{
+	_, err = welcomer.Queries.UpdateUserTransaction(ctx, database.UpdateUserTransactionParams{
 		TransactionUuid:   userTransaction.TransactionUuid,
 		UserID:            userTransaction.UserID,
 		PlatformType:      userTransaction.PlatformType,
@@ -438,11 +436,7 @@ func paymentCancelled(ctx *gin.Context) {
 // Route POST /api/billing/subscription_callback?
 func paymentSubscriptionCallback(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
-		err := backend.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
-			// https://beta.welcomer.gg/api/billing/callback?subscription_id=I-TMR758P4PW2C&ba_token=BA-1UW93399KE424124U&token=6YC07506GL255092S
-
-			queries := backend.Database.WithTx(tx)
-
+		err := welcomer.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			// Read "subscription_id" from the query string.
 			subscriptionID := ctx.Query("subscription_id")
 
@@ -454,7 +448,7 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 				return ErrMissingParameter
 			}
 
-			transactions, err := queries.GetUserTransactionsByTransactionID(ctx, subscriptionID)
+			transactions, err := welcomer.Queries.GetUserTransactionsByTransactionID(ctx, subscriptionID)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Str("subscription_id", subscriptionID).Msg("Failed to get user transactions by transaction ID")
 
@@ -503,7 +497,7 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			}
 
 			// Create a paypal subscription entry.
-			_, err = queries.CreateOrUpdatePaypalSubscription(ctx, database.CreateOrUpdatePaypalSubscriptionParams{
+			_, err = welcomer.Queries.CreateOrUpdatePaypalSubscription(ctx, database.CreateOrUpdatePaypalSubscriptionParams{
 				SubscriptionID:     subscriptionID,
 				UserID:             int64(user.ID),
 				PayerID:            subscription.Subscriber.PayerID,
@@ -551,7 +545,6 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			// Create a user transaction.
 			userTransaction, err := welcomer.CreateTransactionForUser(
 				ctx,
-				queries,
 				user.ID,
 				database.PlatformTypePaypalSubscription,
 				database.TransactionStatusPending,
@@ -574,7 +567,6 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			// a payment confirmation from paypal.
 			err = welcomer.CreateMembershipForUser(
 				ctx,
-				queries,
 				user.ID,
 				userTransaction.TransactionUuid,
 				sku.MembershipType,
@@ -605,9 +597,7 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 // Route POST /api/billing/callback?token=...&PayerID=...
 func paymentCallback(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
-		err := backend.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
-			queries := backend.Database.WithTx(tx)
-
+		err := welcomer.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			// Read "token" and "PayerID" from the query string.
 			token := ctx.Query("token")
 			payerID := ctx.Query("PayerID")
@@ -628,7 +618,7 @@ func paymentCallback(ctx *gin.Context) {
 				return ErrMissingParameter
 			}
 
-			transactions, err := queries.GetUserTransactionsByTransactionID(ctx, token)
+			transactions, err := welcomer.Queries.GetUserTransactionsByTransactionID(ctx, token)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Str("token", token).Msg("Failed to get user transactions by transaction ID")
 
@@ -704,7 +694,6 @@ func paymentCallback(ctx *gin.Context) {
 				// Create a user transaction.
 				_, err = welcomer.CreateTransactionForUser(
 					ctx,
-					queries,
 					user.ID,
 					database.PlatformTypePaypal,
 					database.TransactionStatusPending,
@@ -724,7 +713,6 @@ func paymentCallback(ctx *gin.Context) {
 			// Create a user transaction.
 			userTransaction, err := welcomer.CreateTransactionForUser(
 				ctx,
-				queries,
 				user.ID,
 				database.PlatformTypePaypal,
 				database.TransactionStatusCompleted,
@@ -746,7 +734,6 @@ func paymentCallback(ctx *gin.Context) {
 			// Create a new membership for the user.
 			err = welcomer.CreateMembershipForUser(
 				ctx,
-				queries,
 				user.ID,
 				userTransaction.TransactionUuid,
 				sku.MembershipType,
@@ -911,7 +898,7 @@ func paypalWebhook(ctx *gin.Context) {
 			return
 		}
 
-		err := welcomer.HandlePaypalSale(ctx, backend.Database, sale)
+		err := welcomer.HandlePaypalSale(ctx, sale)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(err, nil))
 
@@ -935,49 +922,49 @@ func paypalWebhook(ctx *gin.Context) {
 
 	switch PaypalWebhookEvent(webhookEvent.EventType) {
 	case WebhookEventBillingSubscriptionCreated:
-		err = welcomer.OnPaypalSubscriptionCreated(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionCreated(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription created event")
 		}
 
 	case WebhookEventBillingSubscriptionActivated:
-		err = welcomer.OnPaypalSubscriptionActivated(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionActivated(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription activated event")
 		}
 
 	case WebhookEventBillingSubscriptionUpdated:
-		err = welcomer.OnPaypalSubscriptionUpdated(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionUpdated(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription updated event")
 		}
 
 	case WebhookEventBillingSubscriptionReactivated:
-		err = welcomer.OnPaypalSubscriptionReactivated(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionReactivated(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription re-activated event")
 		}
 
 	case WebhookEventBillingSubscriptionExpired:
-		err = welcomer.OnPaypalSubscriptionExpired(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionExpired(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription expired event")
 		}
 
 	case WebhookEventBillingSubscriptionCancelled:
-		err = welcomer.OnPaypalSubscriptionCancelled(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionCancelled(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription cancelled event")
 		}
 
 	case WebhookEventBillingSubscriptionSuspended:
-		err = welcomer.OnPaypalSubscriptionSuspended(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionSuspended(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription suspended event")
 		}
 
 	case WebhookEventBillingSubscriptionPaymentFailed:
-		err = welcomer.OnPaypalSubscriptionPaymentFailed(ctx, backend.Database, subscription)
+		err = welcomer.OnPaypalSubscriptionPaymentFailed(ctx, subscription)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription payment failed event")
 		}

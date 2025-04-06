@@ -58,9 +58,7 @@ type UserMembership struct {
 }
 
 func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID discord.Snowflake) ([]UserMembership, error) {
-	queries := welcomer.GetQueriesFromContext(ctx)
-
-	memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(userID))
+	memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		welcomer.Logger.Error().Err(err).
 			Int64("user_id", int64(userID)).
@@ -387,9 +385,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				userID = interaction.User.ID
 			}
 
-			queries := welcomer.GetQueriesFromContext(ctx)
-
-			memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(userID))
+			memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
@@ -420,11 +416,9 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 						}, nil
 					}
 
-					queries := welcomer.GetQueriesFromContext(ctx)
-
 					isNewMembership := membership.StartedAt.IsZero()
 
-					_, err = welcomer.AddMembershipToServer(ctx, queries, *membership, guild.ID)
+					_, err = welcomer.AddMembershipToServer(ctx, *membership, guild.ID)
 					if err != nil {
 						switch {
 						case errors.Is(err, welcomer.ErrMembershipInvalid):
@@ -619,9 +613,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				userID = interaction.User.ID
 			}
 
-			queries := welcomer.GetQueriesFromContext(ctx)
-
-			memberships, err := queries.GetUserMembershipsByUserID(ctx, int64(userID))
+			memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("user_id", int64(interaction.User.ID)).
@@ -632,7 +624,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 
 			for _, membership := range memberships {
 				if membership.MembershipUuid.String() == membershipUuidString {
-					_, err = welcomer.RemoveMembershipFromServer(ctx, queries, *membership)
+					_, err = welcomer.RemoveMembershipFromServer(ctx, *membership)
 					if err != nil {
 						switch {
 						case errors.Is(err, welcomer.ErrMembershipNotInUse):

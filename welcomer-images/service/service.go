@@ -10,7 +10,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -40,7 +39,6 @@ type ImageService struct {
 type ImageServiceOptions struct {
 	Debug             bool
 	Host              string
-	Pool              *pgxpool.Pool
 	PostgresAddress   string
 	PrometheusAddress string
 }
@@ -48,10 +46,9 @@ type ImageServiceOptions struct {
 // NewImageService creates the service and initializes it.
 func NewImageService(ctx context.Context, options ImageServiceOptions) (is *ImageService, err error) {
 	is = &ImageService{
-		ctx:      ctx,
-		Options:  options,
-		Client:   http.Client{Timeout: 5 * time.Second},
-		Database: database.New(options.Pool),
+		ctx:     ctx,
+		Options: options,
+		Client:  http.Client{Timeout: 5 * time.Second},
 	}
 
 	return is, nil

@@ -83,9 +83,7 @@ func (p *BorderwallCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeBorderwallStructure) (err error) {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
-	guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsBorderwall = &database.GuildSettingsBorderwall{
@@ -198,7 +196,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 
 	var existingRequestUuid uuid.UUID
 
-	borderwallRequests, err := queries.GetBorderwallRequestsByGuildIDUserID(eventCtx.Context, database.GetBorderwallRequestsByGuildIDUserIDParams{
+	borderwallRequests, err := welcomer.Queries.GetBorderwallRequestsByGuildIDUserID(eventCtx.Context, database.GetBorderwallRequestsByGuildIDUserIDParams{
 		GuildID: int64(eventCtx.Guild.ID),
 		UserID:  int64(event.Member.User.ID),
 	})
@@ -220,7 +218,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	if existingRequestUuid.IsNil() {
-		borderwallRequest, err := queries.CreateBorderwallRequest(eventCtx.Context, database.CreateBorderwallRequestParams{
+		borderwallRequest, err := welcomer.Queries.CreateBorderwallRequest(eventCtx.Context, database.CreateBorderwallRequestParams{
 			GuildID: int64(eventCtx.Guild.ID),
 			UserID:  int64(event.Member.User.ID),
 		})
@@ -359,7 +357,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		}
 	}
 
-	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+	welcomer.PushGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.Member.User.ID,
@@ -373,9 +371,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 }
 
 func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeBorderwallCompletionStructure) (err error) {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
-	guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsBorderwall = &database.GuildSettingsBorderwall{
@@ -678,7 +674,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		}
 	}
 
-	welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+	welcomer.PushGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.Member.User.ID,

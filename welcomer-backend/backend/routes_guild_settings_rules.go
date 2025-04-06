@@ -22,7 +22,7 @@ func getGuildSettingsRules(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			rules, err := backend.Database.GetRulesGuildSettings(ctx, int64(guildID))
+			rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					rules = &database.GuildSettingsRules{
@@ -91,11 +91,11 @@ func setGuildSettingsRules(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
+					return welcomer.EnsureGuild(ctx, guildID)
 				},
 				nil,
 			)

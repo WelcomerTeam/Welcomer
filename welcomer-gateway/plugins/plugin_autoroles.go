@@ -48,11 +48,9 @@ func (p *AutoRolesCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member discord.GuildMember) (err error) {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsAutoRoles, err := queries.GetAutoRolesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsAutoRoles = &database.GuildSettingsAutoroles{

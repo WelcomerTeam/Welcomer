@@ -81,11 +81,9 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					member = *interaction.Member
 				}
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
 				// Fetch guild settings.
 
-				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsLeaver = &database.GuildSettingsLeaver{
@@ -161,9 +159,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsLeaver = &database.GuildSettingsLeaver{
@@ -186,7 +182,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
@@ -196,7 +192,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -229,9 +225,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsLeaver = &database.GuildSettingsLeaver{
@@ -254,7 +248,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
@@ -264,7 +258,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -308,9 +302,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsLeaver, err := queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsLeaver = &database.GuildSettingsLeaver{
@@ -333,7 +325,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
@@ -343,7 +335,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)

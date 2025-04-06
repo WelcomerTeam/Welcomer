@@ -52,7 +52,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
@@ -277,7 +277,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
@@ -716,7 +716,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				argumentTimeout := subway.MustGetArgument(ctx, "timeout").MustInt()
 				argumentReason := subway.MustGetArgument(ctx, "reason").MustString()
 
-				session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}

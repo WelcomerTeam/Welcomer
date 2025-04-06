@@ -10,16 +10,14 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
-func notifyMembershipCreated(ctx context.Context, queries *database.Queries, session *discord.Session, membership database.UserMemberships) error {
+func notifyMembershipCreated(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
 	if membership.UserID == 0 {
 		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
 		return nil
 	}
 
-	pb := GetSandwichClientFromContext(ctx)
-
-	users, err := pb.FetchUsers(ctx, &sandwich.FetchUsersRequest{
+	users, err := SandwichClient.FetchUsers(ctx, &sandwich.FetchUsersRequest{
 		UserIDs:         []int64{membership.UserID},
 		CreateDMChannel: true,
 	})
@@ -50,7 +48,7 @@ func notifyMembershipCreated(ctx context.Context, queries *database.Queries, ses
 		return err
 	}
 
-	transactions, err := queries.GetUserTransactionsByTransactionID(ctx, membership.TransactionUuid.String())
+	transactions, err := Queries.GetUserTransactionsByTransactionID(ctx, membership.TransactionUuid.String())
 	if err != nil {
 		Logger.Error().Err(err).
 			Int64("user_id", int64(user.ID)).
@@ -110,7 +108,7 @@ func notifyMembershipCreated(ctx context.Context, queries *database.Queries, ses
 	return nil
 }
 
-func notifyMembershipExpired(ctx context.Context, queries *database.Queries, session *discord.Session, membership database.UserMemberships) error {
+func notifyMembershipExpired(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
 	if membership.UserID == 0 {
 		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 

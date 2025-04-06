@@ -22,10 +22,9 @@ type PushGuildScienceHandler struct {
 	buffer []database.CreateManyScienceGuildEventsParams
 }
 
-func NewPushGuildScienceHandler(db *database.Queries, limit int) *PushGuildScienceHandler {
+func NewPushGuildScienceHandler(limit int) *PushGuildScienceHandler {
 	return &PushGuildScienceHandler{
 		RWMutex: sync.RWMutex{},
-		db:      db,
 		limit:   limit,
 		buffer:  make([]database.CreateManyScienceGuildEventsParams, 0, limit),
 	}
@@ -96,7 +95,7 @@ func (h *PushGuildScienceHandler) flushWithoutLock(ctx context.Context) {
 		return
 	}
 
-	_, err := h.db.CreateManyScienceGuildEvents(ctx, h.buffer)
+	_, err := Queries.CreateManyScienceGuildEvents(ctx, h.buffer)
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to flush guild science events")
 

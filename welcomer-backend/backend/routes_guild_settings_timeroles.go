@@ -18,7 +18,7 @@ func getGuildSettingsTimeRoles(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			timeroles, err := backend.Database.GetTimeRolesGuildSettings(ctx, int64(guildID))
+			timeroles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					timeroles = &database.GuildSettingsTimeroles{
@@ -86,11 +86,11 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateTimeRolesGuildSettings(ctx, databaseTimeRolesGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, databaseTimeRolesGuildSettings)
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, discord.Snowflake(guildID))
 				},
 				nil,
 			)

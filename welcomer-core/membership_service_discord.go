@@ -37,14 +37,7 @@ func returnSnowflakeIfNotNull(i *discord.Snowflake) discord.Snowflake {
 }
 
 func FetchGuildName(ctx context.Context, guildID discord.Snowflake) string {
-	sandwichClient := GetSandwichClientFromContext(ctx)
-	if sandwichClient == nil {
-		Logger.Error().Msg("Failed to get sandwich client from context")
-
-		return ""
-	}
-
-	guilds, err := sandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
+	guilds, err := SandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
 		GuildIDs: []int64{int64(guildID)},
 	})
 	if err != nil {
@@ -75,7 +68,7 @@ func FetchGuildName(ctx context.Context, guildID discord.Snowflake) string {
 	return guild.Name
 }
 
-func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
+func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitlement) error {
 	if entitlement.UserID == nil {
 		Logger.Error().
 			Int64("entitlement_id", int64(entitlement.ID)).
@@ -205,7 +198,7 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 		quantity = 0
 	}
 
-	txs, err := queries.GetUserTransactionsByUserID(ctx, int64(*entitlement.UserID))
+	txs, err := Queries.GetUserTransactionsByUserID(ctx, int64(*entitlement.UserID))
 	if err != nil {
 		Logger.Error().Err(err).
 			Int64("user_id", int64(*entitlement.UserID)).
@@ -231,7 +224,7 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 			Str("entitlement_id", entitlement.ID.String()).
 			Msg("no discord transactions found, creating one")
 
-		discordTxs, err = CreateTransactionForUser(ctx, queries, *entitlement.UserID, database.PlatformTypeDiscord, database.TransactionStatusCompleted, entitlement.ID.String(), "", "")
+		discordTxs, err = CreateTransactionForUser(ctx, *entitlement.UserID, database.PlatformTypeDiscord, database.TransactionStatusCompleted, entitlement.ID.String(), "", "")
 		if err != nil {
 			Logger.Error().Err(err).
 				Str("entitlement_id", entitlement.ID.String()).
@@ -242,7 +235,7 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 	}
 
 	// Update discord subscription entity.
-	_, err = queries.CreateOrUpdateDiscordSubscription(ctx, database.CreateOrUpdateDiscordSubscriptionParams{
+	_, err = Queries.CreateOrUpdateDiscordSubscription(ctx, database.CreateOrUpdateDiscordSubscriptionParams{
 		SubscriptionID:  entitlement.ID.String(),
 		UserID:          int64(*entitlement.UserID),
 		GiftCodeFlags:   giftCodeFlags,
@@ -263,7 +256,7 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 		return err
 	}
 
-	memberships, err := queries.GetUserMembershipsByTransactionID(ctx, entitlement.ID.String())
+	memberships, err := Queries.GetUserMembershipsByTransactionID(ctx, entitlement.ID.String())
 	if err != nil {
 		Logger.Error().Err(err).
 			Int64("user_id", int64(*entitlement.UserID)).
@@ -301,7 +294,7 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 		// Add memberships.
 
 		for i := len(discordMemberships); i < quantity; i++ {
-			err = CreateMembershipForUser(ctx, queries, *entitlement.UserID, discordTxs.TransactionUuid, membershipType, endsAt.Time, entitlement.GuildID)
+			err = CreateMembershipForUser(ctx, *entitlement.UserID, discordTxs.TransactionUuid, membershipType, endsAt.Time, entitlement.GuildID)
 			if err != nil {
 				Logger.Error().Err(err).
 					Int64("user_id", int64(*entitlement.UserID)).
@@ -318,7 +311,7 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 				int32(database.MembershipStatusActive),
 				membership.Status)
 
-			_, err = queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
+			_, err = Queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
 				MembershipUuid:  membership.MembershipUuid,
 				StartedAt:       membership.StartedAt,
 				ExpiresAt:       membership.ExpiresAt,
@@ -348,14 +341,14 @@ func HandleDiscordEntitlement(ctx context.Context, queries *database.Queries, en
 	return nil
 }
 
-func OnDiscordEntitlementCreated(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
-	return HandleDiscordEntitlement(ctx, queries, entitlement)
+func OnDiscordEntitlementCreated(ctx context.Context, entitlement discord.Entitlement) error {
+	return HandleDiscordEntitlement(ctx, entitlement)
 }
 
-func OnDiscordEntitlementUpdated(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
-	return HandleDiscordEntitlement(ctx, queries, entitlement)
+func OnDiscordEntitlementUpdated(ctx context.Context, entitlement discord.Entitlement) error {
+	return HandleDiscordEntitlement(ctx, entitlement)
 }
 
-func OnDiscordEntitlementDeleted(ctx context.Context, queries *database.Queries, entitlement discord.Entitlement) error {
-	return HandleDiscordEntitlement(ctx, queries, entitlement)
+func OnDiscordEntitlementDeleted(ctx context.Context, entitlement discord.Entitlement) error {
+	return HandleDiscordEntitlement(ctx, entitlement)
 }

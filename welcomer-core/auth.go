@@ -155,13 +155,13 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 }
 
 // EnsureGuild will create or update a guild entry. This requires RequireMutualGuild to be called.
-func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord.Snowflake) error {
-	guild, _ := queries.GetGuild(ctx, int64(guildID))
+func EnsureGuild(ctx context.Context, guildID discord.Snowflake) error {
+	guild, _ := Queries.GetGuild(ctx, int64(guildID))
 	if guild == nil || guild.GuildID != 0 {
 		return nil
 	}
 
-	_, err := queries.CreateGuild(ctx, database.CreateGuildParams{
+	_, err := Queries.CreateGuild(ctx, database.CreateGuildParams{
 		GuildID:          int64(guildID),
 		EmbedColour:      DefaultGuild.EmbedColour,
 		SiteSplashUrl:    DefaultGuild.SiteSplashUrl,
@@ -176,10 +176,10 @@ func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord
 	return nil
 }
 
-func AcquireSession(ctx context.Context, grpcInterface sandwich.GRPC, restInterface discord.RESTInterface, client protobuf.SandwichClient, managerName string) (session *discord.Session, err error) {
-	configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
+func AcquireSession(ctx context.Context, managerName string) (session *discord.Session, err error) {
+	configurations, err := GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
 		Context:        ctx,
-		SandwichClient: client,
+		SandwichClient: SandwichClient,
 	}, managerName)
 	if err != nil {
 		return nil, err
@@ -190,5 +190,5 @@ func AcquireSession(ctx context.Context, grpcInterface sandwich.GRPC, restInterf
 		return nil, ErrMissingApplicationUser
 	}
 
-	return discord.NewSession("Bot "+configuration.Token, restInterface), nil
+	return discord.NewSession("Bot "+configuration.Token, RESTInterface), nil
 }

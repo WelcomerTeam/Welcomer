@@ -80,9 +80,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
@@ -132,7 +130,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -146,7 +144,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -216,9 +214,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
@@ -257,7 +253,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -271,7 +267,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -327,9 +323,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsBorderwall, err := queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
@@ -370,7 +364,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -384,7 +378,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)

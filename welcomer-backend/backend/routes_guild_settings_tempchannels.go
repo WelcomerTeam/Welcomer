@@ -17,7 +17,7 @@ func getGuildSettingsTempChannels(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			tempchannels, err := backend.Database.GetTempChannelsGuildSettings(ctx, int64(guildID))
+			tempchannels, err := welcomer.Queries.GetTempChannelsGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					tempchannels = &database.GuildSettingsTempchannels{
@@ -88,11 +88,11 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
+					return welcomer.EnsureGuild(ctx, guildID)
 				},
 				nil,
 			)

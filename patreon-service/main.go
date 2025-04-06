@@ -11,7 +11,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/oauth2"
 )
@@ -32,10 +31,7 @@ func main() {
 
 	flag.Parse()
 
-	welcomer.SetupLogger(*loggingLevel)
-
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -58,19 +54,15 @@ func main() {
 		}
 	}()
 
-	// Setup postgres pool.
-	var pool *pgxpool.Pool
-	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
-		panic(fmt.Sprintf(`pgxpool.Connect(%s): %v`, *postgresURL, err.Error()))
-	}
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	// Setup database.
-	db := database.New(pool)
+	entrypoint(ctx, *patreonClientID, *patreonClientSecret, *patreonAccessToken, *patreonRefreshToken, *patreonWebhookUrl)
 
-	entrypoint(ctx, db, *patreonClientID, *patreonClientSecret, *patreonAccessToken, *patreonRefreshToken, *patreonWebhookUrl)
+	cancel()
 }
 
-func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patreonClientSecret, patreonAccessToken, patreonRefreshToken, patreonWebhookUrl string) {
+func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patreonAccessToken, patreonRefreshToken, patreonWebhookUrl string) {
 	config := oauth2.Config{
 		ClientID:     patreonClientID,
 		ClientSecret: patreonClientSecret,
@@ -98,7 +90,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 		membersMap[int64(member.PatreonUserID)] = member
 	}
 
-	patreonUsersList, err := db.GetPatreonUsers(ctx)
+	patreonUsersList, err := welcomer.Queries.GetPatreonUsers(ctx)
 	if err != nil {
 		panic(fmt.Sprint("GetPatreonUsers(): %w", err))
 	}
@@ -135,7 +127,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 				PatronStatus:     "",
 			}
 
-			_, err = db.CreatePatreonUser(ctx, database.CreatePatreonUserParams{
+			_, err = welcomer.Queries.CreatePatreonUser(ctx, database.CreatePatreonUserParams{
 				PatreonUserID:    patreonUser.PatreonUserID,
 				UserID:           patreonUser.UserID,
 				FullName:         patreonUser.FullName,
@@ -154,7 +146,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 			} else {
 				processPatreonUsersNewlyLinked = append(processPatreonUsersNewlyLinked, discord.Snowflake(patreonUser.PatreonUserID))
 
-				err = core.OnPatreonLinked(ctx, db, welcomer.PatreonUser{
+				err = core.OnPatreonLinked(ctx, welcomer.PatreonUser{
 					ID:       discord.Snowflake(patreonUser.PatreonUserID),
 					Email:    patreonUser.Email,
 					FullName: patreonUser.FullName,
@@ -233,13 +225,13 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 
 					processPatreonUsersTiersChanged = append(processPatreonUsersTiersChanged, discord.Snowflake(databasePatreonUser.PatreonUserID))
 
-					err = core.OnPatreonTierChanged(ctx, db, databasePatreonUser, newPatreonUser)
+					err = core.OnPatreonTierChanged(ctx, databasePatreonUser, newPatreonUser)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed")
 
 						processHasWarning = true
 
-						err = core.OnPatreonTierChanged_Fallback(ctx, db, databasePatreonUser, newPatreonUser, err)
+						err = core.OnPatreonTierChanged_Fallback(ctx, databasePatreonUser, newPatreonUser, err)
 						if err != nil {
 							welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed fallback")
 						}
@@ -260,7 +252,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 
 						processPatreonUsersActive = append(processPatreonUsersActive, discord.Snowflake(databasePatreonUser.PatreonUserID))
 
-						err = core.OnPatreonActive(ctx, db, *databasePatreonUser, m)
+						err = core.OnPatreonActive(ctx, *databasePatreonUser, m)
 						if err != nil {
 							welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon active")
 
@@ -270,7 +262,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 
 						processPatreonUsersNoLongerPledging = append(processPatreonUsersNoLongerPledging, discord.Snowflake(databasePatreonUser.PatreonUserID))
 
-						err = core.OnPatreonNoLongerPledging(ctx, db, *databasePatreonUser, m)
+						err = core.OnPatreonNoLongerPledging(ctx, *databasePatreonUser, m)
 						if err != nil {
 							welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon no longer pledging")
 
@@ -281,7 +273,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 
 						processPatreonUsersDeclined = append(processPatreonUsersDeclined, discord.Snowflake(databasePatreonUser.PatreonUserID))
 
-						_, err = db.CreateOrUpdatePatreonUser(ctx, database.CreateOrUpdatePatreonUserParams{
+						_, err = welcomer.Queries.CreateOrUpdatePatreonUser(ctx, database.CreateOrUpdatePatreonUserParams{
 							PatreonUserID:    databasePatreonUser.PatreonUserID,
 							UserID:           databasePatreonUser.UserID,
 							PledgeCreatedAt:  databasePatreonUser.PledgeCreatedAt,
@@ -328,7 +320,7 @@ func entrypoint(ctx context.Context, db *database.Queries, patreonClientID, patr
 
 			processPatreonUsersMissing = append(processPatreonUsersMissing, discord.Snowflake(databasePatreonUser.PatreonUserID))
 
-			err = core.OnPatreonNoLongerPledging(ctx, db, *databasePatreonUser, m)
+			err = core.OnPatreonNoLongerPledging(ctx, *databasePatreonUser, m)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon no longer pledging")
 

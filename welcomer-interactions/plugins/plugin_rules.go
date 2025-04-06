@@ -81,9 +81,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsRules = &database.GuildSettingsRules{
@@ -118,7 +116,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
@@ -128,7 +126,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -198,9 +196,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				module := subway.MustGetArgument(ctx, "module").MustString()
 
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsRules = &database.GuildSettingsRules{
@@ -235,7 +231,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
@@ -245,7 +241,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -289,9 +285,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsRules, err := queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsRules = &database.GuildSettingsRules{

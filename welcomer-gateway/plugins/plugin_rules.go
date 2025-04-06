@@ -49,11 +49,9 @@ func (p *RulesCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord.GuildMember) (err error) {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsRules, err := queries.GetRulesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsRules = &database.GuildSettingsRules{

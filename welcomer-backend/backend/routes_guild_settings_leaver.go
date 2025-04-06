@@ -17,7 +17,7 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			leaver, err := backend.Database.GetLeaverGuildSettings(ctx, int64(guildID))
+			leaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					leaver = &database.GuildSettingsLeaver{
@@ -86,12 +86,12 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
 
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, guildID)
+					return welcomer.EnsureGuild(ctx, guildID)
 				},
 				nil,
 			)

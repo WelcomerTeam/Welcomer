@@ -34,7 +34,7 @@ func getGuild(ctx *gin.Context) {
 
 			grpcContext := backend.GetBasicEventContext(ctx).ToGRPCContext()
 
-			channels, err := backend.GRPCInterface.FetchChannelsByName(grpcContext, guildID, "")
+			channels, err := welcomer.GRPCInterface.FetchChannelsByName(grpcContext, guildID, "")
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild channels")
 			}
@@ -43,7 +43,7 @@ func getGuild(ctx *gin.Context) {
 				return channels[i].Position < channels[j].Position
 			})
 
-			roles, err := backend.GRPCInterface.FetchRolesByName(grpcContext, guildID, "")
+			roles, err := welcomer.GRPCInterface.FetchRolesByName(grpcContext, guildID, "")
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
 			}
@@ -52,7 +52,7 @@ func getGuild(ctx *gin.Context) {
 				return roles[i].Position < roles[j].Position
 			})
 
-			emojis, err := backend.GRPCInterface.FetchEmojisByName(grpcContext, guildID, "")
+			emojis, err := welcomer.GRPCInterface.FetchEmojisByName(grpcContext, guildID, "")
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild emojis")
 			}
@@ -75,7 +75,7 @@ func getGuild(ctx *gin.Context) {
 				welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 			}
 
-			guildConfig, err := backend.Database.GetGuild(ctx, int64(discordGuild.ID))
+			guildConfig, err := welcomer.Queries.GetGuild(ctx, int64(discordGuild.ID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildConfig = &database.Guilds{

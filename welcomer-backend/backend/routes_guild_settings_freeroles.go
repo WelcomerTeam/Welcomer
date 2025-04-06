@@ -18,7 +18,7 @@ func getGuildSettingsFreeRoles(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			freeroles, err := backend.Database.GetFreeRolesGuildSettings(ctx, int64(guildID))
+			freeroles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					freeroles = &database.GuildSettingsFreeroles{
@@ -86,11 +86,11 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateFreeRolesGuildSettings(ctx, databaseFreeRolesGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, databaseFreeRolesGuildSettings)
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, discord.Snowflake(guildID))
 				},
 				nil,
 			)

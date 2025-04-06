@@ -48,7 +48,7 @@ func (p *OnboardingCog) GetEventHandlers() *sandwich.Handlers {
 func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register
 	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		welcomer.PushGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			0,
@@ -132,7 +132,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnGuildLeaveEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		welcomer.PushGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			0,

@@ -10,19 +10,15 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/plutov/paypal/v4"
 	gin_prometheus "github.com/zsais/go-gin-prometheus"
-	"google.golang.org/grpc"
 )
 
 const VERSION = "0.1"
@@ -43,19 +39,11 @@ type Backend struct {
 
 	Options BackendOptions
 
-	RESTInterface discord.RESTInterface
-
-	SandwichClient protobuf.SandwichClient
-	GRPCInterface  sandwich.GRPC
-
 	PrometheusHandler *gin_prometheus.Prometheus
 
 	Route *gin.Engine
 
 	Store Store
-
-	Database *database.Queries
-	Pool     *pgxpool.Pool
 
 	IPChecker welcomer.IPChecker
 
@@ -74,10 +62,6 @@ type BackendOptions struct {
 	NginxAddress      string
 	PostgresAddress   string
 	PrometheusAddress string
-
-	Conn          grpc.ClientConnInterface
-	RESTInterface discord.RESTInterface
-	Pool          *pgxpool.Pool
 
 	BotToken        string
 	DonatorBotToken string
@@ -102,19 +86,9 @@ func NewBackend(ctx context.Context, options BackendOptions) (*Backend, error) {
 	}
 
 	b := &Backend{
-		Options: options,
-
-		RESTInterface: options.RESTInterface,
-
-		SandwichClient: protobuf.NewSandwichClient(options.Conn),
-		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
-
+		Options:           options,
 		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
-
-		Database: database.New(options.Pool),
-		Pool:     options.Pool,
-
-		IPChecker: welcomer.NewLRUIPChecker(1024),
+		IPChecker:         welcomer.NewLRUIPChecker(1024),
 	}
 
 	// Setup Discord OAuth2
@@ -128,9 +102,11 @@ func NewBackend(ctx context.Context, options BackendOptions) (*Backend, error) {
 	PatreonOAuth2Config.RedirectURL = options.PatreonRedirectURL
 
 	// Setup sessions
-	b.EmptySession = discord.NewSession("", b.RESTInterface)
-	b.BotSession = discord.NewSession(b.Options.BotToken, b.RESTInterface)
-	b.DonatorBotSession = discord.NewSession(b.Options.DonatorBotToken, b.RESTInterface)
+	b.EmptySession = discord.NewSession("", welcomer.RESTInterface)
+	b.BotSession = discord.NewSession(b.Options.BotToken, welcomer.RESTInterface)
+	b.DonatorBotSession = discord.NewSession(b.Options.DonatorBotToken, welcomer.RESTInterface)
+
+	println(welcomer.RESTInterface)
 
 	if options.NginxAddress != "" {
 		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
@@ -152,7 +128,7 @@ func NewBackend(ctx context.Context, options BackendOptions) (*Backend, error) {
 	}
 
 	// Setup session store.
-	store, err := NewStore(options.Pool, keyPairs...)
+	store, err := NewStore(welcomer.Pool, keyPairs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session store: %w", err)
 	}
@@ -189,7 +165,7 @@ func (b *Backend) GetBasicEventContext(ctx context.Context) (client *sandwich.Ev
 		Context: ctx,
 		Sandwich: &sandwich.Sandwich{
 			Logger:         welcomer.Logger,
-			SandwichClient: b.SandwichClient,
+			SandwichClient: welcomer.SandwichClient,
 		},
 	}
 }

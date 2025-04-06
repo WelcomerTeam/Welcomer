@@ -60,9 +60,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -83,7 +81,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
@@ -92,7 +90,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -125,9 +123,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -148,7 +144,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
@@ -157,7 +153,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -189,9 +185,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -288,9 +282,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}
 			}
 
-			queries := welcomer.GetQueriesFromContext(ctx)
-
-			guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -347,7 +339,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
+			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 			if err != nil {
 				return nil, err
 			}
@@ -415,9 +407,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			queries := welcomer.GetQueriesFromContext(ctx)
-
-			guildSettingsFreeRoles, err := queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -474,7 +464,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			session, err := welcomer.AcquireSession(ctx, sub.GRPCInterface, sub.RESTInterface, sub.SandwichClient, welcomer.GetManagerNameFromContext(ctx))
+			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 			if err != nil {
 				return nil, err
 			}

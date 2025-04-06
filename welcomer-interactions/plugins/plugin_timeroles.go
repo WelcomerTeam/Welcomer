@@ -62,9 +62,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
@@ -86,7 +84,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
@@ -95,7 +93,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -128,9 +126,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
@@ -151,7 +147,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+						_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
@@ -160,7 +156,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, queries, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
 					},
 					nil,
 				)
@@ -192,9 +188,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
@@ -324,9 +318,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				queries := welcomer.GetQueriesFromContext(ctx)
-
-				guildSettingsTimeRoles, err := queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{

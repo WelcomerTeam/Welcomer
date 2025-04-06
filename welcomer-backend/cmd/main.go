@@ -3,14 +3,11 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"net/url"
 	"os"
 
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -48,98 +45,52 @@ func main() {
 	paypalClientSecret := flag.String("paypalSecretID", os.Getenv("PAYPAL_CLIENT_SECRET"), "Paypal client secret")
 	paypalIsLive := flag.Bool("paypalIsLive", welcomer.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
 
-	flag.Parse()
+	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
 
-	gin.SetMode(*releaseMode)
+	flag.Parse()
 
 	var err error
 
-	// Setup Logger
-
-	welcomer.SetupLogger(*loggingLevel)
-
-	welcomer.Logger.Info().Msg("Logging configured")
-
 	ctx, cancel := context.WithCancel(context.Background())
+	ctx = welcomer.AddManagerNameToContext(ctx, *sandwichManagerName)
 
-	// Setup Rest
-
-	var proxyURL *url.URL
-
-	if proxyURL, err = url.Parse(*proxyAddress); err != nil {
-		panic(fmt.Sprintf("url.Parse(%s): %v", *proxyAddress, err.Error()))
-	}
-
-	restInterface := welcomer.NewTwilightProxy(*proxyURL)
-
+	restInterface := welcomer.NewTwilightProxy(*proxyAddress)
 	restInterface.SetDebug(*proxyDebug)
 
-	// Setup GRPC
-
-	var grpcConnection *grpc.ClientConn
-
-	if grpcConnection, err = grpc.NewClient(
-
-		*sandwichGRPCHost,
-
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+	)
+	welcomer.SetupGRPCInterface()
+	welcomer.SetupRESTInterface(restInterface)
+	welcomer.SetupSandwichClient()
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	); err != nil {
-		panic(fmt.Sprintf(`grpc.NewClient(%s): %v`, *sandwichGRPCHost, err.Error()))
-	}
-
-	// Setup postgres pool.
-
-	var pool *pgxpool.Pool
-
-	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
-		panic(fmt.Sprintf(`pgxpool.Connect(%s): %v`, *postgresURL, err.Error()))
-	}
-
-	// Setup app.
+	gin.SetMode(*releaseMode)
 
 	app, err := backend.NewBackend(ctx, backend.BackendOptions{
-		Domain: *domain,
-
-		Host: *host,
-
-		KeyPairs: *keyPairs,
-
-		NginxAddress: *nginxAddress,
-
-		PostgresAddress: *postgresURL,
-
+		Domain:            *domain,
+		Host:              *host,
+		KeyPairs:          *keyPairs,
+		NginxAddress:      *nginxAddress,
+		PostgresAddress:   *postgresURL,
 		PrometheusAddress: *prometheusAddress,
 
-		Conn: grpcConnection,
-
-		RESTInterface: restInterface,
-
-		Pool: pool,
-
-		BotToken: *botToken,
-
+		BotToken:        *botToken,
 		DonatorBotToken: *fallbackBotToken,
 
-		DiscordClientID: *discordClientID,
-
+		DiscordClientID:     *discordClientID,
 		DiscordClientSecret: *discordClientSecret,
+		DiscordRedirectURL:  *discordRedirectURL,
 
-		DiscordRedirectURL: *discordRedirectURL,
-
-		PatreonClientID: *patreonClientID,
-
+		PatreonClientID:     *patreonClientID,
 		PatreonClientSecret: *patreonClientSecret,
+		PatreonRedirectURL:  *patreonRedirectURL,
 
-		PatreonRedirectURL: *patreonRedirectURL,
-
-		PaypalClientID: *paypalClientID,
-
+		PaypalClientID:     *paypalClientID,
 		PaypalClientSecret: *paypalClientSecret,
-
-		PaypalIsLive: *paypalIsLive,
+		PaypalIsLive:       *paypalIsLive,
 	})
 
 	if err != nil || app == nil {
@@ -158,7 +109,7 @@ func main() {
 		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing app")
 	}
 
-	if err = grpcConnection.Close(); err != nil {
+	if err = welcomer.GRPCConnection.Close(); err != nil {
 		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 }

@@ -17,7 +17,7 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			settings, err := backend.Database.GetGuild(ctx, int64(guildID))
+			settings, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					settings = &database.Guilds{
@@ -86,7 +86,7 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			user := tryGetUser(ctx)
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
 
-			_, err = backend.Database.CreateOrUpdateGuild(ctx, databaseGuildSettings)
+			_, err = welcomer.Queries.CreateOrUpdateGuild(ctx, databaseGuildSettings)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild settings settings")
 			}

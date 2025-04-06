@@ -10,7 +10,6 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 )
 
@@ -26,10 +25,7 @@ func main() {
 
 	flag.Parse()
 
-	welcomer.SetupLogger(*loggingLevel)
-
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -52,20 +48,16 @@ func main() {
 		}
 	}()
 
-	// Setup postgres pool.
-	var pool *pgxpool.Pool
-	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
-		panic(fmt.Sprintf(`pgxpool.Connect(%s): %v`, *postgresURL, err.Error()))
-	}
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	// Setup database.
-	db := database.New(pool)
+	entrypoint(ctx, *webhookUrl, *dryRun)
 
-	entrypoint(ctx, db, *webhookUrl, *dryRun)
+	cancel()
 }
 
-func entrypoint(ctx context.Context, db *database.Queries, webhookUrl string, dryRun bool) {
-	memberships, err := db.GetExpiringUserMemberships(ctx, int32(database.MembershipStatusExpired))
+func entrypoint(ctx context.Context, webhookUrl string, dryRun bool) {
+	memberships, err := welcomer.Queries.GetExpiringUserMemberships(ctx, int32(database.MembershipStatusExpired))
 	if err != nil {
 		panic(fmt.Sprintf("GetExpiringUserMemberships: %v", err))
 	}
@@ -81,7 +73,7 @@ func entrypoint(ctx context.Context, db *database.Queries, webhookUrl string, dr
 		// 		Str("membership_uuid", membership.MembershipUuid.String()).
 		// 		Msg("Failed to acquire session")
 		// } else {
-		// 	err = notifyMembershipCreated(ctx, queries, session, membership)
+		// 	err = notifyMembershipCreated(ctx,  session, membership)
 		// 	if err != nil {
 		// 		welcomer.Logger.Error().Err(err).
 		// 			Str("membership_uuid", membership.MembershipUuid.String()).

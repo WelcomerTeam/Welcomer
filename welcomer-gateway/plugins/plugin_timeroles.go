@@ -54,11 +54,9 @@ func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildID discord.Snowflake, memberID *discord.Snowflake) (err error) {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsTimeRoles, timeRoles, err := p.FetchGuildInformation(eventCtx, queries, guildID)
+	guildSettingsTimeRoles, timeRoles, err := p.FetchGuildInformation(eventCtx, guildID)
 	if err != nil {
 		return err
 	}
@@ -174,7 +172,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		}
 
 		for _, role := range roles {
-			welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+			welcomer.PushGuildScience.Push(
 				eventCtx.Context,
 				eventCtx.Guild.ID,
 				member.User.ID,
@@ -188,10 +186,10 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	return nil
 }
 
-func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, queries *database.Queries, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, assignableTimeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
+func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, assignableTimeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
 	// TODO: Add caching
 
-	guildSettingsTimeRoles, err = queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
+	guildSettingsTimeRoles, err = welcomer.Queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsTimeRoles = &database.GuildSettingsTimeroles{

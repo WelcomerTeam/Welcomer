@@ -52,7 +52,7 @@ func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
 
 	// Patreon
 
-	patreonAccounts, err := backend.Database.GetPatreonUsersByUserID(ctx, int64(userID))
+	patreonAccounts, err := welcomer.Queries.GetPatreonUsersByUserID(ctx, int64(userID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		welcomer.Logger.Error().Err(err).
 			Msg("Failed to get patreon users by user ID")
@@ -81,7 +81,7 @@ func getMemberships(ctx *gin.Context) {
 
 		userID := tryGetUser(ctx).ID
 
-		memberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(userID))
+		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -102,7 +102,7 @@ func getMemberships(ctx *gin.Context) {
 
 		// Fetch all guilds in one request.
 		if len(guildIDs) > 0 {
-			guildResponse, err := backend.SandwichClient.FetchGuild(ctx, &pb.FetchGuildRequest{
+			guildResponse, err := welcomer.SandwichClient.FetchGuild(ctx, &pb.FetchGuildRequest{
 				GuildIDs: guildIDs,
 			})
 			if err != nil {
@@ -210,7 +210,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 
 		userID := tryGetUser(ctx).ID
 
-		memberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(userID))
+		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -234,9 +234,9 @@ func postMembershipSubscribe(ctx *gin.Context) {
 				var newMembership database.UpdateUserMembershipParams
 
 				if !guildID.IsNil() {
-					newMembership, err = core.AddMembershipToServer(ctx, backend.Database, *membership, guildID)
+					newMembership, err = core.AddMembershipToServer(ctx, *membership, guildID)
 				} else {
-					newMembership, err = core.RemoveMembershipFromServer(ctx, backend.Database, *membership)
+					newMembership, err = core.RemoveMembershipFromServer(ctx, *membership)
 				}
 
 				if err != nil {

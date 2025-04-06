@@ -27,14 +27,19 @@ type TwilightProxy struct {
 	Debug bool
 }
 
-func NewTwilightProxy(url url.URL) discord.RESTInterface {
+func NewTwilightProxy(u string) discord.RESTInterface {
+	proxyURL, err := url.Parse(u)
+	if err != nil {
+		panic(fmt.Sprintf("url.Parse(%s): %v", u, err.Error()))
+	}
+
 	return &TwilightProxy{
 		HTTP: &http.Client{
 			Timeout: 20 * time.Second,
 		},
 		APIVersion: discord.APIVersion,
-		URLHost:    url.Host,
-		URLScheme:  url.Scheme,
+		URLHost:    proxyURL.Host,
+		URLScheme:  proxyURL.Scheme,
 		UserAgent:  "Sandwich (github.com/WelcomerTeam/Discord)",
 	}
 }

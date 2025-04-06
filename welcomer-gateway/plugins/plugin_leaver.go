@@ -71,7 +71,7 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeLeaver when ON_GUILD_MEMBER_REMOVE event is received.
 	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, user discord.User) error {
-		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		welcomer.PushGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			user.ID,
@@ -120,11 +120,9 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		}
 	}()
 
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsLeaver, err := queries.GetLeaverGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsLeaver = &database.GuildSettingsLeaver{
