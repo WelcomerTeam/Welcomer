@@ -67,7 +67,7 @@ func CreateMembershipForUser(ctx context.Context, userID discord.Snowflake, tran
 		return err
 	}
 
-	err = notifyMembershipCreated(ctx, session, *membership)
+	err = NotifyMembershipCreated(ctx, session, *membership)
 
 	return err
 }
@@ -116,7 +116,7 @@ func OnMembershipExpired(ctx context.Context, membership database.GetUserMembers
 		return err
 	}
 
-	err = notifyMembershipExpired(ctx, session, database.UserMemberships{
+	err = NotifyMembershipExpired(ctx, session, database.UserMemberships{
 		MembershipUuid:  membership.MembershipUuid,
 		CreatedAt:       membership.CreatedAt,
 		UpdatedAt:       membership.UpdatedAt,

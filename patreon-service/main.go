@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -36,6 +37,7 @@ func main() {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from panic:", r)
+			println(string(debug.Stack()))
 
 			err = welcomer.SendWebhookMessage(ctx, *patreonWebhookUrl, discord.WebhookMessageParams{
 				Content: "<@143090142360371200>",

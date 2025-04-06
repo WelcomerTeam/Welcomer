@@ -4,20 +4,21 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
-func notifyMembershipCreated(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
+func NotifyMembershipCreated(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
 	if membership.UserID == 0 {
 		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
 		return nil
 	}
 
-	users, err := SandwichClient.FetchUsers(ctx, &sandwich.FetchUsersRequest{
+	usersResponse, err := SandwichClient.FetchUsers(ctx, &sandwich.FetchUsersRequest{
 		UserIDs:         []int64{membership.UserID},
 		CreateDMChannel: true,
 	})
@@ -29,7 +30,9 @@ func notifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return err
 	}
 
-	if len(users.Users) == 0 {
+	users := usersResponse.GetUsers()
+
+	if len(users) == 0 {
 		Logger.Error().
 			Int64("user_id", membership.UserID).
 			Msg("Failed to fetch user, no users found")
@@ -37,7 +40,7 @@ func notifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return nil
 	}
 
-	pbUser := users.Users[0]
+	pbUser := users[membership.UserID]
 
 	user, err := sandwich.GRPCToUser(pbUser)
 	if err != nil {
@@ -48,7 +51,7 @@ func notifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return err
 	}
 
-	transactions, err := Queries.GetUserTransactionsByTransactionID(ctx, membership.TransactionUuid.String())
+	transaction, err := Queries.GetUserTransaction(ctx, membership.TransactionUuid)
 	if err != nil {
 		Logger.Error().Err(err).
 			Int64("user_id", int64(user.ID)).
@@ -58,36 +61,54 @@ func notifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return err
 	}
 
-	transaction := transactions[0]
-
 	description := ""
 
 	if membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds) {
-		description += "This membership is a custom backgrounds membership so you need to assign it to a server.\n\n"
+		description += "- This membership is for custom backgrounds, so you need to assign it to a server.\n"
 	} else if membership.MembershipType == int32(database.MembershipTypeWelcomerPro) {
-		description += "This membership is for Welcomer Pro so you need to make sure you assign it to a server before you can use it's features. This comes with custom backgrounds for the server.\n\n"
+		description += "- This membership is for Welcomer Pro so you need to make sure you assign it to a server before you can use the features. This also comes with custom backgrounds for the server.\n"
 	}
 
 	// Do not include for Discord payments, as they are automatically assigned to the server.
 	if transaction.PlatformType != int32(database.PlatformTypeDiscord) {
-		description += "If you have not assigned it to a server yet, you can run the `/membership add` command on the server you want to give it to, or use the **Memberships** tab on the website dashboard.\n\n"
+		description += "- If you have not assigned it to a server yet, you can run the `/membership add` command on the server you want to give it to, or use the **Memberships** tab on the website dashboard.\n"
 	}
 
-	description += "If you are having any issues, use the `/support` command to get access to our support server.\n\n"
+	description += "- If you are having any issues, use the `/support` command to get access to our support server.\n"
 
 	_, err = user.Send(ctx, session, discord.MessageParams{
 		Content: fmt.Sprintf(
-			"## Hey <@%d>, your **%s** subscription via **%s** has now been created!\nThank you for supporting Welcomer, it means a lot to us.",
+			"### Hey <@%d>, your **%s** %s via **%s** has now been created!\nThank you for supporting Welcomer, it means a lot to us.\n\n",
 			user.ID,
 			database.MembershipType(membership.MembershipType).Label(),
+			If(membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds), "benefit", "subscription"),
 			database.PlatformType(transaction.PlatformType).Label(),
 		),
 		Embeds: []discord.Embed{
 			{
 				Description: description,
-				Color:       0x4CD787,
+				Color:       EmbedColourInfo,
 				Image: &discord.EmbedImage{
-					URL: "https://" + os.Getenv("DOMAIN") + "/assets/membership_thank_you.png",
+					URL: WebsiteURL + "/assets/membership_thank_you.png",
+				},
+			},
+		},
+		Components: []discord.InteractionComponent{
+			{
+				Type: discord.InteractionComponentTypeActionRow,
+				Components: []discord.InteractionComponent{
+					{
+						Type:  discord.InteractionComponentTypeButton,
+						Style: discord.InteractionComponentStyleLink,
+						Label: "Get Support",
+						URL:   WebsiteURL + "/support",
+					},
+					{
+						Type:  discord.InteractionComponentTypeButton,
+						Style: discord.InteractionComponentStyleLink,
+						Label: "Visit Dashboard",
+						URL:   WebsiteURL + "/dashboard",
+					},
 				},
 			},
 		},
@@ -108,12 +129,200 @@ func notifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 	return nil
 }
 
-func notifyMembershipExpired(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
+func NotifyMembershipExpired(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
 	if membership.UserID == 0 {
 		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
 		return nil
 	}
+
+	usersResponse, err := SandwichClient.FetchUsers(ctx, &sandwich.FetchUsersRequest{
+		UserIDs:         []int64{membership.UserID},
+		CreateDMChannel: true,
+	})
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("user_id", membership.UserID).
+			Msg("Failed to fetch user")
+
+		return err
+	}
+
+	users := usersResponse.GetUsers()
+
+	if len(users) == 0 {
+		Logger.Error().
+			Int64("user_id", membership.UserID).
+			Msg("Failed to fetch user, no users found")
+
+		return nil
+	}
+
+	pbUser := users[membership.UserID]
+
+	user, err := sandwich.GRPCToUser(pbUser)
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("user_id", pbUser.ID).
+			Msg("Failed to convert user")
+
+		return err
+	}
+
+	transaction, err := Queries.GetUserTransaction(ctx, membership.TransactionUuid)
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("user_id", int64(user.ID)).
+			Str("transaction_uuid", membership.TransactionUuid.String()).
+			Msg("Failed to get user transactions")
+
+		return err
+	}
+
+	description := ""
+
+	switch database.MembershipType(membership.MembershipType) {
+	case database.MembershipTypeWelcomerPro:
+		description += "- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n"
+	case database.MembershipTypeLegacyWelcomerPro:
+		description += "- This membership is a legacy membership for Welcomer Pro. You may have been receiving it for free, but it is now expired.\n"
+		description += "- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n"
+	case database.MembershipTypeLegacyCustomBackgrounds:
+		description += "- This membership is a legacy membership for custom backgrounds. You may have been receiving it for free, but it is now expired.\n"
+		description += "- This membership is for custom backgrounds, so you will be missing out on any perks you got from it.\n"
+	default:
+		Logger.Warn().
+			Str("membership_id", membership.MembershipUuid.String()).
+			Int32("membership_type", membership.MembershipType).
+			Int64("user_id", int64(user.ID)).
+			Msg("Unexpected membership type is expiring")
+
+		return nil
+	}
+
+	switch database.PlatformType(transaction.PlatformType) {
+	case database.PlatformTypeDiscord:
+		description += "- This membership was purchased via Discord, so you will need to renew it below if you want to keep using it.\n"
+	case database.PlatformTypePatreon:
+		description += "- This membership was is a Patreon pledge, so you will need to renew it via Patreon or pledge again if you want to keep using it.\n"
+	case database.PlatformTypePaypalSubscription:
+		description += "- This membership was is a PayPal subscription, so you will need to renew it via PayPal or subscribe again if you want to keep using it.\n"
+	case database.PlatformTypePaypal:
+		description += "- This membership was purchased via PayPal, so you will need to purchase a new plan if you want to keep using it.\n"
+	default:
+		Logger.Warn().
+			Str("membership_id", membership.MembershipUuid.String()).
+			Int32("platform_type", transaction.PlatformType).
+			Int64("user_id", int64(user.ID)).
+			Msg("Unexpected platform type is expiring")
+
+		return nil
+	}
+
+	var content string
+
+	if membership.ExpiresAt.Before(time.Now()) {
+		content = fmt.Sprintf(
+			"### Hey <@%d>, your **%s** %s via **%s** has expired!\n\n",
+			user.ID,
+			database.MembershipType(membership.MembershipType).Label(),
+			If(membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds), "benefit", "subscription"),
+			database.PlatformType(transaction.PlatformType).Label(),
+		)
+	} else {
+		content = fmt.Sprintf(
+			"### Hey <@%d>, your **%s** %s via **%s** expires <t:%d:R>\nDon't miss out!\n\n",
+			user.ID,
+			database.MembershipType(membership.MembershipType).Label(),
+			If(membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds), "benefit", "subscription"),
+			database.PlatformType(transaction.PlatformType).Label(),
+			membership.ExpiresAt.Unix(),
+		)
+	}
+
+	var guildID int64
+
+	var guildName string
+
+	println(membership.GuildID)
+
+	if membership.GuildID != 0 {
+		guildID = membership.GuildID
+
+		guilds, err := SandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
+			GuildIDs: []int64{guildID},
+		})
+		if err != nil {
+			Logger.Warn().Err(err).
+				Int64("user_id", int64(user.ID)).
+				Int64("guild_id", guildID).
+				Msg("Failed to fetch guild")
+		} else {
+			guild := guilds.GetGuilds()[guildID]
+			guildName = guild.GetName()
+		}
+	}
+
+	if guildName != "" {
+		content += fmt.Sprintf("- This membership is assigned to the server **%s** `%d`.\n\n", guildName, guildID)
+	}
+
+	_, err = user.Send(ctx, session, discord.MessageParams{
+		Content: content,
+		Embeds: []discord.Embed{
+			{
+				Description: description,
+				Color:       EmbedColourError,
+			},
+		},
+		Components: []discord.InteractionComponent{
+			{
+				Type: discord.InteractionComponentTypeActionRow,
+				Components: []discord.InteractionComponent{
+					{
+						Type:  discord.InteractionComponentTypeButton,
+						Style: discord.InteractionComponentStylePremium,
+						SKUID: discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID"))),
+					},
+					{
+						Type:  discord.InteractionComponentTypeButton,
+						Style: discord.InteractionComponentStyleLink,
+						Label: "Get Welcomer Pro",
+						URL:   WebsiteURL + "/premium",
+					},
+				},
+			},
+			{
+				Type: discord.InteractionComponentTypeActionRow,
+				Components: []discord.InteractionComponent{
+					{
+						Type:  discord.InteractionComponentTypeButton,
+						Style: discord.InteractionComponentStyleLink,
+						Label: "Get Support",
+						URL:   WebsiteURL + "/support",
+					},
+					{
+						Type:  discord.InteractionComponentTypeButton,
+						Style: discord.InteractionComponentStyleLink,
+						Label: "Visit Dashboard",
+						URL:   WebsiteURL + "/dashboard",
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("user_id", int64(user.ID)).
+			Msg("Failed to send message")
+
+		return err
+	}
+
+	Logger.Info().
+		Int64("user_id", int64(user.ID)).
+		Str("membership_id", membership.MembershipUuid.String()).
+		Msg("Sent membership expiring message")
 
 	return nil
 }
