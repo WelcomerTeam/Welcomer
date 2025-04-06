@@ -864,7 +864,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.SupportInvite),
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.WebsiteURL+"/support"),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},

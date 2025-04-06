@@ -176,7 +176,14 @@ func EnsureGuild(ctx context.Context, guildID discord.Snowflake) error {
 	return nil
 }
 
-func AcquireSession(ctx context.Context, managerName string) (session *discord.Session, err error) {
+func AcquireSession(ctx context.Context, managerName string) (*discord.Session, error) {
+
+	// If we have a session in the context, use it.
+	session, sessionInContext := GetSessionFromContext(ctx)
+	if sessionInContext {
+		return session, nil
+	}
+
 	configurations, err := GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
 		Context:        ctx,
 		SandwichClient: SandwichClient,
@@ -185,8 +192,8 @@ func AcquireSession(ctx context.Context, managerName string) (session *discord.S
 		return nil, err
 	}
 
-	configuration, ok := configurations.Identifiers[managerName]
-	if !ok {
+	configuration, sessionInContext := configurations.Identifiers[managerName]
+	if !sessionInContext {
 		return nil, ErrMissingApplicationUser
 	}
 

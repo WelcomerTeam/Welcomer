@@ -52,11 +52,11 @@ func main() {
 	var err error
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ctx = welcomer.AddManagerNameToContext(ctx, *sandwichManagerName)
 
 	restInterface := welcomer.NewTwilightProxy(*proxyAddress)
 	restInterface.SetDebug(*proxyDebug)
 
+	welcomer.SetupDefaultManagerName(*sandwichManagerName)
 	welcomer.SetupLogger(*loggingLevel)
 	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),

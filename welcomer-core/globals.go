@@ -13,6 +13,12 @@ import (
 	"google.golang.org/grpc"
 )
 
+var DefaultManagerName string
+
+func SetupDefaultManagerName(name string) {
+	DefaultManagerName = name
+}
+
 var GRPCConnection *grpc.ClientConn
 
 func SetupGRPCConnection(host string, opts ...grpc.DialOption) {
