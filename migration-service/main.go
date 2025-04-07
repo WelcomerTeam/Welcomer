@@ -19,7 +19,6 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -803,9 +802,9 @@ func migrateGuildData(id int64, structure GuildInfo) {
 
 			_, err = gif.Decode(bytes.NewBuffer(respBody))
 			if err != nil {
-				imageType = utils.ImageFileTypeImagePng.String()
+				imageType = welcomer.ImageFileTypeImagePng.String()
 			} else {
-				imageType = utils.ImageFileTypeImageGif.String()
+				imageType = welcomer.ImageFileTypeImageGif.String()
 			}
 
 			im, _ := q.GetWelcomerImagesByGuildId(ctx, id)
@@ -835,25 +834,25 @@ func migrateGuildData(id int64, structure GuildInfo) {
 	}
 
 	imageAlignmentMapping := map[int64]int32{
-		0: int32(utils.ImageAlignmentLeft),   // Left
-		1: int32(utils.ImageAlignmentCenter), // Center
-		2: int32(utils.ImageAlignmentRight),  // Right
+		0: int32(welcomer.ImageAlignmentLeft),   // Left
+		1: int32(welcomer.ImageAlignmentCenter), // Center
+		2: int32(welcomer.ImageAlignmentRight),  // Right
 	}
 
 	imageThemeMapping := map[int64]int32{
-		0: int32(utils.ImageThemeDefault),  // Legacy
-		1: int32(utils.ImageThemeVertical), // Vertical
-		2: int32(utils.ImageThemeDefault),  // Badge
-		3: int32(utils.ImageThemeDefault),  // Shadowed
-		4: int32(utils.ImageThemeDefault),  // Widget
+		0: int32(welcomer.ImageThemeDefault),  // Legacy
+		1: int32(welcomer.ImageThemeVertical), // Vertical
+		2: int32(welcomer.ImageThemeDefault),  // Badge
+		3: int32(welcomer.ImageThemeDefault),  // Shadowed
+		4: int32(welcomer.ImageThemeDefault),  // Widget
 	}
 
 	imageProfileBorderMapping := map[int64]int32{
-		0: int32(utils.ImageProfileBorderTypeCircular), // Circular
-		1: int32(utils.ImageProfileBorderTypeSquared),  // Square
-		2: int32(utils.ImageProfileBorderTypeSquared),  // Square
-		3: int32(utils.ImageProfileBorderTypeCircular), // Circular
-		4: 4,                                           // None
+		0: int32(welcomer.ImageProfileBorderTypeCircular), // Circular
+		1: int32(welcomer.ImageProfileBorderTypeSquared),  // Square
+		2: int32(welcomer.ImageProfileBorderTypeSquared),  // Square
+		3: int32(welcomer.ImageProfileBorderTypeCircular), // Circular
+		4: 4,                                              // None
 	}
 
 	_, err = q.CreateOrUpdateWelcomerImagesGuildSettings(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
@@ -935,7 +934,7 @@ func migrateUserData(id int64, structure UserInfo) {
 	if structure.Memberships.WelcomerPro1.Has {
 		t, err := q.CreateUserTransaction(ctx, database.CreateUserTransactionParams{
 			UserID:            id,
-			PlatformType:      utils.If(structure.Memberships.WelcomerPro1.Pledging, int32(database.PlatformTypePatreon), int32(database.PlatformTypePaypal)),
+			PlatformType:      welcomer.If(structure.Memberships.WelcomerPro1.Pledging, int32(database.PlatformTypePatreon), int32(database.PlatformTypePaypal)),
 			TransactionStatus: int32(database.TransactionStatusCompleted),
 		})
 		if err != nil {
@@ -945,7 +944,7 @@ func migrateUserData(id int64, structure UserInfo) {
 		m, err := q.CreateNewMembership(ctx, database.CreateNewMembershipParams{
 			StartedAt:       time.Unix(int64(structure.Memberships.WelcomerPro1.Until), 0).AddDate(0, -1, 0),
 			ExpiresAt:       time.Unix(int64(structure.Memberships.WelcomerPro1.Until), 0),
-			Status:          utils.If(int64(structure.Memberships.WelcomerPro1.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
+			Status:          welcomer.If(int64(structure.Memberships.WelcomerPro1.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
 			MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 			TransactionUuid: t.TransactionUuid,
 			UserID:          id,
@@ -964,7 +963,7 @@ func migrateUserData(id int64, structure UserInfo) {
 	if structure.Memberships.WelcomerPro3.Has {
 		t, err := q.CreateUserTransaction(ctx, database.CreateUserTransactionParams{
 			UserID:            id,
-			PlatformType:      utils.If(structure.Memberships.WelcomerPro3.Pledging, int32(database.PlatformTypePatreon), int32(database.PlatformTypePaypal)),
+			PlatformType:      welcomer.If(structure.Memberships.WelcomerPro3.Pledging, int32(database.PlatformTypePatreon), int32(database.PlatformTypePaypal)),
 			TransactionStatus: int32(database.TransactionStatusCompleted),
 		})
 		if err != nil {
@@ -975,7 +974,7 @@ func migrateUserData(id int64, structure UserInfo) {
 			m, err := q.CreateNewMembership(ctx, database.CreateNewMembershipParams{
 				StartedAt:       time.Unix(int64(structure.Memberships.WelcomerPro3.Until), 0).AddDate(0, -1, 0),
 				ExpiresAt:       time.Unix(int64(structure.Memberships.WelcomerPro3.Until), 0),
-				Status:          utils.If(int64(structure.Memberships.WelcomerPro3.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
+				Status:          welcomer.If(int64(structure.Memberships.WelcomerPro3.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
 				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 				TransactionUuid: t.TransactionUuid,
 				UserID:          id,
@@ -995,7 +994,7 @@ func migrateUserData(id int64, structure UserInfo) {
 	if structure.Memberships.WelcomerPro5.Has {
 		t, err := q.CreateUserTransaction(ctx, database.CreateUserTransactionParams{
 			UserID:            id,
-			PlatformType:      utils.If(structure.Memberships.WelcomerPro5.Pledging, int32(database.PlatformTypePatreon), int32(database.PlatformTypePaypal)),
+			PlatformType:      welcomer.If(structure.Memberships.WelcomerPro5.Pledging, int32(database.PlatformTypePatreon), int32(database.PlatformTypePaypal)),
 			TransactionStatus: int32(database.TransactionStatusCompleted),
 		})
 		if err != nil {
@@ -1006,7 +1005,7 @@ func migrateUserData(id int64, structure UserInfo) {
 			m, err := q.CreateNewMembership(ctx, database.CreateNewMembershipParams{
 				StartedAt:       time.Unix(int64(structure.Memberships.WelcomerPro5.Until), 0).AddDate(0, -1, 0),
 				ExpiresAt:       time.Unix(int64(structure.Memberships.WelcomerPro5.Until), 0),
-				Status:          utils.If(int64(structure.Memberships.WelcomerPro5.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
+				Status:          welcomer.If(int64(structure.Memberships.WelcomerPro5.Until) > nowUnix, int32(database.MembershipStatusActive), int32(database.MembershipStatusExpired)),
 				MembershipType:  int32(database.MembershipTypeLegacyWelcomerPro),
 				TransactionUuid: t.TransactionUuid,
 				UserID:          id,

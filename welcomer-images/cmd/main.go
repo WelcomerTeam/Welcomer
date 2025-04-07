@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-images/service"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -32,40 +29,21 @@ func main() {
 
 	var err error
 
-	// Setup Logger
-	var level zerolog.Level
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-	logger.Info().Msg("Logging configured")
-
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Setup postgres pool.
-	var pool *pgxpool.Pool
-	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
-		panic(fmt.Sprintf(`pgxpool.Connect(%s): %v`, *postgresURL, err.Error()))
-	}
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupSandwichClient()
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	// Image Service initialization
 	var imageService *service.ImageService
-	if imageService, err = service.NewImageService(ctx, logger, service.ImageServiceOptions{
+	if imageService, err = service.NewImageService(ctx, service.ImageServiceOptions{
 		Debug:             *debug,
 		Host:              *imageHost,
-		Pool:              pool,
 		PostgresAddress:   *postgresURL,
 		PrometheusAddress: *prometheusAddress,
 	}); err != nil {
-		logger.Panic().Err(err).Msg("Cannot create image service")
+		welcomer.Logger.Panic().Err(err).Msg("Cannot create image service")
 	}
 
 	imageService.Open()
@@ -77,6 +55,6 @@ func main() {
 	cancel()
 
 	if err = imageService.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing image service")
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing image service")
 	}
 }

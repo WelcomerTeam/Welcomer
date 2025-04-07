@@ -77,7 +77,7 @@
                           <div v-if="membership.guild_id == 0" class="w-10 h-10 rounded-lg dark:bg-white bg-black opacity-20"></div>
                           <img v-else alt=""
                             :class="[
-                              membership.guild_id > 0 || isMembershipActive(membership) ? '' : 'saturate-0', 'w-10 h-10 rounded-lg']"
+                              (membership.guild_id > 0 || isMembershipActive(membership)) && !hasMembershipExpired(membership) ? '' : 'saturate-0', 'w-10 h-10 rounded-lg']"
                             v-lazy="{
                               src: membership.guild_icon !== ''
                                 ? `https://cdn.discordapp.com/icons/${membership.guild_id}/${membership.guild_icon}.webp?size=128`
@@ -90,17 +90,36 @@
                         <div class="truncate">
                           <div class="flex text-sm">
                             <p class="truncate dark:text-gray-50 text-left">
-                              <span class="text-sm font-semibold text-primary">{{ getMembershipTypeLabel(membership) }}</span>
+                              <span class="text-sm font-semibold text-primary">
+                                <font-awesome-icon title="Discord subscription" v-if="membership.platform_type == PlatformTypeDiscord" :icon="['fab','discord']" />
+                                <font-awesome-icon title="Patreon subscription" v-if="membership.platform_type == PlatformTypePatreon" :icon="['fab','patreon']" />
+                                <font-awesome-icon title="Paypal purchase" v-if="membership.platform_type == PlatformTypePaypal || membership.platform_type == PlatformTypePaypalSubscription" :icon="['fab','paypal']" />
+                                <font-awesome-icon title="Paypal subscription" v-if="membership.platform_type == PlatformTypePaypalSubscription" :icon="['fas','rotate-right']" />
+                                {{ getMembershipTypeLabel(membership) }}
+                              </span>
                               <br />
                               {{ membership.guild_id > 0 ? membership.guild_name : 'Unassigned' }}
                               <br />
-                              <span class="text-xs text-gray-600 dark:text-gray-400">{{ getMembershipStatusLabel(membership) }} <span v-if="membershipExpiresInFuture(membership) && !isCustomBackgroundsMembership(membership)">• {{ getMembershipDurationLeft(membership) }}</span></span>
+                              <span class="text-xs text-gray-600 dark:text-gray-400">
+                                <span v-if="hasMembershipExpired(membership)">Expired</span>
+                                <span v-else>
+                                  {{ getMembershipStatusLabel(membership) }}
+                                  <span v-if="
+                                    membershipExpiresInFuture(membership) &&
+                                    !isCustomBackgroundsMembership(membership) &&
+                                    (
+                                      (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon)
+                                      || getDaysLeftOfMembership(membership) <= 30
+                                    )
+                                  ">• {{ getMembershipDurationLeft(membership) }}</span>
+                                </span>
+                              </span>
                             </p>
                           </div>
                         </div>
                       </div>
                       <div class="flex-shrink-0">
-                        <Menu as="div" class="relative inline-block text-left" v-if="isMembershipAssignable(membership)">
+                        <Menu as="div" class="relative inline-block text-left">
                           <div>
                             <MenuButton class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                               <span class="sr-only">Open options</span>
@@ -112,9 +131,15 @@
                             <MenuItems class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-secondary shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
-                                  <button v-if="membership.guild_id == this.$store.getters.getSelectedGuildID" @click="removeMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Remove membership</button>
-                                  <button v-else-if="membership.guild_id > 0" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Transfer membership</button>
-                                  <button v-else @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Add membership</button>
+                                  <button v-if="membership.guild_id == this.$store.getters.getSelectedGuildID" @click="removeMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Remove membership from this server</button>
+                                  <button v-else-if="membership.guild_id > 0" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Transfer membership to this server</button>
+                                  <button v-else="isMembershipAssignable(membership)" :disabled="!isMembershipAssignable(membership)" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full disabled:bg-gray-100 disabled:dark:bg-secondary-light disabled:text-neutral-500']">Add membership to this server</button>
+                                </MenuItem>
+                                <MenuItem v-slot="{ active }" v-if="membership.platform_type == PlatformTypeDiscord || membership.platform_type == PlatformTypePatreon">
+                                  <button v-if="membership.platform_type == PlatformTypeDiscord" @click="showDiscordPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
+                                  <button v-else-if="membership.platform_type == PlatformTypePatreon" @click="showPatreonPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
+                                  <button v-else-if="membership.platform_type == PlatformTypePaypal" @click="showPaypalPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
+                                  <button v-else-if="membership.platform_type == PlatformTypePaypalSubscription" @click="showPaypalPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
                                 </MenuItem>
                               </div>
                             </MenuItems>
@@ -129,6 +154,58 @@
 
           </div>
         </div>
+
+        <Popup :open="showDiscordPopup" @close="showDiscordPopup = false">
+          <template v-slot:title>
+            Managing your Discord subscription
+          </template>
+
+          <p>
+            To manage your Discord subscription, go to <b>User Settings</b> → <b>Subscriptions</b> → <b>App Subscriptions</b> on your discord client.
+            This will let you see all the current and past subscriptions you have with Welcomer. You can cancel or change your payment method from there.
+          </p>
+          <p class=" text-sm opacity-75">
+            Discord subscriptions are not fully supported on mobile devices. Please use the desktop app or use your web browser to manage your subscriptions.
+          </p>
+          <p class="mt-8">
+            <a href="/support" target="_blank" class="mt-4 text-primary">Need help?</a>
+          </p>
+
+          <img src="/assets/discord_subscription.png" alt="Screenshot of an active discord subscription on the discord web client" class="mt-4" />
+        </Popup>
+
+        <Popup :open="showPaypalPopup" @close="showPaypalPopup = false">
+          <template v-slot:title>
+            Managing your Paypal subscription
+          </template>
+
+          <p>
+            There are two ways of paying via PayPal, one-time payments or a subscription. Newer Welcomer Pro monthly memberships will be subscriptions, and 6-monthly and yearly memberships will remain as one-time payments.
+            You can check if you have a one-time payment or a subscription by seeing if there is an <font-awesome-icon title="Paypal subscription" :icon="['fas','rotate-right']" /> icon next to your membership.
+            Once you have purchased a one-time payment, make sure to assign it to a server if you have not done so yet. To manage PayPal subscriptions, please go to your paypal account dashboard.
+          </p>
+          <p class="mt-8">
+            <a href="/support" target="_blank" class="mt-4 text-primary">Need help?</a>
+          </p>
+        </Popup>
+
+        <Popup :open="showPatreonPopup" @close="showPatreonPopup = false">
+          <template v-slot:title>
+            Managing your Patreon subscription
+          </template>
+
+          <p>
+            To manage your Patreon pledge, please go to <a href="https://www.patreon.com/Welcomer" target="_blank" class="text-primary">our Patreon page</a>.
+            You can use the <b>Memberships</b> tab to see your current membership, change your tier and cancel.
+          </p>
+          <p>
+            You can see more information about linking your Discord to Patreon <a href="https://support.patreon.com/hc/en-gb/articles/212052266-Getting-Discord-access" target="_blank" class="text-primary">here</a>.
+          </p>
+          <p class="mt-8">
+            <a href="/support" target="_blank" class="mt-4 text-primary">Need help?</a>
+          </p>
+        </Popup>
+
         <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit mt-16">
           <h3 class="text-2xl font-bold sm:text-3xl">
             Like what you see?
@@ -159,6 +236,7 @@ import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
 import FormValue from "@/components/dashboard/FormValue.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
+import Popup from "@/components/Popup.vue";
 
 import userAPI from "@/api/user";
 import endpoints from "@/api/endpoints";
@@ -172,7 +250,13 @@ import {
 
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { DotsVerticalIcon } from '@heroicons/vue/solid'
-import { OpenPatreonLink } from "../../constants";
+import {
+  OpenPatreonLink,
+  PlatformTypePatreon,
+  PlatformTypePaypal,
+  PlatformTypePaypalSubscription,
+  PlatformTypeDiscord,
+} from "../../constants";
 
 export default {
   components: {
@@ -185,6 +269,7 @@ export default {
     MenuItem,
     MenuItems,
     DotsVerticalIcon,
+    Popup,
   },
   setup() {
     let isDataFetched = ref(false);
@@ -194,6 +279,10 @@ export default {
 
     let memberships = ref([]);
     let accounts = ref([]);
+
+    let showDiscordPopup = ref(false);
+    let showPaypalPopup = ref(false);
+    let showPatreonPopup = ref(false);
 
     return {
       FormTypeBlank,
@@ -206,6 +295,15 @@ export default {
 
       accounts,
       memberships,
+
+      PlatformTypeDiscord,
+      PlatformTypePatreon,
+      PlatformTypePaypal,
+      PlatformTypePaypalSubscription,
+
+      showDiscordPopup,
+      showPaypalPopup,
+      showPatreonPopup,
     };
   },
 
@@ -215,11 +313,11 @@ export default {
 
   methods: {
     isMembershipAssignable(membership) {
-      return this.isMembershipIdle(membership) || this.isMembershipActive(membership);
+      return (this.isMembershipIdle(membership) || this.isMembershipActive(membership)) && (membership.platform_type !== PlatformTypeDiscord || membership.guild_id === 0) && !(this.hasMembershipExpired(membership));
     },
 
     isMembershipActive(membership) {
-      return membership.membership_status === "active";
+      return membership.membership_status === "active" && !this.hasMembershipExpired(membership);
     },
 
     isMembershipIdle(membership) {
@@ -246,10 +344,22 @@ export default {
 
       userAPI.getMemberships(
         ({ memberships, accounts }) => {
-          this.memberships = memberships
+          this.memberships = memberships;
+
+          // Hide expired memberships if the query param is not set
+          if (this.$route.query.show_expired != "1") {
+            this.memberships = this.memberships
+            .filter((membership) => {
+              return !this.hasMembershipExpired(membership);
+            });
+          }
+
+          // Sort memberships by guild_id, assignable, membership_type and expires_at
+          this.memberships = this.memberships
             .sort((a, b) => {
               return cmp(b.guild_id == this.$store.getters.getSelectedGuildID, a.guild_id == this.$store.getters.getSelectedGuildID) || cmp(this.isMembershipAssignable(b), this.isMembershipAssignable(a)) || cmp(b.membership_type, a.membership_type) || cmp(a.expires_at, b.expires_at);
             });
+
           this.accounts = accounts;
           this.isDataFetched = true;
           this.isDataError = false;
@@ -293,7 +403,7 @@ export default {
             title: "🎉 Membership assigned from your server.",
             icon: "check",
             class: "text-green-500 bg-green-100",
-           });
+          });
 
           this.fetchConfig();
         },
@@ -310,13 +420,26 @@ export default {
       return expiresAt > now;
     },
 
-    getMembershipDurationLeft(membership) {
+    hasMembershipExpired(membership) {
+      const expiresAt = new Date(membership.expires_at);
+      const now = new Date();
+
+      return expiresAt < now;
+    },
+
+    getDaysLeftOfMembership(membership) {
       const expiresAt = new Date(membership.expires_at);
       const now = new Date();
 
       const diff = expiresAt - now;
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      return days;
+    },
+
+    getMembershipDurationLeft(membership) {
+      const days = this.getDaysLeftOfMembership(membership);
 
       if (days > 0) {
         return `Expires in ${days} days`;

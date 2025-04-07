@@ -6,7 +6,6 @@ use (
 	./welcomer-gateway
 	./welcomer-images
 	./welcomer-interactions
-	./welcomer-utils
 
 	./migration-service
 )

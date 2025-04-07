@@ -2,61 +2,47 @@ package welcomer
 
 import (
 	"context"
+	"net/url"
 
+	"github.com/WelcomerTeam/Discord/discord"
 	subway "github.com/WelcomerTeam/Subway/subway"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type InteractionsContextKey int
+type ContextKey int
 
 const (
-	PoolKey InteractionsContextKey = iota
-	QueriesKey
-	ManagerNameKey
-	PushGuildScienceHandlerKey
+	ManagerNameContextKey ContextKey = iota
+	SessionContextKey
 )
 
-// Arguments context handler.
-func AddPoolToContext(ctx context.Context, v *pgxpool.Pool) context.Context {
-	return context.WithValue(ctx, PoolKey, v)
+func AddManagerNameToContext(ctx context.Context, managerName string) context.Context {
+	return context.WithValue(ctx, ManagerNameContextKey, managerName)
 }
 
-func GetPoolFromContext(ctx context.Context) *pgxpool.Pool {
-	value, _ := ctx.Value(PoolKey).(*pgxpool.Pool)
-
-	return value
+func AddSessionToContext(ctx context.Context, session *discord.Session) context.Context {
+	return context.WithValue(ctx, SessionContextKey, session)
 }
 
-// Queries context handler.
-func AddQueriesToContext(ctx context.Context, v *database.Queries) context.Context {
-	return context.WithValue(ctx, QueriesKey, v)
+func GetSessionFromContext(ctx context.Context) (*discord.Session, bool) {
+	s, ok := ctx.Value(SessionContextKey).(*discord.Session)
+
+	return s, ok
 }
 
-func GetQueriesFromContext(ctx context.Context) *database.Queries {
-	value, _ := ctx.Value(QueriesKey).(*database.Queries)
+func TryGetURLFromContext(ctx context.Context) url.URL {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
 
-	return value
-}
+	url := subway.GetURLFromContext(ctx)
 
-// PushGuildScience context handler.
-func AddPushGuildScienceToContext(ctx context.Context, v *PushGuildScienceHandler) context.Context {
-	return context.WithValue(ctx, PushGuildScienceHandlerKey, v)
-}
-
-func GetPushGuildScienceFromContext(ctx context.Context) *PushGuildScienceHandler {
-	value, _ := ctx.Value(PushGuildScienceHandlerKey).(*PushGuildScienceHandler)
-
-	return value
-}
-
-// ManagerName context handler.
-func AddManagerNameToContext(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, ManagerNameKey, v)
+	return url
 }
 
 func GetManagerNameFromContext(ctx context.Context) string {
-	url := subway.GetURLFromContext(ctx)
+	url := TryGetURLFromContext(ctx)
 	query := url.Query()
 
 	manager := query.Get("manager")
@@ -64,7 +50,7 @@ func GetManagerNameFromContext(ctx context.Context) string {
 		return manager
 	}
 
-	value, _ := ctx.Value(ManagerNameKey).(string)
+	manager, _ = ctx.Value(ManagerNameContextKey).(string)
 
-	return value
+	return DefaultManagerName
 }

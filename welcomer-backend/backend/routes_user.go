@@ -8,6 +8,7 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -33,9 +34,9 @@ func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(ctx, token.TokenType+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(token.TokenType+" "+token.AccessToken, httpInterface)
 
-	discordGuilds, err := discord.GetCurrentUserGuilds(discordSession)
+	discordGuilds, err := discord.GetCurrentUserGuilds(ctx, discordSession)
 	if err != nil {
 		// If we have received Unauthorized, clear their token.
 		if errors.Is(err, discord.ErrUnauthorized) {
@@ -43,7 +44,7 @@ func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (
 
 			err = session.Save()
 			if err != nil {
-				backend.Logger.Warn().Err(err).Msg("Failed to save session")
+				welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 			}
 
 			return nil, discord.ErrUnauthorized
@@ -55,12 +56,12 @@ func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (
 	for _, discordGuild := range discordGuilds {
 		welcomerPresence, _, _, err := hasWelcomerPresence(ctx, discordGuild.ID, false)
 		if err != nil {
-			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
+			welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
 		}
 
 		hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, discordGuild.ID)
 		if err != nil {
-			b.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
+			welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 		}
 
 		guilds[discordGuild.ID] = &SessionGuild{
@@ -85,7 +86,7 @@ func (b *Backend) GetUserMemberships(ctx context.Context, session sessions.Sessi
 		return nil, ErrMissingUser
 	}
 
-	userMemberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(user.ID))
+	userMemberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(user.ID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user memberships: %w", err)
 	}
@@ -105,7 +106,7 @@ func (b *Backend) GetUserMemberships(ctx context.Context, session sessions.Sessi
 		if userMembership.GuildID != 0 {
 			ok, guild, _, err := hasWelcomerPresence(ctx, discord.Snowflake(userMembership.GuildID), false)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
+				welcomer.Logger.Warn().Err(err).Int64("guildID", userMembership.GuildID).Msg("Exception getting guild info")
 			}
 
 			if ok && !guild.ID.IsNil() {
@@ -131,7 +132,7 @@ func usersMe(ctx *gin.Context) {
 		if refresh {
 			memberships, err := backend.GetUserMemberships(ctx, session)
 			if err != nil {
-				backend.Logger.Error().Err(err).Msg("Failed to get user memberships")
+				welcomer.Logger.Error().Err(err).Msg("Failed to get user memberships")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
@@ -176,7 +177,7 @@ func usersMeMemberships(ctx *gin.Context) {
 		if refresh {
 			memberships, err = backend.GetUserMemberships(ctx, session)
 			if err != nil {
-				backend.Logger.Error().Err(err).Msg("Failed to get user memberships")
+				welcomer.Logger.Error().Err(err).Msg("Failed to get user memberships")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,
@@ -195,7 +196,7 @@ func usersMeMemberships(ctx *gin.Context) {
 
 		err = session.Save()
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to save session")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 		}
 
 		ctx.JSON(http.StatusOK, BaseResponse{
@@ -249,7 +250,7 @@ func usersGuilds(ctx *gin.Context) {
 
 			err = session.Save()
 			if err != nil {
-				backend.Logger.Warn().Err(err).Msg("Failed to save session")
+				welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 			}
 		} else {
 			mappedGuilds = user.Guilds
@@ -257,7 +258,7 @@ func usersGuilds(ctx *gin.Context) {
 			for _, guild := range mappedGuilds {
 				hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, guild.ID)
 				if err != nil {
-					backend.Logger.Warn().Err(err).Int("guildID", int(guild.ID)).Msg("Exception getting welcomer membership")
+					welcomer.Logger.Warn().Err(err).Int("guildID", int(guild.ID)).Msg("Exception getting welcomer membership")
 				}
 
 				guild.HasCustomBackgrounds = hasCustomBackgrounds

@@ -35,3 +35,22 @@ func (x MembershipType) Label() string {
 
 	return "Unknown"
 }
+
+func (x PlatformType) Label() string {
+	switch x {
+	case PlatformTypeUnknown:
+		return "Unknown"
+	case PlatformTypePaypal:
+		return "Paypal"
+	case PlatformTypePatreon:
+		return "Patreon"
+	case PlatformTypeStripe:
+		return "Stripe"
+	case PlatformTypePaypalSubscription:
+		return "Paypal Subscription"
+	case PlatformTypeDiscord:
+		return "Discord"
+	}
+
+	return "Unknown"
+}

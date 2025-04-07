@@ -1,4 +1,4 @@
-package utils
+package welcomer
 
 import (
 	"bytes"
@@ -148,6 +148,12 @@ func TryParseFloat(str string) float64 {
 	float, _ := strconv.ParseFloat(str, int64BitSize)
 
 	return float
+}
+
+func TryParseTime(str string) time.Time {
+	timestamp, _ := time.Parse(time.RFC3339, str)
+
+	return timestamp
 }
 
 func IsValidUnsplashID(str string) bool {
@@ -412,7 +418,7 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	return true
 }
 
-func HumanizeDuration(seconds int) string {
+func HumanizeDuration(seconds int, includeSeconds bool) string {
 	duration := time.Duration(seconds) * time.Second
 	years := int(duration.Hours() / 24 / 365)
 	days := int(duration.Hours()/24) % 365
@@ -454,6 +460,16 @@ func HumanizeDuration(seconds int) string {
 		}
 		result.WriteString(fmt.Sprintf("%d minute", minutes))
 		if minutes > 1 {
+			result.WriteString("s")
+		}
+	}
+
+	if seconds > 0 {
+		if result.Len() > 0 {
+			result.WriteString(" and ")
+		}
+		result.WriteString(fmt.Sprintf("%d second", seconds))
+		if seconds > 1 {
 			result.WriteString("s")
 		}
 	}

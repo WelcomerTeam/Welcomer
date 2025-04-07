@@ -81,5 +81,6 @@ SELECT
 FROM
     user_memberships 
 WHERE
-    status = $1
-    AND expires_at < (NOW() + interval '@lookahead::integer' day);
+    status <> $1
+    AND expires_at < NOW()
+    AND (expires_at > '2000-01-01' AND started_at > '2000-01-01');

@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 )
 
 // TwilightProxy is a proxy that requests are sent through, instead of directly to discord that will handle
-// distributed requests and ratelimits automatically. See more at: https://github.com/twilight-rs/http-proxy
+// distributed requests and ratelimit automatically. See more at: https://github.com/twilight-rs/http-proxy
 type TwilightProxy struct {
 	HTTP       *http.Client
 	APIVersion string
@@ -26,24 +27,29 @@ type TwilightProxy struct {
 	Debug bool
 }
 
-func NewTwilightProxy(url url.URL) discord.RESTInterface {
+func NewTwilightProxy(u string) discord.RESTInterface {
+	proxyURL, err := url.Parse(u)
+	if err != nil {
+		panic(fmt.Sprintf("url.Parse(%s): %v", u, err.Error()))
+	}
+
 	return &TwilightProxy{
 		HTTP: &http.Client{
 			Timeout: 20 * time.Second,
 		},
 		APIVersion: discord.APIVersion,
-		URLHost:    url.Host,
-		URLScheme:  url.Scheme,
+		URLHost:    proxyURL.Host,
+		URLScheme:  proxyURL.Scheme,
 		UserAgent:  "Sandwich (github.com/WelcomerTeam/Discord)",
 	}
 }
 
-func (tl *TwilightProxy) Fetch(session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header) ([]byte, error) {
+func (tl *TwilightProxy) Fetch(ctx context.Context, session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header) ([]byte, error) {
 	if bytes.Contains(body, []byte("nigger")) {
 		return nil, fmt.Errorf("very bad request")
 	}
 
-	req, err := http.NewRequestWithContext(session.Context, method, endpoint, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new request: %w", err)
 	}
@@ -109,8 +115,8 @@ func (tl *TwilightProxy) Fetch(session *discord.Session, method, endpoint, conte
 	return response, nil
 }
 
-func (tl *TwilightProxy) FetchBJ(session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header, response any) error {
-	resp, err := tl.Fetch(session, method, endpoint, contentType, body, headers)
+func (tl *TwilightProxy) FetchBJ(ctx context.Context, session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header, response any) error {
+	resp, err := tl.Fetch(ctx, session, method, endpoint, contentType, body, headers)
 	if err != nil {
 		return err
 	}
@@ -125,7 +131,7 @@ func (tl *TwilightProxy) FetchBJ(session *discord.Session, method, endpoint, con
 	return nil
 }
 
-func (tl *TwilightProxy) FetchJJ(session *discord.Session, method, endpoint string, payload any, headers http.Header, response any) error {
+func (tl *TwilightProxy) FetchJJ(ctx context.Context, session *discord.Session, method, endpoint string, payload any, headers http.Header, response any) error {
 	var body []byte
 	var err error
 
@@ -138,7 +144,7 @@ func (tl *TwilightProxy) FetchJJ(session *discord.Session, method, endpoint stri
 		body = make([]byte, 0)
 	}
 
-	return tl.FetchBJ(session, method, endpoint, "application/json", body, headers, response)
+	return tl.FetchBJ(ctx, session, method, endpoint, "application/json", body, headers, response)
 }
 
 func (tl *TwilightProxy) SetDebug(value bool) {

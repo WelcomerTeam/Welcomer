@@ -11,7 +11,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 var elevatedUsers []discord.Snowflake
@@ -109,7 +108,7 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 		return &discord.InteractionResponse{
 			Type: discord.InteractionCallbackTypeChannelMessageSource,
 			Data: &discord.InteractionCallbackData{
-				Embeds: utils.NewEmbed("This command can only be used in a guild.", utils.EmbedColourError),
+				Embeds: NewEmbed("This command can only be used in a guild.", EmbedColourError),
 				Flags:  uint32(discord.MessageFlagEphemeral),
 			},
 		}, nil
@@ -132,21 +131,20 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 		guildPb, ok := guildsResponse.Guilds[int64(*interaction.GuildID)]
 		if ok {
 			guild, err = protobuf.GRPCToGuild(guildPb)
-
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		if guild.ID.IsNil() {
-			return nil, utils.ErrMissingGuild
+			return nil, ErrMissingGuild
 		}
 
 		if interaction.Member == nil || !MemberHasElevation(guild, *interaction.Member) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: utils.NewEmbed("You do not have the required permissions to use this command.", utils.EmbedColourError),
+					Embeds: NewEmbed("You do not have the required permissions to use this command.", EmbedColourError),
 					Flags:  uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
@@ -157,19 +155,19 @@ func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, 
 }
 
 // EnsureGuild will create or update a guild entry. This requires RequireMutualGuild to be called.
-func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord.Snowflake) error {
-	guild, _ := queries.GetGuild(ctx, int64(guildID))
+func EnsureGuild(ctx context.Context, guildID discord.Snowflake) error {
+	guild, _ := Queries.GetGuild(ctx, int64(guildID))
 	if guild == nil || guild.GuildID != 0 {
 		return nil
 	}
 
-	_, err := queries.CreateGuild(ctx, database.CreateGuildParams{
+	_, err := Queries.CreateGuild(ctx, database.CreateGuildParams{
 		GuildID:          int64(guildID),
-		EmbedColour:      database.DefaultGuild.EmbedColour,
-		SiteSplashUrl:    database.DefaultGuild.SiteSplashUrl,
-		SiteStaffVisible: database.DefaultGuild.SiteStaffVisible,
-		SiteGuildVisible: database.DefaultGuild.SiteGuildVisible,
-		SiteAllowInvites: database.DefaultGuild.SiteAllowInvites,
+		EmbedColour:      DefaultGuild.EmbedColour,
+		SiteSplashUrl:    DefaultGuild.SiteSplashUrl,
+		SiteStaffVisible: DefaultGuild.SiteStaffVisible,
+		SiteGuildVisible: DefaultGuild.SiteGuildVisible,
+		SiteAllowInvites: DefaultGuild.SiteAllowInvites,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to ensure guild: %w", err)
@@ -178,19 +176,26 @@ func EnsureGuild(ctx context.Context, queries *database.Queries, guildID discord
 	return nil
 }
 
-func AcquireSession(ctx context.Context, sub *subway.Subway, managerName string) (session *discord.Session, err error) {
-	configurations, err := sub.GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
+func AcquireSession(ctx context.Context, managerName string) (*discord.Session, error) {
+
+	// If we have a session in the context, use it.
+	session, sessionInContext := GetSessionFromContext(ctx)
+	if sessionInContext {
+		return session, nil
+	}
+
+	configurations, err := GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
 		Context:        ctx,
-		SandwichClient: sub.SandwichClient,
+		SandwichClient: SandwichClient,
 	}, managerName)
 	if err != nil {
 		return nil, err
 	}
 
-	configuration, ok := configurations.Identifiers[managerName]
-	if !ok {
-		return nil, utils.ErrMissingApplicationUser
+	configuration, sessionInContext := configurations.Identifiers[managerName]
+	if !sessionInContext {
+		return nil, ErrMissingApplicationUser
 	}
 
-	return discord.NewSession(ctx, "Bot "+configuration.Token, sub.RESTInterface), nil
+	return discord.NewSession("Bot "+configuration.Token, RESTInterface), nil
 }

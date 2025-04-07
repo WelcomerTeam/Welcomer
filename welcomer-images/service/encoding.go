@@ -8,16 +8,16 @@ import (
 	"image/png"
 	"sync"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 	"github.com/ultimate-guitar/go-imagequant"
 )
 
 var attr, _ = imagequant.NewAttributes()
 
-func encodeFrames(frames []image.Image, background FullImage) ([]byte, utils.ImageFileType, error) {
+func encodeFrames(frames []image.Image, background FullImage) ([]byte, welcomer.ImageFileType, error) {
 	if len(frames) == 0 {
-		return nil, utils.ImageFileTypeUnknown, ErrMissingFrames
+		return nil, welcomer.ImageFileTypeUnknown, ErrMissingFrames
 	}
 
 	if len(frames) > 1 {
@@ -27,18 +27,18 @@ func encodeFrames(frames []image.Image, background FullImage) ([]byte, utils.Ima
 	return encodeFramesAsPng(frames[0])
 }
 
-func encodeFramesAsPng(frame image.Image) ([]byte, utils.ImageFileType, error) {
+func encodeFramesAsPng(frame image.Image) ([]byte, welcomer.ImageFileType, error) {
 	b := bytes.NewBuffer(nil)
 
 	err := png.Encode(b, frame)
 	if err != nil {
-		return nil, utils.ImageFileTypeUnknown, err
+		return nil, welcomer.ImageFileTypeUnknown, err
 	}
 
-	return b.Bytes(), utils.ImageFileTypeImagePng, nil
+	return b.Bytes(), welcomer.ImageFileTypeImagePng, nil
 }
 
-func encodeFramesAsGif(frames []image.Image, background FullImage) ([]byte, utils.ImageFileType, error) {
+func encodeFramesAsGif(frames []image.Image, background FullImage) ([]byte, welcomer.ImageFileType, error) {
 	quantized_frames := make([]*image.Paletted, len(frames))
 
 	wg := sync.WaitGroup{}
@@ -69,10 +69,10 @@ func encodeFramesAsGif(frames []image.Image, background FullImage) ([]byte, util
 		BackgroundIndex: background.BackgroundIndex,
 	})
 	if err != nil {
-		return nil, utils.ImageFileTypeUnknown, err
+		return nil, welcomer.ImageFileTypeUnknown, err
 	}
 
-	return b.Bytes(), utils.ImageFileTypeImageGif, nil
+	return b.Bytes(), welcomer.ImageFileTypeImageGif, nil
 }
 
 // quantizeImage converts an image.Image to image.Paletted via imagequant.

@@ -7,7 +7,7 @@ import (
 	"image/color"
 	"image/gif"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gofrs/uuid"
 )
 
@@ -16,18 +16,18 @@ const (
 )
 
 func (is *ImageService) FetchBackground(background string, allowAnimated bool, avatar image.Image) (FullImage, error) {
-	backgroundType, _ := utils.ParseBackground(background)
+	backgroundType, _ := welcomer.ParseBackground(background)
 
 	switch backgroundType.Type {
-	case utils.BackgroundTypeWelcomer:
+	case welcomer.BackgroundTypeWelcomer:
 		return is.FetchBackgroundWelcomer(backgroundType.Value, allowAnimated)
-	case utils.BackgroundTypeSolid:
+	case welcomer.BackgroundTypeSolid:
 		return is.FetchBackgroundSolid(backgroundType.Value)
-	case utils.BackgroundTypeSolidProfile:
+	case welcomer.BackgroundTypeSolidProfile:
 		return is.FetchBackgroundSolidProfile(avatar)
-	case utils.BackgroundTypeUnsplash:
+	case welcomer.BackgroundTypeUnsplash:
 		return is.FetchBackgroundUnsplash(backgroundType.Value)
-	case utils.BackgroundTypeUrl:
+	case welcomer.BackgroundTypeUrl:
 		return is.FetchBackgroundURL(backgroundType.Value, allowAnimated)
 	default:
 		return is.FetchBackgroundDefault(backgroundType.Value)
@@ -50,21 +50,21 @@ func (is *ImageService) FetchBackgroundWelcomer(value string, allowAnimated bool
 	var backgroundUuid uuid.UUID
 	err := backgroundUuid.Parse(value)
 	if err != nil {
-		is.Logger.Error().Err(err).Str("value", value).Msg("Failed to convert value to valid UUID for background")
+		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to convert value to valid UUID for background")
 
 		return FullImage{}, err
 	}
 
 	background, err := is.Database.GetWelcomerImages(is.ctx, backgroundUuid)
 	if err != nil {
-		is.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
+		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
 
 		return FullImage{}, err
 	}
 
 	fullImage, err := openImage(background.Data, background.ImageType)
 	if err != nil {
-		is.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
+		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
 
 		return FullImage{}, err
 	}
@@ -82,7 +82,7 @@ func getFullImageForColour(colour color.RGBA) FullImage {
 
 	// Generate a FullImage structure representing the single-pixel image
 	return FullImage{
-		Format: utils.ImageFileTypeImagePng,
+		Format: welcomer.ImageFileTypeImagePng,
 		Frames: []image.Image{im},
 		Config: image.Config{
 			Width:  1,
@@ -93,7 +93,7 @@ func getFullImageForColour(colour color.RGBA) FullImage {
 
 // FetchBackgroundSolid returns an image using the color provided as the value.
 func (is *ImageService) FetchBackgroundSolid(value string) (FullImage, error) {
-	background, err := utils.ParseColour(value, "")
+	background, err := welcomer.ParseColour(value, "")
 	if err != nil {
 		return FullImage{}, fmt.Errorf("failed to parse colour %s: %v", value, err)
 	}
@@ -203,10 +203,10 @@ func (is *ImageService) FetchBackgroundURL(value string, allowAnimated bool) (Fu
 // It returns a FullImage structure representing the decoded image and an error if the decoding process encounters any issues.
 func openImage(src []byte, format string) (fullImage FullImage, err error) {
 	// Attempt to parse the image file format
-	fileFormat, err := utils.ParseImageFileType(format)
+	fileFormat, err := welcomer.ParseImageFileType(format)
 	if err != nil {
 		// Set a default format to PNG if unable to parse
-		fileFormat = utils.ImageFileTypeImagePng
+		fileFormat = welcomer.ImageFileTypeImagePng
 	}
 
 	// Create a buffer with the image data
@@ -214,7 +214,7 @@ func openImage(src []byte, format string) (fullImage FullImage, err error) {
 
 	// Decode the image based on its format
 	switch fileFormat {
-	case utils.ImageFileTypeImageGif:
+	case welcomer.ImageFileTypeImageGif:
 		// Decode GIF images
 		gif, err := gif.DecodeAll(b)
 		if err != nil {
@@ -223,7 +223,7 @@ func openImage(src []byte, format string) (fullImage FullImage, err error) {
 
 		// Populate FullImage structure for GIF images
 		fullImage = FullImage{
-			Format:          utils.ImageFileTypeImageGif,
+			Format:          welcomer.ImageFileTypeImageGif,
 			Frames:          make([]image.Image, len(gif.Image)),
 			Config:          gif.Config,
 			Delay:           gif.Delay,

@@ -6,19 +6,19 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
 // Send user to OAuth2 Authorize URL.
 func doDiscordOAuthAuthorize(session sessions.Session, ctx *gin.Context) {
-	state := utils.RandStringBytesRmndr(StateStringLength)
+	state := welcomer.RandStringBytesRmndr(StateStringLength)
 
 	SetStateSession(session, state)
 
 	if err := session.Save(); err != nil {
-		backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 	}
 
 	ctx.Redirect(http.StatusTemporaryRedirect, DiscordOAuth2Config.AuthCodeURL(state))
@@ -61,7 +61,7 @@ func callback(ctx *gin.Context) {
 
 	token, err := DiscordOAuth2Config.Exchange(ctx, queryCode)
 	if err != nil {
-		backend.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
+		welcomer.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
 		doDiscordOAuthAuthorize(session, ctx)
 
@@ -72,9 +72,9 @@ func callback(ctx *gin.Context) {
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(ctx, token.Type()+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(token.Type()+" "+token.AccessToken, httpInterface)
 
-	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(discordSession)
+	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(ctx, discordSession)
 	if err != nil || authorizationInformation == nil {
 		doDiscordOAuthAuthorize(session, ctx)
 
@@ -96,7 +96,7 @@ func callback(ctx *gin.Context) {
 
 	err = session.Save()
 	if err != nil {
-		backend.Logger.Warn().Err(err).Msg("Failed to save session")
+		welcomer.Logger.Warn().Err(err).Msg("Failed to save session")
 	}
 
 	queryPath, ok := GetPreviousPathSession(session)

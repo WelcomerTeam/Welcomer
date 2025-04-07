@@ -3,7 +3,7 @@ package service
 import (
 	"image"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
@@ -44,13 +44,13 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *G
 		)
 	} else {
 		switch args.ImageOptions.ProfileFloat {
-		case utils.ImageAlignmentLeft: // left
+		case welcomer.ImageAlignmentLeft: // left
 			imagePoint = image.Point{0, 0}
 			textPoint = image.Point{0, 236}
-		case utils.ImageAlignmentCenter: // center
+		case welcomer.ImageAlignmentCenter: // center
 			imagePoint = image.Point{225, 0}
 			textPoint = image.Point{0, 236}
-		case utils.ImageAlignmentRight: // right
+		case welcomer.ImageAlignmentRight: // right
 			imagePoint = image.Point{450, 0}
 			textPoint = image.Point{0, 236}
 		default:
@@ -109,5 +109,5 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *G
 }
 
 func init() {
-	registerThemeFunc(utils.ImageThemeVertical, CreateVerticalImage)
+	registerThemeFunc(welcomer.ImageThemeVertical, CreateVerticalImage)
 }

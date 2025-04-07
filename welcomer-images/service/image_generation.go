@@ -10,7 +10,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/RealRock/limiter"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 )
@@ -20,7 +20,7 @@ var lim = limiter.NewConcurrencyLimiter(runtime.NumCPU() / 2)
 // FullImage stores the image and any extra information.
 type FullImage struct {
 	// The image format that is represented
-	Format utils.ImageFileType
+	Format welcomer.ImageFileType
 
 	Frames []image.Image
 
@@ -50,29 +50,29 @@ type GenerateImageOptions struct {
 	UserID             discord.Snowflake
 	AllowAnimated      bool
 	AvatarURL          string
-	Theme              utils.ImageTheme
+	Theme              welcomer.ImageTheme
 	Background         string
 	Text               string
 	TextFont           string
 	TextStroke         int
-	TextAlign          utils.ImageAlignment
+	TextAlign          welcomer.ImageAlignment
 	TextColor          color.RGBA
 	TextStrokeColor    color.RGBA
 	ImageBorderColor   color.RGBA
 	ImageBorderWidth   int
-	ProfileFloat       utils.ImageAlignment
+	ProfileFloat       welcomer.ImageAlignment
 	ProfileBorderColor color.RGBA
 	ProfileBorderWidth int
-	ProfileBorderCurve utils.ImageProfileBorderType
+	ProfileBorderCurve welcomer.ImageProfileBorderType
 }
 
-func (is *ImageService) GenerateImage(ctx context.Context, imageOptions GenerateImageOptions) ([]byte, utils.ImageFileType, *utils.Timing, error) {
+func (is *ImageService) GenerateImage(ctx context.Context, imageOptions GenerateImageOptions) ([]byte, welcomer.ImageFileType, *welcomer.Timing, error) {
 	theme, ok := themes[imageOptions.Theme]
 	if !ok {
-		theme = themes[utils.ImageThemeDefault]
+		theme = themes[welcomer.ImageThemeDefault]
 	}
 
-	timing := utils.NewTiming()
+	timing := welcomer.NewTiming()
 
 	var avatar image.Image
 
@@ -81,7 +81,7 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 	if imageOptions.AvatarURL != "" {
 		avatar, err = is.FetchAvatar(ctx, imageOptions.AvatarURL)
 		if err != nil {
-			is.Logger.Error().Err(err).Msg("Failed to fetch avatar")
+			welcomer.Logger.Error().Err(err).Msg("Failed to fetch avatar")
 
 			avatar = assetsDefaultAvatarImage
 		}
@@ -93,7 +93,7 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 	background, err := is.FetchBackground(imageOptions.Background, imageOptions.AllowAnimated, avatar)
 	if err != nil {
-		is.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
+		welcomer.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
 
 		background = FullImage{Frames: []image.Image{backgroundsDefaultImage}}
 	}
@@ -105,7 +105,7 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 	if avatar != nil {
 		avatar, err = applyAvatarEffects(avatar, imageOptions)
 		if err != nil {
-			is.Logger.Error().Err(err).Msg("Failed to generate avatar")
+			welcomer.Logger.Error().Err(err).Msg("Failed to generate avatar")
 		}
 
 		timing.Track("applyAvatarEffects")
@@ -118,9 +118,9 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 		Avatar:       avatar,
 	})
 	if err != nil {
-		is.Logger.Error().Err(err).Msg("Failed to generate theme overlay")
+		welcomer.Logger.Error().Err(err).Msg("Failed to generate theme overlay")
 
-		return nil, utils.ImageFileTypeUnknown, timing, err
+		return nil, welcomer.ImageFileTypeUnknown, timing, err
 	}
 
 	timing.Track("theme")
@@ -145,7 +145,7 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 	file, format, err := encodeFrames(frames, background)
 	if err != nil {
-		is.Logger.Error().Err(err).Msg("Failed to encode frames")
+		welcomer.Logger.Error().Err(err).Msg("Failed to encode frames")
 	}
 
 	timing.Track("encodeFrames")

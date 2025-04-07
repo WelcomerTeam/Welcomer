@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	_ "github.com/joho/godotenv/autoload"
 )
 
@@ -115,8 +115,8 @@ func doLoadTest() {
 	}
 }
 
-func getImageRequest() utils.GenerateImageOptionsRaw {
-	return utils.GenerateImageOptionsRaw{
+func getImageRequest() welcomer.GenerateImageOptionsRaw {
+	return welcomer.GenerateImageOptionsRaw{
 		GuildID:            341685098468343822,
 		UserID:             143090142360371200,
 		AllowAnimated:      randomBool(),
@@ -131,10 +131,10 @@ func getImageRequest() utils.GenerateImageOptionsRaw {
 		TextStrokeColor:    0xFF000000,
 		ImageBorderColor:   0xFFFFFFFF,
 		ImageBorderWidth:   rand.Int31n(8) + 8,
-		ProfileFloat:       int32(utils.ImageAlignmentLeft),
+		ProfileFloat:       int32(welcomer.ImageAlignmentLeft),
 		ProfileBorderColor: 0xFFFFFFFF,
 		ProfileBorderWidth: rand.Int31n(8) + 8,
-		ProfileBorderCurve: int32(utils.ImageProfileBorderTypeRounded),
+		ProfileBorderCurve: int32(welcomer.ImageProfileBorderTypeRounded),
 	}
 }
 

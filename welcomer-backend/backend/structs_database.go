@@ -1,7 +1,7 @@
 package backend
 
 import (
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/jackc/pgtype"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
 )
@@ -11,7 +11,7 @@ func Int64ToStringPointer(value int64) *string {
 		return nil
 	}
 
-	v := utils.Itoa(value)
+	v := welcomer.Itoa(value)
 	return &v
 }
 
@@ -20,7 +20,7 @@ func StringPointerToInt64(value *string) int64 {
 		return 0
 	}
 
-	v, _ := utils.Atoi(*value)
+	v, _ := welcomer.Atoi(*value)
 
 	return v
 }
@@ -56,7 +56,7 @@ func StringSliceToInt64(value []string) []int64 {
 	r := make([]int64, 0, len(value))
 
 	for _, valueString := range value {
-		v, e := utils.Atoi(valueString)
+		v, e := welcomer.Atoi(valueString)
 		if e == nil {
 			r = append(r, v)
 		}
@@ -69,7 +69,7 @@ func Int64SliceToString(values []int64) []string {
 	r := make([]string, len(values))
 
 	for i, value := range values {
-		r[i] = utils.Itoa(value)
+		r[i] = welcomer.Itoa(value)
 	}
 
 	return r

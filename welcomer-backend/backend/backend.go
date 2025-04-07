@@ -10,20 +10,15 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-contrib/sessions"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/plutov/paypal/v4"
-	"github.com/rs/zerolog"
 	gin_prometheus "github.com/zsais/go-gin-prometheus"
-	"google.golang.org/grpc"
 )
 
 const VERSION = "0.1"
@@ -40,15 +35,9 @@ const (
 var backend *Backend
 
 type Backend struct {
-	Logger    zerolog.Logger
 	StartTime time.Time
 
 	Options BackendOptions
-
-	RESTInterface discord.RESTInterface
-
-	SandwichClient protobuf.SandwichClient
-	GRPCInterface  sandwich.GRPC
 
 	PrometheusHandler *gin_prometheus.Prometheus
 
@@ -56,10 +45,7 @@ type Backend struct {
 
 	Store Store
 
-	Database *database.Queries
-	Pool     *pgxpool.Pool
-
-	IPChecker utils.IPChecker
+	IPChecker welcomer.IPChecker
 
 	EmptySession      *discord.Session
 	BotSession        *discord.Session
@@ -76,10 +62,6 @@ type BackendOptions struct {
 	NginxAddress      string
 	PostgresAddress   string
 	PrometheusAddress string
-
-	Conn          grpc.ClientConnInterface
-	RESTInterface discord.RESTInterface
-	Pool          *pgxpool.Pool
 
 	BotToken        string
 	DonatorBotToken string
@@ -98,27 +80,15 @@ type BackendOptions struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptions) (*Backend, error) {
+func NewBackend(ctx context.Context, options BackendOptions) (*Backend, error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}
 
 	b := &Backend{
-		Logger: logger,
-
-		Options: options,
-
-		RESTInterface: options.RESTInterface,
-
-		SandwichClient: protobuf.NewSandwichClient(options.Conn),
-		GRPCInterface:  sandwich.NewDefaultGRPCClient(),
-
+		Options:           options,
 		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
-
-		Database: database.New(options.Pool),
-		Pool:     options.Pool,
-
-		IPChecker: utils.NewLRUIPChecker(logger, 1024),
+		IPChecker:         welcomer.NewLRUIPChecker(1024),
 	}
 
 	// Setup Discord OAuth2
@@ -132,9 +102,11 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	PatreonOAuth2Config.RedirectURL = options.PatreonRedirectURL
 
 	// Setup sessions
-	b.EmptySession = discord.NewSession(ctx, "", b.RESTInterface)
-	b.BotSession = discord.NewSession(ctx, b.Options.BotToken, b.RESTInterface)
-	b.DonatorBotSession = discord.NewSession(ctx, b.Options.DonatorBotToken, b.RESTInterface)
+	b.EmptySession = discord.NewSession("", welcomer.RESTInterface)
+	b.BotSession = discord.NewSession(b.Options.BotToken, welcomer.RESTInterface)
+	b.DonatorBotSession = discord.NewSession(b.Options.DonatorBotToken, welcomer.RESTInterface)
+
+	println(welcomer.RESTInterface)
 
 	if options.NginxAddress != "" {
 		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
@@ -156,7 +128,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 	}
 
 	// Setup session store.
-	store, err := NewStore(options.Pool, keyPairs...)
+	store, err := NewStore(welcomer.Pool, keyPairs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session store: %w", err)
 	}
@@ -172,7 +144,7 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 
 	b.Store = store
 
-	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, utils.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
+	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create paypal client: %w", err)
 	}
@@ -191,9 +163,9 @@ func NewBackend(ctx context.Context, logger zerolog.Logger, options BackendOptio
 func (b *Backend) GetBasicEventContext(ctx context.Context) (client *sandwich.EventContext) {
 	return &sandwich.EventContext{
 		Context: ctx,
-		Logger:  b.Logger,
 		Sandwich: &sandwich.Sandwich{
-			SandwichClient: b.SandwichClient,
+			Logger:         welcomer.Logger,
+			SandwichClient: welcomer.SandwichClient,
 		},
 	}
 }
@@ -201,12 +173,12 @@ func (b *Backend) GetBasicEventContext(ctx context.Context) (client *sandwich.Ev
 // Open sets up any services and starts the web server.
 func (b *Backend) Open() error {
 	b.StartTime = time.Now()
-	b.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
+	welcomer.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
 
 	// Setup Prometheus
 	go b.SetupPrometheus()
 
-	b.Logger.Info().Msgf("Serving http at %s", b.Options.Host)
+	welcomer.Logger.Info().Msgf("Serving http at %s", b.Options.Host)
 
 	err := b.Route.Run(b.Options.Host)
 	if err != nil {
@@ -225,7 +197,7 @@ func (b *Backend) Close() error {
 
 // SetupPrometheus sets up prometheus.
 func (b *Backend) SetupPrometheus() error {
-	b.Logger.Info().Msgf("Serving prometheus at %s", b.Options.PrometheusAddress)
+	welcomer.Logger.Info().Msgf("Serving prometheus at %s", b.Options.PrometheusAddress)
 
 	b.PrometheusHandler.SetListenAddress(b.Options.PrometheusAddress)
 	b.PrometheusHandler.SetMetricsPath(nil)

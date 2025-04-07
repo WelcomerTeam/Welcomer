@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 const (
@@ -166,7 +165,7 @@ func IdentifyPatreonMember(ctx context.Context, token string) (PatreonUser, erro
 	}
 
 	req.Header.Set("Authorization", token)
-	req.Header.Set("User-Agent", utils.UserAgent)
+	req.Header.Set("User-Agent", UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -199,7 +198,7 @@ func getAllPatreonMembers(ctx context.Context, client *http.Client, l []PatreonM
 		l = []PatreonMember{}
 	}
 
-	u = utils.If(u != "", u, PatreonBase+"campaigns/"+CampaignID+"/members?fields[member]=patron_status,email,pledge_relationship_start,currently_entitled_amount_cents,last_charge_status,last_charge_date,pledge_relationship_start&fields[user]=social_connections,full_name,thumb_url&include=user,currently_entitled_tiers&page[size]=100")
+	u = If(u != "", u, PatreonBase+"campaigns/"+CampaignID+"/members?fields[member]=patron_status,email,pledge_relationship_start,currently_entitled_amount_cents,last_charge_status,last_charge_date,pledge_relationship_start&fields[user]=social_connections,full_name,thumb_url&include=user,currently_entitled_tiers&page[size]=100")
 
 	req, err := http.NewRequestWithContext(
 		ctx,

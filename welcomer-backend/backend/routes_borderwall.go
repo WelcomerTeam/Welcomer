@@ -13,7 +13,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -54,9 +53,9 @@ func getBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		borderwallRequest, err := backend.Database.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
+		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
 		if err != nil {
-			backend.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
 
 		borderwallResponse := BorderwallResponse{
@@ -68,7 +67,7 @@ func getBorderwall(ctx *gin.Context) {
 			user, _ := GetUserSession(session)
 
 			if borderwallRequest.UserID != int64(user.ID) {
-				backend.Logger.Error().
+				welcomer.Logger.Error().
 					Int64("userID", int64(user.ID)).
 					Int64("borderwallRequestUserID", borderwallRequest.UserID).
 					Msg("User ID does not match")
@@ -78,9 +77,9 @@ func getBorderwall(ctx *gin.Context) {
 				return
 			}
 
-			guild, err := backend.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
+			guild, err := welcomer.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
+				welcomer.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
 			} else if !guild.ID.IsNil() {
 				borderwallResponse.GuildName = guild.Name
 			}
@@ -101,8 +100,6 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		logger := backend.Logger.With().Str("key", key).Logger()
-
 		userAgent := ctx.GetHeader("User-Agent")
 		if userAgent == "" {
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("user-agent"), nil))
@@ -114,7 +111,7 @@ func setBorderwall(ctx *gin.Context) {
 		var request BorderwallRequest
 
 		if err := ctx.ShouldBindJSON(&request); err != nil {
-			logger.Warn().Err(err).Msg("Failed to bind JSON")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to bind JSON")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInvalidJSON, nil))
 
@@ -122,16 +119,16 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if request.Response == "" {
-			logger.Warn().Msg("Missing response")
+			welcomer.Logger.Warn().Msg("Missing response")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("response"), nil))
 
 			return
 		}
 
-		borderwallRequest, err := backend.Database.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
+		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
 		if err != nil {
-			logger.Warn().Err(err).Msg("Failed to get borderwall request")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
 
 		if borderwallRequest.RequestUuid.IsNil() {
@@ -144,7 +141,7 @@ func setBorderwall(ctx *gin.Context) {
 
 		user, ok := GetUserSession(session)
 		if !ok {
-			backend.Logger.Warn().Msg("Failed to get user session")
+			welcomer.Logger.Warn().Msg("Failed to get user session")
 
 			ctx.JSON(http.StatusUnauthorized, NewBaseResponse(ErrMissingUser, nil))
 
@@ -152,7 +149,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if borderwallRequest.UserID != int64(user.ID) {
-			backend.Logger.Error().
+			welcomer.Logger.Error().
 				Int64("userID", int64(user.ID)).
 				Int64("borderwallRequestUserID", borderwallRequest.UserID).
 				Msg("User ID does not match")
@@ -169,9 +166,9 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate reCAPTCHA
-		recaptchaScore, err := utils.ValidateRecaptcha(backend.Logger, request.Response, ctx.ClientIP())
+		recaptchaScore, err := welcomer.ValidateRecaptcha(request.Response, ctx.ClientIP())
 		if err != nil {
-			logger.Error().Err(err).Msg("Failed to validate recaptcha")
+			welcomer.Logger.Error().Err(err).Msg("Failed to validate recaptcha")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrRecaptchaValidationFailed, nil))
 
@@ -179,7 +176,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if recaptchaScore < RecaptchaThreshold {
-			logger.Warn().Float64("score", recaptchaScore).Float64("threshold", RecaptchaThreshold).Msg("Recaptcha score is too low")
+			welcomer.Logger.Warn().Float64("score", recaptchaScore).Float64("threshold", RecaptchaThreshold).Msg("Recaptcha score is too low")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
@@ -187,13 +184,13 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate IPIntel
-		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), utils.IPIntelFlagDynamicBanListDynamicChecks, utils.IPIntelOFlagShowCountry)
+		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
 		if err != nil {
-			logger.Warn().Err(err).Msg("Failed to validate IPIntel")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to validate IPIntel")
 		}
 
 		if ipIntelResponse.Result > IPIntelThreshold {
-			logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Msg("IPIntel score is too high")
+			welcomer.Logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Msg("IPIntel score is too high")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
@@ -203,7 +200,7 @@ func setBorderwall(ctx *gin.Context) {
 		// Broadcast borderwall completion.
 		managers, err := fetchManagersForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
 		if err != nil || len(managers) == 0 {
-			logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
+			welcomer.Logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
 
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
@@ -219,24 +216,24 @@ func setBorderwall(ctx *gin.Context) {
 					GlobalName:    user.GlobalName,
 					Avatar:        user.Avatar,
 				},
-				GuildID: utils.ToPointer(discord.Snowflake(borderwallRequest.GuildID)),
+				GuildID: welcomer.ToPointer(discord.Snowflake(borderwallRequest.GuildID)),
 			},
 		})
 		if err != nil {
-			logger.Warn().Err(err).Msg("Failed to marshal borderwall completion data")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to marshal borderwall completion data")
 
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
 
-		_, err = backend.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+		_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
 			Manager: managers[0],
 			Type:    welcomer.CustomEventInvokeBorderwallCompletion,
 			Data:    data,
 		})
 		if err != nil {
-			logger.Warn().Err(err).Msg("Failed to relay borderwall completion")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to relay borderwall completion")
 
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
@@ -256,14 +253,14 @@ func setBorderwall(ctx *gin.Context) {
 			osVersion = "11"
 		}
 
-		logger.Info().
+		welcomer.Logger.Info().
 			Str("key", key).
 			Float64("recaptchaScore", recaptchaScore).
 			Float64("ipIntelResponse", ipIntelResponse.Result).
 			Msg("Borderwall request verified")
 
 		// Update the borderwall request with the response
-		if _, err := backend.Database.UpdateBorderwallRequest(ctx, database.UpdateBorderwallRequestParams{
+		if _, err := welcomer.Queries.UpdateBorderwallRequest(ctx, database.UpdateBorderwallRequestParams{
 			RequestUuid:     borderwallRequest.RequestUuid,
 			IsVerified:      true,
 			VerifiedAt:      sql.NullTime{Time: time.Now(), Valid: true},
@@ -275,7 +272,7 @@ func setBorderwall(ctx *gin.Context) {
 			UaOs:            sql.NullString{String: osName, Valid: true},
 			UaOsVersion:     sql.NullString{String: osVersion, Valid: true},
 		}); err != nil {
-			logger.Warn().Err(err).Msg("Failed to update borderwall request")
+			welcomer.Logger.Warn().Err(err).Msg("Failed to update borderwall request")
 
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 

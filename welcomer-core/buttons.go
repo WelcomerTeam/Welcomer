@@ -2,7 +2,6 @@ package welcomer
 
 import (
 	"github.com/WelcomerTeam/Discord/discord"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 func includeActionRow(messageParams discord.MessageParams) discord.MessageParams {
@@ -22,7 +21,7 @@ func IncludeSentByButton(messageParams discord.MessageParams, guildName string) 
 	label := "Sent by " + guildName
 
 	if len(label) > 80 {
-		label = utils.TruncateUTF8(label, 77) + "..."
+		label = TruncateUTF8(label, 77) + "..."
 	}
 
 	messageParams.Components[0].Components = append(

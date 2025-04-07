@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sort"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 func NewMiscellaneousCog() *MiscellaneousCog {
@@ -52,14 +52,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
 
 				channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
 
-				messageHistory, err := channel.History(session, nil, nil, nil, nil)
+				messageHistory, err := channel.History(ctx, session, nil, nil, nil, nil)
 				if err != nil {
 					return nil, err
 				}
@@ -79,9 +79,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				go func() {
 					time.Sleep(time.Second * 15)
 
-					err = interaction.DeleteOriginalResponse(sub.EmptySession)
+					err = interaction.DeleteOriginalResponse(ctx, sub.EmptySession)
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to delete original response")
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete original response")
 					}
 				}()
 
@@ -89,7 +89,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: utils.NewEmbed("No messages to delete", utils.EmbedColourInfo),
+							Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -98,16 +98,16 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				if len(messagesToDelete) == 1 {
 					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
 
-					err = message.Delete(session, nil)
+					err = message.Delete(ctx, session, nil)
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to delete message")
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
 
 						return nil, err
 					}
 				} else if len(messagesToDelete) > 1 {
-					err = channel.DeleteMessages(session, messagesToDelete, nil)
+					err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to delete messages")
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
 
 						return nil, err
 					}
@@ -116,13 +116,13 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: utils.NewEmbed(
+						Embeds: welcomer.NewEmbed(
 							fmt.Sprintf(
 								"%d message%s been deleted",
 								len(messagesToDelete),
-								utils.If(len(messagesToDelete) == 1, " has", "s have"),
+								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
 							),
-							utils.EmbedColourInfo,
+							welcomer.EmbedColourInfo,
 						),
 					},
 				}, nil
@@ -142,7 +142,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Embeds: []discord.Embed{
 							{
 								Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at %s", welcomer.WebsiteURL+"/dashboard"),
-								Color:       utils.EmbedColourInfo,
+								Color:       welcomer.EmbedColourInfo,
 							},
 						},
 					},
@@ -155,7 +155,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Embeds: []discord.Embed{
 								{
 									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
-									Color:       utils.EmbedColourInfo,
+									Color:       welcomer.EmbedColourInfo,
 								},
 							},
 						},
@@ -176,13 +176,18 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Embeds: []discord.Embed{
 						{
 							Description: "### **Everything you need to boost your guild's engagement**\n\nGet Welcomer Pro and support Welcomer development.",
-							Color:       utils.EmbedColourInfo,
+							Color:       welcomer.EmbedColourInfo,
 						},
 					},
 					Components: []discord.InteractionComponent{
 						{
 							Type: discord.InteractionComponentTypeActionRow,
 							Components: []discord.InteractionComponent{
+								{
+									Type:  discord.InteractionComponentTypeButton,
+									Style: discord.InteractionComponentStylePremium,
+									SKUID: discord.Snowflake(welcomer.TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID"))),
+								},
 								{
 									Type:  discord.InteractionComponentTypeButton,
 									Style: discord.InteractionComponentStyleLink,
@@ -204,7 +209,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				embeds := []discord.Embed{}
-				embed := discord.Embed{Title: "Emojis", Color: utils.EmbedColourInfo}
+				embed := discord.Embed{Title: "Emojis", Color: welcomer.EmbedColourInfo}
 
 				guildEmojis, err := sub.SandwichClient.FetchGuildEmojis(sub.Context, &sandwich.FetchGuildEmojisRequest{
 					GuildID: int64(*interaction.GuildID),
@@ -243,7 +248,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(emojiLine) > 4000 {
 						embeds = append(embeds, embed)
-						embed = discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 					}
 
 					embed.Description += emojiLine
@@ -272,15 +277,15 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
 
 				guild := discord.Guild{ID: *interaction.GuildID}
-				invites, err := guild.Invites(session)
+				invites, err := guild.Invites(ctx, session)
 				if err != nil {
-					sub.Logger.Error().Err(err).Msg("Failed to get invites")
+					welcomer.Logger.Error().Err(err).Msg("Failed to get invites")
 
 					return nil, err
 				}
@@ -327,12 +332,12 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				embeds := []discord.Embed{}
-				embed := discord.Embed{Title: "Invite Leaderboard", Color: utils.EmbedColourInfo}
+				embed := discord.Embed{Title: "Invite Leaderboard", Color: welcomer.EmbedColourInfo}
 
 				embed.Description += fmt.Sprintf(
 					"You have invited %d user%s to this server.\n",
 					userTotalInvites,
-					utils.If(userTotalInvites == 1, "", "s"),
+					welcomer.If(userTotalInvites == 1, "", "s"),
 				)
 
 				if userPosition > 0 && userPosition <= 100 {
@@ -351,13 +356,13 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						position+1,
 						"<@"+leaderboardUser.InviterID.String()+">",
 						leaderboardUser.Uses,
-						utils.If(leaderboardUser.Uses == 1, "", "s"),
+						welcomer.If(leaderboardUser.Uses == 1, "", "s"),
 					)
 
 					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 					if len(embed.Description)+len(leaderboardWithNumber) > 4000 {
 						embeds = append(embeds, embed)
-						embed = discord.Embed{Color: utils.EmbedColourInfo}
+						embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 					}
 
 					embed.Description += leaderboardWithNumber
@@ -383,14 +388,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
 					embeds := []discord.Embed{}
-					embed := discord.Embed{Title: "Newly Created Users", Color: utils.EmbedColourInfo}
+					embed := discord.Embed{Title: "Newly Created Users", Color: welcomer.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
 						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to chunk guild")
 					}
@@ -399,7 +404,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						GuildID: int64(*interaction.GuildID),
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to fetch guild members")
 					}
@@ -430,14 +435,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newCreationWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+utils.Itoa(guildMember.User.ID)+">",
+							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
 							discord.Snowflake(guildMember.User.ID).Time().Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newCreationWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = discord.Embed{Color: utils.EmbedColourInfo}
+							embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 						}
 
 						embed.Description += newCreationWithNumber
@@ -445,11 +450,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					embeds = append(embeds, embed)
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+						welcomer.Logger.Error().Err(err).Msg("Failed to edit original response")
 					}
 				}(ctx, sub, interaction)
 
@@ -468,14 +473,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
 					embeds := []discord.Embed{}
-					embed := discord.Embed{Title: "Newly Joined Members", Color: utils.EmbedColourInfo}
+					embed := discord.Embed{Title: "Newly Joined Members", Color: welcomer.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
 						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to chunk guild")
 					}
@@ -484,7 +489,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						GuildID: int64(*interaction.GuildID),
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to fetch guild members")
 					}
@@ -509,14 +514,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newMemberWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+utils.Itoa(guildMember.User.ID)+">",
+							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
 							joinedAt.Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = discord.Embed{Color: utils.EmbedColourInfo}
+							embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 						}
 
 						embed.Description += newMemberWithNumber
@@ -524,11 +529,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					embeds = append(embeds, embed)
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+						welcomer.Logger.Error().Err(err).Msg("Failed to edit original response")
 					}
 				}(ctx, sub, interaction)
 
@@ -547,14 +552,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
 					embeds := []discord.Embed{}
-					embed := discord.Embed{Title: "Oldest Members", Color: utils.EmbedColourInfo}
+					embed := discord.Embed{Title: "Oldest Members", Color: welcomer.EmbedColourInfo}
 
 					// Chunk users
 					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
 						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to chunk guild")
 					}
@@ -563,7 +568,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						GuildID: int64(*interaction.GuildID),
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Msg("Failed to fetch guild members")
 					}
@@ -588,14 +593,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						newMemberWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
-							"<@"+utils.Itoa(guildMember.User.ID)+">",
+							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
 							joinedAt.Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
 						if len(embed.Description)+len(newMemberWithNumber) > 4000 {
 							embeds = append(embeds, embed)
-							embed = discord.Embed{Color: utils.EmbedColourInfo}
+							embed = discord.Embed{Color: welcomer.EmbedColourInfo}
 						}
 
 						embed.Description += newMemberWithNumber
@@ -603,11 +608,11 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					embeds = append(embeds, embed)
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, discord.WebhookMessageParams{
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, discord.WebhookMessageParams{
 						Embeds: embeds,
 					})
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+						welcomer.Logger.Error().Err(err).Msg("Failed to edit original response")
 					}
 				}(ctx, sub, interaction)
 
@@ -627,7 +632,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			start := time.Now()
 
 			err := interaction.SendResponse(
-				sub.EmptySession,
+				ctx, sub.EmptySession,
 				discord.InteractionCallbackTypeChannelMessageSource,
 				&discord.InteractionCallbackData{
 					Content: fmt.Sprintf(
@@ -640,7 +645,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			_, err = interaction.EditOriginalResponse(
-				sub.EmptySession,
+				ctx, sub.EmptySession,
 				discord.WebhookMessageParams{
 					Content: fmt.Sprintf(
 						"Interaction Delay: %dms\nHTTP Latency: %dms",
@@ -670,8 +675,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "limit",
 				ArgumentType: subway.ArgumentTypeInt,
 				Description:  "Limit of messages to search for",
-				MaxValue:     utils.ToPointer(int32(100)),
-				MinValue:     utils.ToPointer(int32(1)),
+				MaxValue:     welcomer.ToPointer(int32(100)),
+				MinValue:     welcomer.ToPointer(int32(1)),
 			},
 			{
 				Name:         "bot",
@@ -692,7 +697,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "timeout",
 				ArgumentType: subway.ArgumentTypeInt,
 				Description:  "When supplied, the user will also be timed out for this number of hours",
-				MinValue:     utils.ToPointer(int32(1)),
+				MinValue:     welcomer.ToPointer(int32(1)),
 			},
 			{
 				Name:         "reason",
@@ -711,7 +716,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				argumentTimeout := subway.MustGetArgument(ctx, "timeout").MustInt()
 				argumentReason := subway.MustGetArgument(ctx, "reason").MustString()
 
-				session, err := welcomer.AcquireSession(ctx, sub, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
@@ -720,10 +725,10 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				var limit *int32
 				if argumentLimit > 0 {
-					limit = utils.ToPointer(int32(argumentLimit))
+					limit = welcomer.ToPointer(int32(argumentLimit))
 				}
 
-				messageHistory, err := channel.History(session, nil, nil, nil, limit)
+				messageHistory, err := channel.History(ctx, session, nil, nil, nil, limit)
 				if err != nil {
 					return nil, err
 				}
@@ -754,7 +759,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: utils.NewEmbed("No messages found to delete", utils.EmbedColourInfo),
+							Embeds: welcomer.NewEmbed("No messages found to delete", welcomer.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -764,54 +769,54 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
 
 					err = message.Delete(
-						session,
-						utils.ToPointer(fmt.Sprintf(
+						ctx, session,
+						welcomer.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
 							interaction.Member.User.ID,
-							utils.If(argumentReason == "", "No reason provided", argumentReason),
+							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to delete message")
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
 
 						return nil, err
 					}
 				} else if len(messageHistory) > 1 {
 					err = channel.DeleteMessages(
-						session,
+						ctx, session,
 						messagesToDelete,
-						utils.ToPointer(fmt.Sprintf(
+						welcomer.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
 							interaction.Member.User.ID,
-							utils.If(argumentReason == "", "No reason provided", argumentReason),
+							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to delete messages")
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
 
 						return nil, err
 					}
 				}
 
-				communicationDisabledUntil := utils.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)).Format(time.RFC3339))
+				communicationDisabledUntil := welcomer.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)).Format(time.RFC3339))
 
 				for userID := range usersToTimeout {
 					guildMember := discord.GuildMember{GuildID: interaction.GuildID, User: &discord.User{ID: userID}}
-					err = guildMember.Edit(session,
+					err = guildMember.Edit(ctx, session,
 						discord.GuildMemberParams{
 							CommunicationDisabledUntil: communicationDisabledUntil,
 						},
-						utils.ToPointer(fmt.Sprintf(
+						welcomer.ToPointer(fmt.Sprintf(
 							"Timeout from purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.Member.User),
 							interaction.Member.User.ID,
-							utils.If(argumentReason == "", "No reason provided", argumentReason),
+							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
 					if err != nil {
-						sub.Logger.Error().Err(err).
+						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
 							Int64("user_id", int64(userID)).
 							Msg("Failed to timeout user")
@@ -821,13 +826,13 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: utils.NewEmbed(
+						Embeds: welcomer.NewEmbed(
 							fmt.Sprintf(
 								"%d message%s been deleted",
 								len(messagesToDelete),
-								utils.If(len(messagesToDelete) == 1, " has", "s have"),
+								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
 							),
-							utils.EmbedColourInfo,
+							welcomer.EmbedColourInfo,
 						),
 					},
 				}, nil
@@ -859,8 +864,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.SupportInvite),
-							Color:       utils.EmbedColourInfo,
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.WebsiteURL+"/support"),
+							Color:       welcomer.EmbedColourInfo,
 						},
 					},
 				},
@@ -888,14 +893,14 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					client := http.Client{Timeout: time.Second * 5}
 
 					for _, emoji := range guildEmojis.GuildEmojis {
-						url := discord.EndpointCDN + utils.If(
+						url := discord.EndpointCDN + welcomer.If(
 							emoji.Animated,
-							discord.EndpointEmojiAnimated(utils.Itoa(emoji.ID)),
-							discord.EndpointEmoji(utils.Itoa(emoji.ID)),
+							discord.EndpointEmojiAnimated(welcomer.Itoa(emoji.ID)),
+							discord.EndpointEmoji(welcomer.Itoa(emoji.ID)),
 						)
 						resp, err := client.Get(url)
 						if err != nil {
-							sub.Logger.Warn().Err(err).
+							welcomer.Logger.Warn().Err(err).
 								Int64("emoji_id", emoji.ID).
 								Msg("Failed to get emoji")
 
@@ -908,29 +913,29 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 									"%s_%d.%s",
 									emoji.Name,
 									emoji.ID,
-									utils.If(emoji.Animated, "gif", "png"),
+									welcomer.If(emoji.Animated, "gif", "png"),
 								),
 							)
 							if err != nil {
-								sub.Logger.Error().Err(err).Msg("Failed to create file in zip")
+								welcomer.Logger.Error().Err(err).Msg("Failed to create file in zip")
 
 								continue
 							}
 
 							_, err = io.Copy(writer, resp.Body)
 							if err != nil {
-								sub.Logger.Error().Err(err).Msg("Failed to copy file to zip")
+								welcomer.Logger.Error().Err(err).Msg("Failed to copy file to zip")
 							}
 						}
 					}
 
 					err = zipWriter.Close()
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to close zip")
+						welcomer.Logger.Error().Err(err).Msg("Failed to close zip")
 					}
 
 					responseMessage := discord.WebhookMessageParams{
-						Embeds: utils.NewEmbed("Here is a list of the guild emojis!", utils.EmbedColourInfo),
+						Embeds: welcomer.NewEmbed("Here is a list of the guild emojis!", welcomer.EmbedColourInfo),
 					}
 					responseMessage.Files = append(responseMessage.Files, discord.File{
 						Name:        "emojis.zip",
@@ -938,9 +943,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Reader:      &buf,
 					})
 
-					_, err = interaction.EditOriginalResponse(sub.EmptySession, responseMessage)
+					_, err = interaction.EditOriginalResponse(ctx, sub.EmptySession, responseMessage)
 					if err != nil {
-						sub.Logger.Error().Err(err).Msg("Failed to edit original response")
+						welcomer.Logger.Error().Err(err).Msg("Failed to edit original response")
 					}
 				}()
 

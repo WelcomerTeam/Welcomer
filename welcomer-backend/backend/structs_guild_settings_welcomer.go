@@ -1,8 +1,8 @@
 package backend
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type GuildSettingsWelcomer struct {
@@ -60,10 +60,10 @@ func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerT
 			ColourTextBorder:       images.ColourTextBorder,
 			ColourImageBorder:      images.ColourImageBorder,
 			ColourProfileBorder:    images.ColourProfileBorder,
-			ImageAlignment:         utils.ImageAlignment(images.ImageAlignment).String(),
-			ImageTheme:             utils.ImageTheme(images.ImageTheme).String(),
+			ImageAlignment:         welcomer.ImageAlignment(images.ImageAlignment).String(),
+			ImageTheme:             welcomer.ImageTheme(images.ImageTheme).String(),
 			ImageMessage:           images.ImageMessage,
-			ImageProfileBorderType: utils.ImageProfileBorderType(images.ImageProfileBorderType).String(),
+			ImageProfileBorderType: welcomer.ImageProfileBorderType(images.ImageProfileBorderType).String(),
 		},
 		DMs: &GuildSettingsWelcomerDms{
 			ToggleEnabled:       dms.ToggleEnabled,
@@ -106,20 +106,20 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 		}
 }
 
-func ParseImageAlignment(value string) utils.ImageAlignment {
-	imageAlignment, _ := utils.ParseImageAlignment(value)
+func ParseImageAlignment(value string) welcomer.ImageAlignment {
+	imageAlignment, _ := welcomer.ParseImageAlignment(value)
 
 	return imageAlignment
 }
 
-func ParseImageTheme(value string) utils.ImageTheme {
-	imageTheme, _ := utils.ParseImageTheme(value)
+func ParseImageTheme(value string) welcomer.ImageTheme {
+	imageTheme, _ := welcomer.ParseImageTheme(value)
 
 	return imageTheme
 }
 
-func ParseImageProfileBorderType(value string) utils.ImageProfileBorderType {
-	imageProfileBorderType, _ := utils.ParseImageProfileBorderType(value)
+func ParseImageProfileBorderType(value string) welcomer.ImageProfileBorderType {
+	imageProfileBorderType, _ := welcomer.ParseImageProfileBorderType(value)
 
 	return imageProfileBorderType
 }

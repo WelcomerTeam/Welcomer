@@ -13,7 +13,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 	"github.com/savsgio/gotils/strconv"
 )
@@ -72,7 +71,7 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeLeaver when ON_GUILD_MEMBER_REMOVE event is received.
 	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, user discord.User) error {
-		welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+		welcomer.PushGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			user.ID,
@@ -102,17 +101,17 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 			if err == nil {
 				message = discord.WebhookMessageParams{
-					Embeds: utils.NewEmbed("Executed successfully", utils.EmbedColourSuccess),
+					Embeds: welcomer.NewEmbed("Executed successfully", welcomer.EmbedColourSuccess),
 				}
 			} else {
 				message = discord.WebhookMessageParams{
-					Embeds: utils.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), utils.EmbedColourError),
+					Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
 				}
 			}
 
-			_, err = event.Interaction.SendFollowup(eventCtx.Session, message)
+			_, err = event.Interaction.SendFollowup(eventCtx.Context, eventCtx.Session, message)
 			if err != nil {
-				eventCtx.Logger.Warn().Err(err).
+				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("application_id", int64(event.Interaction.ApplicationID)).
 					Str("token", event.Interaction.Token).
@@ -121,21 +120,19 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		}
 	}()
 
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsLeaver, err := queries.GetLeaverGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsLeaver = &database.GuildSettingsLeaver{
 				GuildID:       int64(eventCtx.Guild.ID),
-				ToggleEnabled: database.DefaultLeaver.ToggleEnabled,
-				Channel:       database.DefaultLeaver.Channel,
-				MessageFormat: database.DefaultLeaver.MessageFormat,
+				ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
+				Channel:       welcomer.DefaultLeaver.Channel,
+				MessageFormat: welcomer.DefaultLeaver.MessageFormat,
 			}
 		} else {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.User.ID)).
 				Msg("Failed to get leaver guild settings")
@@ -145,7 +142,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 	}
 
 	// Quit if leaver is not enabled or configured.
-	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 || utils.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
+	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 || welcomer.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
 		return nil
 	}
 
@@ -168,7 +165,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 		guild = grpcGuild
 	} else {
-		eventCtx.Logger.Error().
+		welcomer.Logger.Error().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Msg("Failed to get guild from state cache")
 
@@ -183,7 +180,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
 			Msg("Failed to format leaver text payload")
@@ -196,7 +193,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 	// Convert MessageFormat to MessageParams so we can send it.
 	err = json.Unmarshal(strconv.S2B(messageFormat), &serverMessage)
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
 			Msg("Failed to unmarshal leaver messageFormat")
@@ -205,30 +202,30 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 	}
 
 	// Send the message if it's not empty.
-	if !utils.IsMessageParamsEmpty(serverMessage) {
+	if !welcomer.IsMessageParamsEmpty(serverMessage) {
 		validGuild, err := core.CheckChannelGuild(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsLeaver.Channel).
 				Msg("Failed to check channel guild")
 		} else if !validGuild {
-			eventCtx.Logger.Warn().
+			welcomer.Logger.Warn().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsLeaver.Channel).
 				Msg("Channel does not belong to guild")
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
 
-			_, err = channel.Send(eventCtx.Session, serverMessage)
+			_, err = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
-			eventCtx.Logger.Info().
+			welcomer.Logger.Info().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("channel_id", guildSettingsLeaver.Channel).
 				Msg("Sent leaver message to channel")
 
 			if err != nil {
-				eventCtx.Logger.Warn().Err(err).
+				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("channel_id", guildSettingsLeaver.Channel).
 					Msg("Failed to send leaver message to channel")

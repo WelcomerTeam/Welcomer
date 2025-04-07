@@ -4,19 +4,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"net/url"
 	"os"
-	"time"
 
-	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions"
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -52,79 +46,33 @@ func main() {
 
 	var err error
 
-	// Setup Logger
-
-	var level zerolog.Level
-
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out: os.Stdout,
-
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-
-	logger.Info().Msg("Logging configured")
-
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Setup Rest
-
-	var proxyURL *url.URL
-
-	if proxyURL, err = url.Parse(*proxyAddress); err != nil {
-		panic(fmt.Sprintf("url.Parse(%s): %v", *proxyAddress, err.Error()))
-	}
-
-	restInterface := welcomer.NewTwilightProxy(*proxyURL)
-
+	restInterface := welcomer.NewTwilightProxy(*proxyAddress)
 	restInterface.SetDebug(*proxyDebug)
 
-	// Setup GRPC
-
-	var grpcConnection *grpc.ClientConn
-
-	if grpcConnection, err = grpc.NewClient(
-		*sandwichGRPCHost,
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
-	); err != nil {
-		panic(fmt.Sprintf(`grpc.NewClient(%s): %v`, *sandwichGRPCHost, err.Error()))
-	}
-
-	sandwichClient := protobuf.NewSandwichClient(grpcConnection)
-
-	// Setup postgres pool.
-
-	pool, err := pgxpool.Connect(ctx, *postgresURL)
-	if err != nil {
-		panic(fmt.Sprintf("pgxpool.Connect(%s): %v", *postgresURL, err))
-	}
-
-	queries := database.New(pool)
-
-	ctx = welcomer.AddPoolToContext(ctx, pool)
-	ctx = welcomer.AddQueriesToContext(ctx, queries)
-	ctx = welcomer.AddManagerNameToContext(ctx, *sandwichManagerName)
+	)
+	welcomer.SetupGRPCInterface()
+	welcomer.SetupRESTInterface(restInterface)
+	welcomer.SetupSandwichClient()
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	// Setup app.
 
 	app := interactions.NewWelcomer(ctx, subway.SubwayOptions{
-		SandwichClient:    sandwichClient,
-		RESTInterface:     restInterface,
-		Logger:            logger,
+		SandwichClient:    welcomer.SandwichClient,
+		RESTInterface:     welcomer.RESTInterface,
+		Logger:            welcomer.Logger,
 		PublicKeys:        *publicKeys,
 		PrometheusAddress: *prometheusAddress,
 	})
 
 	if err != nil {
-		logger.Panic().Err(err).Msg("Exception creating app")
+		welcomer.Logger.Panic().Err(err).Msg("Exception creating app")
 	}
 
 	if *syncCommands {
@@ -133,8 +81,6 @@ func main() {
 
 		configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
 			Context: ctx,
-
-			SandwichClient: sandwichClient,
 		}, *sandwichManagerName)
 		if err != nil {
 			panic(fmt.Errorf(`failed to sync command: grpcInterface.FetchConsumerConfiguration(): %w`, err))
@@ -151,7 +97,7 @@ func main() {
 			panic(fmt.Errorf(`failed to sync commands. app.SyncCommands(): %w`, err))
 		}
 
-		logger.Info().Msg("Successfully synced commands")
+		welcomer.Logger.Info().Msg("Successfully synced commands")
 
 	}
 
@@ -162,12 +108,12 @@ func main() {
 	}
 
 	if err = app.ListenAndServe("", *host); err != nil {
-		logger.Panic().Err(err).Msg("Exceptions whilst starting app")
+		welcomer.Logger.Panic().Err(err).Msg("Exceptions whilst starting app")
 	}
 
 	cancel()
 
-	if err = grpcConnection.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
+	if err = welcomer.GRPCConnection.Close(); err != nil {
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 }

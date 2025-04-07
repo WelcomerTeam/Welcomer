@@ -11,8 +11,14 @@ import "./index.scss";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 
-import { faYoutube, faUnsplash } from "@fortawesome/free-brands-svg-icons";
-library.add(faYoutube, faUnsplash);
+import {
+  faDiscord,
+  faPatreon,
+  faPaypal,
+  faUnsplash,
+  faYoutube,
+} from "@fortawesome/free-brands-svg-icons";
+library.add(faDiscord, faPatreon, faPaypal, faUnsplash, faYoutube);
 
 import {
   faArrowsRotate as fasArrowsRotate,
@@ -51,6 +57,7 @@ import {
   faPlugCircleBolt as fasPlugCircleBolt,
   faPlugCirclePlus as fasPlugCirclePlus,
   faPlus as fasPlus,
+  faRotateRight as fasRotateRight,
   faShield as fasShield,
   faSquare as fasSquare,
   faSun as fasSun,
@@ -131,6 +138,7 @@ library.add(
   fasPlugCircleBolt,
   fasPlugCirclePlus,
   fasPlus,
+  fasRotateRight,
   fasShield,
   fasSquare,
   fasSun,

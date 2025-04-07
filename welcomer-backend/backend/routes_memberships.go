@@ -9,9 +9,9 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
@@ -44,6 +44,7 @@ type userMembership struct {
 	ExpiresAt        time.Time                 `json:"expires_at"`
 	MembershipStatus database.MembershipStatus `json:"membership_status"`
 	MembershipType   database.MembershipType   `json:"membership_type"`
+	PlatformType     database.PlatformType     `json:"platform_type"`
 }
 
 func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
@@ -51,15 +52,15 @@ func getAccounts(ctx context.Context, userID discord.Snowflake) []userAccount {
 
 	// Patreon
 
-	patreonAccounts, err := backend.Database.GetPatreonUsersByUserID(ctx, int64(userID))
+	patreonAccounts, err := welcomer.Queries.GetPatreonUsersByUserID(ctx, int64(userID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		backend.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Msg("Failed to get patreon users by user ID")
 	}
 
 	for _, patreonAccount := range patreonAccounts {
 		accounts = append(accounts, userAccount{
-			UserID:     utils.Itoa(patreonAccount.PatreonUserID),
+			UserID:     welcomer.Itoa(patreonAccount.PatreonUserID),
 			Platform:   database.PlatformTypePatreon,
 			Name:       patreonAccount.FullName,
 			Thumbnail:  patreonAccount.ThumbUrl,
@@ -80,7 +81,7 @@ func getMemberships(ctx *gin.Context) {
 
 		userID := tryGetUser(ctx).ID
 
-		memberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(userID))
+		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -101,11 +102,11 @@ func getMemberships(ctx *gin.Context) {
 
 		// Fetch all guilds in one request.
 		if len(guildIDs) > 0 {
-			guildResponse, err := backend.SandwichClient.FetchGuild(ctx, &pb.FetchGuildRequest{
+			guildResponse, err := welcomer.SandwichClient.FetchGuild(ctx, &pb.FetchGuildRequest{
 				GuildIDs: guildIDs,
 			})
 			if err != nil {
-				backend.Logger.Error().Err(err).
+				welcomer.Logger.Error().Err(err).
 					Msg("Failed to fetch guilds via GRPC")
 
 				guilds = map[int64]*pb.Guild{}
@@ -156,6 +157,7 @@ func getMemberships(ctx *gin.Context) {
 				ExpiresAt:        membership.ExpiresAt,
 				MembershipStatus: membershipStatus,
 				MembershipType:   membershipType,
+				PlatformType:     database.PlatformType(membership.PlatformType.Int32),
 			})
 		}
 
@@ -191,7 +193,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 		var guildID discord.Snowflake
 
 		if body.GuildID != nil {
-			guildID = discord.Snowflake(utils.TryParseInt(*body.GuildID))
+			guildID = discord.Snowflake(welcomer.TryParseInt(*body.GuildID))
 		}
 
 		rawMembershipID := ctx.Param(MembershipIDKey)
@@ -208,7 +210,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 
 		userID := tryGetUser(ctx).ID
 
-		memberships, err := backend.Database.GetUserMembershipsByUserID(ctx, int64(userID))
+		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			ctx.JSON(http.StatusInternalServerError, BaseResponse{
 				Ok: false,
@@ -219,14 +221,22 @@ func postMembershipSubscribe(ctx *gin.Context) {
 
 		for _, membership := range memberships {
 			if membership.MembershipUuid == membershipID {
+				if database.PlatformType(membership.PlatformType.Int32) == database.PlatformTypeDiscord {
+					// Discord memberships cannot be transferred or modified.
+
+					ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrCannotTransferMembership, nil))
+
+					return
+				}
+
 				var err error
 
 				var newMembership database.UpdateUserMembershipParams
 
 				if !guildID.IsNil() {
-					newMembership, err = core.AddMembershipToServer(ctx, backend.Logger, backend.Database, *membership, guildID)
+					newMembership, err = core.AddMembershipToServer(ctx, *membership, guildID)
 				} else {
-					newMembership, err = core.RemoveMembershipFromServer(ctx, backend.Logger, backend.Database, *membership)
+					newMembership, err = core.RemoveMembershipFromServer(ctx, *membership)
 				}
 
 				if err != nil {

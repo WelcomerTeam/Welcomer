@@ -3,18 +3,12 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"net/url"
 	"os"
-	"time"
 
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -49,122 +43,62 @@ func main() {
 
 	paypalClientID := flag.String("paypalClientID", os.Getenv("PAYPAL_CLIENT_ID"), "Paypal client ID")
 	paypalClientSecret := flag.String("paypalSecretID", os.Getenv("PAYPAL_CLIENT_SECRET"), "Paypal client secret")
-	paypalIsLive := flag.Bool("paypalIsLive", utils.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
+	paypalIsLive := flag.Bool("paypalIsLive", welcomer.TryParseBool(os.Getenv("PAYPAL_LIVE")), "Enable live mode for paypal")
+
+	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
 
 	flag.Parse()
 
-	gin.SetMode(*releaseMode)
-
 	var err error
-
-	// Setup Logger
-
-	var level zerolog.Level
-
-	if level, err = zerolog.ParseLevel(*loggingLevel); err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, *loggingLevel, err))
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	writer := zerolog.ConsoleWriter{
-		Out: os.Stdout,
-
-		TimeFormat: time.Stamp,
-	}
-
-	logger := zerolog.New(writer).With().Timestamp().Logger()
-
-	logger.Info().Msg("Logging configured")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Setup Rest
-
-	var proxyURL *url.URL
-
-	if proxyURL, err = url.Parse(*proxyAddress); err != nil {
-		panic(fmt.Sprintf("url.Parse(%s): %v", *proxyAddress, err.Error()))
-	}
-
-	restInterface := welcomer.NewTwilightProxy(*proxyURL)
-
+	restInterface := welcomer.NewTwilightProxy(*proxyAddress)
 	restInterface.SetDebug(*proxyDebug)
 
-	// Setup GRPC
-
-	var grpcConnection *grpc.ClientConn
-
-	if grpcConnection, err = grpc.NewClient(
-
-		*sandwichGRPCHost,
-
+	welcomer.SetupDefaultManagerName(*sandwichManagerName)
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+	)
+	welcomer.SetupGRPCInterface()
+	welcomer.SetupRESTInterface(restInterface)
+	welcomer.SetupSandwichClient()
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	); err != nil {
-		panic(fmt.Sprintf(`grpc.NewClient(%s): %v`, *sandwichGRPCHost, err.Error()))
-	}
+	gin.SetMode(*releaseMode)
 
-	// Setup postgres pool.
-
-	var pool *pgxpool.Pool
-
-	if pool, err = pgxpool.Connect(ctx, *postgresURL); err != nil {
-		panic(fmt.Sprintf(`pgxpool.Connect(%s): %v`, *postgresURL, err.Error()))
-	}
-
-	// Setup app.
-
-	app, err := backend.NewBackend(ctx, logger, backend.BackendOptions{
-		Domain: *domain,
-
-		Host: *host,
-
-		KeyPairs: *keyPairs,
-
-		NginxAddress: *nginxAddress,
-
-		PostgresAddress: *postgresURL,
-
+	app, err := backend.NewBackend(ctx, backend.BackendOptions{
+		Domain:            *domain,
+		Host:              *host,
+		KeyPairs:          *keyPairs,
+		NginxAddress:      *nginxAddress,
+		PostgresAddress:   *postgresURL,
 		PrometheusAddress: *prometheusAddress,
 
-		Conn: grpcConnection,
-
-		RESTInterface: restInterface,
-
-		Pool: pool,
-
-		BotToken: *botToken,
-
+		BotToken:        *botToken,
 		DonatorBotToken: *fallbackBotToken,
 
-		DiscordClientID: *discordClientID,
-
+		DiscordClientID:     *discordClientID,
 		DiscordClientSecret: *discordClientSecret,
+		DiscordRedirectURL:  *discordRedirectURL,
 
-		DiscordRedirectURL: *discordRedirectURL,
-
-		PatreonClientID: *patreonClientID,
-
+		PatreonClientID:     *patreonClientID,
 		PatreonClientSecret: *patreonClientSecret,
+		PatreonRedirectURL:  *patreonRedirectURL,
 
-		PatreonRedirectURL: *patreonRedirectURL,
-
-		PaypalClientID: *paypalClientID,
-
+		PaypalClientID:     *paypalClientID,
 		PaypalClientSecret: *paypalClientSecret,
-
-		PaypalIsLive: *paypalIsLive,
+		PaypalIsLive:       *paypalIsLive,
 	})
 
 	if err != nil || app == nil {
-		logger.Panic().Err(err).Msg("Exception creating app")
+		welcomer.Logger.Panic().Err(err).Msg("Exception creating app")
 	}
 
 	if err = app.Open(); err != nil {
-		logger.Warn().Err(err).Msg("Exceptions whilst starting app")
+		welcomer.Logger.Warn().Err(err).Msg("Exceptions whilst starting app")
 	}
 
 	cancel()
@@ -172,10 +106,10 @@ func main() {
 	// Close app
 
 	if err = app.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing app")
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing app")
 	}
 
-	if err = grpcConnection.Close(); err != nil {
-		logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
+	if err = welcomer.GRPCConnection.Close(); err != nil {
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 }

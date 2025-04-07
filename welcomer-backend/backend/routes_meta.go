@@ -8,6 +8,7 @@ import (
 	"time"
 
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/atomic"
 )
@@ -57,7 +58,7 @@ func getStatus(ctx *gin.Context) {
 
 	req, err := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
 	if req == nil || err != nil {
-		backend.Logger.Error().Err(err).Str("url", url).Msg("Failed to create request for status API")
+		welcomer.Logger.Error().Err(err).Str("url", url).Msg("Failed to create request for status API")
 
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
@@ -68,7 +69,7 @@ func getStatus(ctx *gin.Context) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp == nil || err != nil {
-		backend.Logger.Error().Err(err).Str("url", url).Msg("Failed to fetch status from API")
+		welcomer.Logger.Error().Err(err).Str("url", url).Msg("Failed to fetch status from API")
 
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
@@ -83,7 +84,7 @@ func getStatus(ctx *gin.Context) {
 
 	err = json.NewDecoder(resp.Body).Decode(&baseResponse)
 	if err != nil {
-		backend.Logger.Error().Err(err).Msg("Failed to decode status base response")
+		welcomer.Logger.Error().Err(err).Msg("Failed to decode status base response")
 
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
@@ -94,7 +95,7 @@ func getStatus(ctx *gin.Context) {
 
 	statusResponseJson, err := json.Marshal(baseResponse.Data)
 	if err != nil {
-		backend.Logger.Error().Err(err).Msg("Failed to marshal base response data")
+		welcomer.Logger.Error().Err(err).Msg("Failed to marshal base response data")
 
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
@@ -107,7 +108,7 @@ func getStatus(ctx *gin.Context) {
 
 	err = json.Unmarshal(statusResponseJson, &sandwichStatusResponse)
 	if err != nil {
-		backend.Logger.Error().Err(err).Msg("Failed to unmarshal status response")
+		welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal status response")
 
 		ctx.JSON(http.StatusInternalServerError, BaseResponse{
 			Ok: false,
@@ -148,7 +149,7 @@ func getStatus(ctx *gin.Context) {
 
 	statusLastFetchedAt.Store(statusResponse.UpdatedAt)
 
-	backend.Logger.Info().Msg("Fetched status from API")
+	welcomer.Logger.Info().Msg("Fetched status from API")
 
 	ctx.JSON(http.StatusOK, BaseResponse{
 		Ok:   true,

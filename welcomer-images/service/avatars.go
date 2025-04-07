@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 )
@@ -20,7 +20,7 @@ const (
 )
 
 func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (image.Image, error) {
-	parsedURL, isValidURL := utils.IsValidURL(avatarURL)
+	parsedURL, isValidURL := welcomer.IsValidURL(avatarURL)
 	if parsedURL == nil || !isValidURL {
 		return nil, ErrInvalidURL
 	}
@@ -39,7 +39,7 @@ func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (imag
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, avatarURL, nil)
 	if err != nil {
-		is.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to create new request for avatar")
+		welcomer.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to create new request for avatar")
 
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (imag
 
 	resp, err := is.Client.Do(req)
 	if err != nil || resp == nil {
-		is.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
+		welcomer.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
 
 		return nil, err
 	}
@@ -56,14 +56,14 @@ func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (imag
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
-		is.Logger.Error().Err(err).Int("status", resp.StatusCode).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
+		welcomer.Logger.Error().Err(err).Int("status", resp.StatusCode).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
 
 		return nil, ErrAvatarFetchFailed
 	}
 
 	im, _, err := image.Decode(resp.Body)
 	if err != nil || im == nil {
-		is.Logger.Error().Err(err).Msg("Failed to decode profile picture of user")
+		welcomer.Logger.Error().Err(err).Msg("Failed to decode profile picture of user")
 
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 	var avatarImage image.Image
 
 	switch generateImageOptions.ProfileBorderCurve {
-	case utils.ImageProfileBorderTypeCircular:
+	case welcomer.ImageProfileBorderTypeCircular:
 		rounding = 1000
 
 		if canCrop, cropPix := hasImageTransparentBorder(avatar, width, height); canCrop {
@@ -139,10 +139,10 @@ func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOp
 		} else {
 			avatarImage = roundImage(avatar, 1000)
 		}
-	case utils.ImageProfileBorderTypeRounded:
+	case welcomer.ImageProfileBorderTypeRounded:
 		rounding = 16 + float64(generateImageOptions.ProfileBorderWidth)
 		avatarImage = roundImage(avatar, 16)
-	case utils.ImageProfileBorderTypeSquared:
+	case welcomer.ImageProfileBorderTypeSquared:
 		avatarImage = avatar
 	default:
 		return avatar, ErrUnknownProfileBorderType

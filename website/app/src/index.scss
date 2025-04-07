@@ -11,9 +11,11 @@ html {
   .custom-scroll::-webkit-scrollbar {
     @apply w-3;
   }
+
   .custom-scroll::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-secondary-light border-4 border-solid border-transparent bg-clip-content;
+    @apply rounded-full bg-gray-300 dark:bg-secondary-light border-4 border-solid border-transparent bg-clip-content;
   }
+
   .custom-scroll::-webkit-scrollbar-thumb:hover {
     @apply brightness-125;
   }

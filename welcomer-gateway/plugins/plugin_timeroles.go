@@ -9,7 +9,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -55,11 +54,9 @@ func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
 }
 
 func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildID discord.Snowflake, memberID *discord.Snowflake) (err error) {
-	queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 	// Fetch guild settings.
 
-	guildSettingsTimeRoles, timeRoles, err := p.FetchGuildInformation(eventCtx, queries, guildID)
+	guildSettingsTimeRoles, timeRoles, err := p.FetchGuildInformation(eventCtx, guildID)
 	if err != nil {
 		return err
 	}
@@ -73,17 +70,17 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		GuildId: int64(guildID),
 	})
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to request guild chunk")
 	}
 
 	guildMembers, err := eventCtx.Sandwich.SandwichClient.FetchGuildMembers(eventCtx.Context, &pb.FetchGuildMembersRequest{
 		GuildID: int64(guildID),
-		UserIDs: utils.If(memberID != nil, []int64{int64(*memberID)}, nil),
+		UserIDs: welcomer.If(memberID != nil, []int64{int64(*memberID)}, nil),
 	})
 	if err != nil || guildMembers == nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to fetch guild members")
 
@@ -98,7 +95,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		joinedAtTime, err := time.Parse(time.RFC3339, guildMember.JoinedAt)
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Str("joined_at", guildMember.JoinedAt).
 				Msg("Failed to parse joined_at time for user")
 
@@ -134,7 +131,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		}
 	}
 
-	eventCtx.Logger.Info().
+	welcomer.Logger.Info().
 		Int("guild_id", int(guildID)).
 		Int("members", len(allRolesToAssign)).
 		Msg("Assigning time roles for members")
@@ -151,7 +148,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 			member = &pMember
 		} else {
-			eventCtx.Logger.Warn().
+			welcomer.Logger.Warn().
 				Int64("guild_id", int64(guildID)).
 				Int64("user_id", int64(memberID)).
 				Msg("Failed to get member from state cache, falling back to default member")
@@ -165,9 +162,9 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		member.GuildID = &guildID
 
-		err = member.AddRoles(eventCtx.Session, roles, utils.ToPointer("Automatically assigned with TimeRoles"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, roles, welcomer.ToPointer("Automatically assigned with TimeRoles"), true)
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).
 				Int64("member_id", int64(memberID)).
 				Interface("roles", roles).
@@ -175,7 +172,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		}
 
 		for _, role := range roles {
-			welcomer.GetPushGuildScienceFromContext(eventCtx.Context).Push(
+			welcomer.PushGuildScience.Push(
 				eventCtx.Context,
 				eventCtx.Guild.ID,
 				member.User.ID,
@@ -189,19 +186,19 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	return nil
 }
 
-func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, queries *database.Queries, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, assignableTimeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
+func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, assignableTimeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
 	// TODO: Add caching
 
-	guildSettingsTimeRoles, err = queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
+	guildSettingsTimeRoles, err = welcomer.Queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
 				GuildID:       int64(guildID),
-				ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
-				Timeroles:     database.DefaultTimeRoles.Timeroles,
+				ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+				Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 			}
 		} else {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).
 				Msg("Failed to get time role settings")
 
@@ -214,9 +211,9 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, qu
 		return guildSettingsTimeRoles, nil, nil
 	}
 
-	assignableTimeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Logger, int64(guildID), int64(eventCtx.Identifier.ID), timeRoles)
+	assignableTimeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(guildID), int64(eventCtx.Identifier.ID), timeRoles)
 	if err != nil {
-		eventCtx.Logger.Error().Err(err).
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to filter assignable timeroles")
 

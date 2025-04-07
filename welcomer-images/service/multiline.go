@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"strings"
 
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -25,7 +25,7 @@ type MultilineArguments struct {
 	Width  int
 	Height int
 
-	Alignment utils.ImageAlignment
+	Alignment welcomer.ImageAlignment
 
 	StrokeWeight int
 	StrokeColor  color.Color
@@ -102,22 +102,22 @@ func drawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 		var Dy int
 
 		switch args.Alignment {
-		case utils.ImageAlignmentTopLeft, utils.ImageAlignmentLeft, utils.ImageAlignmentBottomLeft:
+		case welcomer.ImageAlignmentTopLeft, welcomer.ImageAlignmentLeft, welcomer.ImageAlignmentBottomLeft:
 			Dx = 0
-		case utils.ImageAlignmentTopCenter, utils.ImageAlignmentCenter, utils.ImageAlignmentBottomCenter:
+		case welcomer.ImageAlignmentTopCenter, welcomer.ImageAlignmentCenter, welcomer.ImageAlignmentBottomCenter:
 			Dx = int((args.Width - adv.Ceil()) / 2)
-		case utils.ImageAlignmentTopRight, utils.ImageAlignmentRight, utils.ImageAlignmentBottomRight:
+		case welcomer.ImageAlignmentTopRight, welcomer.ImageAlignmentRight, welcomer.ImageAlignmentBottomRight:
 			Dx = args.Width - adv.Ceil()
 		default:
 			return ErrInvalidHorizontalAlignment
 		}
 
 		switch args.Alignment {
-		case utils.ImageAlignmentTopLeft, utils.ImageAlignmentTopCenter, utils.ImageAlignmentTopRight:
+		case welcomer.ImageAlignmentTopLeft, welcomer.ImageAlignmentTopCenter, welcomer.ImageAlignmentTopRight:
 			Dy = lineNo * fh
-		case utils.ImageAlignmentLeft, utils.ImageAlignmentCenter, utils.ImageAlignmentRight:
+		case welcomer.ImageAlignmentLeft, welcomer.ImageAlignmentCenter, welcomer.ImageAlignmentRight:
 			Dy = (lineNo * fh) + (args.Height / 2) - (th / 2)
-		case utils.ImageAlignmentBottomLeft, utils.ImageAlignmentBottomCenter, utils.ImageAlignmentBottomRight:
+		case welcomer.ImageAlignmentBottomLeft, welcomer.ImageAlignmentBottomCenter, welcomer.ImageAlignmentBottomRight:
 			Dy = args.Height - th + (lineNo * fh)
 		default:
 			return ErrInvalidVerticalAlignment

@@ -83,59 +83,78 @@
               </p>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 mt-8">
-              <div class="col-span-1 lg:col-span-5 w-full lg:w-fit relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
-                <button type="button" @click="selectDuration(durationMonthly)" :class="[
-                  durationSelected === durationMonthly
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Monthly
-                  <span
-                    v-if="isMonthlyRecurring"
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
-                    Recurring
-                  </span>
-                </button>
-                <button type="button" @click="selectDuration(durationBiAnnually)" :class="[
-                  'ml-0.5',
-                  durationSelected === durationBiAnnually
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Biannual
-                  <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
-                    20% off
-                  </span>
-                </button>
-                <button type="button" @click="selectDuration(durationAnnually)" :class="[
-                  'ml-0.5',
-                  durationSelected === durationAnnually
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Yearly
-                  <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
-                    20% off
-                  </span>
-                </button>
-                <button type="button" @click="selectDuration(durationPatreon)" :class="[
-                  'ml-0.5',
-                  durationSelected === durationPatreon
-                    ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                    : 'border-transparent text-gray-700',
-                  'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-patreon focus:z-10 lg:w-auto lg:px-8',
-                ]">
-                  Patreon
-                  <span
-                    class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
-                    Recurring
-                  </span>
-                </button>
+              <div class="flex gap-4 col-span-1 lg:col-span-5 w-full lg:w-fit">
+                <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
+                  <button type="button" @click="selectDuration(durationMonthly)" :class="[
+                    durationSelected === durationMonthly
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Monthly
+                    <span
+                      v-if="isMonthlyRecurring"
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                      Recurring
+                    </span>
+                  </button>
+                  <button type="button" @click="selectDuration(durationBiAnnually)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationBiAnnually
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Biannual
+                    <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                      20% off
+                    </span>
+                  </button>
+                  <button type="button" @click="selectDuration(durationAnnually)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationAnnually
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Yearly
+                    <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                      20% off
+                    </span>
+                  </button>
+                </div>
+                <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
+                  <a href="https://discord.com/discovery/applications/330416853971107840/store/1192217547316142130" target="_blank">
+                    <button type="button" :class="[
+                      'ml-0.5',
+                      'border-transparent text-white bg-[#5865f2]',
+                      'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#5865f2] focus:z-10 lg:w-auto lg:px-8',
+                    ]">
+                    <font-awesome-icon :icon="['fab', 'discord']" />
+                    Discord
+                    <!-- <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                      Recurring
+                    </span> -->
+                    </button>
+                  </a>
+                  <button type="button" @click="selectDuration(durationPatreon)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationPatreon
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-black focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    <font-awesome-icon :icon="['fab', 'patreon']" />
+                    Patreon
+                    <!-- <span
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                      Recurring
+                    </span> -->
+                  </button>
+                </div>
               </div>
               <Menu as="div" class="relative inline-block col-span-1 text-right align-middle">
                 <MenuButton
@@ -367,21 +386,21 @@ const checklist = [
   "Custom Backgrounds",
   "Dedicated Pro Bot",
   "Flexible plans",
-  "No Recurring Payments",
+  "No recurring payments*",
 ];
 
 const faqs = [
   {
     question: "I have donated, now what?",
-    answer: "When you have donated through PayPal and Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server. Currently Patreon pledges will require a support ticket on our [support server](/support), however you will be able to soon link your Patreon to your Discord account on the Welcomer website. Currently managing memberships is only done through the membership commands, but memberships within the website will be coming soon.",
+    answer: "When you have donated through PayPal, Patreon or Discord, you should immediately receive your memberships. You can see these when doing `/membership list`, and will also autocomplete when doing `/membership add` on a server.",
   },
   {
     question: "I have donated through Patreon but I have not received my membership.",
-    answer: "Currently we cannot automatically link Patreon pledges to Discord accounts. Please join our [support server](/support) and open a ticket with your Patreon email and Discord ID, and we will manually add the membership to your account. Automatic linking will be coming soon.",
+    answer: "If you have not received your membership, you have to make sure your Discord account is linked to your Patreon account. You can do this by going to the [Patreon settings](https://www.patreon.com/settings/apps) and linking your Discord account. You can also link your Patreon account in the **Memberships** section on the dashboard.",
   },
   {
     question: "How can I automatically pay monthly for my membership with PayPal?",
-    answer: "Currently we do not support recurring payments through PayPal, but this is planned. You can currently buy a month, 6 months or a year. If you would like to pay monthly, you can [pledge via our Patreon](/premium).",
+    answer: "We now support monthly subscription plans. You can view the plans on [our premium page](/premium). We currently support monthly subscriptions, Patreon and Discord subscriptions. 6 month and 12 month plans do not automatically renew.",
   },
   {
     question: "How long do I keep custom backgrounds for?",

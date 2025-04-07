@@ -5,7 +5,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 )
 
 type EventsCog struct {
@@ -39,15 +38,11 @@ func (c *EventsCog) GetEventHandlers() *sandwich.Handlers {
 func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register event for when a guild is joined.
 	c.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
-		return welcomer.EnsureGuild(eventCtx.Context, queries, guild.ID)
+		return welcomer.EnsureGuild(eventCtx.Context, guild.ID)
 	})
 
 	// Register event for when an invite is created.
 	c.EventHandler.RegisterOnInviteCreateEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
-		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 		var guildID int64
 
 		if invite.GuildID != nil {
@@ -55,7 +50,7 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 		} else if invite.Guild != nil {
 			guildID = int64(invite.Guild.ID)
 		} else {
-			eventCtx.Logger.Warn().Msg("Invite does not have a guild ID")
+			welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
 
 			return nil
 		}
@@ -65,9 +60,9 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 			inviter = invite.Inviter.ID
 		}
 
-		err := utils.RetryWithFallback(
+		err := welcomer.RetryWithFallback(
 			func() error {
-				_, err := queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
+				_, err := welcomer.Queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
 					InviteCode: invite.Code,
 					GuildID:    guildID,
 					CreatedBy:  int64(inviter),
@@ -77,12 +72,12 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 				return err
 			},
 			func() error {
-				return welcomer.EnsureGuild(eventCtx.Context, queries, discord.Snowflake(guildID))
+				return welcomer.EnsureGuild(eventCtx.Context, discord.Snowflake(guildID))
 			},
 			nil,
 		)
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guildID", guildID).
 				Msg("Failed to create or update invite")
 		}
@@ -92,8 +87,6 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register event for when an invite is deleted.
 	c.EventHandler.RegisterOnInviteDeleteEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
-		queries := welcomer.GetQueriesFromContext(eventCtx.Context)
-
 		var guildID int64
 
 		if invite.GuildID != nil {
@@ -101,17 +94,17 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 		} else if invite.Guild != nil {
 			guildID = int64(invite.Guild.ID)
 		} else {
-			eventCtx.Logger.Warn().Msg("Invite does not have a guild ID")
+			welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
 
 			return nil
 		}
 
-		_, err := queries.DeleteGuildInvites(eventCtx.Context, database.DeleteGuildInvitesParams{
+		_, err := welcomer.Queries.DeleteGuildInvites(eventCtx.Context, database.DeleteGuildInvitesParams{
 			InviteCode: invite.Code,
 			GuildID:    guildID,
 		})
 		if err != nil {
-			eventCtx.Logger.Error().Err(err).
+			welcomer.Logger.Error().Err(err).
 				Int64("guildID", guildID).
 				Msg("Failed to create or update invite")
 		}

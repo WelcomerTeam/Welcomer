@@ -8,7 +8,6 @@ import (
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
 )
@@ -19,16 +18,16 @@ func getGuildSettingsTimeRoles(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			timeroles, err := backend.Database.GetTimeRolesGuildSettings(ctx, int64(guildID))
+			timeroles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					timeroles = &database.GuildSettingsTimeroles{
 						GuildID:       int64(guildID),
-						ToggleEnabled: database.DefaultTimeRoles.ToggleEnabled,
-						Timeroles:     database.DefaultTimeRoles.Timeroles,
+						ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+						Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 					}
 				} else {
-					backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild timeroles settings")
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild timeroles settings")
 
 					ctx.JSON(http.StatusInternalServerError, BaseResponse{
 						Ok: false,
@@ -83,20 +82,20 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(*timeroles)
 
 			user := tryGetUser(ctx)
-			backend.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *timeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild timeroles settings")
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *timeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild timeroles settings")
 
-			err = utils.RetryWithFallback(
+			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = backend.Database.CreateOrUpdateTimeRolesGuildSettings(ctx, databaseTimeRolesGuildSettings)
+					_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, databaseTimeRolesGuildSettings)
 					return err
 				},
 				func() error {
-					return welcomer.EnsureGuild(ctx, backend.Database, discord.Snowflake(guildID))
+					return welcomer.EnsureGuild(ctx, discord.Snowflake(guildID))
 				},
 				nil,
 			)
 			if err != nil {
-				backend.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild timeroles settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild timeroles settings")
 
 				ctx.JSON(http.StatusInternalServerError, BaseResponse{
 					Ok: false,

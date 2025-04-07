@@ -10,26 +10,21 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	utils "github.com/WelcomerTeam/Welcomer/welcomer-utils"
 	"github.com/jackc/pgtype"
-	"github.com/rs/zerolog"
 )
 
 type PushGuildScienceHandler struct {
 	sync.RWMutex
 
-	logger zerolog.Logger
-	db     *database.Queries
+	db *database.Queries
 
 	limit  int
 	buffer []database.CreateManyScienceGuildEventsParams
 }
 
-func NewPushGuildScienceHandler(db *database.Queries, logger zerolog.Logger, limit int) *PushGuildScienceHandler {
+func NewPushGuildScienceHandler(limit int) *PushGuildScienceHandler {
 	return &PushGuildScienceHandler{
 		RWMutex: sync.RWMutex{},
-		logger:  logger,
-		db:      db,
 		limit:   limit,
 		buffer:  make([]database.CreateManyScienceGuildEventsParams, 0, limit),
 	}
@@ -49,7 +44,7 @@ func (h *PushGuildScienceHandler) Run(ctx context.Context, interval time.Duratio
 }
 
 func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID discord.Snowflake, eventType database.ScienceGuildEventType, data any) {
-	guildEventUUID, err := utils.UUIDGen.NewV7()
+	guildEventUUID, err := UUIDGen.NewV7()
 	if err != nil {
 		panic(fmt.Errorf("failed to generate UUID: %w", err))
 	}
@@ -100,9 +95,9 @@ func (h *PushGuildScienceHandler) flushWithoutLock(ctx context.Context) {
 		return
 	}
 
-	_, err := h.db.CreateManyScienceGuildEvents(ctx, h.buffer)
+	_, err := Queries.CreateManyScienceGuildEvents(ctx, h.buffer)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("failed to flush guild science events")
+		Logger.Error().Err(err).Msg("failed to flush guild science events")
 
 		return
 	}
