@@ -16,8 +16,6 @@ import (
 type PushGuildScienceHandler struct {
 	sync.RWMutex
 
-	db *database.Queries
-
 	limit  int
 	buffer []database.CreateManyScienceGuildEventsParams
 }

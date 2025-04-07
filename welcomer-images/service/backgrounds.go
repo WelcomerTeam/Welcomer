@@ -46,8 +46,8 @@ func (is *ImageService) FetchBackgroundDefault(value string) (FullImage, error) 
 
 // FetchBackgroundWelcomer returns an image from the database.
 func (is *ImageService) FetchBackgroundWelcomer(value string, allowAnimated bool) (FullImage, error) {
-	// fetch from database
 	var backgroundUuid uuid.UUID
+
 	err := backgroundUuid.Parse(value)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to convert value to valid UUID for background")
@@ -55,14 +55,14 @@ func (is *ImageService) FetchBackgroundWelcomer(value string, allowAnimated bool
 		return FullImage{}, err
 	}
 
-	background, err := is.Database.GetWelcomerImages(is.ctx, backgroundUuid)
+	background, err := welcomer.Queries.GetWelcomerImages(is.ctx, backgroundUuid)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
 
 		return FullImage{}, err
 	}
 
-	fullImage, err := openImage(background.Data, background.ImageType)
+	fullImage, err := openImage(background.Data, welcomer.If(allowAnimated, background.ImageType, welcomer.ImageFileTypeImagePng.String()))
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
 
