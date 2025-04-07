@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,8 +25,6 @@ type ImageService struct {
 	StartTime time.Time
 
 	Options ImageServiceOptions
-
-	Database *database.Queries
 
 	Client http.Client
 
