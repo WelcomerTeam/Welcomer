@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image/jpeg"
+	"image"
 	"image/png"
 	"io"
 	"mime/multipart"
@@ -250,15 +250,13 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 						switch {
 						case mimeType == MIMEGIF && hasWelcomerPro:
 							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, fileValue, fileOpen)
-						case mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
+						case mimeType == MIMEJPEG, mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
 							// We will still accept GIFs if they do not have Welcomer Pro, however
 							// they will be converted to PNG. This saves having to extract the first
 							// frame every time we try to generate the resulting welcome image.
 							// If you do not like this, get Welcomer Pro :)
 							// It helps me out.
-							res, err = welcomerCustomBackgroundsUploadPNG(ctx, guildID, fileOpen)
-						case mimeType == MIMEJPEG:
-							res, err = welcomerCustomBackgroundsUploadJPG(ctx, guildID, fileOpen)
+							res, err = welcomerCustomBackgroundsUploadStatic(ctx, guildID, fileOpen)
 						default:
 							ctx.JSON(http.StatusBadRequest, BaseResponse{
 								Ok:    false,
@@ -453,11 +451,13 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	})
 }
 
-func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
 	// Validate file and get size
-	img, err := png.Decode(fileBytes)
+	img, _, err := image.Decode(fileBytes)
 	if err != nil {
-		return nil, err
+		welcomer.Logger.Info().Err(err).Msg("Failed to decode image")
+
+		return nil, ErrFileNotSupported
 	}
 
 	_, _ = fileBytes.Seek(0, 0)
@@ -475,7 +475,7 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 
 	buf := bytes.NewBuffer(nil)
 
-	_, err = buf.ReadFrom(fileBytes)
+	err = png.Encode(buf, img)
 	if err != nil {
 		return nil, err
 	}
@@ -488,45 +488,6 @@ func welcomerCustomBackgroundsUploadPNG(ctx context.Context, guildID discord.Sno
 		GuildID:   int64(guildID),
 		CreatedAt: time.Now(),
 		ImageType: welcomer.ImageFileTypeImagePng.String(),
-		Data:      buf.Bytes(),
-	})
-}
-
-func welcomerCustomBackgroundsUploadJPG(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
-	// Validate file and get size
-	img, err := jpeg.Decode(fileBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	_, _ = fileBytes.Seek(0, 0)
-
-	// Validate image resolution
-	imageSize := img.Bounds().Size()
-	if (imageSize.X * imageSize.Y) > MaxFileResolution {
-		welcomer.Logger.Info().
-			Int("width", imageSize.X).Int("height", imageSize.Y).
-			Int("total", (imageSize.X*imageSize.Y)).Int("max", MaxFileResolution).
-			Msg("Rejected image due to resolution")
-
-		return nil, ErrFileSizeTooLarge
-	}
-
-	buf := bytes.NewBuffer(nil)
-
-	_, err = buf.ReadFrom(fileBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	var welcomerImageUuid uuid.UUID
-	welcomerImageUuid, _ = gen.NewV7()
-
-	return welcomer.Queries.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
-		ImageUuid: welcomerImageUuid,
-		GuildID:   int64(guildID),
-		CreatedAt: time.Now(),
-		ImageType: welcomer.ImageFileTypeImageJpeg.String(),
 		Data:      buf.Bytes(),
 	})
 }
