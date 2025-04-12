@@ -424,6 +424,7 @@ func HumanizeDuration(seconds int, includeSeconds bool) string {
 	days := int(duration.Hours()/24) % 365
 	hours := int(duration.Hours()) % 24
 	minutes := int(duration.Minutes()) % 60
+	seconds = int(duration.Seconds()) % 60
 
 	var result strings.Builder
 
