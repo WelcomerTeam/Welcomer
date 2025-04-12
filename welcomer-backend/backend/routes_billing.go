@@ -547,7 +547,7 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 				ctx,
 				user.ID,
 				database.PlatformTypePaypalSubscription,
-				database.TransactionStatusPending,
+				database.TransactionStatusCompleted,
 				subscriptionID,
 				transaction.CurrencyCode,
 				transaction.Amount,

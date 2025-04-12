@@ -177,7 +177,6 @@ func EnsureGuild(ctx context.Context, guildID discord.Snowflake) error {
 }
 
 func AcquireSession(ctx context.Context, managerName string) (*discord.Session, error) {
-
 	// If we have a session in the context, use it.
 	session, sessionInContext := GetSessionFromContext(ctx)
 	if sessionInContext {
