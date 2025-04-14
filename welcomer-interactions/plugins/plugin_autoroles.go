@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -41,15 +42,15 @@ func (r *AutoRolesCog) GetInteractionCommandable() *subway.InteractionCommandabl
 }
 
 func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
-	ruleGroup := subway.NewSubcommandGroup(
+	autorolesGroup := subway.NewSubcommandGroup(
 		"autoroles",
 		"Automatically give roles to users when they join the server.",
 	)
 
 	// Disable the autoroles module for DM channels.
-	ruleGroup.DMPermission = &welcomer.False
+	autorolesGroup.DMPermission = &welcomer.False
 
-	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
 		Description: "Enable autorole for this server.",
 
@@ -112,7 +113,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "disable",
 		Description: "Disables autorole for this server.",
 
@@ -175,7 +176,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "list",
 		Description: "List the autoroles for the server.",
 
@@ -249,7 +250,153 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	r.InteractionCommands.MustAddInteractionCommand(ruleGroup)
+	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "add",
+		Description: "Add a role to the autoroles list.",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Name:         "role",
+				Description:  "The role to add to the autoroles list.",
+				ArgumentType: subway.ArgumentTypeRole,
+				Required:     true,
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				role := subway.MustGetArgument(ctx, "role").MustRole()
+
+				guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: welcomer.DefaultAutoroles.ToggleEnabled,
+							Roles:         welcomer.DefaultAutoroles.Roles,
+						}
+					} else {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get autoroles guild settings")
+
+						return nil, err
+					}
+				}
+
+				guildRolesPb, err := welcomer.SandwichClient.FetchGuildRoles(ctx, &sandwich.FetchGuildRolesRequest{
+					GuildID: int64(*interaction.GuildID),
+				})
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to fetch guild roles")
+
+					return nil, err
+				}
+
+				guildRoles := make([]discord.Role, 0, len(guildRolesPb.GetGuildRoles()))
+
+				for _, rolePb := range guildRolesPb.GetGuildRoles() {
+					role, err := sandwich.GRPCToRole(rolePb)
+					if err != nil {
+						continue
+					}
+
+					guildRoles = append(guildRoles, role)
+				}
+
+				welcomerPresence, err := welcomer.GetWelcomerPresence(ctx, *interaction.GuildID)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to get welcomer presence")
+
+					return nil, err
+				}
+
+				canAssignRoles := false
+
+				for _, guildMember := range welcomerPresence {
+					canAssignRoles = welcomer.GuildMemberCanAssignRoles(guildMember) || canAssignRoles
+				}
+
+				if !canAssignRoles {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Welcomer is missing permissions to assign roles", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				isRoleAssignable := welcomer.CanAssignRole(role, guildRoles, welcomerPresence)
+				if !isRoleAssignable {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("### This role is not assignable\nWelcomer will not be able to assign this role to users as Welcomer's highest role is below this role's position.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				// Check if the role is already in the list.
+				for _, r := range guildSettingsAutoRoles.Roles {
+					if discord.Snowflake(r) == role.ID {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed("Role already in the autoroles list.", welcomer.EmbedColourError),
+								Flags:  uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+				}
+
+				guildSettingsAutoRoles.Roles = append(guildSettingsAutoRoles.Roles, int64(role.ID))
+
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
+							Roles:         guildSettingsAutoRoles.Roles,
+						})
+
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to update autoroles guild settings")
+
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(fmt.Sprintf("Added <@&%d> to the autoroles list.", role.ID), welcomer.EmbedColourSuccess),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			})
+		},
+	})
+
+	r.InteractionCommands.MustAddInteractionCommand(autorolesGroup)
 
 	return nil
 }
