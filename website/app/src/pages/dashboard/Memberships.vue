@@ -108,8 +108,8 @@
                                     membershipExpiresInFuture(membership) &&
                                     !isCustomBackgroundsMembership(membership) &&
                                     (
-                                      (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon)
-                                      || getDaysLeftOfMembership(membership) <= 30
+                                      (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon && membership.platform_type !== PlatformTypePaypalSubscription)
+                                      && getDaysLeftOfMembership(membership) <= 30
                                     )
                                   ">• {{ getMembershipDurationLeft(membership) }}</span>
                                 </span>
@@ -439,15 +439,20 @@ export default {
     },
 
     getMembershipDurationLeft(membership) {
-      const days = this.getDaysLeftOfMembership(membership);
+      const expiresAt = new Date(membership.expires_at);
+      const now = new Date();
+
+      const diff = expiresAt - now;
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
       if (days > 0) {
-        return `Expires in ${days} days`;
+        return `Expires in ${days} day${days > 1 ? "s" : ""}`;
       }
 
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-      return `Expires in ${hours} hours`;
+      return `Expires in ${hours} hour${hours > 1 ? "s" : ""}`;
     },
 
     getPatreonTierName(tier_id) {
