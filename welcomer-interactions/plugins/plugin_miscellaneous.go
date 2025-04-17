@@ -51,82 +51,80 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Description: "Remove messages from the bot.",
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+			if err != nil {
+				return nil, err
+			}
+
+			channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+			messageHistory, err := channel.History(ctx, session, nil, nil, nil, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			messagesToDelete := make([]discord.Snowflake, 0, len(messageHistory))
+			for _, message := range messageHistory {
+				// Skip message if it is over 14 days old.
+				if message.ID.Time().Before(time.Now().Add(-time.Hour * 24 * 14)) {
+					continue
+				}
+
+				if message.Author.ID == interaction.ApplicationID {
+					messagesToDelete = append(messagesToDelete, message.ID)
+				}
+			}
+
+			go func() {
+				time.Sleep(time.Second * 15)
+
+				err = interaction.DeleteOriginalResponse(ctx, sub.EmptySession)
 				if err != nil {
-					return nil, err
+					welcomer.Logger.Error().Err(err).Msg("Failed to delete original response")
 				}
+			}()
 
-				channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
-
-				messageHistory, err := channel.History(ctx, session, nil, nil, nil, nil)
-				if err != nil {
-					return nil, err
-				}
-
-				messagesToDelete := make([]discord.Snowflake, 0, len(messageHistory))
-				for _, message := range messageHistory {
-					// Skip message if it is over 14 days old.
-					if message.ID.Time().Before(time.Now().Add(-time.Hour * 24 * 14)) {
-						continue
-					}
-
-					if message.Author.ID == interaction.ApplicationID {
-						messagesToDelete = append(messagesToDelete, message.ID)
-					}
-				}
-
-				go func() {
-					time.Sleep(time.Second * 15)
-
-					err = interaction.DeleteOriginalResponse(ctx, sub.EmptySession)
-					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to delete original response")
-					}
-				}()
-
-				if len(messagesToDelete) == 0 {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				if len(messagesToDelete) == 1 {
-					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
-
-					err = message.Delete(ctx, session, nil)
-					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
-
-						return nil, err
-					}
-				} else if len(messagesToDelete) > 1 {
-					err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
-					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
-
-						return nil, err
-					}
-				}
-
+			if len(messagesToDelete) == 0 {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(
-							fmt.Sprintf(
-								"%d message%s been deleted",
-								len(messagesToDelete),
-								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
-							),
-							welcomer.EmbedColourInfo,
-						),
+						Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
+						Flags:  uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
-			})
+			}
+
+			if len(messagesToDelete) == 1 {
+				message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+				err = message.Delete(ctx, session, nil)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
+
+					return nil, err
+				}
+			} else if len(messagesToDelete) > 1 {
+				err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
+
+					return nil, err
+				}
+			}
+
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf(
+							"%d message%s been deleted",
+							len(messagesToDelete),
+							welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
+						),
+						welcomer.EmbedColourInfo,
+					),
+				},
+			}, nil
 		},
 	})
 
