@@ -154,7 +154,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Data: &discord.InteractionCallbackData{
 							Embeds: []discord.Embed{
 								{
-									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
+									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships ib our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
 									Color:       welcomer.EmbedColourInfo,
 								},
 							},
@@ -205,6 +205,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "emojis",
 		Description: "Get a list of all the emojis in the guild",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -274,6 +276,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "invites",
 		Description: "Get a leaderboard of the top inviters on this server",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -384,6 +388,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "newcreation",
 		Description: "Returns a list of newly created users on discord",
 
+		DMPermission: &welcomer.False,
+
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
@@ -469,6 +475,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "newmembers",
 		Description: "Returns a list of new members on this guild",
 
+		DMPermission: &welcomer.False,
+
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
@@ -547,6 +555,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "oldmembers",
 		Description: "Returns a list of the oldest members on this guild",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -864,7 +874,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.WebsiteURL+"/support"),
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).", welcomer.WebsiteURL+"/support"),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},
@@ -876,6 +886,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "zipemojis",
 		Description: "Get all the emojis in the guild as a zip file",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
