@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -274,6 +275,32 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
 						Embeds: welcomer.NewEmbed("Disabled leaver direct messages.", welcomer.EmbedColourSuccess),
+					},
+				}, nil
+			})
+		},
+	})
+
+	leaverGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "setmessage",
+		Description: "Configure the leaver messages on the welcomer dashboard",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: []discord.Embed{
+							{
+								Description: fmt.Sprintf("Configure your leaver message on our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()+"/leaver"),
+								Color:       welcomer.EmbedColourInfo,
+							},
+						},
 					},
 				}, nil
 			})
