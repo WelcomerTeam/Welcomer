@@ -20,6 +20,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
+	"golang.org/x/text/unicode/norm"
 )
 
 var (
@@ -40,6 +41,26 @@ const (
 
 	UserAgent = "WelcomerService (https://github.com/WelcomerTeam/Welcomer)"
 )
+
+func CompareStrings(query string, targets ...string) bool {
+	query = norm.NFKD.String(query)
+
+	for _, target := range targets {
+		if strings.Contains(query, norm.NFKD.String(target)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func Overflow(s string, length int) string {
+	if len(s) <= length {
+		return s
+	}
+
+	return TruncateUTF8(s, length-3) + "..."
+}
 
 func TruncateUTF8(s string, length int) string {
 	if len(s) <= length {

@@ -18,11 +18,7 @@ func includeActionRow(messageParams discord.MessageParams) discord.MessageParams
 func IncludeSentByButton(messageParams discord.MessageParams, guildName string) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
-	label := "Sent by " + guildName
-
-	if len(label) > 80 {
-		label = TruncateUTF8(label, 77) + "..."
-	}
+	label := Overflow("Sent by "+guildName, 80)
 
 	messageParams.Components[0].Components = append(
 		messageParams.Components[0].Components,
