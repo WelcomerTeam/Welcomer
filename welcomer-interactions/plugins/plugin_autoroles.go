@@ -396,6 +396,99 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
+	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "remove",
+		Description: "Remove a role from the autoroles list.",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Name:         "role",
+				Description:  "The role to remove from the autoroles list.",
+				ArgumentType: subway.ArgumentTypeRole,
+				Required:     true,
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				role := subway.MustGetArgument(ctx, "role").MustRole()
+
+				guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: welcomer.DefaultAutoroles.ToggleEnabled,
+							Roles:         welcomer.DefaultAutoroles.Roles,
+						}
+					} else {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get autoroles guild settings")
+
+						return nil, err
+					}
+				}
+
+				// Check if the role is in the list.
+				roleFound := false
+				for i, r := range guildSettingsAutoRoles.Roles {
+					if discord.Snowflake(r) == role.ID {
+						roleFound = true
+						guildSettingsAutoRoles.Roles = append(guildSettingsAutoRoles.Roles[:i], guildSettingsAutoRoles.Roles[i+1:]...)
+						break
+					}
+				}
+
+				if !roleFound {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Role not in the autoroles list.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
+							Roles:         guildSettingsAutoRoles.Roles,
+						})
+
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to update autoroles guild settings")
+
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(fmt.Sprintf("Removed <@&%d> from the autoroles list.", role.ID), welcomer.EmbedColourSuccess),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			})
+		},
+	})
+
 	r.InteractionCommands.MustAddInteractionCommand(autorolesGroup)
 
 	return nil
