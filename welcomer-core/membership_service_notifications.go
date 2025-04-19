@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -61,20 +62,20 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return err
 	}
 
-	description := ""
+	var descriptionBuilder strings.Builder
 
 	if membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds) {
-		description += "- This membership is for custom backgrounds, so you need to assign it to a server.\n"
+		descriptionBuilder.WriteString("- This membership is for custom backgrounds, so you need to assign it to a server.\n")
 	} else if membership.MembershipType == int32(database.MembershipTypeWelcomerPro) {
-		description += "- This membership is for Welcomer Pro so you need to make sure you assign it to a server before you can use the features. This also comes with custom backgrounds for the server.\n"
+		descriptionBuilder.WriteString("- This membership is for Welcomer Pro so you need to make sure you assign it to a server before you can use the features. This also comes with custom backgrounds for the server.\n")
 	}
 
 	// Do not include for Discord payments, as they are automatically assigned to the server.
 	if transaction.PlatformType != int32(database.PlatformTypeDiscord) {
-		description += "- If you have not assigned it to a server yet, you can run the `/membership add` command on the server you want to give it to, or use the **Memberships** tab on the website dashboard.\n"
+		descriptionBuilder.WriteString("- If you have not assigned it to a server yet, you can run the `/membership add` command on the server you want to give it to, or use the **Memberships** tab on the website dashboard.\n")
 	}
 
-	description += "- If you are having any issues, use the `/support` command to get access to our support server.\n"
+	descriptionBuilder.WriteString("- If you are having any issues, use the `/support` command to get access to our support server.\n")
 
 	_, err = user.Send(ctx, session, discord.MessageParams{
 		Content: fmt.Sprintf(
@@ -86,7 +87,7 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		),
 		Embeds: []discord.Embed{
 			{
-				Description: description,
+				Description: descriptionBuilder.String(),
 				Color:       EmbedColourInfo,
 				Image: &discord.EmbedImage{
 					URL: WebsiteURL + "/assets/membership_thank_you.png",
@@ -179,17 +180,17 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 		return err
 	}
 
-	description := ""
+	var descriptionBuilder strings.Builder
 
 	switch database.MembershipType(membership.MembershipType) {
 	case database.MembershipTypeWelcomerPro:
-		description += "- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n"
+		descriptionBuilder.WriteString("- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n")
 	case database.MembershipTypeLegacyWelcomerPro:
-		description += "- This membership is a legacy membership for Welcomer Pro. You may have been receiving it for free, but it is now expired.\n"
-		description += "- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n"
+		descriptionBuilder.WriteString("- This membership is a legacy membership for Welcomer Pro. You may have been receiving it for free, but it is now expired.\n")
+		descriptionBuilder.WriteString("- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n")
 	case database.MembershipTypeLegacyCustomBackgrounds:
-		description += "- This membership is a legacy membership for custom backgrounds. You may have been receiving it for free, but it is now expired.\n"
-		description += "- This membership is for custom backgrounds, so you will be missing out on any perks you got from it.\n"
+		descriptionBuilder.WriteString("- This membership is a legacy membership for custom backgrounds. You may have been receiving it for free, but it is now expired.\n")
+		descriptionBuilder.WriteString("- This membership is for custom backgrounds, so you will be missing out on any perks you got from it.\n")
 	default:
 		Logger.Warn().
 			Str("membership_id", membership.MembershipUuid.String()).
@@ -202,13 +203,13 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 
 	switch database.PlatformType(transaction.PlatformType) {
 	case database.PlatformTypeDiscord:
-		description += "- This membership was purchased via Discord, so you will need to renew it below if you want to keep using it.\n"
+		descriptionBuilder.WriteString("- This membership was purchased via Discord, so you will need to renew it below if you want to keep using it.\n")
 	case database.PlatformTypePatreon:
-		description += "- This membership was is a Patreon pledge, so you will need to renew it via Patreon or pledge again if you want to keep using it.\n"
+		descriptionBuilder.WriteString("- This membership is a Patreon pledge, so you will need to renew it via Patreon or pledge again if you want to keep using it.\n")
 	case database.PlatformTypePaypalSubscription:
-		description += "- This membership was is a PayPal subscription, so you will need to renew it via PayPal or subscribe again if you want to keep using it.\n"
+		descriptionBuilder.WriteString("- This membership is a PayPal subscription, so you will need to renew it via PayPal or subscribe again if you want to keep using it.\n")
 	case database.PlatformTypePaypal:
-		description += "- This membership was purchased via PayPal, so you will need to purchase a new plan if you want to keep using it.\n"
+		descriptionBuilder.WriteString("- This membership was purchased via PayPal, so you will need to purchase a new plan if you want to keep using it.\n")
 	default:
 		Logger.Warn().
 			Str("membership_id", membership.MembershipUuid.String()).
@@ -271,7 +272,7 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 		Content: content,
 		Embeds: []discord.Embed{
 			{
-				Description: description,
+				Description: descriptionBuilder.String(),
 				Color:       EmbedColourError,
 			},
 		},

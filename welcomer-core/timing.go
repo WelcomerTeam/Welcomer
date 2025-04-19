@@ -1,6 +1,7 @@
 package welcomer
 
 import (
+	"strings"
 	"time"
 )
 
@@ -35,14 +36,14 @@ func (st *Timing) Track(name string) {
 }
 
 func (st *Timing) String() string {
-	res := ""
+	var res strings.Builder
 
 	for i, entry := range st.entries {
-		res += entry.Name + ";dur=" + Itoa(entry.Value)
+		res.WriteString(entry.Name + ";dur=" + Itoa(entry.Value))
 		if i+1 < len(st.entries) {
-			res += ","
+			res.WriteString(",")
 		}
 	}
 
-	return res
+	return res.String()
 }

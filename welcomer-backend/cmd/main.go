@@ -69,7 +69,7 @@ func main() {
 
 	gin.SetMode(*releaseMode)
 
-	app, err := backend.NewBackend(ctx, backend.BackendOptions{
+	app, err := backend.NewBackend(backend.Options{
 		Domain:            *domain,
 		Host:              *host,
 		KeyPairs:          *keyPairs,

@@ -96,7 +96,11 @@ func RolesToMinimal(roles []discord.Role) []welcomer.AssignableRole {
 	minimalRoles := make([]welcomer.AssignableRole, len(roles))
 
 	for i, role := range roles {
-		minimalRoles[i] = welcomer.AssignableRole{role, false, false}
+		minimalRoles[i] = welcomer.AssignableRole{
+			Role:         role,
+			IsAssignable: false,
+			IsElevated:   false,
+		}
 	}
 
 	return minimalRoles
