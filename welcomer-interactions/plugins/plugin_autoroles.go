@@ -266,13 +266,20 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeRole,
 				Required:     true,
 			},
+			{
+				Required:     false,
+				ArgumentType: subway.ArgumentTypeBool,
+				Name:         "ignore-permissions",
+				Description:  "Ignores role permissions.",
+			},
 		},
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				role := subway.MustGetArgument(ctx, "role").MustRole()
+				ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").MustBool()
 
-				canAssignRoles, isRoleAssignable, _, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
+				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -297,6 +304,16 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
 							Embeds: welcomer.NewEmbed("### This role is not assignable\nWelcomer will not be able to assign this role to users as Welcomer's highest role is below this role's position.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				if !ignoreRolePermissions && isRoleElevated {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.", welcomer.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
