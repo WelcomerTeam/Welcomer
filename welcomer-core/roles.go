@@ -2,6 +2,7 @@ package welcomer
 
 import (
 	"context"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -81,7 +82,6 @@ func MinimalRolesToMap(roles []discord.Role) map[discord.Snowflake]AssignableRol
 }
 
 func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, role discord.Role) (canAssignRoles, isRoleAssignable, isRoleElevated bool, err error) {
-
 	// Fetch guild roles so we can check if the role is assignable.
 	guildRolesPb, err := SandwichClient.FetchGuildRoles(ctx, &sandwich.FetchGuildRolesRequest{
 		GuildID: int64(guildID),
@@ -282,4 +282,50 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 	}
 
 	return out, nil
+}
+
+var nameMap = map[int]string{
+	discord.PermissionKickMembers:     "KICK_MEMBERS",
+	discord.PermissionBanMembers:      "BAN_MEMBERS",
+	discord.PermissionAdministrator:   "ADMINISTRATOR",
+	discord.PermissionManageChannels:  "MANAGE_CHANNELS",
+	discord.PermissionManageServer:    "MANAGE_SERVER",
+	discord.PermissionManageMessages:  "MANAGE_MESSAGES",
+	discord.PermissionManageRoles:     "MANAGE_ROLES",
+	discord.PermissionManageWebhooks:  "MANAGE_WEBHOOKS",
+	discord.PermissionManageEmojis:    "MANAGE_EMOJIS",
+	discord.PermissionManageThreads:   "MANAGE_THREADS",
+	discord.PermissionModerateMembers: "MODERATE_MEMBERS",
+}
+
+func GetRolePermissionList(permissions int) []string {
+	roleNames := make([]string, 0)
+
+	for permission, name := range nameMap {
+		if permissions&permission != 0 {
+			roleNames = append(roleNames, name)
+		}
+	}
+
+	return roleNames
+}
+
+func GetRolePermissionListAsString(permissions int) string {
+	roleNames := GetRolePermissionList(permissions)
+
+	if len(roleNames) == 0 {
+		return "None"
+	}
+
+	var builder strings.Builder
+
+	for i, name := range roleNames {
+		if i > 0 {
+			builder.WriteString(", ")
+		}
+
+		builder.WriteString("`" + name + "`")
+	}
+
+	return builder.String()
 }
