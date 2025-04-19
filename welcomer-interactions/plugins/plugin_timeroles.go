@@ -219,11 +219,21 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if len(timeRoleList) == 0 || !guildSettingsTimeRoles.ToggleEnabled {
+				if !guildSettingsTimeRoles.ToggleEnabled {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no TimeRoles set for this server.", welcomer.EmbedColourInfo),
+							Embeds: welcomer.NewEmbed("TimeRoles are disabled for this server.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				if len(timeRoleList) == 0 {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("There are no timeroles set for this server.", welcomer.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
@@ -349,11 +359,21 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if len(timeRoleList) == 0 || !guildSettingsTimeRoles.ToggleEnabled {
+				if !guildSettingsTimeRoles.ToggleEnabled {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no TimeRoles set for this server.", welcomer.EmbedColourInfo),
+							Embeds: welcomer.NewEmbed("TimeRoles are disabled for this server.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				if len(timeRoleList) == 0 {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("There are no timeroles set for this server.", welcomer.EmbedColourInfo),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil

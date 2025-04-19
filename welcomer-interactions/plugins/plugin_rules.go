@@ -305,7 +305,17 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				if len(guildSettingsRules.Rules) == 0 || !guildSettingsRules.ToggleEnabled {
+				if !guildSettingsRules.ToggleEnabled {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Rules are not enabled for this server.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				if len(guildSettingsRules.Rules) == 0 {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
@@ -344,7 +354,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "add",
+		Name:        "addrule",
 		Description: "Add a rule to the server.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
@@ -442,7 +452,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "remove",
+		Name:        "removerule",
 		Description: "Remove a rule from the server.",
 
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {

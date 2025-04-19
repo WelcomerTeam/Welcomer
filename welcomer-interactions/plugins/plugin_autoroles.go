@@ -212,7 +212,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if len(roleList) == 0 || !guildSettingsAutoRoles.ToggleEnabled {
+				if len(roleList) == 0 {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
@@ -251,7 +251,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "add",
+		Name:        "addrole",
 		Description: "Add a role to the autoroles list.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
@@ -272,24 +272,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
 				role := subway.MustGetArgument(ctx, "role").MustRole()
 
-				guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultAutoroles.ToggleEnabled,
-							Roles:         welcomer.DefaultAutoroles.Roles,
-						}
-					} else {
-						welcomer.Logger.Error().Err(err).
-							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get autoroles guild settings")
-
-						return nil, err
-					}
-				}
-
-				canAssignRoles, isRoleAssignable, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
+				canAssignRoles, isRoleAssignable, _, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -317,6 +300,23 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
+				}
+
+				guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: welcomer.DefaultAutoroles.ToggleEnabled,
+							Roles:         welcomer.DefaultAutoroles.Roles,
+						}
+					} else {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get autoroles guild settings")
+
+						return nil, err
+					}
 				}
 
 				// Check if the role is already in the list.
@@ -369,7 +369,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	autorolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "remove",
+		Name:        "removerole",
 		Description: "Remove a role from the autoroles list.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,

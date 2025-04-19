@@ -578,29 +578,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				roleType := subway.MustGetArgument(ctx, "type").MustString()
 				role := subway.MustGetArgument(ctx, "role").MustRole()
 
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
-						}
-					} else {
-						welcomer.Logger.Error().Err(err).
-							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
-
-						return nil, err
-					}
-				}
-
-				canAssignRoles, isRoleAssignable, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
+				canAssignRoles, isRoleAssignable, _, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -628,6 +606,28 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
+				}
+
+				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+							GuildID:         int64(*interaction.GuildID),
+							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+							Channel:         welcomer.DefaultBorderwall.Channel,
+							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+						}
+					} else {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get borderwall guild settings")
+
+						return nil, err
+					}
 				}
 
 				switch roleType {
