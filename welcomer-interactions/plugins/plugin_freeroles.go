@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	subway "github.com/WelcomerTeam/Subway/subway"
@@ -203,7 +205,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+				roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -264,21 +266,100 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "give",
 		Description: "Gives a freerole.",
 
-		Type: subway.InteractionCommandableTypeSubcommand,
+		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
+			autocompleteRole := subway.MustGetArgument(ctx, "role").MustString()
+
+			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+						GuildID:       int64(*interaction.GuildID),
+						ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+						Roles:         welcomer.DefaultFreeRoles.Roles,
+					}
+				} else {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to get freeroles guild settings")
+
+					return nil, err
+				}
+			}
+
+			// Check if freeroles are enabled.
+			if !guildSettingsFreeRoles.ToggleEnabled {
+				return nil, nil
+			}
+
+			roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Msg("Failed to filter assignable roles")
+
+				return nil, err
+			}
+
+			choices := make([]discord.ApplicationCommandOptionChoice, 0, len(roleList))
+
+			isAutocompleteRoleNumber := false
+			if _, err := strconv.Atoi(autocompleteRole); err == nil {
+				isAutocompleteRoleNumber = true
+			}
+
+			for _, role := range roleList {
+				if autocompleteRole != "" {
+					if isAutocompleteRoleNumber {
+						if !strings.Contains(role.ID.String(), autocompleteRole) {
+							continue
+						}
+					} else {
+						if !welcomer.CompareStrings(role.Name, autocompleteRole) {
+							continue
+						}
+					}
+				}
+
+				choices = append(choices, discord.ApplicationCommandOptionChoice{
+					Name:  welcomer.Overflow(role.Name, 100),
+					Value: welcomer.StringToJsonLiteral(role.ID.String()),
+				})
+			}
+
+			if len(choices) > 25 {
+				choices = choices[:25]
+			}
+
+			return choices, nil
+		},
 
 		ArgumentParameter: []subway.ArgumentParameter{
 			{
 				Required:     true,
-				ArgumentType: subway.ArgumentTypeRole,
+				ArgumentType: subway.ArgumentTypeString,
 				Name:         "role",
 				Description:  "The role to give.",
+				Autocomplete: &welcomer.True,
 			},
 		},
 
 		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			role := subway.MustGetArgument(ctx, "role").MustRole()
+			roleID := subway.MustGetArgument(ctx, "role").MustString()
+
+			roleIDInt64, err := welcomer.Atoi(roleID)
+			if err != nil {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("Invalid role ID.", welcomer.EmbedColourError),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			}
+
+			role := discord.Role{ID: discord.Snowflake(roleIDInt64)}
 
 			// Check if the user already has the role.
 			for _, roleID := range interaction.Member.Roles {
@@ -321,7 +402,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -331,16 +412,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			// Check if role.ID is in roleList
-			found := false
-			for _, roleID := range roleList {
-				if role.ID == roleID {
-					found = true
-
-					break
-				}
-			}
-
-			if !found {
+			if !slices.Contains(roleList, role.ID) {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
@@ -378,8 +450,8 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	freerolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "removerole",
-		Description: "Removes a freerole.",
+		Name:        "remove",
+		Description: "Removes your freerole.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -435,7 +507,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
