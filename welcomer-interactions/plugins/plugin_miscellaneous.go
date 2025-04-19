@@ -139,7 +139,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Data: &discord.InteractionCallbackData{
 						Embeds: []discord.Embed{
 							{
-								Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at %s", welcomer.WebsiteURL+"/dashboard"),
+								Description: "### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at " + welcomer.WebsiteURL + "/dashboard",
 								Color:       welcomer.EmbedColourInfo,
 							},
 						},

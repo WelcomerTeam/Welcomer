@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	internal "github.com/WelcomerTeam/Sandwich/sandwich"
 )
@@ -198,4 +199,87 @@ func GetHighestRoleForGuildMember(roleMap map[discord.Snowflake]AssignableRole, 
 	}
 
 	return highestRolePosition
+}
+
+func FilterAssignableRolesAsSnowflakes(ctx context.Context, sandwichClient pb.SandwichClient, guildID, applicationID int64, roleIDs []int64) (out []discord.Snowflake, err error) {
+	assignableRoles, err := FilterAssignableRoles(ctx, sandwichClient, guildID, applicationID, roleIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	out = make([]discord.Snowflake, len(assignableRoles))
+	for i, role := range assignableRoles {
+		out[i] = discord.Snowflake(role.ID)
+	}
+
+	return out, nil
+}
+
+func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient, guildID, applicationID int64, roleIDs []int64) (out []discord.Role, err error) {
+	guildRoles, err := sandwichClient.FetchGuildRoles(ctx, &pb.FetchGuildRolesRequest{
+		GuildID: int64(guildID),
+	})
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to fetch guild roles")
+
+		return nil, err
+	}
+
+	guildMember, err := sandwichClient.FetchGuildMembers(ctx, &pb.FetchGuildMembersRequest{
+		GuildID: int64(guildID),
+		UserIDs: []int64{int64(applicationID)},
+	})
+	if err != nil || guildMember == nil {
+		Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Int64("user_id", int64(applicationID)).
+			Msg("Failed to fetch application guild member")
+
+		return nil, ErrMissingApplicationUser
+	}
+
+	// Get the guild member of the application.
+	applicationUser, ok := guildMember.GuildMembers[int64(applicationID)]
+	if !ok || applicationUser == nil {
+		Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Int64("user_id", int64(applicationID)).
+			Msg("Application guild member not present in response")
+
+		return nil, ErrMissingApplicationUser
+	}
+
+	// Get the top role position of the application user.
+	var applicationUserTopRolePosition int32
+
+	for _, roleID := range applicationUser.Roles {
+		role, ok := guildRoles.GuildRoles[roleID]
+		if ok && role.Position > applicationUserTopRolePosition {
+			applicationUserTopRolePosition = role.Position
+		}
+	}
+
+	// Filter out any roles that are not in cache or are above the application user's top role position.
+	for _, roleID := range roleIDs {
+		pbRole, ok := guildRoles.GuildRoles[roleID]
+		if ok {
+			if pbRole.Position < applicationUserTopRolePosition {
+				role, err := pb.GRPCToRole(pbRole)
+				if err != nil {
+					Logger.Error().Err(err).
+						Int64("guild_id", int64(guildID)).
+						Int64("role_id", roleID).
+						Msg("Failed to convert role from protobuf")
+
+					continue
+				}
+
+				out = append(out, role)
+			}
+		}
+	}
+
+	return out, nil
 }

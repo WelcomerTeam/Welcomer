@@ -487,7 +487,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				if autocompleteRule != "" {
 					if isAutocompleteRuleNumber {
 						// If autocomplete is present and can be converted to a number, check if the rule number is in the list.
-						if !strings.Contains(fmt.Sprintf("%d", i+1), autocompleteRule) {
+						if !strings.Contains(strconv.Itoa(i+1), autocompleteRule) {
 							continue
 						}
 					} else {
@@ -499,7 +499,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				choices = append(choices, discord.ApplicationCommandOptionChoice{
 					Name:  welcomer.Overflow(fmt.Sprintf("%d. %s", i+1, rule), 100),
-					Value: welcomer.StringToJsonLiteral(fmt.Sprintf("%d", i+1)),
+					Value: welcomer.StringToJsonLiteral(strconv.Itoa(i + 1)),
 				})
 			}
 
