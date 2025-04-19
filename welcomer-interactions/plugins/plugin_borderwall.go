@@ -545,8 +545,8 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	borderwallGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "addroles",
-		Description: "Adds roles to be given when joining or verifying with borderwall.",
+		Name:        "addrole",
+		Description: "Adds role to be given when joining or verifying with borderwall.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -698,7 +698,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Added role <@&%d> to borderwall %s roles.", role.ID, roleType), welcomer.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed(fmt.Sprintf("Added role <@&%d> to borderwall %s roles. Run `/borderwall listroles` to see the list of roles configured.", role.ID, roleType), welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})
@@ -706,7 +706,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	borderwallGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "removeroles",
+		Name:        "removerole",
 		Description: "Removes roles from being given when joining or verifying with borderwall.",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
@@ -835,7 +835,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Removed role <@&%d> from borderwall %s roles.", role.ID, roleType), welcomer.EmbedColourSuccess),
+						Embeds: welcomer.NewEmbed(fmt.Sprintf("Removed role <@&%d> from borderwall %s roles. Run `/borderwall listroles` to see the list of roles configured.", role.ID, roleType), welcomer.EmbedColourSuccess),
 					},
 				}, nil
 			})
