@@ -687,6 +687,95 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
+	freerolesGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "removerole",
+		Description: "Removes a role from the list of freeroles.",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Required:     true,
+				ArgumentType: subway.ArgumentTypeRole,
+				Name:         "role",
+				Description:  "The role to remove.",
+			},
+		},
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				role := subway.MustGetArgument(ctx, "role").MustRole()
+
+				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				if err != nil {
+					if errors.Is(err, pgx.ErrNoRows) {
+						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+							Roles:         welcomer.DefaultFreeRoles.Roles,
+						}
+					} else {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to get freeroles guild settings")
+
+						return nil, err
+					}
+				}
+
+				// Check if the role is in the list of freeroles.
+				if !slices.Contains(guildSettingsFreeRoles.Roles, int64(role.ID)) {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("This role is not in the list.", welcomer.EmbedColourInfo),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				// Remove the role from the list of freeroles.
+				guildSettingsFreeRoles.Roles = slices.DeleteFunc(guildSettingsFreeRoles.Roles, func(r int64) bool {
+					return r == int64(role.ID)
+				})
+
+				err = welcomer.RetryWithFallback(
+					func() error {
+						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+							GuildID:       int64(*interaction.GuildID),
+							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+							Roles:         guildSettingsFreeRoles.Roles,
+						})
+
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
+					},
+					nil,
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to update freeroles guild settings")
+
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(fmt.Sprintf("The role <@&%d> has been removed from the list of freeroles.", role.ID), welcomer.EmbedColourSuccess),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			})
+		},
+	})
+
 	r.InteractionCommands.MustAddInteractionCommand(freerolesGroup)
 
 	return nil
