@@ -79,7 +79,7 @@ func MinimalRolesToMap(roles []discord.Role) map[discord.Snowflake]AssignableRol
 	return roleMap
 }
 
-func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, role discord.Role) (canAssignRoles, isRoleAssignable bool, err error) {
+func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, role discord.Role) (canAssignRoles, isRoleAssignable, isRoleElevated bool, err error) {
 
 	// Fetch guild roles so we can check if the role is assignable.
 	guildRolesPb, err := SandwichClient.FetchGuildRoles(ctx, &sandwich.FetchGuildRolesRequest{
@@ -90,7 +90,7 @@ func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, r
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to fetch guild roles")
 
-		return false, false, err
+		return false, false, false, err
 	}
 
 	guildRoles := make([]discord.Role, 0, len(guildRolesPb.GetGuildRoles()))
@@ -111,7 +111,7 @@ func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, r
 			Int64("guild_id", int64(guildID)).
 			Msg("Failed to get welcomer presence")
 
-		return false, false, err
+		return false, false, false, err
 	}
 
 	// Check if welcomer can assign roles to users.
@@ -120,32 +120,32 @@ func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, r
 	}
 
 	if !canAssignRoles {
-		return canAssignRoles, false, nil
+		return canAssignRoles, false, false, nil
 	}
 
 	// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
-	isRoleAssignable = CanAssignRole(role, guildRoles, welcomerPresence)
+	isRoleAssignable, isRoleElevated = CanAssignRole(role, guildRoles, welcomerPresence)
 	if !isRoleAssignable {
-		return canAssignRoles, false, nil
+		return canAssignRoles, false, false, nil
 	}
 
-	return true, true, nil
+	return canAssignRoles, isRoleAssignable, isRoleElevated, nil
 }
 
-func CanAssignRole(role discord.Role, guildRoles []discord.Role, guildMembers []discord.GuildMember) bool {
+func CanAssignRole(role discord.Role, guildRoles []discord.Role, guildMembers []discord.GuildMember) (isAssignable, isElevated bool) {
 	if role.Managed {
-		return false
+		return false, false
 	}
 
 	assignableRoles := CalculateRoleValues(guildRoles, guildMembers)
 
 	for _, assignableRole := range assignableRoles {
 		if assignableRole.ID == role.ID {
-			return assignableRole.IsAssignable
+			return assignableRole.IsAssignable, assignableRole.IsElevated
 		}
 	}
 
-	return false
+	return false, false
 }
 
 func GuildMemberCanAssignRoles(guildMember discord.GuildMember) bool {
