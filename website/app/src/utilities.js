@@ -4,7 +4,7 @@ export function getHexColor(number) {
 
 export function navigateToErrors() {
     let error = document.querySelector(".errors");
-
+    
     if (error) {
         error.scrollIntoView({
             behavior: "smooth",
@@ -13,7 +13,7 @@ export function navigateToErrors() {
         });    
     } else {
         console.warn(
-        "No error to scroll into view. Is there a missing error message?"
+            "No error to scroll into view. Is there a missing error message?"
         );
     }
 }
@@ -49,4 +49,34 @@ export function getErrorToast(error) {
         icon: "xmark",
         class: "text-red-500 bg-red-100",
     }
+}
+
+export function getRolePermissionListAsString(permissions) {
+    const nameMap = {
+        0x0000000000000002: "Kick Members",
+        0x0000000000000004: "Ban Members",
+        0x0000000000000008: "Administrator",
+        0x0000000000000010: "Manage Channels",
+        0x0000000000000020: "Manage Server",
+        0x0000000000002000: "Manage Messages",
+        0x0000000010000000: "Manage Roles",
+        0x0000000020000000: "Manage Webhooks",
+        0x0000000040000000: "Manage Emojis",
+        0x0000000400000000: "Manage Threads",
+        0x0000010000000000: "Moderate Members",
+    };
+    
+    var roleNames = [];
+    
+    for (const [permission, name] of Object.entries(nameMap)) {
+        if (permissions & permission) {
+            roleNames.push(name);
+        }
+    }
+    
+    if (roleNames.length === 0) {
+        return "None";
+    }
+    
+    return roleNames.join(", ");
 }

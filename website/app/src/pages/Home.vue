@@ -299,7 +299,7 @@ export default {
     HoistHeading,
   },
   setup() {
-    let guildCount = ref(localStorage.getItem('guildCount') || 566525);
+    let guildCount = ref(localStorage.getItem('guildCount') || 745000);
 
     return {
       previews,
@@ -323,7 +323,8 @@ export default {
           localStorage.setItem('guildCount', this.guildCount.toString());
         },
         (error) => {
-          console.log("error", error);
+          console.error("Error fetching guild count:", error);
+
           return null;
         }
       )

@@ -8,6 +8,11 @@
               $store.getters.getGuildRoleById(role.role_id)?.color
             )}`,
           } : {}" />
+          <div v-if="
+            ($store.getters.getGuildRoleById(role.role_id)?.is_elevated && $store.getters.getGuildRoleById(role.role_id)?.is_assignable) ||
+            !$store.getters.getGuildRoleById(role.role_id)?.is_assignable" class="inline" title="This role is elevated or not assignable">
+            <font-awesome-icon icon="exclamation-triangle" class="text-red-500 w-4 h-4 mr-1" />
+          </div>
           {{ $store.getters.getGuildRoleById(role.role_id)?.name }}
         </td>
         <td class="pr-3 text-sm dark:text-gray-50 py-3.5 text-left w-3/5 md:w-2/5">
@@ -42,7 +47,7 @@
                   </div>
                   <div v-else>
                     <ListboxOption as="template" v-for="role in this.selectableRoles" :key="role.id" :value="role.id"
-                      v-slot="{ active, selected }" :disabled="!role.is_assignable">
+                      v-slot="{ active, selected }" :disabled="!role.is_assignable" @click="onClickRole(role)">
                       <li :class="[
                         role.is_assignable ? '' : 'bg-gray-200 dark:bg-secondary-light',
                         active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50',
@@ -56,6 +61,9 @@
                             active ? 'text-white' : 'text-gray-400',
                             'inline w-4 h-4 mr-1 border-primary',
                           ]" :style="{ color: `${getHexColor(role.color)}` }" />
+                          <div v-if="role.is_elevated && role.is_assignable" class="inline-flex items-center">
+                            <font-awesome-icon icon="exclamation-triangle" class="text-red-500 w-4 h-4 mr-1" />
+                          </div>
                           {{ role.name }}
                         </span>
 
@@ -97,7 +105,7 @@ import UnsavedChanges from "./UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 import DurationSelector from "@/components/dashboard/DurationSelector.vue";
 
-import { getHexColor } from "@/utilities";
+import { getHexColor, getRolePermissionListAsString } from "@/utilities";
 
 export default {
   props: {
@@ -182,6 +190,29 @@ export default {
       });
 
       this.selectableRoles = selectableRoles;
+    },
+
+    onClickRole(role) {
+      if (!role.is_assignable) {
+        this.$store.dispatch("createPopup", {
+          title: 'This role is not assignable',
+          description: 'Welcomer will not be able to assign this role to users as Welcomer\'s highest role is below this role\'s position.',
+          showCloseButton: true,
+          hideContinueButton: true,
+          hideCancelButton: true,
+        });
+      } else if (role.is_elevated) {
+        this.$store.dispatch("createPopup", {
+          title: 'This role is elevated',
+          description: `This role has elevated permissions. Are you sure you would like to use this role?\n\nPermissions:\n${getRolePermissionListAsString(role.permissions)}`,
+          showCloseButton: false,
+          closeLabel: 'Use role',
+          continueLabel: 'Remove role',
+          continueFunction: () => {
+            this.onRemoveRole(role.id);
+          },
+        });
+      }
     },
   },
 };
