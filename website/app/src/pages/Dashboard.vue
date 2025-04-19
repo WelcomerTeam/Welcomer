@@ -10,6 +10,9 @@
       </div>
     </Header>
     <router-view :sidebarOpen="sidebarOpen" v-on:closeSidebar="closeSidebar" />
+    
+    <Toast />
+    <Popups />
   </div>
 </template>
 
@@ -21,11 +24,16 @@ import store from "@/store/index";
 import { ref } from "vue";
 import HoistHeading from "@/components/hoist/HoistHeading.vue";
 
+import Popups from "@/components/Popups.vue";
+import Toast from "@/components/dashboard/Toast.vue";
+
 export default {
   components: {
     Header,
     MenuAlt1Icon,
     HoistHeading,
+    Popups,
+    Toast,
   },
   watch: {
     "$route.params.guildID"(to) {

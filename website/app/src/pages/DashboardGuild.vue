@@ -61,8 +61,6 @@
         </div>
       </main>
     </div>
-
-    <Toast />
   </div>
 </template>
 
