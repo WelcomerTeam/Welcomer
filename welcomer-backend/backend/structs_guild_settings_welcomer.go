@@ -48,8 +48,8 @@ func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerT
 	partial := &GuildSettingsWelcomer{
 		Text: &GuildSettingsWelcomerText{
 			ToggleEnabled: text.ToggleEnabled,
-			Channel:       Int64ToStringPointer(text.Channel),
-			MessageFormat: JSONBToString(text.MessageFormat),
+			Channel:       welcomer.Int64ToStringPointer(text.Channel),
+			MessageFormat: welcomer.JSONBToString(text.MessageFormat),
 		},
 		Images: &GuildSettingsWelcomerImages{
 			ToggleEnabled:          images.ToggleEnabled,
@@ -69,7 +69,7 @@ func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerT
 			ToggleEnabled:       dms.ToggleEnabled,
 			ToggleUseTextFormat: dms.ToggleUseTextFormat,
 			ToggleIncludeImage:  dms.ToggleIncludeImage,
-			MessageFormat:       JSONBToString(dms.MessageFormat),
+			MessageFormat:       welcomer.JSONBToString(dms.MessageFormat),
 		},
 		Custom: custom,
 	}
@@ -81,8 +81,8 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 	return &database.GuildSettingsWelcomerText{
 			GuildID:       guildID,
 			ToggleEnabled: guildSettings.Text.ToggleEnabled,
-			Channel:       StringPointerToInt64(guildSettings.Text.Channel),
-			MessageFormat: StringToJSONB(guildSettings.Text.MessageFormat),
+			Channel:       welcomer.StringPointerToInt64(guildSettings.Text.Channel),
+			MessageFormat: welcomer.StringToJSONB(guildSettings.Text.MessageFormat),
 		}, &database.GuildSettingsWelcomerImages{
 			GuildID:                guildID,
 			ToggleEnabled:          guildSettings.Images.ToggleEnabled,
@@ -102,7 +102,7 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 			ToggleEnabled:       guildSettings.DMs.ToggleEnabled,
 			ToggleUseTextFormat: guildSettings.DMs.ToggleUseTextFormat,
 			ToggleIncludeImage:  guildSettings.DMs.ToggleIncludeImage,
-			MessageFormat:       StringToJSONB(guildSettings.DMs.MessageFormat),
+			MessageFormat:       welcomer.StringToJSONB(guildSettings.DMs.MessageFormat),
 		}
 }
 
