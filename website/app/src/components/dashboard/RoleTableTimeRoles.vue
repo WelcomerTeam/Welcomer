@@ -196,15 +196,17 @@ export default {
       if (!role.is_assignable) {
         this.$store.dispatch("createPopup", {
           title: 'This role is not assignable',
-          description: 'Welcomer will not be able to assign this role to users as Welcomer\'s highest role is below this role\'s position.',
+          description: 'Welcomer cannot assign users this role as Welcomer\'s highest role is below this role\'s position. Please rearrange your roles in the server settings to move Welcomer\'s role above this role.',
           showCloseButton: true,
           hideContinueButton: true,
           hideCancelButton: true,
         });
       } else if (role.is_elevated) {
+        var permissionListAsString = getRolePermissionListAsString(role.permissions);
+
         this.$store.dispatch("createPopup", {
-          title: 'This role is elevated',
-          description: `This role has elevated permissions. Are you sure you would like to use this role?\n\nPermissions:\n${getRolePermissionListAsString(role.permissions)}`,
+          title: 'This role has elevated permissions',
+          description: "Are you sure you would like to use this role? This may give users permissions they should not have.\n\nPermissions:\n" + permissionListAsString,
           showCloseButton: false,
           closeLabel: 'Use role',
           continueLabel: 'Remove role',
