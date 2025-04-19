@@ -411,7 +411,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Role not in the autoroles list.", welcomer.EmbedColourError),
+							Embeds: welcomer.NewEmbed("This role is not in the list.", welcomer.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
