@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	internal "github.com/WelcomerTeam/Sandwich/sandwich"
 )
 
@@ -78,6 +79,59 @@ func MinimalRolesToMap(roles []discord.Role) map[discord.Snowflake]AssignableRol
 	return roleMap
 }
 
+func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, role discord.Role) (canAssignRoles, isRoleAssignable bool, err error) {
+
+	// Fetch guild roles so we can check if the role is assignable.
+	guildRolesPb, err := SandwichClient.FetchGuildRoles(ctx, &sandwich.FetchGuildRolesRequest{
+		GuildID: int64(guildID),
+	})
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to fetch guild roles")
+
+		return false, false, err
+	}
+
+	guildRoles := make([]discord.Role, 0, len(guildRolesPb.GetGuildRoles()))
+
+	for _, rolePb := range guildRolesPb.GetGuildRoles() {
+		role, err := sandwich.GRPCToRole(rolePb)
+		if err != nil {
+			continue
+		}
+
+		guildRoles = append(guildRoles, role)
+	}
+
+	// Check welcomer presence on the current server.
+	welcomerPresence, err := GetWelcomerPresence(ctx, guildID)
+	if err != nil {
+		Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get welcomer presence")
+
+		return false, false, err
+	}
+
+	// Check if welcomer can assign roles to users.
+	for _, guildMember := range welcomerPresence {
+		canAssignRoles = canAssignRoles || GuildMemberCanAssignRoles(guildMember)
+	}
+
+	if !canAssignRoles {
+		return canAssignRoles, false, nil
+	}
+
+	// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
+	isRoleAssignable = CanAssignRole(role, guildRoles, welcomerPresence)
+	if !isRoleAssignable {
+		return canAssignRoles, false, nil
+	}
+
+	return true, true, nil
+}
+
 func CanAssignRole(role discord.Role, guildRoles []discord.Role, guildMembers []discord.GuildMember) bool {
 	if role.Managed {
 		return false
@@ -95,8 +149,6 @@ func CanAssignRole(role discord.Role, guildRoles []discord.Role, guildMembers []
 }
 
 func GuildMemberCanAssignRoles(guildMember discord.GuildMember) bool {
-	println("GuildMemberCanAssignRoles", guildMember.Permissions)
-
 	if guildMember.Permissions != nil {
 		permission := *guildMember.Permissions
 
@@ -121,14 +173,12 @@ func CalculateRoleValues(roles []discord.Role, guildMembers []discord.GuildMembe
 	for _, guildMember := range guildMembers {
 		highestRolePositionForMember := GetHighestRoleForGuildMember(roleMap, guildMember)
 
-		for _, role := range convertedRoles {
-			println(highestRolePositionForMember, role.Managed, role.Position, role.ID, *guildMember.Permissions, GuildMemberCanAssignRoles(guildMember))
-
-			role.IsAssignable = (!role.Managed) &&
+		for i, role := range convertedRoles {
+			convertedRoles[i].IsAssignable = role.IsAssignable || ((!role.Managed) &&
 				(role.Position < highestRolePositionForMember) &&
-				GuildMemberCanAssignRoles(guildMember)
+				GuildMemberCanAssignRoles(guildMember))
 
-			role.IsElevated = false // TODO: Check for permissions
+			convertedRoles[i].IsElevated = (role.Permissions & discord.PermissionElevated) != 0
 		}
 	}
 
@@ -138,13 +188,9 @@ func CalculateRoleValues(roles []discord.Role, guildMembers []discord.GuildMembe
 func GetHighestRoleForGuildMember(roleMap map[discord.Snowflake]AssignableRole, guildMember discord.GuildMember) int32 {
 	highestRolePosition := int32(0)
 
-	println(guildMember.Roles)
-
 	for _, roleID := range guildMember.Roles {
 		role, ok := roleMap[roleID]
-		println(ok, roleID)
 		if ok {
-			println(highestRolePosition, role.Position)
 			if role.Position > highestRolePosition {
 				highestRolePosition = role.Position
 			}

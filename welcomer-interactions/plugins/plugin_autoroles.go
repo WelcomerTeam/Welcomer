@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -289,41 +289,13 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildRolesPb, err := welcomer.SandwichClient.FetchGuildRoles(ctx, &sandwich.FetchGuildRolesRequest{
-					GuildID: int64(*interaction.GuildID),
-				})
+				canAssignRoles, isRoleAssignable, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to fetch guild roles")
+						Msg("Failed to check if welcomer can assign role")
 
 					return nil, err
-				}
-
-				guildRoles := make([]discord.Role, 0, len(guildRolesPb.GetGuildRoles()))
-
-				for _, rolePb := range guildRolesPb.GetGuildRoles() {
-					role, err := sandwich.GRPCToRole(rolePb)
-					if err != nil {
-						continue
-					}
-
-					guildRoles = append(guildRoles, role)
-				}
-
-				welcomerPresence, err := welcomer.GetWelcomerPresence(ctx, *interaction.GuildID)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to get welcomer presence")
-
-					return nil, err
-				}
-
-				canAssignRoles := false
-
-				for _, guildMember := range welcomerPresence {
-					canAssignRoles = welcomer.GuildMemberCanAssignRoles(guildMember) || canAssignRoles
 				}
 
 				if !canAssignRoles {
@@ -336,7 +308,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				isRoleAssignable := welcomer.CanAssignRole(role, guildRoles, welcomerPresence)
+				// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
 				if !isRoleAssignable {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -435,17 +407,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				// Check if the role is in the list.
-				roleFound := false
-				for i, r := range guildSettingsAutoRoles.Roles {
-					if discord.Snowflake(r) == role.ID {
-						roleFound = true
-						guildSettingsAutoRoles.Roles = append(guildSettingsAutoRoles.Roles[:i], guildSettingsAutoRoles.Roles[i+1:]...)
-						break
-					}
-				}
-
-				if !roleFound {
+				if !slices.Contains(guildSettingsAutoRoles.Roles, int64(role.ID)) {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
@@ -454,6 +416,11 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 						},
 					}, nil
 				}
+
+				// Remove the role from the list.
+				guildSettingsAutoRoles.Roles = slices.DeleteFunc(guildSettingsAutoRoles.Roles, func(r int64) bool {
+					return r == int64(role.ID)
+				})
 
 				err = welcomer.RetryWithFallback(
 					func() error {
