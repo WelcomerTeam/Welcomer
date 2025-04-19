@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -13,8 +14,8 @@ type GuildSettingsLeaver struct {
 func GuildSettingsLeaverSettingsToPartial(leaver database.GuildSettingsLeaver) *GuildSettingsLeaver {
 	partial := &GuildSettingsLeaver{
 		ToggleEnabled: leaver.ToggleEnabled,
-		Channel:       Int64ToStringPointer(leaver.Channel),
-		MessageFormat: JSONBToString(leaver.MessageFormat),
+		Channel:       welcomer.Int64ToStringPointer(leaver.Channel),
+		MessageFormat: welcomer.JSONBToString(leaver.MessageFormat),
 	}
 
 	return partial
@@ -24,7 +25,7 @@ func PartialToGuildSettingsLeaverSettings(guildID int64, guildSettings *GuildSet
 	return &database.GuildSettingsLeaver{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,
-		Channel:       StringPointerToInt64(guildSettings.Channel),
-		MessageFormat: StringToJSONB(guildSettings.MessageFormat),
+		Channel:       welcomer.StringPointerToInt64(guildSettings.Channel),
+		MessageFormat: welcomer.StringToJSONB(guildSettings.MessageFormat),
 	}
 }

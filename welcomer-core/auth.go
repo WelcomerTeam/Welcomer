@@ -117,30 +117,39 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 	return handler()
 }
 
+func IsInterationAuthorElevated(sub *subway.Subway, interaction discord.Interaction) bool {
+	// Query state cache for guild.
+	guildsResponse, err := sub.SandwichClient.FetchGuild(sub.Context, &protobuf.FetchGuildRequest{
+		GuildIDs: []int64{int64(*interaction.GuildID)},
+	})
+	if err != nil {
+		return false
+	}
+
+	var guild discord.Guild
+
+	guildPb, ok := guildsResponse.Guilds[int64(*interaction.GuildID)]
+	if ok {
+		guild, err = protobuf.GRPCToGuild(guildPb)
+		if err != nil {
+			return false
+		}
+	}
+
+	if guild.ID.IsNil() {
+		return false
+	}
+
+	if interaction.Member == nil || !MemberHasElevation(guild, *interaction.Member) {
+		return false
+	}
+
+	return true
+}
+
 func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, handler BasicInteractionHandler) (*discord.InteractionResponse, error) {
 	return RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-		// Query state cache for guild.
-		guildsResponse, err := sub.SandwichClient.FetchGuild(sub.Context, &protobuf.FetchGuildRequest{
-			GuildIDs: []int64{int64(*interaction.GuildID)},
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var guild discord.Guild
-		guildPb, ok := guildsResponse.Guilds[int64(*interaction.GuildID)]
-		if ok {
-			guild, err = protobuf.GRPCToGuild(guildPb)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		if guild.ID.IsNil() {
-			return nil, ErrMissingGuild
-		}
-
-		if interaction.Member == nil || !MemberHasElevation(guild, *interaction.Member) {
+		if !IsInterationAuthorElevated(sub, interaction) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{

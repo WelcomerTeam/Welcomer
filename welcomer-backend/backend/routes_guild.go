@@ -98,7 +98,7 @@ func getGuild(ctx *gin.Context) {
 			}
 
 			partialGuild := GuildToPartial(discordGuild)
-			partialGuild.Roles = CalculateRoleValues(partialGuild.Roles, guildMembers)
+			partialGuild.Roles = welcomer.CalculateRoleValues(roles, guildMembers)
 
 			guild := Guild{
 				Guild: &partialGuild,

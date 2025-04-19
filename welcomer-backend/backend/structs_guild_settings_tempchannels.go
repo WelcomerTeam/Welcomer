@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -18,8 +19,8 @@ func GuildSettingsTempChannelsSettingsToPartial(
 	partial := &GuildSettingsTempChannels{
 		ToggleEnabled:    tempChannels.ToggleEnabled,
 		ToggleAutopurge:  tempChannels.ToggleAutopurge,
-		ChannelLobby:     Int64ToStringPointer(tempChannels.ChannelLobby),
-		ChannelCategory:  Int64ToStringPointer(tempChannels.ChannelCategory),
+		ChannelLobby:     welcomer.Int64ToStringPointer(tempChannels.ChannelLobby),
+		ChannelCategory:  welcomer.Int64ToStringPointer(tempChannels.ChannelCategory),
 		DefaultUserCount: tempChannels.DefaultUserCount,
 	}
 
@@ -31,8 +32,8 @@ func PartialToGuildSettingsTempChannelsSettings(guildID int64, guildSettings *Gu
 		GuildID:          guildID,
 		ToggleEnabled:    guildSettings.ToggleEnabled,
 		ToggleAutopurge:  guildSettings.ToggleAutopurge,
-		ChannelLobby:     StringPointerToInt64(guildSettings.ChannelLobby),
-		ChannelCategory:  StringPointerToInt64(guildSettings.ChannelCategory),
+		ChannelLobby:     welcomer.StringPointerToInt64(guildSettings.ChannelLobby),
+		ChannelCategory:  welcomer.StringPointerToInt64(guildSettings.ChannelCategory),
 		DefaultUserCount: guildSettings.DefaultUserCount,
 	}
 }

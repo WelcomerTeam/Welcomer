@@ -240,6 +240,8 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "add",
 		Description: "Add a membership to a server.",
 
+		DMPermission: &welcomer.False,
+
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
 			var userID discord.Snowflake
 			if interaction.Member != nil {

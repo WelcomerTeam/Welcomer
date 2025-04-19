@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -110,7 +111,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		return nil
 	}
 
-	assignableRoles, err := welcomer.FilterAssignableRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(eventCtx.Guild.ID), int64(eventCtx.Identifier.ID), guildSettingsBorderwall.RolesOnJoin)
+	assignableRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(eventCtx.Guild.ID), int64(eventCtx.Identifier.ID), guildSettingsBorderwall.RolesOnJoin)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -443,7 +444,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 	member.GuildID = &eventCtx.Guild.ID
 
-	assignableJoinRoles, err := welcomer.FilterAssignableRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(eventCtx.Guild.ID), int64(eventCtx.Identifier.ID), guildSettingsBorderwall.RolesOnJoin)
+	assignableJoinRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(eventCtx.Guild.ID), int64(eventCtx.Identifier.ID), guildSettingsBorderwall.RolesOnJoin)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -452,7 +453,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		return err
 	}
 
-	assignableVerifyRoles, err := welcomer.FilterAssignableRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(eventCtx.Guild.ID), int64(eventCtx.Identifier.ID), guildSettingsBorderwall.RolesOnVerify)
+	assignableVerifyRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(eventCtx.Guild.ID), int64(eventCtx.Identifier.ID), guildSettingsBorderwall.RolesOnVerify)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -469,17 +470,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 				// If the role is present in both the add and remove list, remove
 				// it from both lists if the user has the role already.
 				if len(member.Roles) > 0 {
-					rolePresent := false
-
-					for _, role := range member.Roles {
-						if role == assignableJoinRoles[i] {
-							rolePresent = true
-
-							break
-						}
-					}
-
-					if rolePresent {
+					if slices.Contains(member.Roles, assignableJoinRoles[i]) {
 						assignableJoinRoles = append(assignableJoinRoles[:i], assignableJoinRoles[i+1:]...)
 						assignableVerifyRoles = append(assignableVerifyRoles[:j], assignableVerifyRoles[j+1:]...)
 						i--

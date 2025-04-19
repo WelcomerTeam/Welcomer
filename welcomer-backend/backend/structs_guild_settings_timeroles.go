@@ -15,7 +15,7 @@ func GuildSettingsTimeRolesSettingsToPartial(
 ) *GuildSettingsTimeRoles {
 	partial := &GuildSettingsTimeRoles{
 		ToggleEnabled: timeroles.ToggleEnabled,
-		Roles:         welcomer.UnmarshalTimeRolesJSON(JSONBToBytes(timeroles.Timeroles)),
+		Roles:         welcomer.UnmarshalTimeRolesJSON(welcomer.JSONBToBytes(timeroles.Timeroles)),
 	}
 
 	if len(partial.Roles) == 0 {
@@ -29,6 +29,6 @@ func PartialToGuildSettingsTimeRolesSettings(guildID int64, guildSettings *Guild
 	return &database.GuildSettingsTimeroles{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,
-		Timeroles:     BytesToJSONB(welcomer.MarshalTimeRolesJSON(guildSettings.Roles)),
+		Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(guildSettings.Roles)),
 	}
 }

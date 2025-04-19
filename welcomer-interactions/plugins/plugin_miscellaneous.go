@@ -51,82 +51,80 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Description: "Remove messages from the bot.",
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+			if err != nil {
+				return nil, err
+			}
+
+			channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+			messageHistory, err := channel.History(ctx, session, nil, nil, nil, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			messagesToDelete := make([]discord.Snowflake, 0, len(messageHistory))
+			for _, message := range messageHistory {
+				// Skip message if it is over 14 days old.
+				if message.ID.Time().Before(time.Now().Add(-time.Hour * 24 * 14)) {
+					continue
+				}
+
+				if message.Author.ID == interaction.ApplicationID {
+					messagesToDelete = append(messagesToDelete, message.ID)
+				}
+			}
+
+			go func() {
+				time.Sleep(time.Second * 15)
+
+				err = interaction.DeleteOriginalResponse(ctx, sub.EmptySession)
 				if err != nil {
-					return nil, err
+					welcomer.Logger.Error().Err(err).Msg("Failed to delete original response")
 				}
+			}()
 
-				channel := discord.Channel{ID: *interaction.ChannelID, GuildID: interaction.GuildID}
-
-				messageHistory, err := channel.History(ctx, session, nil, nil, nil, nil)
-				if err != nil {
-					return nil, err
-				}
-
-				messagesToDelete := make([]discord.Snowflake, 0, len(messageHistory))
-				for _, message := range messageHistory {
-					// Skip message if it is over 14 days old.
-					if message.ID.Time().Before(time.Now().Add(-time.Hour * 24 * 14)) {
-						continue
-					}
-
-					if message.Author.ID == interaction.ApplicationID {
-						messagesToDelete = append(messagesToDelete, message.ID)
-					}
-				}
-
-				go func() {
-					time.Sleep(time.Second * 15)
-
-					err = interaction.DeleteOriginalResponse(ctx, sub.EmptySession)
-					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to delete original response")
-					}
-				}()
-
-				if len(messagesToDelete) == 0 {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				if len(messagesToDelete) == 1 {
-					message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
-
-					err = message.Delete(ctx, session, nil)
-					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
-
-						return nil, err
-					}
-				} else if len(messagesToDelete) > 1 {
-					err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
-					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
-
-						return nil, err
-					}
-				}
-
+			if len(messagesToDelete) == 0 {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(
-							fmt.Sprintf(
-								"%d message%s been deleted",
-								len(messagesToDelete),
-								welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
-							),
-							welcomer.EmbedColourInfo,
-						),
+						Embeds: welcomer.NewEmbed("No messages to delete", welcomer.EmbedColourInfo),
+						Flags:  uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
-			})
+			}
+
+			if len(messagesToDelete) == 1 {
+				message := discord.Message{ID: messagesToDelete[0], ChannelID: *interaction.ChannelID, GuildID: interaction.GuildID}
+
+				err = message.Delete(ctx, session, nil)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
+
+					return nil, err
+				}
+			} else if len(messagesToDelete) > 1 {
+				err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
+
+					return nil, err
+				}
+			}
+
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf(
+							"%d message%s been deleted",
+							len(messagesToDelete),
+							welcomer.If(len(messagesToDelete) == 1, " has", "s have"),
+						),
+						welcomer.EmbedColourInfo,
+					),
+				},
+			}, nil
 		},
 	})
 
@@ -141,7 +139,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Data: &discord.InteractionCallbackData{
 						Embeds: []discord.Embed{
 							{
-								Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at %s", welcomer.WebsiteURL+"/dashboard"),
+								Description: "### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at " + welcomer.WebsiteURL + "/dashboard",
 								Color:       welcomer.EmbedColourInfo,
 							},
 						},
@@ -154,7 +152,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Data: &discord.InteractionCallbackData{
 							Embeds: []discord.Embed{
 								{
-									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships [**here**](%s)", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
+									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships ib our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
 									Color:       welcomer.EmbedColourInfo,
 								},
 							},
@@ -205,6 +203,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "emojis",
 		Description: "Get a list of all the emojis in the guild",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -274,6 +274,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "invites",
 		Description: "Get a leaderboard of the top inviters on this server",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -384,6 +386,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "newcreation",
 		Description: "Returns a list of newly created users on discord",
 
+		DMPermission: &welcomer.False,
+
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
@@ -469,6 +473,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "newmembers",
 		Description: "Returns a list of new members on this guild",
 
+		DMPermission: &welcomer.False,
+
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) {
@@ -547,6 +553,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "oldmembers",
 		Description: "Returns a list of the oldest members on this guild",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -864,7 +872,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer [**here**](%s)", welcomer.WebsiteURL+"/support"),
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).", welcomer.WebsiteURL+"/support"),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},
@@ -876,6 +884,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "zipemojis",
 		Description: "Get all the emojis in the guild as a zip file",
+
+		DMPermission: &welcomer.False,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {

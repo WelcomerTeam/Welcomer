@@ -80,7 +80,10 @@ func main() {
 		grpcInterface := sandwich.NewDefaultGRPCClient()
 
 		configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
-			Context: ctx,
+			Context:        ctx,
+			Logger:         welcomer.Logger,
+			SandwichClient: welcomer.SandwichClient,
+			GRPCInterface:  welcomer.GRPCInterface,
 		}, *sandwichManagerName)
 		if err != nil {
 			panic(fmt.Errorf(`failed to sync command: grpcInterface.FetchConsumerConfiguration(): %w`, err))

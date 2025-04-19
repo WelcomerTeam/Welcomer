@@ -37,7 +37,7 @@ var backend *Backend
 type Backend struct {
 	StartTime time.Time
 
-	Options BackendOptions
+	Options Options
 
 	PrometheusHandler *gin_prometheus.Prometheus
 
@@ -54,8 +54,8 @@ type Backend struct {
 	PaypalClient *paypal.Client
 }
 
-// BackendOptions represents any options passable when creating the backend service.
-type BackendOptions struct {
+// Options represents any options passable when creating the backend service.
+type Options struct {
 	Domain            string
 	Host              string
 	KeyPairs          string
@@ -80,7 +80,7 @@ type BackendOptions struct {
 }
 
 // NewBackend creates a new backend.
-func NewBackend(ctx context.Context, options BackendOptions) (*Backend, error) {
+func NewBackend(options Options) (*Backend, error) {
 	if backend != nil {
 		return backend, ErrBackendAlreadyExists
 	}

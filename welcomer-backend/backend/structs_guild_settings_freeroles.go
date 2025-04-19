@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -14,7 +15,7 @@ func GuildSettingsFreeRolesSettingsToPartial(
 ) *GuildSettingsFreeRoles {
 	partial := &GuildSettingsFreeRoles{
 		ToggleEnabled: freeRoles.ToggleEnabled,
-		Roles:         Int64SliceToString(freeRoles.Roles),
+		Roles:         welcomer.Int64SliceToString(freeRoles.Roles),
 	}
 
 	if len(partial.Roles) == 0 {
@@ -28,6 +29,6 @@ func PartialToGuildSettingsFreeRolesSettings(guildID int64, guildSettings *Guild
 	return &database.GuildSettingsFreeroles{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,
-		Roles:         StringSliceToInt64(guildSettings.Roles),
+		Roles:         welcomer.StringSliceToInt64(guildSettings.Roles),
 	}
 }

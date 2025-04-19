@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -18,11 +19,11 @@ func GuildSettingsBorderwallSettingsToPartial(borderwall database.GuildSettingsB
 	partial := &GuildSettingsBorderwall{
 		ToggleEnabled:   borderwall.ToggleEnabled,
 		ToggleSendDm:    borderwall.ToggleSendDm,
-		Channel:         Int64ToStringPointer(borderwall.Channel),
-		MessageVerify:   JSONBToString(borderwall.MessageVerify),
-		MessageVerified: JSONBToString(borderwall.MessageVerified),
-		RolesOnJoin:     Int64SliceToString(borderwall.RolesOnJoin),
-		RolesOnVerify:   Int64SliceToString(borderwall.RolesOnVerify),
+		Channel:         welcomer.Int64ToStringPointer(borderwall.Channel),
+		MessageVerify:   welcomer.JSONBToString(borderwall.MessageVerify),
+		MessageVerified: welcomer.JSONBToString(borderwall.MessageVerified),
+		RolesOnJoin:     welcomer.Int64SliceToString(borderwall.RolesOnJoin),
+		RolesOnVerify:   welcomer.Int64SliceToString(borderwall.RolesOnVerify),
 	}
 
 	if len(partial.RolesOnJoin) == 0 {
@@ -41,10 +42,10 @@ func PartialToGuildSettingsBorderwallSettings(guildID int64, guildSettings *Guil
 		GuildID:         guildID,
 		ToggleEnabled:   guildSettings.ToggleEnabled,
 		ToggleSendDm:    guildSettings.ToggleSendDm,
-		Channel:         StringPointerToInt64(guildSettings.Channel),
-		MessageVerify:   StringToJSONB(guildSettings.MessageVerify),
-		MessageVerified: StringToJSONB(guildSettings.MessageVerified),
-		RolesOnJoin:     StringSliceToInt64(guildSettings.RolesOnJoin),
-		RolesOnVerify:   StringSliceToInt64(guildSettings.RolesOnVerify),
+		Channel:         welcomer.StringPointerToInt64(guildSettings.Channel),
+		MessageVerify:   welcomer.StringToJSONB(guildSettings.MessageVerify),
+		MessageVerified: welcomer.StringToJSONB(guildSettings.MessageVerified),
+		RolesOnJoin:     welcomer.StringSliceToInt64(guildSettings.RolesOnJoin),
+		RolesOnVerify:   welcomer.StringSliceToInt64(guildSettings.RolesOnVerify),
 	}
 }

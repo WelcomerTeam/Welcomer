@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
 type Guild struct {
@@ -21,10 +22,10 @@ type Guild struct {
 
 type PartialGuild struct {
 	MinimalGuild
-	Channels    []MinimalChannel `json:"channels"`
-	Roles       []MinimalRole    `json:"roles"`
-	Emojis      []MinimalEmoji   `json:"emojis"`
-	MemberCount int32            `json:"member_count"`
+	Channels    []MinimalChannel          `json:"channels"`
+	Roles       []welcomer.AssignableRole `json:"roles"`
+	Emojis      []MinimalEmoji            `json:"emojis"`
+	MemberCount int32                     `json:"member_count"`
 }
 
 type MinimalGuild struct {
@@ -43,18 +44,6 @@ type MinimalChannel struct {
 	ID       discord.Snowflake   `json:"id"`
 	Position int32               `json:"position,omitempty"`
 	Type     discord.ChannelType `json:"type"`
-}
-
-type MinimalRole struct {
-	tags         *discord.RoleTag
-	Name         string            `json:"name"`
-	ID           discord.Snowflake `json:"id"`
-	permissions  discord.Int64
-	Color        int32 `json:"color"`
-	Position     int32 `json:"position"`
-	IsAssignable bool  `json:"is_assignable"`
-	IsElevated   bool  `json:"is_elevated"`
-	managed      bool
 }
 
 type MinimalEmoji struct {
@@ -103,19 +92,14 @@ func ChannelsToMinimal(channels []discord.Channel) []MinimalChannel {
 	return minimalChannels
 }
 
-func RolesToMinimal(roles []discord.Role) []MinimalRole {
-	minimalRoles := make([]MinimalRole, len(roles))
+func RolesToMinimal(roles []discord.Role) []welcomer.AssignableRole {
+	minimalRoles := make([]welcomer.AssignableRole, len(roles))
 
 	for i, role := range roles {
-		minimalRoles[i] = MinimalRole{
-			ID:       role.ID,
-			Name:     role.Name,
-			Color:    role.Color,
-			Position: role.Position,
-
-			permissions: role.Permissions,
-			managed:     role.Managed,
-			tags:        role.Tags,
+		minimalRoles[i] = welcomer.AssignableRole{
+			Role:         role,
+			IsAssignable: false,
+			IsElevated:   false,
 		}
 	}
 
@@ -136,14 +120,4 @@ func EmojisToMinimal(emojis []discord.Emoji) []MinimalEmoji {
 	}
 
 	return minimalEmojis
-}
-
-func MinimalRolesToMap(roles []MinimalRole) map[discord.Snowflake]MinimalRole {
-	roleMap := map[discord.Snowflake]MinimalRole{}
-
-	for _, role := range roles {
-		roleMap[role.ID] = role
-	}
-
-	return roleMap
 }

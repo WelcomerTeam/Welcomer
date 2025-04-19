@@ -11,11 +11,6 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-const (
-	MaxRuleCount  = 25
-	MaxRuleLength = 250
-)
-
 // Route GET /api/guild/:guildID/rules.
 func getGuildSettingsRules(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
@@ -116,12 +111,12 @@ func setGuildSettingsRules(ctx *gin.Context) {
 
 // Validates rule settings.
 func doValidateRules(guildSettings *GuildSettingsRules) error {
-	if len(guildSettings.Rules) > MaxRuleCount {
+	if len(guildSettings.Rules) > welcomer.MaxRuleCount {
 		return fmt.Errorf("too many rules (%d): %w", len(guildSettings.Rules), ErrListTooLong)
 	}
 
 	for i, r := range guildSettings.Rules {
-		if len(r) > MaxRuleLength {
+		if len(r) > welcomer.MaxRuleLength {
 			return fmt.Errorf("rule %d has a length too long: %w", i, ErrStringTooLong)
 		}
 	}

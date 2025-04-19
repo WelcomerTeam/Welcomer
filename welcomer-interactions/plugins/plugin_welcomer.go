@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
@@ -725,6 +726,32 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						},
 					}, nil
 				}
+			})
+		},
+	})
+
+	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "setmessage",
+		Description: "Configure the welcomer messages on the welcomer dashboard",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: []discord.Embed{
+							{
+								Description: fmt.Sprintf("Configure your welcomer text messages, dm messages and image messages on our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()+"/welcomer"),
+								Color:       welcomer.EmbedColourInfo,
+							},
+						},
+					},
+				}, nil
 			})
 		},
 	})
