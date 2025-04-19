@@ -285,17 +285,17 @@ func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient
 }
 
 var nameMap = map[int]string{
-	discord.PermissionKickMembers:     "KICK_MEMBERS",
-	discord.PermissionBanMembers:      "BAN_MEMBERS",
-	discord.PermissionAdministrator:   "ADMINISTRATOR",
-	discord.PermissionManageChannels:  "MANAGE_CHANNELS",
-	discord.PermissionManageServer:    "MANAGE_SERVER",
-	discord.PermissionManageMessages:  "MANAGE_MESSAGES",
-	discord.PermissionManageRoles:     "MANAGE_ROLES",
-	discord.PermissionManageWebhooks:  "MANAGE_WEBHOOKS",
-	discord.PermissionManageEmojis:    "MANAGE_EMOJIS",
-	discord.PermissionManageThreads:   "MANAGE_THREADS",
-	discord.PermissionModerateMembers: "MODERATE_MEMBERS",
+	discord.PermissionKickMembers:     "Kick Members",
+	discord.PermissionBanMembers:      "Ban Members",
+	discord.PermissionAdministrator:   "Administrator",
+	discord.PermissionManageChannels:  "Manage Channels",
+	discord.PermissionManageServer:    "Manage Server",
+	discord.PermissionManageMessages:  "Manage Messages",
+	discord.PermissionManageRoles:     "Manage Roles",
+	discord.PermissionManageWebhooks:  "Manage Webhooks",
+	discord.PermissionManageEmojis:    "Manage Emojis",
+	discord.PermissionManageThreads:   "Manage Threads",
+	discord.PermissionModerateMembers: "Moderate Members",
 }
 
 func GetRolePermissionList(permissions int) []string {
