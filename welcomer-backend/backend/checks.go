@@ -22,31 +22,13 @@ func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnB
 	}
 
 	if returnBotGuildMembers {
-		guildMembers, err = fetchBotUsersForGuild(ctx, guildID)
+		guildMembers, err = welcomer.GetWelcomerPresence(ctx, guildID)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get bot users for guild")
 		}
 	}
 
 	return true, guild, guildMembers, nil
-}
-
-func fetchBotUsersForGuild(ctx context.Context, guildID discord.Snowflake) (guildMembers []discord.GuildMember, err error) {
-	// Find out what managers can see this guild
-	locations, err := welcomer.GRPCInterface.WhereIsGuild(backend.GetBasicEventContext(ctx).ToGRPCContext(), guildID)
-	if err != nil {
-		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to do guild lookup")
-
-		return nil, fmt.Errorf("failed to do guild lookup: %w", err)
-	}
-
-	guildMembers = make([]discord.GuildMember, 0, len(locations))
-
-	for _, location := range locations {
-		guildMembers = append(guildMembers, location.GuildMember)
-	}
-
-	return guildMembers, nil
 }
 
 func fetchManagersForGuild(ctx context.Context, guildID discord.Snowflake) (managers []string, err error) {
