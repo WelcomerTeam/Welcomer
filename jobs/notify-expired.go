@@ -27,7 +27,7 @@ func main() {
 	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
-	webhookUrl := flag.String("patreonWebhookUrl", os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"), "Webhook URL for logging")
 
 	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
 
@@ -130,4 +130,8 @@ func entrypoint(ctx context.Context, webhookUrl string, dryRun bool) {
 			continue
 		}
 	}
+
+	welcomer.Logger.Info().
+		Int("memberships_count", len(memberships)).
+		Msg("Expired memberships notified successfully")
 }
