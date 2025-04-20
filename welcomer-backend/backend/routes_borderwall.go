@@ -267,6 +267,7 @@ func setBorderwall(ctx *gin.Context) {
 			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: clientIP, Mask: clientIP.DefaultMask()}, Status: pgtype.Present},
 			RecaptchaScore:  sql.NullFloat64{Float64: recaptchaScore, Valid: true},
 			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
+			CountryCode:     sql.NullString{String: ctx.GetHeader("CF-IPCountry"), Valid: true},
 			UaFamily:        sql.NullString{String: client.UserAgent.Family, Valid: true},
 			UaFamilyVersion: sql.NullString{String: client.UserAgent.ToVersionString(), Valid: true},
 			UaOs:            sql.NullString{String: osName, Valid: true},
