@@ -209,7 +209,7 @@
                       this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
                   </p>
 
-                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring) || this.durationSelected == durationPatreon" class="text-sm font-medium leading-6"> 7 days free </p>
+                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial) || this.durationSelected == durationPatreon" class="text-sm font-medium leading-6"> 7 days free </p>
                   <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">Billed as {{ formatCurrency(this.currency,
                       this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}
                   </p>
@@ -448,6 +448,7 @@ export default {
     let isDataError = ref(false);
     let isCreatePaymentInProgress = ref(false);
     let isMonthlyRecurring = ref(false);
+    let hasFreeTrial = ref(false);
 
     return {
       features,
