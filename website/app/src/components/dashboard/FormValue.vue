@@ -419,7 +419,7 @@
                     </li>
                   </ListboxOption>
                   <div class="w-full p-2">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="w-full border-gray-300 dark:border-secondary-light bg-white dark:bg-secondary-dark rounded-md sm:text-sm"
                       placeholder="Start typing a name or user id..." v-model="query" @input="onQueryChange()" />
                   </div>
@@ -516,7 +516,7 @@
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm ring-1 ring-primary ring-opacity-5 focus:outline-none sm:text-sm">
                 <div class="w-full p-2">
-                  <input type="text"
+                  <AutocompleteInput type="text"
                     class="w-full border-gray-300 dark:border-secondary-light bg-white dark:bg-secondary-dark rounded-md sm:text-sm"
                     placeholder="Start typing a name or emoji id..." />
                 </div>
@@ -616,7 +616,7 @@
       </div>
 
       <div v-else-if="type == FormTypeText">
-        <input :id="componentId" type="text" :class="[
+        <AutocompleteInput :id="componentId" type="text" :class="[
           $props.validation?.$invalid
             ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
             : '',
@@ -625,7 +625,7 @@
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
-          :maxlength="$props.maxLength" @input="updateValue($event.target.value)" @blur="blur" />
+          :maxlength="$props.maxLength" @input="updateValue($event)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
           <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
@@ -647,7 +647,7 @@
       </div>
 
       <div v-else-if="type == FormTypeTextArea">
-        <textarea :id="componentId" type="text" :class="[
+        <AutocompleteInput type="text" :isTextarea="true" :id="componentId" :class="[
           $props.validation?.$invalid
             ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
             : '',
@@ -656,7 +656,7 @@
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" rows="4" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
-          @input="updateValue($event.target.value)" @blur="blur" />
+          @input="updateValue($event)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
           <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
@@ -784,6 +784,7 @@
 
 <script>
 import LoadingIcon from "@/components/LoadingIcon.vue";
+import AutocompleteInput from "@/components/AutocompleteInput.vue";
 
 import {
   Listbox,
@@ -836,6 +837,7 @@ export default {
     LoadingIcon,
     EmbedBuilder,
     BackgroundSelector,
+    AutocompleteInput,
   },
 
   props: {

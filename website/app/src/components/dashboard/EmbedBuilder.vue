@@ -61,10 +61,9 @@
                     <span class="embed-builder-title">Content</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <textarea type="text"
+                    <AutocompleteInput type="text" :isTextarea="true"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Message Content" rows="4" :value="content"
-                      @input="updateContent($event.target.value)" />
+                      placeholder="Message Content" rows="4" :value="content" @update:modelValue="content = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -76,9 +75,9 @@
                     <span class="embed-builder-title">Embed Title</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Title" v-model="title" @input="updateEmbed()" />
+                      placeholder="Embed Title" :value="title" @update:modelValue="title = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -89,9 +88,9 @@
                     <span class="embed-builder-title">Embed Title URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Title URL" v-model="url" @input="updateEmbed()" />
+                      placeholder="Embed Title URL" :value="url" @update:modelValue="url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -101,9 +100,9 @@
                     <span class="embed-builder-title">Embed Description</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <textarea
+                    <AutocompleteInput type="text" :isTextarea="true"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Description" v-model="description" @input="updateEmbed()" />
+                      placeholder="Embed Description" :value="description" @update:modelValue="description = $event" @input="updateEmbed()" />
                   </div>
                 </div>
                 <!-- Colour -->
@@ -156,12 +155,12 @@
                   <div class="mt-1 sm:mt-0 sm:col-span-7 space-y-2">
                     <div class="p-3 border rounded-md border-gray-300 dark:border-secondary-light shadow-sm space-y-2"
                       :key="index" v-for="(field, index) in fields">
-                      <input type="text"
+                      <AutocompleteInput type="text"
                         class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                        placeholder="Field Name" v-model="field.name" @input="updateEmbed()" />
-                      <input type="text"
+                        placeholder="Field Name" :value="field.name" @update:modelValue="field.name = $event" @input="updateEmbed()" />
+                      <AutocompleteInput type="text"
                         class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                        placeholder="Field Value" v-model="field.value" @input="updateEmbed()" />
+                        placeholder="Field Value" :value="field.value" @update:modelValue="field.value = $event" @input="updateEmbed()" />
                       <div class="flex items-center">
                         <div class="flex-1">
                           <input id="useInline" aria-describedby="Show embed field inline" name="Use Inline"
@@ -191,9 +190,9 @@
                     <span class="embed-builder-title">Embed Image URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Image URL" v-model="image_url" @input="updateEmbed()" />
+                      placeholder="Embed Image URL" :value="image_url" @update:modelValue="image_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -203,9 +202,9 @@
                     <span class="embed-builder-title">Thumbnail Image URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Thumbnail Image URL" v-model="thumbnail_url" @input="updateEmbed()" />
+                      placeholder="Thumbnail Image URL" :value="thumbnail_url" @update:modelValue="thumbnail_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -217,9 +216,9 @@
                     <span class="embed-builder-title">Footer Text</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Footer Text" v-model="footer_text" @input="updateEmbed()" />
+                      placeholder="Footer Text" :value="footer_text" @update:modelValue="footer_text = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -229,9 +228,9 @@
                     <span class="embed-builder-title">Footer Icon URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Footer Icon URL" v-model="footer_icon" @input="updateEmbed()" />
+                      placeholder="Footer Icon URL" :value="footer_icon" @update:modelValue="footer_icon = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -243,9 +242,9 @@
                     <span class="embed-builder-title">Author Name</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Author Name" v-model="author_name" @input="updateEmbed()" />
+                      placeholder="Author Name" :value="author_name" @update:modelValue="author_name = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -255,9 +254,9 @@
                     <span class="embed-builder-title">Author URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Author URL" v-model="author_url" @input="updateEmbed()" />
+                      placeholder="Author URL" :value="author_url" @update:modelValue="author_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -267,9 +266,9 @@
                     <span class="embed-builder-title">Author Icon URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
-                    <input type="text"
+                    <AutocompleteInput type="text"
                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Author Icon URL" v-model="author_icon_url" @input="updateEmbed()" />
+                      placeholder="Author Icon URL" :value="author_icon_url" @update:modelValue="author_icon_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -330,6 +329,7 @@ import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
 import { ref } from "vue";
 import DiscordEmbed from "@/components/DiscordEmbed.vue";
+import AutocompleteInput from "@/components/AutocompleteInput.vue";
 
 const tabs = [
   { name: "Build", value: 1 },
@@ -358,6 +358,7 @@ export default {
     PopoverPanel,
 
     CodeEditor,
+    AutocompleteInput,
   },
 
   props: {
@@ -596,11 +597,6 @@ export default {
       }
 
       this.updateValue(value);
-    },
-
-    updateContent(value) {
-      this.content = value;
-      this.updateEmbed();
     },
 
     updateValue(value) {

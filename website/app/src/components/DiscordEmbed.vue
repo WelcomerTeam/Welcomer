@@ -1070,7 +1070,7 @@
 </style>
 
 <script>
-import { toHTML } from "@/components/discord-markdown";
+import { marked } from "@/utilities";
 
 export default {
   props: {
@@ -1109,34 +1109,10 @@ export default {
     },
   },
   methods: {
-    marked(input, embed) {
-      if (input) {
-        return toHTML(input, {
-          embed: embed,
-          discordCallback: {
-            user: function (user) {
-              return `@${user.id}`;
-            },
-            channel: function (channel) {
-              return `#${channel.id}`;
-            },
-            role: function (role) {
-              return `@${role.id}`;
-            },
-            everyone: function () {
-              return `@everyone`;
-            },
-            here: function () {
-              return `@here`;
-            },
-          },
-          cssModuleNames: {
-            "d-emoji": "emoji",
-          },
-        });
-      }
-      return "";
+    marked(text, embed) {
+        return marked(text, embed);
     },
+
     rgbIntToRGB(rgbInt, defaultValue) {
       return (
         "#" +

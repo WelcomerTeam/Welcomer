@@ -15,7 +15,8 @@
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
             <form-value title="Enable Rules" :type="FormTypeToggle" v-model="config.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.enabled">Send rules to users when they join your server.
+              @update:modelValue="onValueUpdate" :validation="v$.enabled">Send rules to users when they join your
+              server.
               This also allows
               users to view the rules by doing <code>/rules</code>.</form-value>
             <form-value title="Enable DMs" :type="FormTypeToggle" v-model="config.dms_enabled"
@@ -49,9 +50,9 @@
                       </a>
                     </td>
                     <td class="pr-3 text-sm dark:text-gray-50 w-auto">
-                      <input v-if="rule.selected" type="text"
+                      <AutocompleteInput v-if="rule.selected" type="text"
                         class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-3 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
-                        v-model="rule.newValue" :maxlength="this.maxRuleLength"
+                        :value="rule.newValue" @update:modelValue="rule.newValue = $event" :maxlength="this.maxRuleLength"
                         @keypress="this.onEditRuleKeyPress($event, index)" />
                       <div class="break-all" v-else v-html="marked(rule.value, true)" />
                     </td>
@@ -69,10 +70,10 @@
                   <tr>
                     <td :class="this.rules.length === 0 ? 'hidden' : ''" />
                     <td>
-                      <input v-if="this.rules.length < this.maxRuleCount" type="text"
+                      <AutocompleteInput v-if="this.rules.length < this.maxRuleCount" type="text"
                         class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-10 mt-2 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
                         placeholder="Add rule" :maxlength="this.maxRuleLength" @blur="this.onRuleBlur()"
-                        @keypress="this.onRuleKeyPress($event)" v-model="rule" />
+                        @keypress="this.onRuleKeyPress($event)" :value="rule" @update:modelValue="rule = $event" />
                     </td>
                   </tr>
                 </tbody>
@@ -94,8 +95,6 @@ import { computed, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
 
-import { toHTML } from "@/components/discord-markdown";
-
 import {
   FormTypeBlank,
   FormTypeToggle,
@@ -104,6 +103,7 @@ import {
 import FormValue from "@/components/dashboard/FormValue.vue";
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
+import AutocompleteInput from "@/components/AutocompleteInput.vue";
 
 import endpoints from "@/api/endpoints";
 import dashboardAPI from "@/api/dashboard";
@@ -113,6 +113,7 @@ import {
   getSuccessToast,
   getValidationToast,
   navigateToErrors,
+  marked,
 } from "@/utilities";
 
 const maxRuleCount = 25;
@@ -123,6 +124,7 @@ export default {
     FormValue,
     UnsavedChanges,
     LoadingIcon,
+    AutocompleteInput,
   },
   setup() {
     let isDataFetched = ref(false);
@@ -191,6 +193,10 @@ export default {
   },
 
   methods: {
+    marked(text, embed) {
+      return marked(text, embed);
+    },
+
     setConfig(config) {
       this.config = config;
 
@@ -272,35 +278,6 @@ export default {
       }
     },
 
-    marked(input, embed) {
-      if (input) {
-        return toHTML(input, {
-          embed: embed,
-          discordCallback: {
-            user: function (user) {
-              return `@${user.id}`;
-            },
-            channel: function (channel) {
-              return `#${channel.id}`;
-            },
-            role: function (role) {
-              return `@${role.id}`;
-            },
-            everyone: function () {
-              return `@everyone`;
-            },
-            here: function () {
-              return `@here`;
-            },
-          },
-          cssModuleNames: {
-            "d-emoji": "emoji",
-          },
-        });
-      }
-      return "";
-    },
-
     onSelectRule(index) {
       this.rules.forEach((rule) => {
         rule.selected = false;
@@ -315,13 +292,13 @@ export default {
         this.onDeleteRule(index);
       } else {
         this.rules[index].selected = false;
-
+        
         if (this.rules[index].value !== this.rules[index].newValue) {
+          this.rules[index].value = this.rules[index].newValue;
           this.onValueUpdate();
         }
-
-        this.rules[index].value = this.rules[index].newValue;
       }
+
     },
 
     onCancelRule(index) {
