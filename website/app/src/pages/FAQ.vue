@@ -56,7 +56,7 @@
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 
-import { toHTML } from "@/components/discord-markdown";
+import { marked } from "@/utilities";
 
 const faqs = [
   {
@@ -119,33 +119,8 @@ export default {
     };
   },
   methods: {
-    marked(input, embed) {
-      if (input) {
-        return toHTML(input, {
-          embed: embed,
-          discordCallback: {
-            user: function (user) {
-              return `@${user.id}`;
-            },
-            channel: function (channel) {
-              return `#${channel.id}`;
-            },
-            role: function (role) {
-              return `@${role.id}`;
-            },
-            everyone: function () {
-              return `@everyone`;
-            },
-            here: function () {
-              return `@here`;
-            },
-          },
-          cssModuleNames: {
-            "d-emoji": "emoji",
-          },
-        });
-      }
-      return "";
+    marked(text, embed) {
+        return marked(text, embed);
     },
 
     getAnchor(title) {

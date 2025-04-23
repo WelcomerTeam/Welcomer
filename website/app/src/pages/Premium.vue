@@ -92,8 +92,7 @@
                     'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
                   ]">
                     Monthly
-                    <span
-                      v-if="isMonthlyRecurring"
+                    <span v-if="isMonthlyRecurring"
                       class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
                       Recurring
                     </span>
@@ -126,15 +125,16 @@
                   </button>
                 </div>
                 <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
-                  <a href="https://discord.com/discovery/applications/330416853971107840/store/1192217547316142130" target="_blank">
+                  <a href="https://discord.com/discovery/applications/330416853971107840/store/1192217547316142130"
+                    target="_blank">
                     <button type="button" :class="[
                       'ml-0.5',
                       'border-transparent text-white bg-[#5865f2]',
                       'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#5865f2] focus:z-10 lg:w-auto lg:px-8',
                     ]">
-                    <font-awesome-icon :icon="['fab', 'discord']" />
-                    Discord
-                    <!-- <span
+                      <font-awesome-icon :icon="['fab', 'discord']" />
+                      Discord
+                      <!-- <span
                       class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
                       Recurring
                     </span> -->
@@ -171,10 +171,10 @@
                     class="absolute right-0 z-10 mt-2 w-24 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div class="py-1">
                       <MenuItem v-for="currency in currencies" :key="currency" as="template" v-slot="{ active }">
-                        <div @click="selectCurrency(currency)"
-                          :class="[(active || this.currency === currency) ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm cursor-pointer']">
-                          {{ getCurrencySymbol(currency) + ' – ' + currency }}
-                        </div>
+                      <div @click="selectCurrency(currency)"
+                        :class="[(active || this.currency === currency) ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm cursor-pointer']">
+                        {{ getCurrencySymbol(currency) + ' – ' + currency }}
+                      </div>
                       </MenuItem>
                     </div>
                   </MenuItems>
@@ -191,8 +191,10 @@
                 <p class="mt-6 flex items-baseline gap-x-1">
                   <span class="text-xl font-bold tracking-tight text-gray-900">Free</span>
                 </p>
-                
-                <router-link :to="{ name: 'invite' }"><button type="button" class="border-gray-300 hover:bg-gray-300 text-gray-900 border flex items-center justify-center px-5 py-3 mt-8 text-base font-medium rounded-md cursor-pointer w-full">Invite Welcomer</button></router-link>
+
+                <router-link :to="{ name: 'invite' }"><button type="button"
+                    class="border-gray-300 hover:bg-gray-300 text-gray-900 border flex items-center justify-center px-5 py-3 mt-8 text-base font-medium rounded-md cursor-pointer w-full">Invite
+                    Welcomer</button></router-link>
               </div>
               <div class="-order-1">
                 <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit">
@@ -209,15 +211,18 @@
                       this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
                   </p>
 
-                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring) || this.durationSelected == durationPatreon" class="text-sm font-medium leading-6"> 7 days free </p>
-                  <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">Billed as {{ formatCurrency(this.currency,
+                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring) || this.durationSelected == durationPatreon"
+                    class="text-sm font-medium leading-6"> 7 days free </p>
+                  <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">
+                    Billed as {{ formatCurrency(this.currency,
                       this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}
                   </p>
 
 
                   <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())"
                     :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">
-                    <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />{{ durationSelected == durationPatreon ? 'Become a Patron' : 'Get Started' }}</button>
+                    <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />{{ durationSelected == durationPatreon
+                      ? 'Become a Patron' : 'Get Started' }}</button>
                 </div>
               </div>
             </div>
@@ -318,8 +323,8 @@
 }
 
 .faq-container code {
-    background: rgba(0, 0, 0, .2);
-    padding: 2px;
+  background: rgba(0, 0, 0, .2);
+  padding: 2px;
 }
 </style>
 
@@ -484,56 +489,35 @@ export default {
         icon: "heart",
         class: "text-white bg-primary",
         expiration: 60000,
-    });
+      });
     }
 
     this.fetchSKUs();
   },
 
   methods: {
-    marked(input, embed) {
-      if (input) {
-        return toHTML(input, {
-          embed: embed,
-          discordCallback: {
-            user: function (user) {
-              return `@${user.id}`;
-            },
-            channel: function (channel) {
-              return `#${channel.id}`;
-            },
-            role: function (role) {
-              return `@${role.id}`;
-            },
-            everyone: function () {
-              return `@everyone`;
-            },
-            here: function () {
-              return `@here`;
-            },
-          },
-          cssModuleNames: {
-            "d-emoji": "emoji",
-          },
-        });
-      }
-      return "";
+    marked(text, embed) {
+      return marked(text, embed);
     },
+
     getLocale() {
       return (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.language;
     },
+
     formatCurrency(currency, value) {
       return new Intl.NumberFormat(this.getLocale(), {
         style: "currency",
         currency: currency,
       }).format(value);
     },
+
     getCurrencySymbol(currency) {
       return new Intl.NumberFormat(this.getLocale(), {
         style: 'currency',
         currency: currency
       }).formatToParts().filter((i) => i.type == 'currency')[0].value;
     },
+
     getFromPrice() {
       let minimumPrice = Number.MAX_SAFE_INTEGER;
       this.skus.forEach(sku => {
@@ -542,6 +526,7 @@ export default {
 
       return minimumPrice == Number.MAX_SAFE_INTEGER ? 0 : minimumPrice;
     },
+
     getRelativeSKU() {
       if (this.durationSelected == durationMonthly) {
         return this.skuWelcomerPro;
@@ -553,9 +538,11 @@ export default {
         return this.skuWelcomerPro;
       }
     },
+
     getSKU(skuName) {
       return this.skus.find((sku) => sku.id === skuName);
     },
+
     fetchSKUs() {
       this.isDataFetched = false;
       this.isDataError = false;
@@ -581,12 +568,15 @@ export default {
         }
       )
     },
+
     selectCurrency(currency) {
       this.currency = currency;
     },
+
     selectDuration(duration) {
       this.durationSelected = duration;
     },
+
     selectSKU(skuName) {
       const sku = this.getSKU(skuName);
 

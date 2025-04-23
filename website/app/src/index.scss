@@ -7,6 +7,19 @@ html {
   scroll-behavior: smooth;
 }
 
+.dark .d-mention {
+  background: hsl(240deg 19.51% 32.16%);
+  color: hsl(240 20% 90% / 1);
+}
+
+.d-mention {
+  padding: 1px 2px;
+  border-radius: 5px;
+
+  background: hsl(242.14deg 40% 86.27%);
+  color: hsl(240 20% 10% / 1);
+}
+
 @layer components {
   .custom-scroll::-webkit-scrollbar {
     @apply w-3;

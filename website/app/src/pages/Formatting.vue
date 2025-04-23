@@ -34,15 +34,17 @@
               <tbody>
                 <template v-for="formattingTag in formattingTags" :key="formattingTag.name">
                   <tr class="border-t border-gray-200">
-                    <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{ formattingTag.name }}</th>
+                    <th colspan="5" scope="colgroup"
+                      class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{ formattingTag.name }}
+                    </th>
                   </tr>
                   <tr v-for="(value, id) in formattingTag.values" :key="value.name"
                     :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
                     <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3">
                       <code class="cursor-copy group relative whitespace-nowrap" @click="copyTag(value)">
-                        {{ value.name }}
-                        <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400 absolute -left-6 group-hover:visible invisible" aria-hidden="true" />
-                      </code>
+                      {{ value.name }}
+                      <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400 absolute -left-6 group-hover:visible invisible" aria-hidden="true" />
+                    </code>
                     </td>
                     <td class="px-3 py-4 text-sm" v-html="marked(value.description, true)"></td>
                     <td class="px-3 py-4 text-sm break-all" v-html="marked(value.example, true)"></td>
@@ -100,7 +102,7 @@ import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import Toast from "@/components/dashboard/Toast.vue";
 
-import { toHTML } from "@/components/discord-markdown";
+import { marked } from "@/utilities";
 
 const formattingTags = [
   {
@@ -171,47 +173,18 @@ export default {
     };
   },
   methods: {
-    marked(input, embed) {
-      if (input) {
-        return toHTML(input, {
-          embed: embed,
-          discordCallback: {
-            user: function (user) {
-              if (user.id == 143090142360371200) {
-                return `@ImRock`;
-              }
-
-              return `@${user.id}`;
-            },
-            channel: function (channel) {
-              return `#${channel.id}`;
-            },
-            role: function (role) {
-              return `@${role.id}`;
-            },
-            everyone: function () {
-              return `@everyone`;
-            },
-            here: function () {
-              return `@here`;
-            },
-          },
-          cssModuleNames: {
-            "d-emoji": "emoji",
-          },
-        });
-      }
-      return "";
+    marked(text, embed) {
+      return marked(text, embed);
     },
 
     copyTag(formattingTag) {
       navigator.clipboard.writeText(formattingTag.name);
 
       this.$store.dispatch("createToast", {
-            title: "Copied to clipboard",
-            icon: "info",
-            class: "text-blue-500 bg-blue-100",
-          });
+        title: "Copied to clipboard",
+        icon: "info",
+        class: "text-blue-500 bg-blue-100",
+      });
     }
   }
 };

@@ -1,3 +1,6 @@
+import { toHTML } from "@/components/discord-markdown";
+import store from "@/store";
+
 export function getHexColor(number) {
     return "#" + (number >>> 0).toString(16).slice(-6);
 }
@@ -79,4 +82,57 @@ export function getRolePermissionListAsString(permissions) {
     }
     
     return roleNames.join(", ");
+}
+
+export function marked(input, embed) {
+    if (input) {
+        return toHTML(input, {
+            embed: embed,
+            discordCallback: {
+                user: function (user) {
+                    if (user.id == "143090142360371200") {
+                        return `@ImRock`;
+                    }
+
+                    if (store.getters.getCurrentUser?.id == user.id) {
+                        return `@${store.getters.getCurrentUser.global_name}`;
+                    }
+
+                    return `@${user.id}`;
+                },
+                channel: function (channel) {
+                    var channelName = store.getters.getGuildChannels.find((c) => c.id == channel.id)?.name;
+
+                    if (channelName) {
+                        return `#${channelName}`;
+                    }
+
+                    console.warn(`Channel ${channel.id} not found in guild channels. Channels: ${store.getters.getGuildChannels}`);
+
+                    return `#${channel.id}`;
+                },
+                role: function (role) {
+                    var roleName = store.getters.getGuildRoles.find((r) => r.id == role.id)?.name;
+
+                    if (roleName) {
+                        return `@${roleName}`;
+                    }
+
+                    console.warn(`Role ${role.id} not found in guild roles. Roles: ${store.getters.getGuildRoles}`);
+
+                    return `@${role.id}`;
+                },
+                everyone: function () {
+                    return `@everyone`;
+                },
+                here: function () {
+                    return `@here`;
+                },
+            },
+            cssModuleNames: {
+                "d-emoji": "emoji",
+            },
+        });
+    }
+    return "";
 }
