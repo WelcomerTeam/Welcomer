@@ -453,6 +453,7 @@ export default {
     let isDataError = ref(false);
     let isCreatePaymentInProgress = ref(false);
     let isMonthlyRecurring = ref(false);
+    let hasFreeTrial = ref(false);
 
     return {
       features,

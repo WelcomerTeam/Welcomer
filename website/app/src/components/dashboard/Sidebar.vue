@@ -96,9 +96,14 @@ const navigation = [
   {
     items: [
       {
-        name: "Welcomer",
-        linkname: "dashboard.guild.welcomer",
-        icon: "fa-user-plus",
+        name: "Borderwall",
+        linkname: "dashboard.guild.borderwall",
+        icon: "fa-door-closed",
+      },
+      {
+        name: "Leaver",
+        linkname: "dashboard.guild.leaver",
+        icon: "fa-user-minus",
       },
       {
         name: "Rules",
@@ -106,24 +111,19 @@ const navigation = [
         icon: "fa-list-ol",
       },
       {
-        name: "Borderwall",
-        linkname: "dashboard.guild.borderwall",
-        icon: "fa-door-closed",
-      },
-      {
-        name: "AutoRoles",
-        linkname: "dashboard.guild.autoroles",
-        icon: "fa-user-check",
-      },
-      {
-        name: "Leaver",
-        linkname: "dashboard.guild.leaver",
-        icon: "fa-user-minus",
+        name: "Welcomer",
+        linkname: "dashboard.guild.welcomer",
+        icon: "fa-user-plus",
       },
     ],
   },
   {
     items: [
+      {
+        name: "AutoRoles",
+        linkname: "dashboard.guild.autoroles",
+        icon: "fa-user-check",
+      },
       {
         name: "FreeRoles",
         linkname: "dashboard.guild.freeroles",
