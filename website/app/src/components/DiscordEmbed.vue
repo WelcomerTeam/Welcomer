@@ -11,14 +11,14 @@
           'username-1A8OIy desaturateUserColors-1gar-1',
         ]" aria-expanded="false" tabindex="0" :style="authorColour ? { color: `#${rgbIntToRGB(authorColour)}` } : {}
           ">
-            {{ author }}</span><span v-if="isBot"
+            {{ formatText(author) }}</span><span v-if="isBot"
             class="botTagCozy-1fFsZk botTag-1un5a6 botTagRegular-2HEhHi botTag-2WPJ74 rem-2m9HGf"><svg
               aria-label="Verified Bot" class="botTagVerified-1klIIt" aria-hidden="false" width="16" height="16"
               viewBox="0 0 16 15.2">
               <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="currentColor"></path>
             </svg><span class="botText-1526X_">BOT</span></span></span><span
           class="timestamp-3ZCmNB timestampInline-yHQ6fX" v-if="showTimestamp"><time :aria-label="timestamp"
-            :datetime="now"><i class="separator-2nZzUB" aria-hidden="true"> — </i>{{ timestamp }}</time></span>
+            :datetime="now"><i class="separator-2nZzUB" aria-hidden="true"> — </i>{{ formatText(timestamp) }}</time></span>
       </h2>
       <div :class="[
         $props.isDark ? 'text-gray-50' : 'text-secondary dark:text-gray-50',
@@ -34,11 +34,11 @@
         ]">
           <div class="embedAuthor-3l5luH embedMargin-UO5XwE" v-if="embed?.author">
             <img aria-hidden="true" alt="Embed author icon" class="embedAuthorIcon--1zR3L"
-              :src="embed?.author?.icon_url" v-if="embed?.author?.icon_url" /><a v-if="embed?.author?.url"
+              :src="formatText(embed?.author?.icon_url)" v-if="embed?.author?.icon_url" /><a v-if="embed?.author?.url"
               class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB embedAuthorNameLink-1gVryT embedLink-1G1K1D embedAuthorName-3mnTWj"
-              tabindex="0" href="#" rel="noreferrer noopener">{{ embed?.author?.name }}</a>
+              tabindex="0" href="#" rel="noreferrer noopener">{{ formatText(embed?.author?.name) }}</a>
             <span v-else class="embedAuthorName-3mnTWj">
-              {{ embed?.author?.name }}
+              {{ formatText(embed?.author?.name) }}
             </span>
           </div>
           <div class="embedTitle-3OXDkz embedMargin-UO5XwE" v-if="embed?.title">
@@ -62,16 +62,15 @@
           </div>
           <div class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY clickable-3Ya1ho embedWrapper-lXpS3L embedMedia-1guQoW embedImage-2W1cML"
             tabindex="0" href="#" rel="noreferrer noopener" v-if="embed?.image?.url"><img
-              aria-hidden="true" alt="Embed image" :src="embed?.image?.url" /></div>
+              aria-hidden="true" alt="Embed image" :src="formatText(embed?.image?.url)" /></div>
           <div class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY clickable-3Ya1ho embedThumbnail-2Y84-K"
             tabindex="0" href="#" rel="noreferrer noopener" style="width: 80px; height: 80px"
-            v-if="embed?.thumbnail?.url"><img aria-hidden="true" alt="Embed thumbnail" :src="embed?.thumbnail?.url"
+            v-if="embed?.thumbnail?.url"><img aria-hidden="true" alt="Embed thumbnail" :src="formatText(embed?.thumbnail?.url)"
               style="width: 80px; height: 80px" /></div>
           <div class="embedFooter-3yVop- embedMargin-UO5XwE">
-            <img class="embedFooterIcon-3klTIQ" :src="embed?.footer?.icon_url" v-if="embed?.footer?.icon_url" />
-            <span class="embedFooterText-28V_Wb">{{ embed?.footer?.text
-              }}<span class="embedFooterSeparator-3klTIQ" v-if="embed?.footer?.text && showTimestamp">•</span><span
-                v-if="showTimestamp">{{ timestamp }}</span></span>
+            <img class="embedFooterIcon-3klTIQ" :src="formatText(embed?.footer?.icon_url)" v-if="embed?.footer?.icon_url" />
+            <span class="embedFooterText-28V_Wb">{{ formatText(embed?.footer?.text) }}<span class="embedFooterSeparator-3klTIQ" v-if="embed?.footer?.text && showTimestamp">•</span><span
+                v-if="showTimestamp">{{ formatText(timestamp) }}</span></span>
           </div>
         </div>
       </div>
@@ -1070,7 +1069,7 @@
 </style>
 
 <script>
-import { marked } from "@/utilities";
+import { marked, formatText } from "@/utilities";
 
 export default {
   props: {
@@ -1109,6 +1108,10 @@ export default {
     },
   },
   methods: {
+    formatText(text) {
+      return formatText(text);
+    },
+
     marked(text, embed) {
         return marked(text, embed);
     },
