@@ -84,9 +84,58 @@ export function getRolePermissionListAsString(permissions) {
     return roleNames.join(", ");
 }
 
+export function ordinal(number) {
+    console.log(number);
+    const suffixes = ["th", "st", "nd", "rd"];
+
+    return number.toString() + suffixes[(number % 100 >= 11 && number % 100 <= 13) ? 0 : (number % 10 < 4 ? number % 10 : 0)];
+}
+
+export function formatText(text) {
+    if (!text || !text.includes("{{")) {
+        return text;
+    }
+    
+    const rules = {
+        "{{User.ID}}": store.getters.getCurrentUser?.id,
+        "{{User.Name}}": store.getters.getCurrentUser?.global_name,
+        "{{User.Username}}": store.getters.getCurrentUser?.username,
+        "{{User.Discriminator}}": store.getters.getCurrentUser?.discriminator,
+        "{{User.GlobalName}}": store.getters.getCurrentUser?.global_name,
+        "{{User.Mention}}": `<@${store.getters.getCurrentUser?.id}>`,
+        "{{User.Avatar}}": store.getters.getCurrentUser?.avatar
+            ? `https://cdn.discordapp.com/avatars/${store.getters.getCurrentUser?.id}/${store.getters.getCurrentUser?.avatar}.png`
+            : `https://cdn.discordapp.com/embed/avatars/${(store.getters.getCurrentUser?.id >> 22) % 6}.png`,
+        "{{User.Bot}}": "False",
+        "{{User.Pending}}": "False",
+        "{{Guild.ID}}": store.getters.getCurrentSelectedGuild?.id,
+        "{{Guild.Name}}": store.getters.getCurrentSelectedGuild?.name,
+        "{{Guild.Icon}}": `https://cdn.discordapp.com/icons/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.icon}.png`,
+        "{{Guild.Splash}}": `https://cdn.discordapp.com/splashes/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.splash}.png`,
+        "{{Guild.Members}}": store.getters.getCurrentSelectedGuild?.member_count,
+        "{{Ordinal(Guild.Members)}}": ordinal(store.getters.getCurrentSelectedGuild?.member_count),
+        "{{Guild.Banner}}": `https://cdn.discordapp.com/banners/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.banner}.png`,
+        "{{Invite.Code}}": "Unknown",
+        "{{Invite.Uses}}": "0",
+        "{{Invite.Inviter}}": "Unknown",
+        "{{Invite.ChannelID}}": "0",
+        "{{Invite.CreatedAt}}": "0",
+        "{{Invite.ExpiresAt}}": "0",
+        "{{Invite.MaxAge}}": "0",
+        "{{Invite.MaxUses}}": "0",
+        "{{Invite.Temporary}}": "False",
+    };
+
+    for (const [key, value] of Object.entries(rules)) {
+        text = text.replace(key, value);
+    }
+
+    return text;
+}
+
 export function marked(input, embed) {
     if (input) {
-        return toHTML(input, {
+        return toHTML(formatText(input), {
             embed: embed,
             discordCallback: {
                 user: function (user) {
