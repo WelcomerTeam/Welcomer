@@ -46,7 +46,7 @@
                       <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400 absolute -left-6 group-hover:visible invisible" aria-hidden="true" />
                     </code>
                     </td>
-                    <td class="px-3 py-4 text-sm" v-html="marked(value.description, true)"></td>
+                    <td class="px-3 py-4 text-sm" v-html="marked(value.description, true, true)"></td>
                     <td class="px-3 py-4 text-sm break-all" v-html="marked(value.example, true)"></td>
                   </tr>
                 </template>
@@ -173,8 +173,8 @@ export default {
     };
   },
   methods: {
-    marked(text, embed) {
-      return marked(text, embed);
+    marked(text, embed, skipFormatting) {
+      return marked(text, embed, skipFormatting);
     },
 
     copyTag(formattingTag) {

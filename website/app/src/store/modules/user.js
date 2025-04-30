@@ -31,6 +31,10 @@ const getters = {
   getGuilds: (state) => {
     return state.guilds;
   },
+
+  getGuildById: (state) => (guildID) => {
+    return state.guilds.find((guild) => guild.id === guildID);
+  },
 };
 
 // actions

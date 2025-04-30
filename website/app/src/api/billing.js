@@ -28,11 +28,11 @@ export default {
     );
   },
 
-  createPayment(sku, currency, callback, errorCallback) {
+  createPayment(sku, currency, guild_id, callback, errorCallback) {
     doRequest(
       "POST",
       "/api/billing/payments",
-      { sku: sku, currency: currency },
+      { sku: sku, currency: currency, guild_id: guild_id },
       null,
       (response) => {
         if (response.status === 401) {

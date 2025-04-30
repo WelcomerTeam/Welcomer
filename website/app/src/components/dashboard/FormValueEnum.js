@@ -12,6 +12,7 @@ const FormTypeNumber = 9;
 const FormTypeDropdown = 10;
 const FormTypeEmbed = 11;
 const FormTypeBackground = 12;
+const FormTypeGuildList = 13;
 
 export {
   FormTypeBlank,
@@ -28,4 +29,5 @@ export {
   FormTypeDropdown,
   FormTypeEmbed,
   FormTypeBackground,
+  FormTypeGuildList,
 };

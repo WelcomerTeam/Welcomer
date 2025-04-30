@@ -3,7 +3,7 @@
     'sm:grid sm:grid-cols-3 sm:gap-4 dark:text-gray-50 border-gray-300 dark:border-secondary-light py-4 sm:py-6 items-start',
     $props.hideBorder ? '' : 'border-b',
   ]">
-    <label class="block font-medium text-gray-700 dark:text-gray-50" :for="componentId">
+    <label class="block font-medium text-gray-700 dark:text-gray-50" :for="componentId" v-if="!$props.inlineFormValue">
       {{ title }}
       <div v-if="$props.inlineSlot">
         <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0">
@@ -11,7 +11,7 @@
         </div>
       </div>
     </label>
-    <div class="mt-1 sm:mt-0 sm:col-span-2">
+    <div :class="['mt-1 sm:mt-0', $props.inlineFormValue ? 'sm:col-span-3' : 'sm:col-span-2']">
       <div v-if="type == FormTypeToggle">
         <Switch :id="componentId" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled" :class="[
@@ -579,6 +579,100 @@
         </div>
       </div>
 
+      <div v-else-if="type == FormTypeGuildList">
+        <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
+          :disabled="$props.disabled">
+          <div class="relative">
+            <ListboxButton :disabled="$props.disabled" :class="[
+              $props.validation?.$invalid
+                ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
+                : '',
+              $props.disabled
+                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
+                : 'bg-white dark:bg-secondary-dark',
+              'relative w-full py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
+            ]">
+              <div v-if="$store.getters.isLoadingGuilds"
+                class="block h-6 sm:h-5 animate-pulse bg-gray-200 w-48 rounded-md"></div>
+              <span v-else class="block truncate">{{
+                modelValue == null
+                ? "No guild selected"
+                : $store.getters.getGuildById(modelValue)?.name ||
+                `Unknown guild ${modelValue}`
+              }}</span>
+              <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
+              </span>
+            </ListboxButton>
+
+            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+              leave-to-class="opacity-0">
+              <ListboxOptions
+                class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                <div v-if="$store.getters.isLoadingGuilds" class="flex py-5 w-full justify-center">
+                  <LoadingIcon />
+                </div>
+                <div v-else>
+                  <ListboxOption as="template" v-slot="{ active, selected }" v-if="nullable" :value="null">
+                    <li :class="[
+                      active
+                        ? 'text-white bg-primary'
+                        : 'text-gray-900 dark:text-gray-50',
+                      'cursor-default select-none relative py-2 pl-3 pr-9',
+                    ]">
+                      <span :class="[
+                        selected ? 'font-semibold' : 'font-normal',
+                        'block truncate',
+                      ]">
+                        Unselect
+                      </span>
+
+                      <span v-if="selected" :class="[
+                        active ? 'text-white' : 'text-primary',
+                        'absolute inset-y-0 right-0 flex items-center pr-4',
+                      ]">
+                        <CheckIcon class="w-5 h-5" aria-hidden="true" />
+                      </span>
+                    </li>
+                  </ListboxOption>
+                  <ListboxOption as="template" v-for="guild in $store.getters.getGuilds" :key="guild.id"
+                    :value="guild.id" v-slot="{ active, selected }" :disabled="!guild.has_welcomer">
+                    <li :class="[
+                      guild.has_welcomer
+                        ? ''
+                        : 'bg-gray-200 dark:bg-secondary-light',
+                      active
+                        ? 'text-white bg-primary'
+                        : 'text-gray-900 dark:text-gray-50',
+                      'cursor-default select-none relative py-2 pl-3 pr-9',
+                    ]">
+                      <span :class="[
+                        selected ? 'font-semibold' : 'font-normal',
+                        'block truncate',
+                      ]">
+                        <img :alt="`Guild ${guild.name}`" v-lazy="`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=32`"
+                          class="flex-shrink-0 inline w-4 h-4 mr-1 rounded-full object-contain" v-if="guild.icon != ''" />
+                        {{ guild.name }}
+                      </span>
+
+                      <span v-if="selected" :class="[
+                        active ? 'text-white' : 'text-primary',
+                        'absolute inset-y-0 right-0 flex items-center pr-4',
+                      ]">
+                        <CheckIcon class="w-5 h-5" aria-hidden="true" />
+                      </span>
+                    </li>
+                  </ListboxOption>
+                </div>
+              </ListboxOptions>
+            </transition>
+          </div>
+        </Listbox>
+        <div v-if="$props.validation?.$invalid" class="errors">
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+        </div>
+      </div>
+
       <div v-else-if="type == FormTypeColour">
         <Listbox :id="componentId" as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled">
@@ -816,6 +910,7 @@ import {
   FormTypeDropdown,
   FormTypeEmbed,
   FormTypeBackground,
+  FormTypeGuildList,
 } from "./FormValueEnum";
 import EmbedBuilder from "./EmbedBuilder.vue";
 import BackgroundSelector from "./BackgroundSelector.vue";
@@ -868,6 +963,7 @@ export default {
           FormTypeDropdown,
           FormTypeEmbed,
           FormTypeBackground,
+          FormTypeGuildList,
         ].includes(value);
       },
     },
@@ -906,6 +1002,10 @@ export default {
     },
     files: {
       type: Object,
+      required: false,
+    },
+    inlineFormValue: {
+      type: Boolean,
       required: false,
     },
     inlineSlot: {
@@ -957,6 +1057,7 @@ export default {
       FormTypeDropdown,
       FormTypeEmbed,
       FormTypeBackground,
+      FormTypeGuildList,
 
       idRegex,
 
@@ -979,6 +1080,8 @@ export default {
         case FormTypeMemberList:
           break;
         case FormTypeEmojiList:
+          break;
+        case FormTypeGuildList:
           break;
       }
     },

@@ -211,7 +211,7 @@
                       this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
                   </p>
 
-                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring) || this.durationSelected == durationPatreon"
+                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial) || this.durationSelected == durationPatreon"
                     class="text-sm font-medium leading-6"> 7 days free </p>
                   <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">
                     Billed as {{ formatCurrency(this.currency,
@@ -219,10 +219,8 @@
                   </p>
 
 
-                  <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())"
-                    :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">
-                    <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />{{ durationSelected == durationPatreon
-                      ? 'Become a Patron' : 'Get Started' }}</button>
+                  <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())" :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">
+                    {{ durationSelected == durationPatreon ? 'Become a Patron' : 'Get Started' }}</button>
                 </div>
               </div>
             </div>
@@ -262,7 +260,6 @@
                   </div>
                   <button type="button" @click.prevent="selectSKU(skuCustomBackgrounds)"
                     class="flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-white border border-transparent rounded-md cursor-pointer bg-secondary-light hover:bg-secondary-dark w-full">
-                    <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />
                     Get Started
                   </button>
                 </div>
@@ -308,6 +305,47 @@
             </div>
           </div>
         </div>
+
+        <TransitionRoot as="template" :show="showGuildSelector">
+          <Dialog class="relative z-10" :open="showGuildSelector">
+            <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
+              <div class="fixed inset-0 bg-black/50 transition-opacity" />
+            </TransitionChild>
+
+            <div class="fixed inset-0 z-10 w-screen overflow-y-visible">
+              <div class="flex min-h-full justify-center p-4 text-center items-center">
+                <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                  <DialogPanel class="bg-white text-secondary dark:bg-secondary dark:text-gray-50 relative transform overflow-y-visible rounded-md text-left shadow-xl transition-all my-8 w-full max-w-[512px]">
+                    <div class="flex gap-4 align-top p-6 dark:bg-secondary-dark border-b dark:border-secondary-light bg-gray-100 border-gray-200 shadow-inner rounded-tl-md rounded-tr-md">
+                        <div class="flex-1">Server Selection</div>
+                        <button @click="showGuildSelector = false">
+                            <font-awesome-icon icon="times" />
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                      <p>Choose a server for this subscription. You can only select servers that Welcomer is in.</p>
+
+                      <div class="z-20">
+                        <form-value :type="FormTypeGuildList" v-model="selectedGuildID" :inlineFormValue="true"></form-value>
+                      </div>
+
+                      <div class="flex flex-col-reverse justify-start gap-2 sm:flex-row-reverse mt-4">
+                        <button type="button" @click="createPayment()" :disabled="!selectedGuildID" class="cta-button bg-primary hover:bg-primary-dark disabled:opacity-50">
+                          <loading-icon class="mr-3" v-if="isCreatePaymentInProgress" />
+                          Confirm
+                        </button>
+                        <button type="button" @click="selectedGuildID = null; createPayment()" class="focus:ring-primary focus:border-primary focus:outline-none border border-transparent font-semibold inline-flex items-center justify-center px-4 py-2 rounded-md shadow-sm text-sm text-black hover:bg-gray-200 dark:text-gray-50 dark:hover:bg-secondary-dark">
+                          Skip
+                        </button>
+                      </div>
+                    </div>
+                  </DialogPanel>
+                </TransitionChild>
+              </div>
+            </div>
+          </Dialog>
+        </TransitionRoot>
       </div>
     </main>
 
@@ -331,33 +369,42 @@
 <script>
 import { ref } from "vue";
 
+import {
+  FormTypeGuildList,
+} from "@/components/dashboard/FormValueEnum";
+
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import Toast from "@/components/dashboard/Toast.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import { toHTML } from "@/components/discord-markdown";
 
 import billingAPI from "@/api/billing";
 
 import { getErrorToast } from "@/utilities";
 
 import {
+  Dialog,
+  DialogPanel,
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-  RadioGroup,
-  RadioGroupDescription,
-  RadioGroupLabel,
-  RadioGroupOption,
   Menu,
   MenuButton,
   MenuItem,
   MenuItems,
+  RadioGroup,
+  RadioGroupDescription,
+  RadioGroupLabel,
+  RadioGroupOption,
+  TransitionChild,
+  TransitionRoot,
 } from "@headlessui/vue";
 
 import { CheckIcon } from "@heroicons/vue/solid";
 import { ChevronDownIcon } from "@heroicons/vue/outline";
+
+import store from "@/store/index";
 
 const features = [
   {
@@ -441,9 +488,16 @@ export default {
     RadioGroupDescription,
     RadioGroupLabel,
     RadioGroupOption,
+    Dialog,
+    DialogPanel,
+    TransitionChild,
+    TransitionRoot,
     Toast,
+    FormValue,
   },
   setup() {
+    store.dispatch("fetchGuilds");
+
     let durationSelected = ref(durationMonthly);
     let skus = ref([]);
     let currency = ref("USD");
@@ -455,7 +509,13 @@ export default {
     let isMonthlyRecurring = ref(false);
     let hasFreeTrial = ref(false);
 
+    let selectedGuildID = ref(null);
+    let selectedSKU = ref(null);
+    let showGuildSelector = ref(false);
+
     return {
+      FormTypeGuildList,
+
       features,
       checklist,
       faqs,
@@ -470,6 +530,7 @@ export default {
 
       isCreatePaymentInProgress,
       isMonthlyRecurring,
+      hasFreeTrial,
 
       durationMonthly,
       durationBiAnnually,
@@ -479,6 +540,10 @@ export default {
       skuWelcomerPro,
       skuWelcomerProBiAnnual,
       skuWelcomerProAnnual,
+
+      selectedGuildID,
+      selectedSKU,
+      showGuildSelector,
     };
   },
 
@@ -588,9 +653,16 @@ export default {
         );
       }
 
+      this.showGuildSelector = true;
+      this.selectedSKU = skuName;
+    },
+
+    createPayment() {
+      const sku = this.getSKU(this.selectedSKU);
+
       this.isCreatePaymentInProgress = true;
 
-      billingAPI.createPayment(sku.id, this.currency, (response) => {
+      billingAPI.createPayment(sku.id, this.currency, this.selectedGuildID ? this.selectedGuildID.toString() : null, (response) => {
         this.isCreatePaymentInProgress = false;
         window.location.href = response.url;
       }, (error) => {
