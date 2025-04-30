@@ -69,6 +69,37 @@ func CreateMembershipForUser(ctx context.Context, userID discord.Snowflake, tran
 
 	err = NotifyMembershipCreated(ctx, session, *membership)
 
+	if guildIDInt != 0 {
+		var userMembership *database.GetUserMembershipsByUserIDRow
+
+		userMemberships, err := Queries.GetUserMembershipsByUserID(ctx, int64(userID))
+		if err != nil {
+			Logger.Error().Err(err).
+				Int64("user_id", int64(userID)).
+				Str("membership_uuid", membership.MembershipUuid.String()).
+				Msg("Failed to get user memberships")
+
+			return err
+		}
+
+		for _, m := range userMemberships {
+			if m.MembershipUuid == membership.MembershipUuid {
+				userMembership = m
+
+				break
+			}
+		}
+
+		if userMembership != nil {
+			_, err = AddMembershipToServer(ctx, *userMembership, discord.Snowflake(guildIDInt))
+			if err != nil {
+				Logger.Error().Err(err).
+					Str("membership_uuid", membership.MembershipUuid.String()).
+					Msg("Failed to add membership to server")
+			}
+		}
+	}
+
 	return err
 }
 
