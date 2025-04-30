@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
@@ -111,6 +112,7 @@ func getSKUs(ctx *gin.Context) {
 type CreatePaymentRequest struct {
 	SKU      welcomer.SKUName  `json:"sku"`
 	Currency welcomer.Currency `json:"currency"`
+	GuildID  discord.Snowflake `json:"guild_id"`
 }
 
 type CreatePaymentResponse struct {
@@ -139,8 +141,8 @@ func createPayment(ctx *gin.Context) {
 
 		skus := getSKUPricing()
 
-		sku, ok := skus[request.SKU]
-		if !ok {
+		sku, skuExists := skus[request.SKU]
+		if !skuExists {
 			welcomer.Logger.Warn().Str("sku", string(request.SKU)).Msg("Invalid SKU")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInvalidSKU, nil))
@@ -167,8 +169,8 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		// Check if the currency is available for this SKU.
-		skuCost, ok := sku.Costs[request.Currency]
-		if !ok {
+		skuCost, costExists := sku.Costs[request.Currency]
+		if !costExists {
 			welcomer.Logger.Warn().Str("currency", string(request.Currency)).Msg("Invalid currency")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrCurrencyNotAvailableForSKU, nil))
@@ -193,6 +195,12 @@ func createPayment(ctx *gin.Context) {
 			Value:    skuCost,
 		}
 
+		var queryParams string
+
+		if request.GuildID != 0 {
+			queryParams = "?guild_id=" + welcomer.Itoa(int64(request.GuildID))
+		}
+
 		applicationContext := &paypal.ApplicationContext{
 			BrandName:          "Welcomer",
 			ShippingPreference: paypal.ShippingPreferenceNoShipping,
@@ -202,7 +210,7 @@ func createPayment(ctx *gin.Context) {
 				StandardEntryClassCode: paypal.StandardEntryClassCodeWeb,
 			},
 			LandingPage: "NO_PREFERENCE",
-			ReturnURL:   "https://" + backend.Options.Domain + "/api/billing/callback",
+			ReturnURL:   "https://" + backend.Options.Domain + "/api/billing/callback" + queryParams,
 			CancelURL:   "https://" + backend.Options.Domain + "/premium#cancelled",
 		}
 
@@ -210,7 +218,7 @@ func createPayment(ctx *gin.Context) {
 			subscriptionID, ok := sku.PaypalSubscriptionID[request.Currency]
 			if ok && subscriptionID != "" {
 				applicationContext.UserAction = paypal.UserActionSubscribeNow
-				applicationContext.ReturnURL = "https://" + backend.Options.Domain + "/api/billing/subscription_callback"
+				applicationContext.ReturnURL = "https://" + backend.Options.Domain + "/api/billing/subscription_callback" + queryParams
 
 				createPaymentSubscription(ctx, sku, applicationContext, user, money, subscriptionID)
 
@@ -439,6 +447,7 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 		err := welcomer.Pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			// Read "subscription_id" from the query string.
 			subscriptionID := ctx.Query("subscription_id")
+			guildID := ctx.Query("guild_id")
 
 			if subscriptionID == "" {
 				welcomer.Logger.Warn().Msg("Missing subscription_id")
@@ -563,6 +572,13 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			startedAt := time.Now()
 			expiresAt := startedAt.AddDate(0, 0, 7)
 
+			var guildIDSnowflake discord.Snowflake
+
+			if guildID != "" {
+				guildIDInt, _ := welcomer.Atoi(guildID)
+				guildIDSnowflake = discord.Snowflake(guildIDInt)
+			}
+
 			// Create a temporary membership until we receive
 			// a payment confirmation from paypal.
 			err = welcomer.CreateMembershipForUser(
@@ -571,7 +587,7 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 				userTransaction.TransactionUuid,
 				sku.MembershipType,
 				expiresAt,
-				nil,
+				welcomer.If(guildIDSnowflake != 0, &guildIDSnowflake, nil),
 			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create new membership")
@@ -601,6 +617,7 @@ func paymentCallback(ctx *gin.Context) {
 			// Read "token" and "PayerID" from the query string.
 			token := ctx.Query("token")
 			payerID := ctx.Query("PayerID")
+			guildID := ctx.Query("guild_id")
 
 			if token == "" {
 				welcomer.Logger.Warn().Str("PayerID", payerID).Msg("Missing token")
@@ -731,6 +748,15 @@ func paymentCallback(ctx *gin.Context) {
 			startedAt := time.Time{}
 			expiresAt := startedAt.AddDate(0, welcomer.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
 
+			var guildIDSnowflake discord.Snowflake
+
+			println("guildID", guildID)
+
+			if guildID != "" {
+				guildIDInt, _ := welcomer.Atoi(guildID)
+				guildIDSnowflake = discord.Snowflake(guildIDInt)
+			}
+
 			// Create a new membership for the user.
 			err = welcomer.CreateMembershipForUser(
 				ctx,
@@ -738,7 +764,7 @@ func paymentCallback(ctx *gin.Context) {
 				userTransaction.TransactionUuid,
 				sku.MembershipType,
 				expiresAt,
-				nil,
+				welcomer.If(guildIDSnowflake != 0, &guildIDSnowflake, nil),
 			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create new membership")

@@ -1,11 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router";
 
 import Home from "@/pages/Home.vue";
-import Premium from "@/pages/Premium.vue";
-import Invite from "@/pages/Invite.vue";
 import Dashboard from "@/pages/Dashboard.vue";
-import Support from "@/pages/Support.vue";
-import Phishing from "@/pages/Phishing.vue";
 
 const routes = [
   {
@@ -16,22 +12,22 @@ const routes = [
   {
     path: "/premium",
     name: "premium",
-    component: Premium,
+    component: () => import("@/pages/Premium.vue"),
   },
   {
     path: "/invite",
     name: "invite",
-    component: Invite,
+    component: () => import("@/pages/Invite.vue"),
   },
   {
     path: "/support",
     name: "support",
-    component: Support,
+    component: () => import("@/pages/Support.vue"),
   },
   {
     path: "/phishing",
     name: "phishing",
-    component: Phishing,
+    component: () => import("@/pages/Phishing.vue"),
   },
   {
     path: "/backgrounds",

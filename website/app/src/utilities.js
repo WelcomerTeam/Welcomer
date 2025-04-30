@@ -133,7 +133,11 @@ export function formatText(text) {
     return text;
 }
 
-export function marked(input, embed) {
+export function marked(input, embed, skipFormatting) {
+    if (!skipFormatting) {
+        input = formatText(input);
+    }
+
     if (input) {
         return toHTML(formatText(input), {
             embed: embed,

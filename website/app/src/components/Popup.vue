@@ -32,7 +32,6 @@
 <script>
 import {
   Dialog,
-  DialogBackdrop,
   DialogPanel,
   TransitionChild,
   TransitionRoot,
@@ -41,7 +40,6 @@ import {
 export default {
   components: {
     Dialog,
-    DialogBackdrop,
     DialogPanel,
     TransitionChild,
     TransitionRoot,
