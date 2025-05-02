@@ -78,3 +78,63 @@ func (q *Queries) GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.
 	)
 	return &i, err
 }
+
+const GetScienceGuildJoinLeaveEventForUser = `-- name: GetScienceGuildJoinLeaveEventForUser :one
+SELECT
+    guild_event_uuid, science_guild_events.guild_id, user_id, science_guild_events.created_at, event_type, data, invite_code, guild_invites.guild_id, created_by, guild_invites.created_at, uses
+FROM
+    science_guild_events
+    LEFT JOIN guild_invites ON guild_invites.invite_code = science_guild_events.data ->> 'invite_code'
+WHERE
+    science_guild_events.event_type IN ($1, $2)
+    AND science_guild_events.guild_id = $3
+    AND science_guild_events.user_id = $4
+ORDER BY
+    science_guild_events.created_at DESC
+LIMIT 1
+`
+
+type GetScienceGuildJoinLeaveEventForUserParams struct {
+	EventType   int32         `json:"event_type"`
+	EventType_2 int32         `json:"event_type_2"`
+	GuildID     int64         `json:"guild_id"`
+	UserID      sql.NullInt64 `json:"user_id"`
+}
+
+type GetScienceGuildJoinLeaveEventForUserRow struct {
+	GuildEventUuid uuid.UUID      `json:"guild_event_uuid"`
+	GuildID        int64          `json:"guild_id"`
+	UserID         sql.NullInt64  `json:"user_id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	EventType      int32          `json:"event_type"`
+	Data           pgtype.JSON    `json:"data"`
+	InviteCode     sql.NullString `json:"invite_code"`
+	GuildID_2      sql.NullInt64  `json:"guild_id_2"`
+	CreatedBy      sql.NullInt64  `json:"created_by"`
+	CreatedAt_2    sql.NullTime   `json:"created_at_2"`
+	Uses           sql.NullInt64  `json:"uses"`
+}
+
+func (q *Queries) GetScienceGuildJoinLeaveEventForUser(ctx context.Context, arg GetScienceGuildJoinLeaveEventForUserParams) (*GetScienceGuildJoinLeaveEventForUserRow, error) {
+	row := q.db.QueryRow(ctx, GetScienceGuildJoinLeaveEventForUser,
+		arg.EventType,
+		arg.EventType_2,
+		arg.GuildID,
+		arg.UserID,
+	)
+	var i GetScienceGuildJoinLeaveEventForUserRow
+	err := row.Scan(
+		&i.GuildEventUuid,
+		&i.GuildID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.EventType,
+		&i.Data,
+		&i.InviteCode,
+		&i.GuildID_2,
+		&i.CreatedBy,
+		&i.CreatedAt_2,
+		&i.Uses,
+	)
+	return &i, err
+}

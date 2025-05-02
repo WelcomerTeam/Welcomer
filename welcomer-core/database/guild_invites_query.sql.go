@@ -104,6 +104,34 @@ func (q *Queries) DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvites
 	return result.RowsAffected(), nil
 }
 
+const GetGuildInvite = `-- name: GetGuildInvite :one
+SELECT
+    invite_code, guild_id, created_by, created_at, uses
+FROM
+    guild_invites
+WHERE
+    invite_code = $1
+    AND guild_id = $2
+`
+
+type GetGuildInviteParams struct {
+	InviteCode string `json:"invite_code"`
+	GuildID    int64  `json:"guild_id"`
+}
+
+func (q *Queries) GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error) {
+	row := q.db.QueryRow(ctx, GetGuildInvite, arg.InviteCode, arg.GuildID)
+	var i GuildInvites
+	err := row.Scan(
+		&i.InviteCode,
+		&i.GuildID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.Uses,
+	)
+	return &i, err
+}
+
 const GetGuildInvites = `-- name: GetGuildInvites :many
 SELECT
     invite_code, guild_id, created_by, created_at, uses

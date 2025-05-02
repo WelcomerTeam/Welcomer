@@ -17,14 +17,14 @@ type PushGuildScienceHandler struct {
 	sync.RWMutex
 
 	limit  int
-	buffer []database.CreateManyScienceGuildEventsParams
+	Buffer []database.CreateManyScienceGuildEventsParams
 }
 
 func NewPushGuildScienceHandler(limit int) *PushGuildScienceHandler {
 	return &PushGuildScienceHandler{
 		RWMutex: sync.RWMutex{},
 		limit:   limit,
-		buffer:  make([]database.CreateManyScienceGuildEventsParams, 0, limit),
+		Buffer:  make([]database.CreateManyScienceGuildEventsParams, 0, limit),
 	}
 }
 
@@ -73,32 +73,35 @@ func (h *PushGuildScienceHandler) Push(ctx context.Context, guildID, userID disc
 
 func (h *PushGuildScienceHandler) PushRaw(ctx context.Context, event database.CreateManyScienceGuildEventsParams) {
 	h.Lock()
-	h.buffer = append(h.buffer, event)
-	defer h.Unlock()
+	h.Buffer = append(h.Buffer, event)
+	h.Unlock()
 
-	if len(h.buffer) >= h.limit {
-		h.flushWithoutLock(ctx)
+	if len(h.Buffer) >= h.limit {
+		h.Flush(ctx)
 	}
 }
 
 func (h *PushGuildScienceHandler) Flush(ctx context.Context) {
 	h.Lock()
-	defer h.Unlock()
 
-	h.flushWithoutLock(ctx)
-}
+	if len(h.Buffer) == 0 {
+		h.Unlock()
 
-func (h *PushGuildScienceHandler) flushWithoutLock(ctx context.Context) {
-	if len(h.buffer) == 0 {
 		return
 	}
 
-	_, err := Queries.CreateManyScienceGuildEvents(ctx, h.buffer)
+	// Make a copy of the buffer to avoid holding the lock while flushing
+
+	buf := make([]database.CreateManyScienceGuildEventsParams, len(h.Buffer))
+	copy(buf, h.Buffer)
+	h.Buffer = h.Buffer[:0]
+
+	h.Unlock()
+
+	_, err := Queries.CreateManyScienceGuildEvents(ctx, buf)
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to flush guild science events")
 
 		return
 	}
-
-	h.buffer = h.buffer[:0]
 }
