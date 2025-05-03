@@ -118,7 +118,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 		guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(eventCtx)
 		if err == nil {
-			hasInviteVariable := HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs)
+			hasInviteVariable = HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs)
 
 			if hasInviteVariable {
 				usedInvite, err = p.trackInvites(eventCtx, eventCtx.Guild.ID)
