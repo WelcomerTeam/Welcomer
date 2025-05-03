@@ -360,7 +360,7 @@ func ShouldTrackInvites(eventCtx *sandwich.EventContext, event core.CustomEventI
 
 	// Quit if nothing is enabled.
 	if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
-		return false, err
+		return false, nil
 	}
 
 	return HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs), nil
