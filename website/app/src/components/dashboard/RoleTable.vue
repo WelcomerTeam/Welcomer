@@ -187,7 +187,7 @@ export default {
       if (!role.is_assignable) {
         this.$store.dispatch("createPopup", {
           title: 'This role is not assignable',
-          description: 'Welcomer cannot assign users this role as Welcomer\'s highest role is below this role\'s position. Please rearrange your roles in the server settings to move Welcomer\'s role above this role.',
+          description: 'Welcomer cannot assign users this role as it does not have permission to manage roles or Welcomer\'s highest role is below this role\'s position. Please rearrange your roles in the server settings to move Welcomer\'s role above this role.',
           showCloseButton: true,
           hideContinueButton: true,
           hideCancelButton: true,
