@@ -879,7 +879,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			),
 		})
 
-	return nil
+	return err
 }
 
 func tryParseColourAsInt64(str string, defaultValue *color.RGBA) int64 {
