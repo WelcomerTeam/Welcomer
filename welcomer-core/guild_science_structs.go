@@ -5,12 +5,21 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+type GuildScienceUserJoined struct {
+	HasInviteTracking bool   `json:"has_invite_tracking,omitempty"`
+	IsInviteTracked   bool   `json:"is_invite_tracked,omitempty"`
+	InviteCode        string `json:"invite_code,omitempty"`
+	MemberCount       int32  `json:"member_count,omitempty"`
+	IsPending         bool   `json:"is_pending,omitempty"`
+}
+
 type GuildScienceUserWelcomed struct {
-	HasImage          bool `json:"has_image"`
-	HasMessage        bool `json:"has_message"`
-	HasDM             bool `json:"has_dm"`
-	HasInviteTracking bool `json:"has_invite_tracking"`
-	IsInviteTracked   bool `json:"is_invite_tracked"`
+	HasImage          bool   `json:"has_image,omitempty"`
+	HasMessage        bool   `json:"has_message,omitempty"`
+	HasDM             bool   `json:"has_dm,omitempty"`
+	HasInviteTracking bool   `json:"has_invite_tracking,omitempty"`
+	IsInviteTracked   bool   `json:"is_invite_tracked,omitempty"`
+	InviteCode        string `json:"invite_code,omitempty"`
 }
 
 type GuildScienceTimeRoleGiven struct {
@@ -18,13 +27,13 @@ type GuildScienceTimeRoleGiven struct {
 }
 
 type GuildScienceBorderwallChallenge struct {
-	HasMessage bool `json:"has_message"`
-	HasDM      bool `json:"has_dm"`
+	HasMessage bool `json:"has_message,omitempty"`
+	HasDM      bool `json:"has_dm,omitempty"`
 }
 
 type GuildScienceBorderwallCompleted struct {
-	HasMessage bool `json:"has_message"`
-	HasDM      bool `json:"has_dm"`
+	HasMessage bool `json:"has_message,omitempty"`
+	HasDM      bool `json:"has_dm,omitempty"`
 }
 
 type GuildScienceMembershipReceived struct {

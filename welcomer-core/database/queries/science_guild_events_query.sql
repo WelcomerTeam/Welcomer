@@ -16,3 +16,16 @@ FROM
 WHERE
     guild_event_uuid = $1;
 
+-- name: GetScienceGuildJoinLeaveEventForUser :one
+SELECT
+    *
+FROM
+    science_guild_events
+    LEFT JOIN guild_invites ON guild_invites.invite_code = science_guild_events.data ->> 'invite_code'
+WHERE
+    science_guild_events.event_type IN ($1, $2)
+    AND science_guild_events.guild_id = $3
+    AND science_guild_events.user_id = $4
+ORDER BY
+    science_guild_events.created_at DESC
+LIMIT 1;

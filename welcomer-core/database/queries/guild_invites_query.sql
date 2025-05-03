@@ -23,6 +23,15 @@ FROM
 WHERE
     guild_id = $1;
 
+-- name: GetGuildInvite :one
+SELECT
+    *
+FROM
+    guild_invites
+WHERE
+    invite_code = $1
+    AND guild_id = $2;
+
 -- name: DeleteGuildInvites :execrows
 DELETE FROM
     guild_invites

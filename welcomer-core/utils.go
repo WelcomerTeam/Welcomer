@@ -507,6 +507,14 @@ func If[T any](condition bool, trueValue, falseValue T) T {
 	return falseValue
 }
 
+func IfFunc[T any](condition bool, trueFunc, falseFunc func() T) T {
+	if condition {
+		return trueFunc()
+	}
+
+	return falseFunc()
+}
+
 func SliceContains[T comparable](slice []T, value T) bool {
 	for _, v := range slice {
 		if v == value {
