@@ -168,29 +168,11 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	}
 
 	// Query state cache for guild.
-	guilds, err := eventCtx.Sandwich.SandwichClient.FetchGuild(eventCtx, &pb.FetchGuildRequest{
-		GuildIDs: []int64{int64(eventCtx.Guild.ID)},
-	})
+	guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 	if err != nil {
-		return err
-	}
-
-	var guild *discord.Guild
-
-	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
-	if ok {
-		pGuild, err := pb.GRPCToGuild(guildPb)
-		if err != nil {
-			return err
-		}
-
-		guild = &pGuild
-	}
-
-	if guild == nil {
-		welcomer.Logger.Error().
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get guild from state cache")
+			Msg("Failed to fetch guild from state cache")
 
 		return err
 	}
@@ -242,7 +224,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	)
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, *guild, nil, map[string]any{
+	variables := welcomer.GatherVariables(eventCtx, event.Member, guild, nil, map[string]any{
 		"Borderwall": BorderwallVariables{
 			Link: borderwallLink,
 		},
@@ -544,27 +526,11 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	// Query state cache for guild.
-	guilds, err := eventCtx.Sandwich.SandwichClient.FetchGuild(eventCtx, &pb.FetchGuildRequest{
-		GuildIDs: []int64{int64(eventCtx.Guild.ID)},
-	})
+	guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 	if err != nil {
-		return err
-	}
-
-	var guild discord.Guild
-
-	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
-	if ok {
-		grpcGuild, err := pb.GRPCToGuild(guildPb)
-		if err != nil {
-			return err
-		}
-
-		guild = grpcGuild
-	} else {
-		welcomer.Logger.Error().
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get guild from state cache")
+			Msg("Failed to fetch guild from state cache")
 
 		guild = *eventCtx.Guild
 	}

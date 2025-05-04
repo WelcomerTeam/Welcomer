@@ -115,8 +115,14 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 								Inline: true,
 							},
 							{
-								Name:   "Owner",
-								Value:  fmt.Sprintf("<@%s> %s", guild.OwnerID.String(), guild.OwnerID.String()),
+								Name: "Owner",
+								Value: welcomer.IfFunc(
+									guild.OwnerID != nil,
+									func() string {
+										return fmt.Sprintf("<@%s> %s", guild.OwnerID.String(), guild.OwnerID.String())
+									},
+									func() string { return "" },
+								),
 								Inline: true,
 							},
 						},
@@ -223,6 +229,108 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		}
 
 		return nil
+	})
+
+	p.EventHandler.RegisterOnAuditGuildAuditLogEntryCreateEvent(func(eventCtx *sandwich.EventContext, guildID discord.Snowflake, entry discord.AuditLogEntry) error {
+		if entry.ActionType != discord.AuditLogActionBotAdd || *entry.TargetID != eventCtx.Identifier.ID {
+			return nil
+		}
+
+		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to fetch guild from state cache")
+
+			return err
+		}
+
+		user, err := welcomer.FetchUser(eventCtx.Context, *entry.UserID, true)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(guildID)).
+				Int64("user_id", int64(user.ID)).
+				Msg("Failed to fetch user from state cache")
+
+			return err
+		}
+
+		_, err = user.Send(eventCtx.Context, eventCtx.Session, welcomer.GetOnboardingMessage(guild.ID))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(guildID)).
+				Int64("user_id", int64(user.ID)).
+				Msg("Failed to send DM to user")
+		}
+
+		welcomer.PushGuildScience.Push(
+			eventCtx.Context,
+			guild.ID,
+			user.ID,
+			database.ScienceGuildEventTypeGuildUserOnboarded,
+			err == nil,
+		)
+
+		return err
+	})
+
+	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to fetch guild from state cache")
+
+			return err
+		}
+
+		var eligibleChannel *discord.Channel
+
+		if guild.SystemChannelID != nil {
+			eligibleChannel = &discord.Channel{ID: *guild.SystemChannelID}
+		} else {
+			channels, err := welcomer.FetchGuildChannels(eventCtx.Context, eventCtx.Guild.ID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Msg("Failed to fetch channels from state cache")
+
+				return nil
+			}
+
+			for _, channel := range channels {
+				if channel.Type == discord.ChannelTypeGuildText &&
+					welcomer.CompareStrings(channel.Name, "welcome", "general") {
+					eligibleChannel = &channel
+
+					break
+				}
+			}
+		}
+
+		if eligibleChannel == nil {
+			return nil
+		}
+
+		_, err = eligibleChannel.Send(eventCtx.Context, eventCtx.Session, welcomer.GetOnboardingMessage(guild.ID))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("channel_id", int64(eligibleChannel.ID)).
+				Msg("Failed to send onboarding message")
+
+			return nil
+		}
+
+		welcomer.PushGuildScience.Push(
+			eventCtx.Context,
+			guild.ID,
+			0,
+			database.ScienceGuildEventTypeGuildOnboarded,
+			err == nil,
+		)
+
+		return err
 	})
 
 	return nil
