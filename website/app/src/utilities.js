@@ -139,7 +139,7 @@ export function marked(input, embed, skipFormatting) {
     }
 
     if (input) {
-        return toHTML(formatText(input), {
+        return toHTML(input, {
             embed: embed,
             discordCallback: {
                 user: function (user) {

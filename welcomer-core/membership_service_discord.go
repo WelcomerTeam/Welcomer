@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -37,30 +35,11 @@ func returnSnowflakeIfNotNull(i *discord.Snowflake) discord.Snowflake {
 }
 
 func FetchGuildName(ctx context.Context, guildID discord.Snowflake) string {
-	guilds, err := SandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
-		GuildIDs: []int64{int64(guildID)},
-	})
+	guild, err := FetchGuild(ctx, guildID)
 	if err != nil {
-		Logger.Warn().Err(err).
+		Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
-			Msg("Failed to fetch guild")
-
-		return ""
-	}
-
-	var guild discord.Guild
-
-	guildPb, ok := guilds.GetGuilds()[int64(guildID)]
-
-	if !ok {
-		return ""
-	}
-
-	guild, err = pb.GRPCToGuild(guildPb)
-	if err != nil {
-		Logger.Warn().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Msg("Failed to convert guild")
+			Msg("Failed to fetch guild from state cache")
 
 		return ""
 	}

@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -160,30 +159,14 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 }
 
 func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category *discord.Snowflake, member discord.GuildMember) (channel *discord.Channel, err error) {
-	channels, err := eventCtx.Sandwich.SandwichClient.FetchGuildChannels(eventCtx.Context, &pb.FetchGuildChannelsRequest{
-		GuildID: int64(guildID),
-		Query:   "[" + member.User.ID.String() + "]",
-	})
-	if err != nil || channels == nil {
-		welcomer.Logger.Error().Err(err).
-			Str("guild_id", guildID.String()).
-			Str("user_id", member.User.ID.String()).
-			Msg("Failed to fetch guild channels")
-
+	channels, err := welcomer.FetchGuildChannels(eventCtx.Context, guildID)
+	if err != nil {
 		return nil, err
 	}
 
-	for _, guildChannel := range channels.GuildChannels {
-		if category == nil || guildChannel.ParentID == int64(*category) {
-			pChannel, err := pb.GRPCToChannel(guildChannel)
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Str("guild_id", guildID.String()).
-					Int64("channel_id", guildChannel.ID).
-					Msg("Failed to convert channel")
-			}
-
-			return &pChannel, nil
+	for _, guildChannel := range channels {
+		if category == nil || (guildChannel.ParentID != nil && *guildChannel.ParentID == *category) {
+			return &guildChannel, nil
 		}
 	}
 

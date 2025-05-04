@@ -92,25 +92,13 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
 		// Query state cache for guild.
-		guilds, err := eventCtx.Sandwich.SandwichClient.FetchGuild(eventCtx, &pb.FetchGuildRequest{
-			GuildIDs: []int64{int64(eventCtx.Guild.ID)},
-		})
+		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Msg("Failed to fetch guild from state cache")
-		}
 
-		var guild discord.Guild
-
-		guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
-		if ok {
-			guild, err = pb.GRPCToGuild(guildPb)
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Msg("Failed to convert guild from protobuf")
-			}
+			return err
 		}
 
 		var usedInvite *discord.Invite
