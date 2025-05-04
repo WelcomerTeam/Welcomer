@@ -89,7 +89,7 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 			{
 				Description: descriptionBuilder.String(),
 				Color:       EmbedColourInfo,
-				Image: &discord.EmbedImage{
+				Image: &discord.MediaItem{
 					URL: WebsiteURL + "/assets/membership_thank_you.png",
 				},
 			},
@@ -248,19 +248,13 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 	println(membership.GuildID)
 
 	if membership.GuildID != 0 {
-		guildID = membership.GuildID
-
-		guilds, err := SandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
-			GuildIDs: []int64{guildID},
-		})
+		guild, err := FetchGuild(ctx, discord.Snowflake(membership.GuildID))
 		if err != nil {
-			Logger.Warn().Err(err).
-				Int64("user_id", int64(user.ID)).
-				Int64("guild_id", guildID).
-				Msg("Failed to fetch guild")
+			Logger.Error().Err(err).
+				Int64("guild_id", int64(membership.GuildID)).
+				Msg("Failed to fetch guild from state cache")
 		} else {
-			guild := guilds.GetGuilds()[guildID]
-			guildName = guild.GetName()
+			guildName = guild.Name
 		}
 	}
 

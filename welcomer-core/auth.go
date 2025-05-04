@@ -119,21 +119,13 @@ func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandl
 
 func IsInterationAuthorElevated(sub *subway.Subway, interaction discord.Interaction) bool {
 	// Query state cache for guild.
-	guildsResponse, err := sub.SandwichClient.FetchGuild(sub.Context, &protobuf.FetchGuildRequest{
-		GuildIDs: []int64{int64(*interaction.GuildID)},
-	})
+	guild, err := FetchGuild(sub.Context, *interaction.GuildID)
 	if err != nil {
+		Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Msg("Failed to fetch guild from state cache")
+
 		return false
-	}
-
-	var guild discord.Guild
-
-	guildPb, ok := guildsResponse.Guilds[int64(*interaction.GuildID)]
-	if ok {
-		guild, err = protobuf.GRPCToGuild(guildPb)
-		if err != nil {
-			return false
-		}
 	}
 
 	if guild.ID.IsNil() {

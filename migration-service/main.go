@@ -172,20 +172,20 @@ func StringNumberListAsInt64(l []StringNumber) []int64 {
 
 // Embed represents a message embed.
 type Embed struct {
-	Content     string                  `json:"content,omitempty" yaml:"content,omitempty"`
-	Video       *discord.EmbedVideo     `json:"video,omitempty" yaml:"video,omitempty"`
-	Timestamp   *time.Time              `json:"timestamp,omitempty" yaml:"timestamp,omitempty"`
-	Footer      any                     `json:"footer,omitempty" yaml:"footer,omitempty"`
-	Image       *discord.EmbedImage     `json:"image,omitempty" yaml:"image,omitempty"`
-	Thumbnail   *discord.EmbedThumbnail `json:"thumbnail,omitempty" yaml:"thumbnail,omitempty"`
-	Provider    *discord.EmbedProvider  `json:"provider,omitempty" yaml:"provider,omitempty"`
-	Author      *discord.EmbedAuthor    `json:"author,omitempty" yaml:"author,omitempty"`
-	Type        discord.EmbedType       `json:"type,omitempty" yaml:"type,omitempty"`
-	Description string                  `json:"description,omitempty" yaml:"description,omitempty"`
-	URL         string                  `json:"url,omitempty" yaml:"url,omitempty"`
-	Title       string                  `json:"title,omitempty" yaml:"title,omitempty"`
-	Fields      []discord.EmbedField    `json:"fields,omitempty" yaml:"fields,omitempty"`
-	Color       int32                   `json:"color,omitempty" yaml:"color,omitempty"`
+	Content     string                 `json:"content,omitempty" yaml:"content,omitempty"`
+	Video       *discord.EmbedVideo    `json:"video,omitempty" yaml:"video,omitempty"`
+	Timestamp   *time.Time             `json:"timestamp,omitempty" yaml:"timestamp,omitempty"`
+	Footer      any                    `json:"footer,omitempty" yaml:"footer,omitempty"`
+	Image       *discord.MediaItem     `json:"image,omitempty" yaml:"image,omitempty"`
+	Thumbnail   *discord.MediaItem     `json:"thumbnail,omitempty" yaml:"thumbnail,omitempty"`
+	Provider    *discord.EmbedProvider `json:"provider,omitempty" yaml:"provider,omitempty"`
+	Author      *discord.EmbedAuthor   `json:"author,omitempty" yaml:"author,omitempty"`
+	Type        discord.EmbedType      `json:"type,omitempty" yaml:"type,omitempty"`
+	Description string                 `json:"description,omitempty" yaml:"description,omitempty"`
+	URL         string                 `json:"url,omitempty" yaml:"url,omitempty"`
+	Title       string                 `json:"title,omitempty" yaml:"title,omitempty"`
+	Fields      []discord.EmbedField   `json:"fields,omitempty" yaml:"fields,omitempty"`
+	Color       int32                  `json:"color,omitempty" yaml:"color,omitempty"`
 }
 
 type NewEmbed struct {

@@ -45,6 +45,59 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "testinvite",
+		Description: "Relays a BOT_ADD and JOIN event to consumers",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			auditEvent := discord.AuditLogEntry{
+				TargetID:   &interaction.ApplicationID,
+				UserID:     &interaction.Member.User.ID,
+				ActionType: discord.AuditLogActionBotAdd,
+			}
+
+			data, err := json.Marshal(auditEvent)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+				Manager: welcomer.GetManagerNameFromContext(ctx),
+				Type:    discord.DiscordEventGuildAuditLogEntryCreate,
+				Data:    data,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			data, err = json.Marshal(discord.Guild{ID: *interaction.GuildID})
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+				Manager: welcomer.GetManagerNameFromContext(ctx),
+				Type:    discord.DiscordEventGuildJoin,
+				Data:    data,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
+				},
+			}, nil
+		},
+	})
+
+	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "testjoin",
 		Description: "Relays an GUILD_MEMBER_ADD event to consumers",
 

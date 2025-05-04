@@ -27,7 +27,7 @@
                 <h2 class="font-semibold leading-8 tracking-tight">
                   <a :href="'#' + getAnchor(faq.question)">{{ faq.question }}</a>
                 </h2>
-                <span class="mt-3 text-lg section-subtitle max-w-prose mx-auto" v-html="marked(faq.answer, true)"></span>
+                <span class="mt-3 text-lg section-subtitle max-w-prose mx-auto" v-html="marked(faq.answer, true, true)"></span>
               </div>
             </div>
           </div>
@@ -119,8 +119,8 @@ export default {
     };
   },
   methods: {
-    marked(text, embed) {
-        return marked(text, embed);
+    marked(text, embed, skipFormatting) {
+        return marked(text, embed, skipFormatting);
     },
 
     getAnchor(title) {

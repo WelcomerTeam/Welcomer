@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
 	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -146,28 +145,12 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		return nil
 	}
 
-	// Query state cache for guild.
-	guilds, err := eventCtx.Sandwich.SandwichClient.FetchGuild(eventCtx, &pb.FetchGuildRequest{
-		GuildIDs: []int64{int64(eventCtx.Guild.ID)},
-	})
+	guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 	if err != nil {
-		return err
-	}
-
-	var guild discord.Guild
-
-	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
-	if ok {
-		grpcGuild, err := pb.GRPCToGuild(guildPb)
-		if err != nil {
-			return err
-		}
-
-		guild = grpcGuild
-	} else {
-		welcomer.Logger.Error().
+		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get guild from state cache")
+			Int64("user_id", int64(event.User.ID)).
+			Msg("Failed to fetch guild from state cache")
 
 		guild = *eventCtx.Guild
 	}

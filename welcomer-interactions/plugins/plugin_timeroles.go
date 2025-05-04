@@ -304,7 +304,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				embeds = append(embeds, embed)
 
 				if hasTimeRoleRemaining {
-					embeds[len(embeds)-1].SetImage(&discord.EmbedImage{
+					embeds[len(embeds)-1].SetImage(&discord.MediaItem{
 						URL: fmt.Sprintf("https://cdn.welcomer.gg/minecraftxp.png?percent=%d", timeRoleRemainingPercent),
 					})
 				}
