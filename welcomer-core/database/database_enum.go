@@ -316,11 +316,15 @@ const (
 	ScienceGuildEventTypeGuildJoin
 	// ScienceGuildEventTypeGuildLeave is a ScienceGuildEventType of type GuildLeave.
 	ScienceGuildEventTypeGuildLeave
+	// ScienceGuildEventTypeGuildOnboarded is a ScienceGuildEventType of type GuildOnboarded.
+	ScienceGuildEventTypeGuildOnboarded
+	// ScienceGuildEventTypeGuildUserOnboarded is a ScienceGuildEventType of type GuildUserOnboarded.
+	ScienceGuildEventTypeGuildUserOnboarded
 )
 
 var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
 
-const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeave"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboarded"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeUnknown:             _ScienceGuildEventTypeName[0:7],
@@ -335,6 +339,8 @@ var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeMembershipRemoved:   _ScienceGuildEventTypeName[123:140],
 	ScienceGuildEventTypeGuildJoin:           _ScienceGuildEventTypeName[140:149],
 	ScienceGuildEventTypeGuildLeave:          _ScienceGuildEventTypeName[149:159],
+	ScienceGuildEventTypeGuildOnboarded:      _ScienceGuildEventTypeName[159:173],
+	ScienceGuildEventTypeGuildUserOnboarded:  _ScienceGuildEventTypeName[173:191],
 }
 
 // String implements the Stringer interface.
@@ -365,6 +371,8 @@ var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[123:140]: ScienceGuildEventTypeMembershipRemoved,
 	_ScienceGuildEventTypeName[140:149]: ScienceGuildEventTypeGuildJoin,
 	_ScienceGuildEventTypeName[149:159]: ScienceGuildEventTypeGuildLeave,
+	_ScienceGuildEventTypeName[159:173]: ScienceGuildEventTypeGuildOnboarded,
+	_ScienceGuildEventTypeName[173:191]: ScienceGuildEventTypeGuildUserOnboarded,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.
