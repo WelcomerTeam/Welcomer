@@ -23,15 +23,7 @@ func GetOnboardingMessage(guildID discord.Snowflake) discord.MessageParams {
 									"Thank you for adding me to your server! I'm here to help you with onboarding users, improving user engagement, and providing a better experience for your community.\n\n" +
 									"### Getting started?\n\n" +
 									"To get started with using the welcomer module, set a channel to use with `/welcomer setchannel` and then use `/welcomer enable`\n\n" +
-									"I don't just welcome users though! I can do more for your server such as:\n" +
-									"- Automatically assign roles to users when they join\n" +
-									"- Secure your server with a reCAPTCHA prompt using borderwall\n" +
-									"- Allow users to assign their own roles with freeroles\n" +
-									"- Send messages when users leave\n" +
-									"- Provide rules to users when they join\n" +
-									"- Allow users to create temporary channels\n" +
-									"- and automatically assign roles to users after a configured period of time\n" +
-									"Join our support server to learn more about these features, provide feedback and suggest what you want to see next.",
+									"I don't just welcome users though! I can do more for your server, check out our other features [here](https://welcomer.gg/#features).",
 							},
 						},
 						Accessory: &discord.InteractionComponent{
@@ -49,7 +41,7 @@ func GetOnboardingMessage(guildID discord.Snowflake) discord.MessageParams {
 						Components: []discord.InteractionComponent{
 							{
 								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "To get access to more customization options such as with welcome images, check out our dashboard",
+								Content: "To get access to more customization options such as with welcome images, check out your server's dashboard.",
 							},
 						},
 						Accessory: &discord.InteractionComponent{
@@ -67,7 +59,7 @@ func GetOnboardingMessage(guildID discord.Snowflake) discord.MessageParams {
 						Components: []discord.InteractionComponent{
 							{
 								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "For help with using the bot, check out our support server",
+								Content: "For help with using the bot, check out our support server.",
 							},
 						},
 						Accessory: &discord.InteractionComponent{
@@ -103,43 +95,14 @@ func GetOnboardingMessage(guildID discord.Snowflake) discord.MessageParams {
 					{
 						Type:  discord.InteractionComponentTypeButton,
 						Style: discord.InteractionComponentStyleLink,
-						Label: "welcomer.gg",
+						Label: WebsiteURL,
 						URL:   WebsiteURL,
 					},
 					{
 						Type:  discord.InteractionComponentTypeButton,
 						Style: discord.InteractionComponentStyleLink,
-						Label: "Support Server",
-						URL:   WebsiteURL + "/support",
-					},
-					{
-						Type:  discord.InteractionComponentTypeButton,
-						Style: discord.InteractionComponentStyleLink,
-						Label: "FAQs",
-						URL:   WebsiteURL + "/faq",
-					},
-					{
-						Type:  discord.InteractionComponentTypeButton,
-						Style: discord.InteractionComponentStyleLink,
-						Label: "Welcome Backgrounds",
-						URL:   WebsiteURL + "/backgrounds",
-					},
-				},
-			},
-			{
-				Type: discord.InteractionComponentTypeActionRow,
-				Components: []discord.InteractionComponent{
-					{
-						Type:  discord.InteractionComponentTypeButton,
-						Style: discord.InteractionComponentStyleLink,
 						Label: "Vote for Welcomer",
 						URL:   "https://top.gg/bot/330416853971107840/vote",
-					},
-					{
-						Type:  discord.InteractionComponentTypeButton,
-						Style: discord.InteractionComponentStyleLink,
-						Label: "Leave a review",
-						URL:   "https://top.gg/bot/330416853971107840#reviews",
 					},
 					{
 						Type:  discord.InteractionComponentTypeButton,
