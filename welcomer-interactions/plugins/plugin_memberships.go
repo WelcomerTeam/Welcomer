@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -84,7 +84,7 @@ func getUserMembershipsByUserID(ctx context.Context, sub *subway.Subway, userID 
 	// Fetch all guilds in one request.
 	if len(guildIDs) > 0 {
 		guildResponse, err := sub.SandwichClient.FetchGuild(ctx, &pb.FetchGuildRequest{
-			GuildIDs: guildIDs,
+			GuildIds: guildIDs,
 		})
 		if err != nil {
 			welcomer.Logger.Error().Err(err).

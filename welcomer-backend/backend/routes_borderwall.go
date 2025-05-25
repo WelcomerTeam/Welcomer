@@ -10,7 +10,7 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-contrib/sessions"
@@ -77,11 +77,18 @@ func getBorderwall(ctx *gin.Context) {
 				return
 			}
 
-			guild, err := welcomer.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), discord.Snowflake(borderwallRequest.GuildID))
+			guildsPb, err := welcomer.SandwichClient.FetchGuild(ctx, &sandwich_protobuf.FetchGuildRequest{
+				GuildIds: []int64{borderwallRequest.GuildID},
+			})
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
-			} else if !guild.ID.IsNil() {
-				borderwallResponse.GuildName = guild.Name
+				welcomer.Logger.Warn().Err(err).Msg("Failed to fetch guild for guild name")
+			} else {
+				guildPb, ok := guildsPb.GetGuilds()[borderwallRequest.GuildID]
+				if ok {
+					borderwallResponse.GuildName = guildPb.GetName()
+				} else {
+					welcomer.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
+				}
 			}
 		}
 
@@ -198,7 +205,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Broadcast borderwall completion.
-		managers, err := fetchManagersForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
+		managers, err := fetchApplicationsForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
 		if err != nil || len(managers) == 0 {
 			welcomer.Logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
 
@@ -227,10 +234,10 @@ func setBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-			Manager: managers[0],
-			Type:    welcomer.CustomEventInvokeBorderwallCompletion,
-			Data:    data,
+		_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich_protobuf.RelayMessageRequest{
+			Identifier: managers[0],
+			Type:       welcomer.CustomEventInvokeBorderwallCompletion,
+			Data:       data,
 		})
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to relay borderwall completion")

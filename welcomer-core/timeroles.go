@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 )
 
 type GuildSettingsTimeRolesRole struct {

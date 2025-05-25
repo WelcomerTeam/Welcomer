@@ -7,8 +7,7 @@ import (
 	"os"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	protobuf "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
@@ -26,15 +25,15 @@ func init() {
 	}
 }
 
-func CheckChannelGuild(ctx context.Context, c protobuf.SandwichClient, guildID, channelID discord.Snowflake) (bool, error) {
-	channels, err := c.FetchGuildChannels(ctx, &protobuf.FetchGuildChannelsRequest{
-		GuildID: int64(guildID),
+func CheckChannelGuild(ctx context.Context, c sandwich_protobuf.SandwichClient, guildID, channelID discord.Snowflake) (bool, error) {
+	channels, err := c.FetchGuildChannel(ctx, &sandwich_protobuf.FetchGuildChannelRequest{
+		GuildId: int64(guildID),
 	})
 	if err != nil {
 		return false, err
 	}
 
-	for channel := range channels.GuildChannels {
+	for channel := range channels.GetChannels() {
 		if channel == int64(channelID) {
 			return true, nil
 		}
@@ -63,7 +62,7 @@ func IsWelcomerProMembership(membershipType database.MembershipType) bool {
 	return membershipType == database.MembershipTypeLegacyWelcomerPro || membershipType == database.MembershipTypeWelcomerPro
 }
 
-func MemberHasElevation(discordGuild discord.Guild, member discord.GuildMember) bool {
+func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember) bool {
 	if member.User != nil {
 		for _, elevatedUser := range elevatedUsers {
 			if member.User.ID == elevatedUser {
@@ -132,7 +131,7 @@ func IsInterationAuthorElevated(sub *subway.Subway, interaction discord.Interact
 		return false
 	}
 
-	if interaction.Member == nil || !MemberHasElevation(guild, *interaction.Member) {
+	if interaction.Member == nil || !MemberHasElevation(guild, interaction.Member) {
 		return false
 	}
 
@@ -177,25 +176,24 @@ func EnsureGuild(ctx context.Context, guildID discord.Snowflake) error {
 	return nil
 }
 
-func AcquireSession(ctx context.Context, managerName string) (*discord.Session, error) {
+func AcquireSession(ctx context.Context, applicationIdentifier string) (*discord.Session, error) {
 	// If we have a session in the context, use it.
 	session, sessionInContext := GetSessionFromContext(ctx)
 	if sessionInContext {
 		return session, nil
 	}
 
-	configurations, err := GRPCInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
-		Context:        ctx,
-		SandwichClient: SandwichClient,
-	}, managerName)
+	configurations, err := SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
+		ApplicationIdentifier: applicationIdentifier,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	configuration, sessionInContext := configurations.Identifiers[managerName]
+	configuration, sessionInContext := configurations.GetApplications()[applicationIdentifier]
 	if !sessionInContext {
 		return nil, ErrMissingApplicationUser
 	}
 
-	return discord.NewSession("Bot "+configuration.Token, RESTInterface), nil
+	return discord.NewSession("Bot "+configuration.BotToken, RESTInterface), nil
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -66,7 +66,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	}
 
 	// Chunk users
-	_, err = eventCtx.Sandwich.SandwichClient.RequestGuildChunk(eventCtx.Context, &pb.RequestGuildChunkRequest{
+	_, err = welcomer.SandwichClient.RequestGuildChunk(eventCtx.Context, &pb.RequestGuildChunkRequest{
 		GuildId: int64(guildID),
 	})
 	if err != nil {
@@ -75,9 +75,9 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 			Msg("Failed to request guild chunk")
 	}
 
-	guildMembers, err := eventCtx.Sandwich.SandwichClient.FetchGuildMembers(eventCtx.Context, &pb.FetchGuildMembersRequest{
-		GuildID: int64(guildID),
-		UserIDs: welcomer.If(memberID != nil, []int64{int64(*memberID)}, nil),
+	guildMembers, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
+		GuildId: int64(guildID),
+		UserIds: welcomer.If(memberID != nil, []int64{int64(*memberID)}, nil),
 	})
 	if err != nil || guildMembers == nil {
 		welcomer.Logger.Error().Err(err).
@@ -141,12 +141,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		memberPb, ok := guildMembers.GuildMembers[int64(memberID)]
 		if ok {
-			pMember, err := pb.GRPCToGuildMember(memberPb)
-			if err != nil {
-				return err
-			}
-
-			member = &pMember
+			member = pb.PBToGuildMember(memberPb)
 		} else {
 			welcomer.Logger.Warn().
 				Int64("guild_id", int64(guildID)).
@@ -211,7 +206,7 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, gu
 		return guildSettingsTimeRoles, nil, nil
 	}
 
-	assignableTimeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(guildID), int64(eventCtx.Identifier.ID), timeRoles)
+	assignableTimeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, welcomer.SandwichClient, int64(guildID), int64(eventCtx.Identifier.UserId), timeRoles)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).

@@ -66,7 +66,7 @@ func EscapeStringForJSON(value string) string {
 	return strings.ReplaceAll(value, `"`, `\"`)
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member discord.GuildMember, guild discord.Guild, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
+func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild *discord.Guild, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
 	vars = make(map[string]any)
 
 	vars["User"] = StubUser{
@@ -171,7 +171,7 @@ func FormatString(funcs map[string]govaluate.ExpressionFunction, vars map[string
 	return html.UnescapeString(out), nil
 }
 
-func getGuildIcon(guild discord.Guild) string {
+func getGuildIcon(guild *discord.Guild) string {
 	if guild.Icon == "" {
 		return ""
 	}
@@ -183,7 +183,7 @@ func getGuildIcon(guild discord.Guild) string {
 	return discord.EndpointCDN + discord.EndpointGuildIcon(guild.ID.String(), guild.Icon)
 }
 
-func getGuildSplash(guild discord.Guild) string {
+func getGuildSplash(guild *discord.Guild) string {
 	if guild.Splash == "" {
 		return ""
 	}
@@ -191,7 +191,7 @@ func getGuildSplash(guild discord.Guild) string {
 	return discord.EndpointCDN + discord.EndpointGuildSplash(guild.ID.String(), guild.Splash)
 }
 
-func getGuildBanner(guild discord.Guild) string {
+func getGuildBanner(guild *discord.Guild) string {
 	if guild.Banner == "" {
 		return ""
 	}
@@ -223,7 +223,7 @@ func GetUserAvatar(user *discord.User) string {
 	return discord.EndpointCDN + discord.EndpointUserAvatar(user.ID.String(), user.Avatar)
 }
 
-func GetGuildMemberDisplayName(member discord.GuildMember) string {
+func GetGuildMemberDisplayName(member *discord.GuildMember) string {
 	if member.Nick != "" {
 		return member.Nick
 	}

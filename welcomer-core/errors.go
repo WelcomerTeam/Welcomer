@@ -7,6 +7,7 @@ var (
 
 	ErrMissingGuild           = errors.New("missing guild")
 	ErrMissingChannel         = errors.New("missing channel")
+	ErrMissingUser            = errors.New("missing user")
 	ErrMissingApplicationUser = errors.New("missing application user")
 
 	ErrInvalidTempChannel = errors.New("channel is not a temporary channel")

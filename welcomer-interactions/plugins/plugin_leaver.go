@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -134,9 +134,9 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    core.CustomEventInvokeLeaver,
-					Data:    data,
+					Identifier: welcomer.GetManagerNameFromContext(ctx),
+					Type:       core.CustomEventInvokeLeaver,
+					Data:       data,
 				})
 				if err != nil {
 					return nil, err

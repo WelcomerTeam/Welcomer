@@ -279,7 +279,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 				role := subway.MustGetArgument(ctx, "role").MustRole()
 				ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").MustBool()
 
-				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
+				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, &role)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).

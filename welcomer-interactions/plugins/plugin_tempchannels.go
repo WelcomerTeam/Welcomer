@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -109,9 +109,9 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: core.GetManagerNameFromContext(ctx),
-					Type:    core.CustomEventInvokeTempChannels,
-					Data:    data,
+					Identifier: core.GetManagerNameFromContext(ctx),
+					Type:       core.CustomEventInvokeTempChannels,
+					Data:       data,
 				})
 				if err != nil {
 					return nil, err
@@ -146,9 +146,9 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: core.GetManagerNameFromContext(ctx),
-					Type:    core.CustomEventInvokeTempChannelsRemove,
-					Data:    data,
+					Identifier: core.GetManagerNameFromContext(ctx),
+					Type:       core.CustomEventInvokeTempChannelsRemove,
+					Data:       data,
 				})
 				if err != nil {
 					return nil, err
