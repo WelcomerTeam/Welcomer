@@ -13,12 +13,11 @@ import (
 
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-
-	_ "github.com/joho/godotenv/autoload"
 )
 
 func panicHandler(_ *sandwich_daemon.Sandwich, err any) {

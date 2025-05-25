@@ -1,4 +1,4 @@
-module github.com/WelcomerTeam/Welcomer/runtime
+module github.com/WelcomerTeam/Welcomer/sandwich
 
 go 1.23.1
 

@@ -7,7 +7,7 @@ toolchain go1.23.1
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250524094448-0c8b69fa8c09
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525131813-98bbacb25e8a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gin-contrib/cache v1.3.2
 	github.com/gin-contrib/gzip v1.2.3

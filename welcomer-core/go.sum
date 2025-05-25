@@ -6,11 +6,8 @@ github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea h1:lyFofn7brJ
 github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20250525074038-a9a50613f56b h1:7j96+LOvddA4jIYoz92x+QCwlzmlntMiY15whfYdG1g=
-github.com/WelcomerTeam/Sandwich v0.0.0-20250525074038-a9a50613f56b/go.mod h1:TxYDBHntRPkG1Tij9OPb/egqAFiVYW9151ZHoisQxus=
+github.com/WelcomerTeam/Sandwich v0.0.0-20250525094129-26ea756376cb h1:/gZH+sPP17RniVdBuYQBPVzpsAQxjsUe8vJTS0tVF8s=
 github.com/WelcomerTeam/Sandwich v0.0.0-20250525094129-26ea756376cb/go.mod h1:TxYDBHntRPkG1Tij9OPb/egqAFiVYW9151ZHoisQxus=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250524094448-0c8b69fa8c09 h1:p4/R+gmWQ31KMHjrEShAUSmLNEUUb+Qd1F1WkByq/W8=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250524094448-0c8b69fa8c09/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525131813-98bbacb25e8a h1:vhuniKU0q4xDThTQlMZEArKErR18peTOEVBGiO4BNu0=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525131813-98bbacb25e8a/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Subway v0.0.0-20250525081542-86e0d3930f44 h1:WbFmaRgpW3vUS5xnXi3qb5OTwb3EbqCW6btGCLY0bJg=
@@ -143,6 +140,12 @@ github.com/mhmtszr/concurrent-swiss-map v1.0.8 h1:GDSxgVrXsPFsraUJaPMm7ptYulj8qn
 github.com/mhmtszr/concurrent-swiss-map v1.0.8/go.mod h1:F6QETL48Qn7jEJ3ZPt7EqRZjAAZu7lRQeQGIzXuUIDc=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
+github.com/nats-io/nats.go v1.42.0 h1:ynIMupIOvf/ZWH/b2qda6WGKGNSjwOUutTpWRvAmhaM=
+github.com/nats-io/nats.go v1.42.0/go.mod h1:iRWIPokVIFbVijxuMQq4y9ttaBTMe0SFdlZfMDd+33g=
+github.com/nats-io/nkeys v0.4.11 h1:q44qGV008kYd9W1b1nEBkNzvnWxtRSQ7A8BoqRrcfa0=
+github.com/nats-io/nkeys v0.4.11/go.mod h1:szDimtgmfOi9n25JpfIdGw12tZFYXqhGxjhVxsatHVE=
+github.com/nats-io/nuid v1.0.1 h1:5iA8DT8V7q8WK2EScv2padNa/rTESc1KdnPw4TC2paw=
+github.com/nats-io/nuid v1.0.1/go.mod h1:19wcPz3Ph3q0Jbyiqsd0kePYG7A95tJPxeL+1OSON2c=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

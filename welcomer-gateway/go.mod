@@ -7,11 +7,12 @@ toolchain go1.23.1
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea
 	github.com/WelcomerTeam/Sandwich v0.0.0-20250525094129-26ea756376cb
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250524094448-0c8b69fa8c09
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525131813-98bbacb25e8a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
+	github.com/nats-io/nats.go v1.42.0
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287
 	google.golang.org/grpc v1.72.1
 )
@@ -34,10 +35,13 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgtype v1.14.4 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mhmtszr/concurrent-swiss-map v1.0.8 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/nats-io/nkeys v0.4.11 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/plutov/paypal/v4 v4.12.0 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect

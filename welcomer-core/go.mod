@@ -16,6 +16,7 @@ require (
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgtype v1.14.4
 	github.com/jackc/pgx/v4 v4.18.3
+	github.com/nats-io/nats.go v1.42.0
 	github.com/plutov/paypal/v4 v4.12.0
 	github.com/rs/zerolog v1.34.0
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287
@@ -37,11 +38,14 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mhmtszr/concurrent-swiss-map v1.0.8 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/nats-io/nkeys v0.4.11 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
