@@ -8,23 +8,6 @@ import (
 	"golang.org/x/image/font/sfnt"
 )
 
-var fonts = map[string]*Font{
-	"balsamiqsans-bold":    fontsBalsamiqSansBoldFont,
-	"balsamiqsans-regular": fontsBalsamiqSansRegularFont,
-	"fredokaone-regular":   fontsFredokaOneRegularFont,
-	"inter-bold":           fontsInterBoldFont,
-	"inter-regular":        fontsInterRegularFont,
-	"luckiestguy-regular":  fontsLuckiestGuyRegularFont,
-	"mada-bold":            fontsMadaBoldFont,
-	"mada-medium":          fontsMadaMediumFont,
-	"mina-bold":            fontsMinaBoldFont,
-	"mina-regular":         fontsMinaRegularFont,
-	"nunito-bold":          fontsNunitoBoldFont,
-	"nunito-regular":       fontsNunitoRegularFont,
-	"raleway-bold":         fontsRalewayBoldFont,
-	"raleway-regular":      fontsRalewayRegularFont,
-}
-
 var fallback = map[string]*Font{
 	"arialunicodems":                        fallbackArialUnicodeMSFont,
 	"asana-math":                            fallbackAsanaMathFont,
@@ -134,6 +117,23 @@ var fallback = map[string]*Font{
 	"latinmodern-math":                      fallbackLatinmodernMathFont,
 }
 
+var fonts = map[string]*Font{
+	"balsamiqsans-bold":    fontsBalsamiqSansBoldFont,
+	"balsamiqsans-regular": fontsBalsamiqSansRegularFont,
+	"fredokaone-regular":   fontsFredokaOneRegularFont,
+	"inter-bold":           fontsInterBoldFont,
+	"inter-regular":        fontsInterRegularFont,
+	"luckiestguy-regular":  fontsLuckiestGuyRegularFont,
+	"mada-bold":            fontsMadaBoldFont,
+	"mada-medium":          fontsMadaMediumFont,
+	"mina-bold":            fontsMinaBoldFont,
+	"mina-regular":         fontsMinaRegularFont,
+	"nunito-bold":          fontsNunitoBoldFont,
+	"nunito-regular":       fontsNunitoRegularFont,
+	"raleway-bold":         fontsRalewayBoldFont,
+	"raleway-regular":      fontsRalewayRegularFont,
+}
+
 func mustDecodeFont(n string, src []byte) *sfnt.Font {
 	res, err := opentype.Parse(src)
 	if err != nil {
@@ -141,104 +141,6 @@ func mustDecodeFont(n string, src []byte) *sfnt.Font {
 	}
 
 	return res
-}
-
-//go:embed fonts/BalsamiqSans-Bold.ttf
-var fontsBalsamiqSansBoldFontBytes []byte
-
-var fontsBalsamiqSansBoldFont = &Font{
-	Font: mustDecodeFont("fontsBalsamiqSans-BoldFont", fontsBalsamiqSansBoldFontBytes),
-}
-
-//go:embed fonts/BalsamiqSans-Regular.ttf
-var fontsBalsamiqSansRegularFontBytes []byte
-
-var fontsBalsamiqSansRegularFont = &Font{
-	Font: mustDecodeFont("fontsBalsamiqSans-RegularFont", fontsBalsamiqSansRegularFontBytes),
-}
-
-//go:embed fonts/FredokaOne-Regular.ttf
-var fontsFredokaOneRegularFontBytes []byte
-
-var fontsFredokaOneRegularFont = &Font{
-	Font: mustDecodeFont("fontsFredokaOne-RegularFont", fontsFredokaOneRegularFontBytes),
-}
-
-//go:embed fonts/Inter-Bold.ttf
-var fontsInterBoldFontBytes []byte
-
-var fontsInterBoldFont = &Font{
-	Font: mustDecodeFont("fontsInter-BoldFont", fontsInterBoldFontBytes),
-}
-
-//go:embed fonts/Inter-Regular.ttf
-var fontsInterRegularFontBytes []byte
-
-var fontsInterRegularFont = &Font{
-	Font: mustDecodeFont("fontsInter-RegularFont", fontsInterRegularFontBytes),
-}
-
-//go:embed fonts/LuckiestGuy-Regular.ttf
-var fontsLuckiestGuyRegularFontBytes []byte
-
-var fontsLuckiestGuyRegularFont = &Font{
-	Font: mustDecodeFont("fontsLuckiestGuy-RegularFont", fontsLuckiestGuyRegularFontBytes),
-}
-
-//go:embed fonts/Mada-Bold.ttf
-var fontsMadaBoldFontBytes []byte
-
-var fontsMadaBoldFont = &Font{
-	Font: mustDecodeFont("fontsMada-BoldFont", fontsMadaBoldFontBytes),
-}
-
-//go:embed fonts/Mada-Medium.ttf
-var fontsMadaMediumFontBytes []byte
-
-var fontsMadaMediumFont = &Font{
-	Font: mustDecodeFont("fontsMada-MediumFont", fontsMadaMediumFontBytes),
-}
-
-//go:embed fonts/Mina-Bold.ttf
-var fontsMinaBoldFontBytes []byte
-
-var fontsMinaBoldFont = &Font{
-	Font: mustDecodeFont("fontsMina-BoldFont", fontsMinaBoldFontBytes),
-}
-
-//go:embed fonts/Mina-Regular.ttf
-var fontsMinaRegularFontBytes []byte
-
-var fontsMinaRegularFont = &Font{
-	Font: mustDecodeFont("fontsMina-RegularFont", fontsMinaRegularFontBytes),
-}
-
-//go:embed fonts/Nunito-Bold.ttf
-var fontsNunitoBoldFontBytes []byte
-
-var fontsNunitoBoldFont = &Font{
-	Font: mustDecodeFont("fontsNunito-BoldFont", fontsNunitoBoldFontBytes),
-}
-
-//go:embed fonts/Nunito-Regular.ttf
-var fontsNunitoRegularFontBytes []byte
-
-var fontsNunitoRegularFont = &Font{
-	Font: mustDecodeFont("fontsNunito-RegularFont", fontsNunitoRegularFontBytes),
-}
-
-//go:embed fonts/Raleway-Bold.ttf
-var fontsRalewayBoldFontBytes []byte
-
-var fontsRalewayBoldFont = &Font{
-	Font: mustDecodeFont("fontsRaleway-BoldFont", fontsRalewayBoldFontBytes),
-}
-
-//go:embed fonts/Raleway-Regular.ttf
-var fontsRalewayRegularFontBytes []byte
-
-var fontsRalewayRegularFont = &Font{
-	Font: mustDecodeFont("fontsRaleway-RegularFont", fontsRalewayRegularFontBytes),
 }
 
 //go:embed fallback/ArialUnicodeMS.ttf
@@ -981,4 +883,102 @@ var fallbackLatinmodernMathFontBytes []byte
 
 var fallbackLatinmodernMathFont = &Font{
 	Font: mustDecodeFont("fallbackLatinmodern-MathFont", fallbackLatinmodernMathFontBytes),
+}
+
+//go:embed fonts/BalsamiqSans-Bold.ttf
+var fontsBalsamiqSansBoldFontBytes []byte
+
+var fontsBalsamiqSansBoldFont = &Font{
+	Font: mustDecodeFont("fontsBalsamiqSans-BoldFont", fontsBalsamiqSansBoldFontBytes),
+}
+
+//go:embed fonts/BalsamiqSans-Regular.ttf
+var fontsBalsamiqSansRegularFontBytes []byte
+
+var fontsBalsamiqSansRegularFont = &Font{
+	Font: mustDecodeFont("fontsBalsamiqSans-RegularFont", fontsBalsamiqSansRegularFontBytes),
+}
+
+//go:embed fonts/FredokaOne-Regular.ttf
+var fontsFredokaOneRegularFontBytes []byte
+
+var fontsFredokaOneRegularFont = &Font{
+	Font: mustDecodeFont("fontsFredokaOne-RegularFont", fontsFredokaOneRegularFontBytes),
+}
+
+//go:embed fonts/Inter-Bold.ttf
+var fontsInterBoldFontBytes []byte
+
+var fontsInterBoldFont = &Font{
+	Font: mustDecodeFont("fontsInter-BoldFont", fontsInterBoldFontBytes),
+}
+
+//go:embed fonts/Inter-Regular.ttf
+var fontsInterRegularFontBytes []byte
+
+var fontsInterRegularFont = &Font{
+	Font: mustDecodeFont("fontsInter-RegularFont", fontsInterRegularFontBytes),
+}
+
+//go:embed fonts/LuckiestGuy-Regular.ttf
+var fontsLuckiestGuyRegularFontBytes []byte
+
+var fontsLuckiestGuyRegularFont = &Font{
+	Font: mustDecodeFont("fontsLuckiestGuy-RegularFont", fontsLuckiestGuyRegularFontBytes),
+}
+
+//go:embed fonts/Mada-Bold.ttf
+var fontsMadaBoldFontBytes []byte
+
+var fontsMadaBoldFont = &Font{
+	Font: mustDecodeFont("fontsMada-BoldFont", fontsMadaBoldFontBytes),
+}
+
+//go:embed fonts/Mada-Medium.ttf
+var fontsMadaMediumFontBytes []byte
+
+var fontsMadaMediumFont = &Font{
+	Font: mustDecodeFont("fontsMada-MediumFont", fontsMadaMediumFontBytes),
+}
+
+//go:embed fonts/Mina-Bold.ttf
+var fontsMinaBoldFontBytes []byte
+
+var fontsMinaBoldFont = &Font{
+	Font: mustDecodeFont("fontsMina-BoldFont", fontsMinaBoldFontBytes),
+}
+
+//go:embed fonts/Mina-Regular.ttf
+var fontsMinaRegularFontBytes []byte
+
+var fontsMinaRegularFont = &Font{
+	Font: mustDecodeFont("fontsMina-RegularFont", fontsMinaRegularFontBytes),
+}
+
+//go:embed fonts/Nunito-Bold.ttf
+var fontsNunitoBoldFontBytes []byte
+
+var fontsNunitoBoldFont = &Font{
+	Font: mustDecodeFont("fontsNunito-BoldFont", fontsNunitoBoldFontBytes),
+}
+
+//go:embed fonts/Nunito-Regular.ttf
+var fontsNunitoRegularFontBytes []byte
+
+var fontsNunitoRegularFont = &Font{
+	Font: mustDecodeFont("fontsNunito-RegularFont", fontsNunitoRegularFontBytes),
+}
+
+//go:embed fonts/Raleway-Bold.ttf
+var fontsRalewayBoldFontBytes []byte
+
+var fontsRalewayBoldFont = &Font{
+	Font: mustDecodeFont("fontsRaleway-BoldFont", fontsRalewayBoldFontBytes),
+}
+
+//go:embed fonts/Raleway-Regular.ttf
+var fontsRalewayRegularFontBytes []byte
+
+var fontsRalewayRegularFont = &Font{
+	Font: mustDecodeFont("fontsRaleway-RegularFont", fontsRalewayRegularFontBytes),
 }

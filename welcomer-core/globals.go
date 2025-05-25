@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	internal "github.com/WelcomerTeam/Sandwich/sandwich"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
@@ -28,12 +27,6 @@ func SetupGRPCConnection(host string, opts ...grpc.DialOption) {
 	if err != nil {
 		panic(fmt.Sprintf(`grpc.NewClient(%s): %v`, host, err.Error()))
 	}
-}
-
-var GRPCInterface internal.GRPC
-
-func SetupGRPCInterface() {
-	GRPCInterface = internal.NewDefaultGRPCClient()
 }
 
 var RESTInterface discord.RESTInterface

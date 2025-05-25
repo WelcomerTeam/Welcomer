@@ -10,7 +10,7 @@ import (
 
 func TestFormatString(t *testing.T) {
 	funcs := GatherFunctions()
-	vars := GatherVariables(nil, discord.GuildMember{
+	vars := GatherVariables(nil, &discord.GuildMember{
 		JoinedAt: time.Time{},
 		User: &discord.User{
 			ID:            1234567890,
@@ -21,7 +21,7 @@ func TestFormatString(t *testing.T) {
 			Avatar:        "1234567890",
 		},
 		Pending: false,
-	}, discord.Guild{
+	}, &discord.Guild{
 		ID:          1234567890,
 		Name:        "Test Server",
 		Icon:        "1234567890",

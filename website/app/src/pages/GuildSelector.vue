@@ -116,7 +116,7 @@ export default {
         this.$router.push({
           name: "dashboard.guild.overview",
           params: {
-            guildID: guild.id,
+            GuildID: guild.id,
           },
         });
       } else {

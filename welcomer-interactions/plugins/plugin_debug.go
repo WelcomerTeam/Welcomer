@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
@@ -66,9 +66,9 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-				Manager: welcomer.GetManagerNameFromContext(ctx),
-				Type:    discord.DiscordEventGuildAuditLogEntryCreate,
-				Data:    data,
+				Identifier: welcomer.GetManagerNameFromContext(ctx),
+				Type:       discord.DiscordEventGuildAuditLogEntryCreate,
+				Data:       data,
 			})
 			if err != nil {
 				return nil, err
@@ -80,9 +80,9 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 			}
 
 			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-				Manager: welcomer.GetManagerNameFromContext(ctx),
-				Type:    discord.DiscordEventGuildJoin,
-				Data:    data,
+				Identifier: welcomer.GetManagerNameFromContext(ctx),
+				Type:       discord.DiscordEventGuildJoin,
+				Data:       data,
 			})
 			if err != nil {
 				return nil, err
@@ -131,9 +131,9 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    discord.DiscordEventGuildMemberAdd,
-					Data:    data,
+					Identifier: welcomer.GetManagerNameFromContext(ctx),
+					Type:       discord.DiscordEventGuildMemberAdd,
+					Data:       data,
 				})
 				if err != nil {
 					return nil, err
@@ -186,9 +186,9 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Manager: welcomer.GetManagerNameFromContext(ctx),
-					Type:    discord.DiscordEventGuildMemberRemove,
-					Data:    data,
+					Identifier: welcomer.GetManagerNameFromContext(ctx),
+					Type:       discord.DiscordEventGuildMemberRemove,
+					Data:       data,
 				})
 				if err != nil {
 					return nil, err

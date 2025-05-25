@@ -7,11 +7,12 @@ import (
 	"os"
 	"time"
 
-	messaging "github.com/WelcomerTeam/Sandwich/messaging"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
 	gateway "github.com/WelcomerTeam/Welcomer/welcomer-gateway"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/nats-io/nats.go/jetstream"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -42,23 +43,30 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
 	)
-	welcomer.SetupGRPCInterface()
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	// Setup NATs
-
-	jetstreamClient := messaging.NewJetstreamMQClient()
-	if err = jetstreamClient.Connect(ctx, *jetstreamClientName, map[string]any{
-		"Address": *stanAddress,
-		"Channel": *stanChannel,
-	}); err != nil {
-		panic(fmt.Sprintf(`jetstreamClient.Connect(): %v`, err.Error()))
+	jetstreamClient, err := jetstream_client.SetupJetstreamConsumer(
+		ctx,
+		*stanAddress,
+		*stanChannel,
+		*jetstreamClientName,
+		nil,
+		nil,
+	)
+	if err != nil {
+		panic(fmt.Errorf(`jetstream_client.SetupJetstreamConsumer(): %w`, err))
 	}
 
-	if err = jetstreamClient.Subscribe(ctx, *stanChannel); err != nil {
-		panic(fmt.Sprintf(`jetstreamClient.Subscribe(%s): %v`, *stanChannel, err.Error()))
+	eventsChannel := make(chan []byte)
+
+	consumeContext, err := jetstreamClient.Consume(func(msg jetstream.Msg) {
+		msg.Ack()
+		eventsChannel <- msg.Data()
+	})
+	if err != nil {
+		panic(fmt.Errorf("jetstreamClient.Consume(): %w", err))
 	}
 
 	runPushGuildScience := welcomer.SetupPushGuildScience(1024)
@@ -79,17 +87,17 @@ func main() {
 
 	// Register message channels
 
-	stanMessages := jetstreamClient.Chan()
-	if err = sandwichClient.ListenToChannel(ctx, stanMessages); err != nil {
+	if err = sandwichClient.ListenToChannel(ctx, eventsChannel); err != nil {
 		welcomer.Logger.Panic().Err(err).Msg("Failed to listen to channel")
 	}
 
-	welcomer.PushGuildScience.Flush(ctx)
-	jetstreamClient.Unsubscribe(ctx)
+	consumeContext.Drain()
 
 	if err = welcomer.GRPCConnection.Close(); err != nil {
 		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
+
+	welcomer.PushGuildScience.Flush(ctx)
 
 	cancel()
 }

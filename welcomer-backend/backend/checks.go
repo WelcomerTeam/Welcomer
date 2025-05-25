@@ -6,17 +6,26 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
-func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnBotGuildMembers bool) (ok bool, guild discord.Guild, guildMembers []discord.GuildMember, err error) {
-	guild, err = welcomer.GRPCInterface.FetchGuildByID(backend.GetBasicEventContext(ctx).ToGRPCContext(), guildID)
+func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnBotGuildMembers bool) (ok bool, guild *discord.Guild, guildMembers []*discord.GuildMember, err error) {
+	guildsPb, err := welcomer.SandwichClient.FetchGuild(ctx, &sandwich_protobuf.FetchGuildRequest{
+		GuildIds: []int64{int64(guildID)},
+	})
 	if err != nil {
 		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer presence")
 
 		return false, guild, nil, fmt.Errorf("failed to get welcomer presence: %w", err)
 	}
 
+	guildPb, ok := guildsPb.GetGuilds()[int64(guildID)]
+	if !ok {
+		return false, nil, nil, nil
+	}
+
+	guild = sandwich_protobuf.PBToGuild(guildPb)
 	if guild.ID.IsNil() {
 		return false, guild, nil, nil
 	}
@@ -31,22 +40,25 @@ func hasWelcomerPresence(ctx context.Context, guildID discord.Snowflake, returnB
 	return true, guild, guildMembers, nil
 }
 
-func fetchManagersForGuild(ctx context.Context, guildID discord.Snowflake) (managers []string, err error) {
-	// Find out what managers can see this guild
-	locations, err := welcomer.GRPCInterface.WhereIsGuild(backend.GetBasicEventContext(ctx).ToGRPCContext(), guildID)
+func fetchApplicationsForGuild(ctx context.Context, guildID discord.Snowflake) (applicationIdentifiers []string, err error) {
+	// Find out what applications can see this guild
+	locationsPb, err := welcomer.SandwichClient.WhereIsGuild(ctx, &sandwich_protobuf.WhereIsGuildRequest{
+		GuildId: int64(guildID),
+	})
 	if err != nil {
 		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to do guild lookup")
 
 		return nil, fmt.Errorf("failed to do guild lookup: %w", err)
 	}
 
-	managers = make([]string, 0, len(locations))
+	locations := locationsPb.GetLocations()
+	applicationIdentifiers = make([]string, 0, len(locations))
 
 	for _, location := range locations {
-		managers = append(managers, location.Manager)
+		applicationIdentifiers = append(applicationIdentifiers, location.Identifier)
 	}
 
-	return managers, nil
+	return applicationIdentifiers, nil
 }
 
 func getGuildMembership(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, err error) {

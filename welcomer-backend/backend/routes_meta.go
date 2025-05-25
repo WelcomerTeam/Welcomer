@@ -1,13 +1,11 @@
 package backend
 
 import (
-	"encoding/json"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/atomic"
@@ -54,97 +52,44 @@ func getStatus(ctx *gin.Context) {
 		return
 	}
 
-	url := os.Getenv("SANDWICH_STATUS_ENDPOINT")
-
-	req, err := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
-	if req == nil || err != nil {
-		welcomer.Logger.Error().Err(err).Str("url", url).Msg("Failed to create request for status API")
-
-		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok: false,
-		})
-
-		return
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if resp == nil || err != nil {
-		welcomer.Logger.Error().Err(err).Str("url", url).Msg("Failed to fetch status from API")
-
-		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok: false,
-		})
-
-		return
-	}
-
-	defer resp.Body.Close()
-
-	var baseResponse sandwich.BaseRestResponse
-
-	err = json.NewDecoder(resp.Body).Decode(&baseResponse)
+	applicationsPb, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{})
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Msg("Failed to decode status base response")
+		statusResponseMu.RLock()
+		defer statusResponseMu.RUnlock()
 
-		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok: false,
+		ctx.JSON(http.StatusOK, BaseResponse{
+			Ok:   true,
+			Data: statusResponse,
 		})
 
 		return
 	}
 
-	statusResponseJson, err := json.Marshal(baseResponse.Data)
-	if err != nil {
-		welcomer.Logger.Error().Err(err).Msg("Failed to marshal base response data")
+	applications := applicationsPb.GetApplications()
+	newApplications := make([]GetStatusResponseManager, 0, len(applications))
 
-		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok: false,
-		})
-
-		return
-	}
-
-	var sandwichStatusResponse sandwich.StatusEndpointResponse
-
-	err = json.Unmarshal(statusResponseJson, &sandwichStatusResponse)
-	if err != nil {
-		welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal status response")
-
-		ctx.JSON(http.StatusInternalServerError, BaseResponse{
-			Ok: false,
-		})
-
-		return
-	}
-
-	newManagers := make([]GetStatusResponseManager, 0, len(sandwichStatusResponse.Managers))
-
-	for _, manager := range sandwichStatusResponse.Managers {
+	for _, application := range applications {
 		newShards := make([]GetStatusResponseShard, 0)
 
-		if len(manager.ShardGroups) > 0 {
-			shardGroup := manager.ShardGroups[len(manager.ShardGroups)-1]
-
-			for _, shard := range shardGroup.Shards {
-				newShards = append(newShards, GetStatusResponseShard{
-					ShardID: shard[0],
-					Status:  shard[1],
-					Latency: shard[2],
-					Guilds:  shard[3],
-					Uptime:  shard[4],
-				})
-			}
+		for _, shard := range application.Shards {
+			newShards = append(newShards, GetStatusResponseShard{
+				ShardID: int(shard.GetId()),
+				Status:  int(shard.GetStatus()),
+				Latency: int(shard.GetGatewayLatency()),
+				Guilds:  int(shard.GetGuilds()),
+				Uptime:  int(time.Since(time.Unix(shard.GetStartedAt(), 0)).Seconds()),
+			})
 		}
 
-		newManagers = append(newManagers, GetStatusResponseManager{
-			Name:   manager.DisplayName,
+		newApplications = append(newApplications, GetStatusResponseManager{
+			Name:   application.GetDisplayName(),
 			Shards: newShards,
 		})
 	}
 
 	statusResponseMu.Lock()
 	statusResponse.UpdatedAt = time.Now()
-	statusResponse.Managers = newManagers
+	statusResponse.Managers = newApplications
 	statusResponseMu.Unlock()
 
 	statusLastFetchedAt.Store(statusResponse.UpdatedAt)

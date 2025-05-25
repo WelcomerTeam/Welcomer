@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -44,7 +44,7 @@ func (p *TempChannelsCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeTempChannels event.
-	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannels, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
 		var invokeTempChannelsPayload core.CustomEventInvokeTempChannelsStructure
 		if err := eventCtx.DecodeContent(payload, &invokeTempChannelsPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -67,7 +67,7 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Register CustomEventInvokeTempChannelsRemove event.
-	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannelsRemove, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeTempChannelsRemove, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
 		var invokeTempChannelsRemovePayload core.CustomEventInvokeTempChannelsRemoveStructure
 		if err := eventCtx.DecodeContent(payload, &invokeTempChannelsRemovePayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -117,11 +117,20 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 	} else if member.GuildID != nil {
 		guildID = *member.GuildID
 	} else {
+		welcomer.Logger.Error().
+			Str("member_id", member.User.ID.String()).
+			Msg("Failed to get guild ID for temp channels")
+
 		return nil
 	}
 
 	guildSettingsTimeroles, err := p.FetchGuildInformation(eventCtx, guildID)
 	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("guild_id", guildID.String()).
+			Str("member_id", member.User.ID.String()).
+			Msg("Failed to get temp channel settings")
+
 		return err
 	}
 
@@ -131,7 +140,7 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 
 	// If user is moving to lobby, create channel and move user.
 	if guildSettingsTimeroles.ChannelLobby != 0 && after.ChannelID == discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
-		return p.createChannelAndMove(eventCtx, guildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), member)
+		return p.createChannelAndMove(eventCtx, guildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), &member)
 	}
 
 	var beforeGuildID discord.Snowflake
@@ -158,7 +167,7 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 	return nil
 }
 
-func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category *discord.Snowflake, member discord.GuildMember) (channel *discord.Channel, err error) {
+func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category *discord.Snowflake, member *discord.GuildMember) (channel *discord.Channel, err error) {
 	channels, err := welcomer.FetchGuildChannels(eventCtx.Context, guildID)
 	if err != nil {
 		return nil, err
@@ -166,21 +175,29 @@ func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, gu
 
 	for _, guildChannel := range channels {
 		if category == nil || (guildChannel.ParentID != nil && *guildChannel.ParentID == *category) {
-			return &guildChannel, nil
+			return guildChannel, nil
 		}
 	}
 
 	return nil, nil
 }
 
-func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category *discord.Snowflake, member discord.GuildMember) (err error) {
+func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category *discord.Snowflake, member *discord.GuildMember) (err error) {
 	channel, err := p.findChannelForUser(eventCtx, guildID, category, member)
 	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("guild_id", guildID.String()).
+			Str("member_id", member.User.ID.String()).
+			Msg("Failed to find channel for tempchannels")
+
 		return err
 	}
 
 	if channel == nil {
 		if category == nil {
+			welcomer.Logger.Error().
+				Msg("Failed to get category for temp channels")
+
 			return nil
 		}
 
@@ -221,7 +238,7 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 	return nil
 }
 
-func (p *TempChannelsCog) formatChannelName(member discord.GuildMember) string {
+func (p *TempChannelsCog) formatChannelName(member *discord.GuildMember) string {
 	return fmt.Sprintf("🔊 %s's Channel [%d]", welcomer.GetGuildMemberDisplayName(member), member.User.ID)
 }
 
@@ -276,7 +293,7 @@ func (p *TempChannelsCog) OnInvokeTempChannelsEvent(eventCtx *sandwich.EventCont
 		return nil
 	}
 
-	return p.createChannelAndMove(eventCtx, *payload.Member.GuildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), payload.Member)
+	return p.createChannelAndMove(eventCtx, *payload.Member.GuildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), &payload.Member)
 }
 
 func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.EventContext, payload core.CustomEventInvokeTempChannelsRemoveStructure) error {
@@ -291,7 +308,7 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 		return nil
 	}
 
-	channel, err := p.findChannelForUser(eventCtx, *payload.Interaction.GuildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), payload.Member)
+	channel, err := p.findChannelForUser(eventCtx, *payload.Interaction.GuildID, welcomer.ToPointer(discord.Snowflake(guildSettingsTimeroles.ChannelCategory)), &payload.Member)
 	if err != nil {
 		return err
 	}
