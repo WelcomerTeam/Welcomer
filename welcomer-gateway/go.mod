@@ -6,15 +6,15 @@ toolchain go1.23.1
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250525094129-26ea756376cb
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525131813-98bbacb25e8a
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250526181512-3510f834ce1c
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526181236-2da744537022
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/nats-io/nats.go v1.42.0
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287
-	google.golang.org/grpc v1.72.1
+	google.golang.org/grpc v1.72.2
 )
 
 require (

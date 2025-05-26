@@ -501,7 +501,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					i := 0
-					guildMembers := make([]*sandwich_protobuf.GuildMember, len(guildMembersResp.GuildMembers))
+					guildMembers := make([]*sandwich_protobuf.GuildMember, len(guildMembersResp.GetGuildMembers()))
 					for _, guildMember := range guildMembersResp.GuildMembers {
 						guildMembers[i] = guildMember
 						i++

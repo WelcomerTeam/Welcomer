@@ -3,11 +3,11 @@ module github.com/WelcomerTeam/Welcomer/sandwich
 go 1.23.1
 
 require (
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525162826-32d35a329b21
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526180616-88c5aad12f98
 	github.com/nats-io/nats.go v1.42.0
 	github.com/prometheus/client_golang v1.22.0
 	golang.org/x/net v0.40.0
-	google.golang.org/grpc v1.72.1
+	google.golang.org/grpc v1.72.2
 )
 
 require (

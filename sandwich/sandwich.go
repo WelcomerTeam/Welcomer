@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"runtime/debug"
+	"strings"
 	"syscall"
 	"time"
 
@@ -22,11 +24,16 @@ import (
 
 func panicHandler(_ *sandwich_daemon.Sandwich, err any) {
 	slog.Error("Panic in Sandwich Daemon", "error", err)
+	print(string(debug.Stack()))
 }
 
 func main() {
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
+	prometheusHost := flag.String("prometheusHost", os.Getenv("PROMETHEUS_HOST"), "Prometheus host")
+	grpcHost := flag.String("grpcHost", os.Getenv("GRPC_HOST"), "GRPC host")
+	configurationLocation := flag.String("configurationLocation", os.Getenv("CONFIGURATION_LOCATION"), "Configuration file location")
+	proxyHost := flag.String("proxyHost", os.Getenv("PROXY_HOST"), "Proxy host")
 
 	flag.Parse()
 
@@ -46,13 +53,18 @@ func main() {
 		panic(fmt.Errorf("failed to create producer provider: %w", err))
 	}
 
+	proxyURL, err := url.Parse(*proxyHost)
+	if err != nil {
+		panic(fmt.Errorf("url.Parse(%s): %w", *proxyHost, err))
+	}
+
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+	logger := slog.Default()
+
 	sandwich := sandwich_daemon.NewSandwich(
-		slog.Default(),
-		sandwich_daemon.NewConfigProviderFromPath("sandwich.json.local"),
-		sandwich_daemon.NewProxyClient(*http.DefaultClient, url.URL{
-			Scheme: "https",
-			Host:   "discord.com",
-		}),
+		logger,
+		sandwich_daemon.NewConfigProviderFromPath(*configurationLocation),
+		NewProxyClient(*http.DefaultClient, *proxyURL),
 		sandwich_daemon.NewEventProviderWithBlacklist(sandwich_daemon.NewBuiltinDispatchProvider(true)),
 		sandwich_daemon.NewIdentifyViaBuckets(),
 		producerProvider,
@@ -61,7 +73,7 @@ func main() {
 		WithPanicHandler(panicHandler).
 		WithPrometheusAnalytics(
 			&http.Server{
-				Addr:              ":10000",
+				Addr:              *prometheusHost,
 				WriteTimeout:      time.Second * 10,
 				ReadTimeout:       time.Second * 10,
 				ReadHeaderTimeout: time.Second * 10,
@@ -74,7 +86,7 @@ func main() {
 		WithGRPCServer(
 			nil,
 			"tcp",
-			":15008",
+			*grpcHost,
 			grpc.NewServer(),
 		)
 
@@ -90,4 +102,54 @@ func main() {
 	<-sig
 
 	sandwich.Stop(ctx)
+}
+
+// Verbose Proxy Client
+
+var UserAgent = fmt.Sprintf("Sandwich/%s (https://github.com/WelcomerTeam/Sandwich-Daemon)", sandwich_daemon.Version)
+
+// NewProxyClient creates an HTTP client that redirects all requests through a specified host.
+// This is useful when using a proxy such as twilight or nirn.
+func NewProxyClient(client http.Client, host url.URL) *http.Client {
+	if client.Transport == nil {
+		client.Transport = http.DefaultTransport
+	}
+
+	client.Transport = &proxyTransport{
+		host:      host,
+		transport: client.Transport,
+	}
+
+	return &client
+}
+
+type proxyTransport struct {
+	host      url.URL
+	transport http.RoundTripper
+}
+
+func (t *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Create a copy of the request to modify
+	proxyReq := req.Clone(req.Context())
+
+	// Set the new host while keeping the original path and query
+	proxyReq.URL.Host = t.host.Host
+	proxyReq.URL.Scheme = t.host.Scheme
+	proxyReq.Host = t.host.Host
+
+	if !strings.HasPrefix(proxyReq.URL.Path, "/api") {
+		proxyReq.URL.Path = "/api/v10" + proxyReq.URL.Path
+	}
+
+	proxyReq.Header.Set("User-Agent", UserAgent)
+
+	// Perform the request using the underlying transport
+	resp, err := t.transport.RoundTrip(proxyReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to round trip: %w", err)
+	}
+
+	println(proxyReq.Method, proxyReq.URL.String(), resp.StatusCode)
+
+	return resp, nil
 }

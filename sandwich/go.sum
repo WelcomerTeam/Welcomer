@@ -10,6 +10,14 @@ github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525144332-f937fac6f8e6 h1:jH
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525144332-f937fac6f8e6/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525162826-32d35a329b21 h1:pETN8xKJKucaA9I8hBN1tDLfF1JEXNg7F89hFYLFNtk=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525162826-32d35a329b21/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526004745-70990423402d h1:QouC518aQbM68JNLedc5IoZPesbVaoYRuSnsc6v3kEM=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526004745-70990423402d/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526093052-665b3131ac47 h1:Eoijbmyt4Bl+ay9noDTVDZNBW6WBatRQUY5SD3apgJg=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526093052-665b3131ac47/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526174713-0a18c10938dd h1:lXSi2pwjP7RuBxl3Fzc8zORrEcMhi5U2PvKbQqpaDIc=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526174713-0a18c10938dd/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526180616-88c5aad12f98 h1:vhEW3zQfqNpR2OeH9qrmEjl5eis39zBdJEOOFsQoooY=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526180616-88c5aad12f98/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 h1:WV4Ok6b0/kgczuLAgGTNtLVOB5JIqdfzJzgOpdlDM8Q=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904/go.mod h1:rCfCrg0xPnEoVKPXk+GNyHgzTWMzJjhnPaAfDe7UPJE=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
@@ -80,6 +88,8 @@ google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 h1:
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/grpc v1.72.1 h1:HR03wO6eyZ7lknl75XlxABNVLLFc2PAb6mHlYh756mA=
 google.golang.org/grpc v1.72.1/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
+google.golang.org/grpc v1.72.2 h1:TdbGzwb82ty4OusHWepvFWGLgIbNo1/SUynEN0ssqv8=
+google.golang.org/grpc v1.72.2/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
 google.golang.org/protobuf v1.36.6 h1:z1NpPI8ku2WgiWnf+t9wTPsn6eP1L7ksHUlkfLvd9xY=
 google.golang.org/protobuf v1.36.6/go.mod h1:jduwjTPXsFjZGTmRluh+L6NjiWu7pchiJ2/5YcXBHnY=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=

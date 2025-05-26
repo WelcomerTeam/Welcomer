@@ -3,6 +3,8 @@ COPY . /tmp
 WORKDIR /tmp/welcomer-gateway
 RUN cd /tmp/welcomer-gateway
 RUN go mod tidy; exit 0
+RUN apt update -y \
+    && apt install -y git build-essential cmake zlib1g-dev
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 LD_LIBRARY_PATH='/usr/local/lib' \
     go build -a --trimpath -o ./out/gateway ./cmd/main.go
 
