@@ -72,7 +72,7 @@ func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (
 
 			HasWelcomerPro:       hasWelcomerPro,
 			HasCustomBackgrounds: hasCustomBackgrounds,
-			HasElevation:         hasElevation(discordGuild, user),
+			HasElevation:         hasElevation(&discordGuild, user),
 			IsOwner:              discordGuild.Owner,
 		}
 	}

@@ -472,7 +472,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, role)
+				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, &role)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -542,7 +542,10 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}, nil
 				}
 
-				timeRoles = append(timeRoles, welcomer.GuildSettingsTimeRolesRole{role.ID, seconds})
+				timeRoles = append(timeRoles, welcomer.GuildSettingsTimeRolesRole{
+					Role:    role.ID,
+					Seconds: seconds,
+				})
 
 				// Update the guild settings with the new timeRoles
 				err = welcomer.RetryWithFallback(

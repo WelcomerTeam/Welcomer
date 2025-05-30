@@ -232,7 +232,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnAuditGuildAuditLogEntryCreateEvent(func(eventCtx *sandwich.EventContext, guildID discord.Snowflake, entry discord.AuditLogEntry) error {
-		if entry.ActionType != discord.AuditLogActionBotAdd || *entry.TargetID != eventCtx.Identifier.ID {
+		if entry.ActionType != discord.AuditLogActionBotAdd || *entry.TargetID != discord.Snowflake(eventCtx.Identifier.UserId) {
 			return nil
 		}
 
@@ -245,7 +245,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 			return err
 		}
 
-		user, err := welcomer.FetchUser(eventCtx.Context, *entry.UserID, true)
+		user, err := welcomer.FetchUser(eventCtx.Context, *entry.UserID)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).
@@ -275,7 +275,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
+		guildPointer, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -283,6 +283,8 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 
 			return err
 		}
+
+		guild = *guildPointer
 
 		var eligibleChannel *discord.Channel
 
@@ -301,7 +303,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 			for _, channel := range channels {
 				if channel.Type == discord.ChannelTypeGuildText &&
 					welcomer.CompareStrings(channel.Name, "welcome", "general") {
-					eligibleChannel = &channel
+					eligibleChannel = channel
 
 					break
 				}

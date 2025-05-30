@@ -72,7 +72,7 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return nil
 	}
 
-	assignableRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(eventCtx.Context, eventCtx.Sandwich.SandwichClient, int64(*member.GuildID), int64(eventCtx.Identifier.ID), guildSettingsAutoRoles.Roles)
+	assignableRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(eventCtx.Context, welcomer.SandwichClient, int64(*member.GuildID), int64(eventCtx.Identifier.UserId), guildSettingsAutoRoles.Roles)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).

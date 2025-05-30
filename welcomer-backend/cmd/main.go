@@ -62,7 +62,6 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
 	)
-	welcomer.SetupGRPCInterface()
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)

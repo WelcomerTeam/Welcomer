@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -48,7 +48,7 @@ func (p *LeaverCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeLeaver event.
-	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
 		var invokeLeaverPayload core.CustomEventInvokeLeaverStructure
 		if err := eventCtx.DecodeContent(payload, &invokeLeaverPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -152,11 +152,11 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 			Int64("user_id", int64(event.User.ID)).
 			Msg("Failed to fetch guild from state cache")
 
-		guild = *eventCtx.Guild
+		guild = eventCtx.Guild
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, discord.GuildMember{
+	variables := welcomer.GatherVariables(eventCtx, &discord.GuildMember{
 		GuildID: &event.GuildID,
 		User:    &event.User,
 	}, guild, nil, nil)
@@ -186,7 +186,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 	// Send the message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(serverMessage) {
-		validGuild, err := core.CheckChannelGuild(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
+		validGuild, err := core.CheckChannelGuild(eventCtx.Context, welcomer.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

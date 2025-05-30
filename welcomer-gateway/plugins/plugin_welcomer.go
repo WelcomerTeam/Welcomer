@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
-	"github.com/WelcomerTeam/Sandwich-Daemon/structs"
+	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -67,7 +67,7 @@ func (p *WelcomerCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeWelcomer event.
-	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload structs.SandwichPayload) error {
+	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
 		var invokeWelcomerPayload core.CustomEventInvokeWelcomerStructure
 		if err := eventCtx.DecodeContent(payload, &invokeWelcomerPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -146,7 +146,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	// Trigger CustomEventInvokewelcomer.if user has moved from pending to non-pending.
+	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
 	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
 		if before.Pending && !after.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
@@ -414,26 +414,18 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	// This is for fetching direct message channels for the user.
 	if guildSettingsWelcomerDMs.ToggleEnabled {
 		// Query state cache for user.
-		var users *pb.UsersResponse
+		var usersPb *sandwich_protobuf.FetchUserResponse
 
-		users, err = eventCtx.Sandwich.SandwichClient.FetchUsers(eventCtx, &pb.FetchUsersRequest{
-			UserIDs:         []int64{int64(event.Member.User.ID)},
-			CreateDMChannel: true,
+		usersPb, err = welcomer.SandwichClient.FetchUser(eventCtx, &sandwich_protobuf.FetchUserRequest{
+			UserIds: []int64{int64(event.Member.User.ID)},
 		})
 		if err != nil {
 			return err
 		}
 
-		userPb, ok := users.Users[int64(event.Member.User.ID)]
+		userPb, ok := usersPb.Users[int64(event.Member.User.ID)]
 		if ok {
-			var pUser discord.User
-
-			pUser, err = pb.GRPCToUser(userPb)
-			if err != nil {
-				return err
-			}
-
-			user = &pUser
+			user = sandwich_protobuf.PBToUser(userPb)
 		} else {
 			welcomer.Logger.Warn().
 				Int64("user_id", int64(event.Member.User.ID)).
@@ -444,24 +436,21 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		user = event.Member.User
 	}
 
-	var guilds *pb.GuildsResponse
+	var guilds *sandwich_protobuf.FetchGuildResponse
 
 	// Query state cache for guild.
-	guilds, err = eventCtx.Sandwich.SandwichClient.FetchGuild(eventCtx, &pb.FetchGuildRequest{
-		GuildIDs: []int64{int64(eventCtx.Guild.ID)},
+	guilds, err = welcomer.SandwichClient.FetchGuild(eventCtx, &sandwich_protobuf.FetchGuildRequest{
+		GuildIds: []int64{int64(eventCtx.Guild.ID)},
 	})
 	if err != nil {
 		return err
 	}
 
-	var guild discord.Guild
+	var guild *discord.Guild
 
 	guildPb, ok := guilds.Guilds[int64(eventCtx.Guild.ID)]
 	if ok {
-		guild, err = pb.GRPCToGuild(guildPb)
-		if err != nil {
-			return err
-		}
+		guild = sandwich_protobuf.PBToGuild(guildPb)
 	}
 
 	var usedInvite *discord.Invite
@@ -477,8 +466,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				err = json.Unmarshal(scienceEvent.Data.Bytes, joinEvent)
 				if err != nil {
-					println(string(scienceEvent.Data.Bytes), scienceEvent.Data.Status)
-
 					welcomer.Logger.Warn().Err(err).
 						Msg("Failed to unmarshal guild science user joined event")
 
@@ -587,7 +574,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, event.Member, guild, usedInvite, nil)
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, guild, usedInvite, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
@@ -793,7 +780,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Send server message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(serverMessage) {
-		validGuild, err := core.CheckChannelGuild(eventCtx.Context, eventCtx.Sandwich.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsWelcomerText.Channel))
+		validGuild, err := core.CheckChannelGuild(eventCtx.Context, welcomer.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsWelcomerText.Channel))
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

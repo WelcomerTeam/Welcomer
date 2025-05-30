@@ -2,9 +2,9 @@ package welcomer
 
 import (
 	"fmt"
+	"log/slog"
 
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	plugins "github.com/WelcomerTeam/Welcomer/welcomer-gateway/plugins"
 )
 
@@ -25,7 +25,7 @@ func NewWelcomer(identifierName string, sandwichClient *sandwich.Sandwich) (welc
 }
 
 func (w *Welcomer) Register() error {
-	bot := sandwich.NewBot(welcomer.Logger)
+	bot := sandwich.NewBot(slog.Default())
 
 	// Register cogs
 	bot.MustRegisterCog(plugins.NewWelcomerCog())

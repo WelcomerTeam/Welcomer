@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	pb "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	pb "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -103,7 +103,7 @@ func getMemberships(ctx *gin.Context) {
 		// Fetch all guilds in one request.
 		if len(guildIDs) > 0 {
 			guildResponse, err := welcomer.SandwichClient.FetchGuild(ctx, &pb.FetchGuildRequest{
-				GuildIDs: guildIDs,
+				GuildIds: guildIDs,
 			})
 			if err != nil {
 				welcomer.Logger.Error().Err(err).

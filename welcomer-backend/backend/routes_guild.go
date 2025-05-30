@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sort"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
@@ -32,34 +34,51 @@ func getGuild(ctx *gin.Context) {
 				return
 			}
 
-			grpcContext := backend.GetBasicEventContext(ctx).ToGRPCContext()
+			grpcContext := ctx
 
-			channels, err := welcomer.GRPCInterface.FetchChannelsByName(grpcContext, guildID, "")
+			channelsPb, err := welcomer.SandwichClient.FetchGuildChannel(grpcContext, &sandwich_protobuf.FetchGuildChannelRequest{
+				GuildId: int64(guildID),
+			})
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild channels")
+			}
+
+			channels := make([]discord.Channel, 0, len(channelsPb.GetChannels()))
+			for _, channelPb := range channelsPb.GetChannels() {
+				channels = append(channels, *sandwich_protobuf.PBToChannel(channelPb))
 			}
 
 			sort.SliceStable(channels, func(i, j int) bool {
 				return channels[i].Position < channels[j].Position
 			})
 
-			roles, err := welcomer.GRPCInterface.FetchRolesByName(grpcContext, guildID, "")
+			rolesPb, err := welcomer.SandwichClient.FetchGuildRole(grpcContext, &sandwich_protobuf.FetchGuildRoleRequest{
+				GuildId: int64(guildID),
+			})
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
+			}
+
+			roles := make([]discord.Role, 0, len(rolesPb.GetRoles()))
+			for _, rolePb := range rolesPb.GetRoles() {
+				roles = append(roles, *sandwich_protobuf.PBToRole(rolePb))
 			}
 
 			sort.SliceStable(roles, func(i, j int) bool {
 				return roles[i].Position < roles[j].Position
 			})
 
-			emojis, err := welcomer.GRPCInterface.FetchEmojisByName(grpcContext, guildID, "")
+			emojisPb, err := welcomer.SandwichClient.FetchGuildEmoji(grpcContext, &sandwich_protobuf.FetchGuildEmojiRequest{
+				GuildId: int64(guildID),
+			})
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild emojis")
 			}
 
-			for index, emoji := range emojis {
+			emojis := make([]discord.Emoji, 0, len(emojisPb.GetEmojis()))
+			for _, emoji := range emojisPb.GetEmojis() {
 				emoji.User = nil
-				emojis[index] = emoji
+				emojis = append(emojis, *sandwich_protobuf.PBToEmoji(emoji))
 			}
 
 			sort.SliceStable(emojis, func(i, j int) bool {
@@ -97,11 +116,17 @@ func getGuild(ctx *gin.Context) {
 				}
 			}
 
+			// Convert role back into pointers
+			rolePointers := make([]*discord.Role, len(roles))
+			for i, role := range roles {
+				rolePointers[i] = &role
+			}
+
 			partialGuild := GuildToPartial(discordGuild)
-			partialGuild.Roles = welcomer.CalculateRoleValues(roles, guildMembers)
+			partialGuild.Roles = welcomer.CalculateRoleValues(rolePointers, guildMembers)
 
 			guild := Guild{
-				Guild: &partialGuild,
+				Guild: partialGuild,
 
 				HasWelcomerPro:       hasWelcomerPro,
 				HasCustomBackgrounds: hasCustomBackgrounds,

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -19,9 +19,8 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return nil
 	}
 
-	usersResponse, err := SandwichClient.FetchUsers(ctx, &sandwich.FetchUsersRequest{
-		UserIDs:         []int64{membership.UserID},
-		CreateDMChannel: true,
+	usersResponse, err := SandwichClient.FetchUser(ctx, &sandwich_protobuf.FetchUserRequest{
+		UserIds: []int64{membership.UserID},
 	})
 	if err != nil {
 		Logger.Error().Err(err).
@@ -41,16 +40,8 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 		return nil
 	}
 
-	pbUser := users[membership.UserID]
-
-	user, err := sandwich.GRPCToUser(pbUser)
-	if err != nil {
-		Logger.Error().Err(err).
-			Int64("user_id", pbUser.ID).
-			Msg("Failed to convert user")
-
-		return err
-	}
+	userPb := users[membership.UserID]
+	user := sandwich_protobuf.PBToUser(userPb)
 
 	transaction, err := Queries.GetUserTransaction(ctx, membership.TransactionUuid)
 	if err != nil {
@@ -137,9 +128,8 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 		return nil
 	}
 
-	usersResponse, err := SandwichClient.FetchUsers(ctx, &sandwich.FetchUsersRequest{
-		UserIDs:         []int64{membership.UserID},
-		CreateDMChannel: true,
+	usersResponse, err := SandwichClient.FetchUser(ctx, &sandwich_protobuf.FetchUserRequest{
+		UserIds: []int64{membership.UserID},
 	})
 	if err != nil {
 		Logger.Error().Err(err).
@@ -159,16 +149,8 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 		return nil
 	}
 
-	pbUser := users[membership.UserID]
-
-	user, err := sandwich.GRPCToUser(pbUser)
-	if err != nil {
-		Logger.Error().Err(err).
-			Int64("user_id", pbUser.ID).
-			Msg("Failed to convert user")
-
-		return err
-	}
+	userPb := users[membership.UserID]
+	user := sandwich_protobuf.PBToUser(userPb)
 
 	transaction, err := Queries.GetUserTransaction(ctx, membership.TransactionUuid)
 	if err != nil {

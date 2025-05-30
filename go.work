@@ -1,11 +1,12 @@
 go 1.23.1
 
 use (
+
+	./migration-service
+	./sandwich
 	./welcomer-backend
 	./welcomer-core
 	./welcomer-gateway
 	./welcomer-images
 	./welcomer-interactions
-
-	./migration-service
 )

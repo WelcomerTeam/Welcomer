@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/protobuf"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
@@ -211,8 +211,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				embeds := []discord.Embed{}
 				embed := discord.Embed{Title: "Emojis", Color: welcomer.EmbedColourInfo}
 
-				guildEmojis, err := sub.SandwichClient.FetchGuildEmojis(sub.Context, &sandwich.FetchGuildEmojisRequest{
-					GuildID: int64(*interaction.GuildID),
+				guildEmojis, err := sub.SandwichClient.FetchGuildEmoji(sub.Context, &sandwich_protobuf.FetchGuildEmojiRequest{
+					GuildId: int64(*interaction.GuildID),
 				})
 				if err != nil {
 					return nil, err
@@ -221,8 +221,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				// Flatten map into slice
 
 				i := 0
-				emojis := make([]*sandwich.Emoji, len(guildEmojis.GuildEmojis))
-				for _, emoji := range guildEmojis.GuildEmojis {
+				emojis := make([]*sandwich_protobuf.Emoji, len(guildEmojis.GetEmojis()))
+				for _, emoji := range guildEmojis.GetEmojis() {
 					emojis[i] = emoji
 					i++
 				}
@@ -395,7 +395,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					embed := discord.Embed{Title: "Newly Created Users", Color: welcomer.EmbedColourInfo}
 
 					// Chunk users
-					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
+					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich_protobuf.RequestGuildChunkRequest{
 						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
@@ -404,8 +404,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Msg("Failed to chunk guild")
 					}
 
-					guildMembersResp, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
-						GuildID: int64(*interaction.GuildID),
+					guildMembersResp, err := sub.SandwichClient.FetchGuildMember(ctx, &sandwich_protobuf.FetchGuildMemberRequest{
+						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
 						welcomer.Logger.Error().Err(err).
@@ -415,7 +415,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					lastMonth := time.Now().Add(-time.Hour * 24 * 30)
 
-					guildMembers := make([]*sandwich.GuildMember, 0, len(guildMembersResp.GuildMembers))
+					guildMembers := make([]*sandwich_protobuf.GuildMember, 0, len(guildMembersResp.GuildMembers))
 					for _, guildMember := range guildMembersResp.GuildMembers {
 						joinedAt, _ := time.Parse(time.RFC3339, guildMember.JoinedAt)
 						if joinedAt.After(lastMonth) {
@@ -482,7 +482,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					embed := discord.Embed{Title: "Newly Joined Members", Color: welcomer.EmbedColourInfo}
 
 					// Chunk users
-					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
+					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich_protobuf.RequestGuildChunkRequest{
 						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
@@ -491,8 +491,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Msg("Failed to chunk guild")
 					}
 
-					guildMembersResp, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
-						GuildID: int64(*interaction.GuildID),
+					guildMembersResp, err := sub.SandwichClient.FetchGuildMember(ctx, &sandwich_protobuf.FetchGuildMemberRequest{
+						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
 						welcomer.Logger.Error().Err(err).
@@ -501,7 +501,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					i := 0
-					guildMembers := make([]*sandwich.GuildMember, len(guildMembersResp.GuildMembers))
+					guildMembers := make([]*sandwich_protobuf.GuildMember, len(guildMembersResp.GetGuildMembers()))
 					for _, guildMember := range guildMembersResp.GuildMembers {
 						guildMembers[i] = guildMember
 						i++
@@ -563,7 +563,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					embed := discord.Embed{Title: "Oldest Members", Color: welcomer.EmbedColourInfo}
 
 					// Chunk users
-					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich.RequestGuildChunkRequest{
+					_, err := sub.SandwichClient.RequestGuildChunk(sub.Context, &sandwich_protobuf.RequestGuildChunkRequest{
 						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
@@ -572,8 +572,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							Msg("Failed to chunk guild")
 					}
 
-					guildMembersResp, err := sub.SandwichClient.FetchGuildMembers(ctx, &sandwich.FetchGuildMembersRequest{
-						GuildID: int64(*interaction.GuildID),
+					guildMembersResp, err := sub.SandwichClient.FetchGuildMember(ctx, &sandwich_protobuf.FetchGuildMemberRequest{
+						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
 						welcomer.Logger.Error().Err(err).
@@ -582,7 +582,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					i := 0
-					guildMembers := make([]*sandwich.GuildMember, len(guildMembersResp.GuildMembers))
+					guildMembers := make([]*sandwich_protobuf.GuildMember, len(guildMembersResp.GuildMembers))
 					for _, guildMember := range guildMembersResp.GuildMembers {
 						guildMembers[i] = guildMember
 						i++
@@ -808,7 +808,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				communicationDisabledUntil := welcomer.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)).Format(time.RFC3339))
+				communicationDisabledUntil := welcomer.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)))
 
 				for userID := range usersToTimeout {
 					guildMember := discord.GuildMember{GuildID: interaction.GuildID, User: &discord.User{ID: userID}}
@@ -890,8 +890,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 				go func() {
-					guildEmojis, err := sub.SandwichClient.FetchGuildEmojis(sub.Context, &sandwich.FetchGuildEmojisRequest{
-						GuildID: int64(*interaction.GuildID),
+					guildEmojis, err := sub.SandwichClient.FetchGuildEmoji(sub.Context, &sandwich_protobuf.FetchGuildEmojiRequest{
+						GuildId: int64(*interaction.GuildID),
 					})
 					if err != nil {
 						return
@@ -902,7 +902,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					client := http.Client{Timeout: time.Second * 5}
 
-					for _, emoji := range guildEmojis.GuildEmojis {
+					for _, emoji := range guildEmojis.GetEmojis() {
 						url := discord.EndpointCDN + welcomer.If(
 							emoji.Animated,
 							discord.EndpointEmojiAnimated(welcomer.Itoa(emoji.ID)),

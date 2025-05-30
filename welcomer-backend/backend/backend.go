@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
-	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
@@ -106,8 +104,6 @@ func NewBackend(options Options) (*Backend, error) {
 	b.BotSession = discord.NewSession(b.Options.BotToken, welcomer.RESTInterface)
 	b.DonatorBotSession = discord.NewSession(b.Options.DonatorBotToken, welcomer.RESTInterface)
 
-	println(welcomer.RESTInterface)
-
 	if options.NginxAddress != "" {
 		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
 		if err != nil {
@@ -157,17 +153,6 @@ func NewBackend(options Options) (*Backend, error) {
 	backend = b
 
 	return b, nil
-}
-
-// GetEventContext.
-func (b *Backend) GetBasicEventContext(ctx context.Context) (client *sandwich.EventContext) {
-	return &sandwich.EventContext{
-		Context: ctx,
-		Sandwich: &sandwich.Sandwich{
-			Logger:         welcomer.Logger,
-			SandwichClient: welcomer.SandwichClient,
-		},
-	}
 }
 
 // Open sets up any services and starts the web server.

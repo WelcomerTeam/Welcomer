@@ -4,9 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 
-	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Discord/discord"
+	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions"
@@ -56,7 +58,6 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
 	)
-	welcomer.SetupGRPCInterface()
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
@@ -66,7 +67,7 @@ func main() {
 	app := interactions.NewWelcomer(ctx, subway.SubwayOptions{
 		SandwichClient:    welcomer.SandwichClient,
 		RESTInterface:     welcomer.RESTInterface,
-		Logger:            welcomer.Logger,
+		Logger:            slog.Default(),
 		PublicKeys:        *publicKeys,
 		PrometheusAddress: *prometheusAddress,
 	})
@@ -76,26 +77,20 @@ func main() {
 	}
 
 	if *syncCommands {
-
-		grpcInterface := sandwich.NewDefaultGRPCClient()
-
-		configurations, err := grpcInterface.FetchConsumerConfiguration(&sandwich.GRPCContext{
-			Context:        ctx,
-			Logger:         welcomer.Logger,
-			SandwichClient: welcomer.SandwichClient,
-			GRPCInterface:  welcomer.GRPCInterface,
-		}, *sandwichManagerName)
+		configurationsPb, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
+			ApplicationIdentifier: *sandwichManagerName,
+		})
 		if err != nil {
 			panic(fmt.Errorf(`failed to sync command: grpcInterface.FetchConsumerConfiguration(): %w`, err))
 		}
 
-		configuration, ok := configurations.Identifiers[*sandwichManagerName]
+		configuration, ok := configurationsPb.GetApplications()[*sandwichManagerName]
 
 		if !ok {
 			panic(fmt.Errorf(`failed to sync command: could not find manager matching "%s"`, *sandwichManagerName))
 		}
 
-		err = app.SyncCommands(ctx, "Bot "+configuration.Token, configuration.ID)
+		err = app.SyncCommands(ctx, "Bot "+configuration.BotToken, discord.Snowflake(configuration.UserId))
 		if err != nil {
 			panic(fmt.Errorf(`failed to sync commands. app.SyncCommands(): %w`, err))
 		}
