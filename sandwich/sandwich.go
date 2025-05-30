@@ -61,6 +61,10 @@ func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	logger := slog.Default()
 
+	registry := prometheus.NewPedanticRegistry()
+	registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+	registry.MustRegister(prometheus.NewGoCollector())
+
 	sandwich := sandwich_daemon.NewSandwich(
 		logger,
 		sandwich_daemon.NewConfigProviderFromPath(*configurationLocation),
@@ -80,7 +84,7 @@ func main() {
 				IdleTimeout:       time.Second * 10,
 				ErrorLog:          slog.NewLogLogger(slog.With("service", "prometheus").Handler(), slog.LevelError),
 			},
-			prometheus.NewPedanticRegistry(),
+			registry,
 			promhttp.HandlerOpts{},
 		).
 		WithGRPCServer(

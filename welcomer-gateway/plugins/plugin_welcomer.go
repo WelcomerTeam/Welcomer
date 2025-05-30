@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"image/color"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -147,9 +146,8 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	// Trigger CustomEventInvokewelcomer.if user has moved from pending to non-pending.
+	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
 	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
-		slog.Info("WelcomerCog: OnGuildMemberUpdateEvent", "guild_id", eventCtx.Guild.ID, "before_pending", before.Pending, "after_pending", after.Pending, "member_id", after.User.ID)
 		if before.Pending && !after.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
