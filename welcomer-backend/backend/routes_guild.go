@@ -119,8 +119,7 @@ func getGuild(ctx *gin.Context) {
 			// Convert role back into pointers
 			rolePointers := make([]*discord.Role, len(roles))
 			for i, role := range roles {
-				r := role
-				rolePointers[i] = &r
+				rolePointers[i] = &role
 			}
 
 			partialGuild := GuildToPartial(discordGuild)

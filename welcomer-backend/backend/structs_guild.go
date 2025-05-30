@@ -26,6 +26,11 @@ type PartialGuild struct {
 	Roles       []*welcomer.AssignableRole `json:"roles"`
 	Emojis      []*MinimalEmoji            `json:"emojis"`
 	MemberCount int32                      `json:"member_count"`
+	*MinimalGuild
+	Channels    []*MinimalChannel          `json:"channels"`
+	Roles       []*welcomer.AssignableRole `json:"roles"`
+	Emojis      []*MinimalEmoji            `json:"emojis"`
+	MemberCount int32                      `json:"member_count"`
 }
 
 type MinimalGuild struct {
@@ -96,9 +101,8 @@ func RolesToMinimal(roles []discord.Role) []*welcomer.AssignableRole {
 	minimalRoles := make([]*welcomer.AssignableRole, len(roles))
 
 	for i, role := range roles {
-		r := role // Create a local copy of the loop variable
 		minimalRoles[i] = &welcomer.AssignableRole{
-			Role:         &r,
+			Role:         &role,
 			IsAssignable: false,
 			IsElevated:   false,
 		}

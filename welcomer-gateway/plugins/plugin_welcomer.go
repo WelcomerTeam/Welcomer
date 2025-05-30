@@ -68,8 +68,6 @@ func (p *WelcomerCog) GetEventHandlers() *sandwich.Handlers {
 func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeWelcomer event.
 	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		println("A")
-
 		var invokeWelcomerPayload core.CustomEventInvokeWelcomerStructure
 		if err := eventCtx.DecodeContent(payload, &invokeWelcomerPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
@@ -154,7 +152,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
-	// Trigger CustomEventInvokewelcomer.if user has moved from pending to non-pending.
+	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
 	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
 		if before.Pending && !after.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
@@ -474,8 +472,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				err = json.Unmarshal(scienceEvent.Data.Bytes, joinEvent)
 				if err != nil {
-					println(string(scienceEvent.Data.Bytes), scienceEvent.Data.Status)
-
 					welcomer.Logger.Warn().Err(err).
 						Msg("Failed to unmarshal guild science user joined event")
 
