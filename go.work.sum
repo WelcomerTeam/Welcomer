@@ -837,7 +837,6 @@ github.com/WelcomerTeam/Sandwich v0.0.0-20250525074038-a9a50613f56b/go.mod h1:Tx
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20230914000629-4b5c0aee0420/go.mod h1:cY4s0lNOCnhVDD4b5F75q0VGtpGfd93vJ6L1hdlgCcA=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250521213853-0b19d4d5057b/go.mod h1:vGm763ay4ZLLrq8ilHuP2saiaL0PnS1thSGHk2WEiY0=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250524094448-0c8b69fa8c09/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526181236-2da744537022 h1:jkl+xH1JQa2IOueuty1Wd1y5QGeSsnf1S1cTy5/TinA=
 github.com/alecthomas/kingpin/v2 v2.3.1/go.mod h1:oYL5vtsvEHZGHxU7DMp32Dvx+qL+ptGn6lWaot2vCNE=
 github.com/alecthomas/kingpin/v2 v2.4.0 h1:f48lwail6p8zpO1bC4TxtqACaGqHYA22qkHjHpqDjYY=
 github.com/alecthomas/kingpin/v2 v2.4.0/go.mod h1:0gyi0zQnjuFk8xrkNKamJoyUo382HRL7ATRpFZCw6tE=

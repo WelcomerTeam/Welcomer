@@ -1,1 +1,3 @@
-go generate service/service.go && go run cmd/main.go --debug
+go generate service/service.go &&
+go build -v -x -o welcomer-images.local cmd/main.go &&
+./welcomer-images.local --debug

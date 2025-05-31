@@ -7,11 +7,6 @@ import (
 	"image"
 )
 
-var assets = map[string]image.Image{
-	"brokeimage":    assetsBrokeImageImage,
-	"defaultavatar": assetsDefaultAvatarImage,
-}
-
 var backgrounds = map[string]image.Image{
 	"aesthetics":   backgroundsAestheticsImage,
 	"afterwork":    backgroundsAfterworkImage,
@@ -58,6 +53,11 @@ var backgrounds = map[string]image.Image{
 	"wood":         backgroundsWoodImage,
 }
 
+var assets = map[string]image.Image{
+	"brokeimage":    assetsBrokeImageImage,
+	"defaultavatar": assetsDefaultAvatarImage,
+}
+
 func mustDecodeBytes(n string, src []byte) image.Image {
 	res, _, err := image.Decode(bytes.NewBuffer(src))
 	if err != nil {
@@ -66,6 +66,14 @@ func mustDecodeBytes(n string, src []byte) image.Image {
 
 	return res
 }
+
+//go:embed assets/broke_image.png
+var assetsBrokeImageImageBytes []byte
+var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBrokeImageImageBytes)
+
+//go:embed assets/default_avatar.png
+var assetsDefaultAvatarImageBytes []byte
+var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)
 
 //go:embed backgrounds/aesthetics.png
 var backgroundsAestheticsImageBytes []byte
@@ -238,11 +246,3 @@ var backgroundsVectorsImage = mustDecodeBytes("backgroundsVectorsImage", backgro
 //go:embed backgrounds/wood.png
 var backgroundsWoodImageBytes []byte
 var backgroundsWoodImage = mustDecodeBytes("backgroundsWoodImage", backgroundsWoodImageBytes)
-
-//go:embed assets/broke_image.png
-var assetsBrokeImageImageBytes []byte
-var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBrokeImageImageBytes)
-
-//go:embed assets/default_avatar.png
-var assetsDefaultAvatarImageBytes []byte
-var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)

@@ -9,8 +9,10 @@ import (
 	"golang.org/x/image/font"
 )
 
+var verticalThemeSize = image.Rect(0, 0, 750, 516)
+
 func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
-	imageSize := image.Rect(0, 0, 750, 516)
+	imageSize := verticalThemeSize
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 686, 452)
 
@@ -110,4 +112,5 @@ func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *G
 
 func init() {
 	registerThemeFunc(welcomer.ImageThemeVertical, CreateVerticalImage)
+	registerThemeSize(welcomer.ImageThemeVertical, verticalThemeSize)
 }
