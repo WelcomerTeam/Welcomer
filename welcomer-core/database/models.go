@@ -240,6 +240,7 @@ type Users struct {
 	Name          string    `json:"name"`
 	Discriminator string    `json:"discriminator"`
 	AvatarHash    string    `json:"avatar_hash"`
+	Background    string    `json:"background"`
 }
 
 type WelcomerImages struct {

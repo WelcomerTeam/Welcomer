@@ -10,15 +10,16 @@ import (
 )
 
 const CreateOrUpdateUser = `-- name: CreateOrUpdateUser :one
-INSERT INTO users (user_id, created_at, updated_at, name, discriminator, avatar_hash)
-    VALUES ($1, now(), now(), $2, $3, $4)
+INSERT INTO users (user_id, created_at, updated_at, name, discriminator, avatar_hash, background)
+    VALUES ($1, now(), now(), $2, $3, $4, $5)
 ON CONFLICT(user_id) DO UPDATE
     SET name = EXCLUDED.name,
         discriminator = EXCLUDED.discriminator,
         avatar_hash = EXCLUDED.avatar_hash,
-        updated_at = EXCLUDED.updated_at
+        updated_at = EXCLUDED.updated_at,
+        background = EXCLUDED.background
 RETURNING
-    user_id, created_at, updated_at, name, discriminator, avatar_hash
+    user_id, created_at, updated_at, name, discriminator, avatar_hash, background
 `
 
 type CreateOrUpdateUserParams struct {
@@ -26,6 +27,7 @@ type CreateOrUpdateUserParams struct {
 	Name          string `json:"name"`
 	Discriminator string `json:"discriminator"`
 	AvatarHash    string `json:"avatar_hash"`
+	Background    string `json:"background"`
 }
 
 func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUserParams) (*Users, error) {
@@ -34,6 +36,7 @@ func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUser
 		arg.Name,
 		arg.Discriminator,
 		arg.AvatarHash,
+		arg.Background,
 	)
 	var i Users
 	err := row.Scan(
@@ -43,15 +46,16 @@ func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUser
 		&i.Name,
 		&i.Discriminator,
 		&i.AvatarHash,
+		&i.Background,
 	)
 	return &i, err
 }
 
 const CreateUser = `-- name: CreateUser :one
-INSERT INTO users (user_id, created_at, updated_at, name, discriminator, avatar_hash)
-    VALUES ($1, now(), now(), $2, $3, $4)
+INSERT INTO users (user_id, created_at, updated_at, name, discriminator, avatar_hash, background)
+    VALUES ($1, now(), now(), $2, $3, $4, $5)
 RETURNING
-    user_id, created_at, updated_at, name, discriminator, avatar_hash
+    user_id, created_at, updated_at, name, discriminator, avatar_hash, background
 `
 
 type CreateUserParams struct {
@@ -59,6 +63,7 @@ type CreateUserParams struct {
 	Name          string `json:"name"`
 	Discriminator string `json:"discriminator"`
 	AvatarHash    string `json:"avatar_hash"`
+	Background    string `json:"background"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*Users, error) {
@@ -67,6 +72,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*Users,
 		arg.Name,
 		arg.Discriminator,
 		arg.AvatarHash,
+		arg.Background,
 	)
 	var i Users
 	err := row.Scan(
@@ -76,13 +82,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*Users,
 		&i.Name,
 		&i.Discriminator,
 		&i.AvatarHash,
+		&i.Background,
 	)
 	return &i, err
 }
 
 const GetUser = `-- name: GetUser :one
 SELECT
-    user_id, created_at, updated_at, name, discriminator, avatar_hash
+    user_id, created_at, updated_at, name, discriminator, avatar_hash, background
 FROM
     users
 WHERE
@@ -99,6 +106,7 @@ func (q *Queries) GetUser(ctx context.Context, userID int64) (*Users, error) {
 		&i.Name,
 		&i.Discriminator,
 		&i.AvatarHash,
+		&i.Background,
 	)
 	return &i, err
 }
@@ -110,7 +118,8 @@ SET
     name = $2,
     discriminator = $3,
     avatar_hash = $4,
-    updated_at = now()
+    updated_at = now(),
+    background = $5
 WHERE
     user_id = $1
 `
@@ -120,6 +129,7 @@ type UpdateUserParams struct {
 	Name          string `json:"name"`
 	Discriminator string `json:"discriminator"`
 	AvatarHash    string `json:"avatar_hash"`
+	Background    string `json:"background"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
@@ -128,6 +138,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, 
 		arg.Name,
 		arg.Discriminator,
 		arg.AvatarHash,
+		arg.Background,
 	)
 	if err != nil {
 		return 0, err
