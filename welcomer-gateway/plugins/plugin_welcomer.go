@@ -632,6 +632,24 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			profileFloat = welcomer.ImageAlignmentLeft
 		}
 
+		user, err := welcomer.Queries.GetUser(eventCtx.Context, int64(event.Member.User.ID))
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			welcomer.Logger.Warn().Err(err).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to get user from database")
+
+			return err
+		}
+
+		var backgroundName string
+
+		// If user has a custom background, use that.
+		if user.Background != "" {
+			backgroundName = user.Background
+		} else {
+			backgroundName = guildSettingsWelcomerImages.BackgroundName
+		}
+
 		var imageReaderCloser io.ReadCloser
 		var contentType string
 
@@ -643,7 +661,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			AllowAnimated:      hasWelcomerPro,
 			AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
 			Theme:              guildSettingsWelcomerImages.ImageTheme,
-			Background:         guildSettingsWelcomerImages.BackgroundName,
+			Background:         backgroundName,
 			Text:               messageFormat,
 			TextFont:           DefaultFont,
 			TextStroke:         true,

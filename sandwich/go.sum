@@ -1,7 +1,7 @@
 github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea h1:lyFofn7brJdywEOXbjfbUJLWRQRbnGxut5M5iG5A0ms=
 github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250529200557-afcf7ab5b054 h1:sn+ekfVjZItnbYGGmw7uuK2ks89GtpjG8PN9YCvdZrI=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250529200557-afcf7ab5b054/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1 h1:LBvzwmU/bl8GAr62RcblzCCZBVY3HrBi+5tPNbggjbs=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20250525174419-22c0c7646db0 h1:GGgpGzTvBvJAtuMmyHW08ZdiEaWWqmYgQtkTK5evIeM=
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20250525174419-22c0c7646db0/go.mod h1:SIDpGvgho7P/4Y1aUM5F4uk7TIHvb3M8zKmwKAMQeLI=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 h1:WV4Ok6b0/kgczuLAgGTNtLVOB5JIqdfzJzgOpdlDM8Q=

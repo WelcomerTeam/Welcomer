@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/sandwich
 go 1.23.1
 
 require (
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250529200557-afcf7ab5b054
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20250525174419-22c0c7646db0
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.22.0

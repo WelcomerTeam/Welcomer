@@ -9,8 +9,10 @@ import (
 	"golang.org/x/image/font"
 )
 
+var cardThemeSize = image.Rect(0, 0, 964, 320)
+
 func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
-	imageSize := image.Rect(0, 0, 964, 320)
+	imageSize := cardThemeSize
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 900, 256)
 
@@ -99,4 +101,5 @@ func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp *Gene
 
 func init() {
 	registerThemeFunc(welcomer.ImageThemeCard, CreateBadgeImage)
+	registerThemeSize(welcomer.ImageThemeCard, cardThemeSize)
 }

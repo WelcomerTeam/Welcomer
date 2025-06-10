@@ -7,13 +7,14 @@
 package welcomer
 
 import (
+	"errors"
 	"fmt"
 )
 
 const (
 	// BackgroundTypeDefault is a BackgroundType of type Default.
 	BackgroundTypeDefault BackgroundType = iota
-	// BackgroundTypeWelcomer is a BackgroundType of type
+	// BackgroundTypeWelcomer is a BackgroundType of type Welcomer.
 	BackgroundTypeWelcomer
 	// BackgroundTypeSolid is a BackgroundType of type Solid.
 	BackgroundTypeSolid
@@ -23,9 +24,13 @@ const (
 	BackgroundTypeUnsplash
 	// BackgroundTypeUrl is a BackgroundType of type Url.
 	BackgroundTypeUrl
+	// BackgroundTypeStripes is a BackgroundType of type Stripes.
+	BackgroundTypeStripes
 )
 
-const _BackgroundTypeName = "defaultwelcomersolidsolidProfileunsplashurl"
+var ErrInvalidBackgroundType = errors.New("not a valid BackgroundType")
+
+const _BackgroundTypeName = "defaultwelcomersolidsolidProfileunsplashurlstripes"
 
 var _BackgroundTypeMap = map[BackgroundType]string{
 	BackgroundTypeDefault:      _BackgroundTypeName[0:7],
@@ -34,6 +39,7 @@ var _BackgroundTypeMap = map[BackgroundType]string{
 	BackgroundTypeSolidProfile: _BackgroundTypeName[20:32],
 	BackgroundTypeUnsplash:     _BackgroundTypeName[32:40],
 	BackgroundTypeUrl:          _BackgroundTypeName[40:43],
+	BackgroundTypeStripes:      _BackgroundTypeName[43:50],
 }
 
 // String implements the Stringer interface.
@@ -44,6 +50,13 @@ func (x BackgroundType) String() string {
 	return fmt.Sprintf("BackgroundType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x BackgroundType) IsValid() bool {
+	_, ok := _BackgroundTypeMap[x]
+	return ok
+}
+
 var _BackgroundTypeValue = map[string]BackgroundType{
 	_BackgroundTypeName[0:7]:   BackgroundTypeDefault,
 	_BackgroundTypeName[7:15]:  BackgroundTypeWelcomer,
@@ -51,6 +64,7 @@ var _BackgroundTypeValue = map[string]BackgroundType{
 	_BackgroundTypeName[20:32]: BackgroundTypeSolidProfile,
 	_BackgroundTypeName[32:40]: BackgroundTypeUnsplash,
 	_BackgroundTypeName[40:43]: BackgroundTypeUrl,
+	_BackgroundTypeName[43:50]: BackgroundTypeStripes,
 }
 
 // ParseBackgroundType attempts to convert a string to a BackgroundType.
@@ -58,7 +72,7 @@ func ParseBackgroundType(name string) (BackgroundType, error) {
 	if x, ok := _BackgroundTypeValue[name]; ok {
 		return x, nil
 	}
-	return BackgroundType(0), fmt.Errorf("%s is not a valid BackgroundType", name)
+	return BackgroundType(0), fmt.Errorf("%s is %w", name, ErrInvalidBackgroundType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -98,6 +112,8 @@ const (
 	ImageAlignmentBottomRight
 )
 
+var ErrInvalidImageAlignment = errors.New("not a valid ImageAlignment")
+
 const _ImageAlignmentName = "leftcenterrighttopLefttopCentertopRightbottomLeftbottomCenterbottomRight"
 
 var _ImageAlignmentMap = map[ImageAlignment]string{
@@ -120,6 +136,13 @@ func (x ImageAlignment) String() string {
 	return fmt.Sprintf("ImageAlignment(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ImageAlignment) IsValid() bool {
+	_, ok := _ImageAlignmentMap[x]
+	return ok
+}
+
 var _ImageAlignmentValue = map[string]ImageAlignment{
 	_ImageAlignmentName[0:4]:   ImageAlignmentLeft,
 	_ImageAlignmentName[4:10]:  ImageAlignmentCenter,
@@ -137,7 +160,7 @@ func ParseImageAlignment(name string) (ImageAlignment, error) {
 	if x, ok := _ImageAlignmentValue[name]; ok {
 		return x, nil
 	}
-	return ImageAlignment(0), fmt.Errorf("%s is not a valid ImageAlignment", name)
+	return ImageAlignment(0), fmt.Errorf("%s is %w", name, ErrInvalidImageAlignment)
 }
 
 // MarshalText implements the text marshaller method.
@@ -169,6 +192,8 @@ const (
 	ImageFileTypeImageWebp
 )
 
+var ErrInvalidImageFileType = errors.New("not a valid ImageFileType")
+
 const _ImageFileTypeName = "unknownimage/pngimage/jpegimage/gifimage/webp"
 
 var _ImageFileTypeMap = map[ImageFileType]string{
@@ -187,6 +212,13 @@ func (x ImageFileType) String() string {
 	return fmt.Sprintf("ImageFileType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ImageFileType) IsValid() bool {
+	_, ok := _ImageFileTypeMap[x]
+	return ok
+}
+
 var _ImageFileTypeValue = map[string]ImageFileType{
 	_ImageFileTypeName[0:7]:   ImageFileTypeUnknown,
 	_ImageFileTypeName[7:16]:  ImageFileTypeImagePng,
@@ -200,7 +232,7 @@ func ParseImageFileType(name string) (ImageFileType, error) {
 	if x, ok := _ImageFileTypeValue[name]; ok {
 		return x, nil
 	}
-	return ImageFileType(0), fmt.Errorf("%s is not a valid ImageFileType", name)
+	return ImageFileType(0), fmt.Errorf("%s is %w", name, ErrInvalidImageFileType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -230,6 +262,8 @@ const (
 	ImageProfileBorderTypeHexagonal
 )
 
+var ErrInvalidImageProfileBorderType = errors.New("not a valid ImageProfileBorderType")
+
 const _ImageProfileBorderTypeName = "circularroundedsquaredhexagonal"
 
 var _ImageProfileBorderTypeMap = map[ImageProfileBorderType]string{
@@ -247,6 +281,13 @@ func (x ImageProfileBorderType) String() string {
 	return fmt.Sprintf("ImageProfileBorderType(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ImageProfileBorderType) IsValid() bool {
+	_, ok := _ImageProfileBorderTypeMap[x]
+	return ok
+}
+
 var _ImageProfileBorderTypeValue = map[string]ImageProfileBorderType{
 	_ImageProfileBorderTypeName[0:8]:   ImageProfileBorderTypeCircular,
 	_ImageProfileBorderTypeName[8:15]:  ImageProfileBorderTypeRounded,
@@ -259,7 +300,7 @@ func ParseImageProfileBorderType(name string) (ImageProfileBorderType, error) {
 	if x, ok := _ImageProfileBorderTypeValue[name]; ok {
 		return x, nil
 	}
-	return ImageProfileBorderType(0), fmt.Errorf("%s is not a valid ImageProfileBorderType", name)
+	return ImageProfileBorderType(0), fmt.Errorf("%s is %w", name, ErrInvalidImageProfileBorderType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -287,6 +328,8 @@ const (
 	ImageThemeCard
 )
 
+var ErrInvalidImageTheme = errors.New("not a valid ImageTheme")
+
 const _ImageThemeName = "defaultverticalcard"
 
 var _ImageThemeMap = map[ImageTheme]string{
@@ -303,6 +346,13 @@ func (x ImageTheme) String() string {
 	return fmt.Sprintf("ImageTheme(%d)", x)
 }
 
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ImageTheme) IsValid() bool {
+	_, ok := _ImageThemeMap[x]
+	return ok
+}
+
 var _ImageThemeValue = map[string]ImageTheme{
 	_ImageThemeName[0:7]:   ImageThemeDefault,
 	_ImageThemeName[7:15]:  ImageThemeVertical,
@@ -314,7 +364,7 @@ func ParseImageTheme(name string) (ImageTheme, error) {
 	if x, ok := _ImageThemeValue[name]; ok {
 		return x, nil
 	}
-	return ImageTheme(0), fmt.Errorf("%s is not a valid ImageTheme", name)
+	return ImageTheme(0), fmt.Errorf("%s is %w", name, ErrInvalidImageTheme)
 }
 
 // MarshalText implements the text marshaller method.

@@ -1,1 +1,1 @@
-go generate service/service.go && go run cmd/main.go --debug
+go run cmd/main.go --debug

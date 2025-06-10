@@ -72,6 +72,11 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 		theme = themes[welcomer.ImageThemeDefault]
 	}
 
+	themeSize, ok := themeSizes[imageOptions.Theme]
+	if !ok {
+		themeSize = themeSizes[welcomer.ImageThemeDefault]
+	}
+
 	timing := welcomer.NewTiming()
 
 	var avatar image.Image
@@ -91,7 +96,7 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 	timing.Track("fetchAvatar")
 
-	background, err := is.FetchBackground(imageOptions.Background, imageOptions.AllowAnimated, avatar)
+	background, err := is.FetchBackground(imageOptions.Background, imageOptions.AllowAnimated, avatar, themeSize)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
 
