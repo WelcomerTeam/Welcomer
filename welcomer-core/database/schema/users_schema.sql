@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at timestamp NOT NULL,
     name text NOT NULL,
     discriminator text NOT NULL,
-    avatar_hash text NOT NULL
+    avatar_hash text NOT NULL,
+    background text NOT NULL
 );
 

@@ -6,6 +6,9 @@ import (
 	"image"
 	"image/color"
 	"image/gif"
+	"math"
+	"strconv"
+	"strings"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gofrs/uuid"
@@ -15,7 +18,7 @@ const (
 	SolidProfileLuminance = 0.7
 )
 
-func (is *ImageService) FetchBackground(background string, allowAnimated bool, avatar image.Image) (FullImage, error) {
+func (is *ImageService) FetchBackground(background string, allowAnimated bool, avatar image.Image, themeSize image.Rectangle) (FullImage, error) {
 	backgroundType, _ := welcomer.ParseBackground(background)
 
 	switch backgroundType.Type {
@@ -29,6 +32,8 @@ func (is *ImageService) FetchBackground(background string, allowAnimated bool, a
 		return is.FetchBackgroundUnsplash(backgroundType.Value)
 	case welcomer.BackgroundTypeUrl:
 		return is.FetchBackgroundURL(backgroundType.Value, allowAnimated)
+	case welcomer.BackgroundTypeStripes:
+		return is.FetchBackgroundStripes(backgroundType.Value, themeSize)
 	default:
 		return is.FetchBackgroundDefault(backgroundType.Value)
 	}
@@ -196,6 +201,69 @@ func (is *ImageService) FetchBackgroundURL(value string, allowAnimated bool) (Fu
 	// fetch from url.
 
 	return FullImage{}, ErrNotImplemented
+}
+
+// FetchBackgroundStripes generates a striped background image based on the provided value.
+// The format expects to be started with "v:" for vertical stripes or "h:" for horizontal stripes.
+// Then is followed by a comma-separated list of colors.
+func (is *ImageService) FetchBackgroundStripes(value string, themeSize image.Rectangle) (FullImage, error) {
+	isVertical := strings.HasPrefix(value, "v:")
+	value = strings.TrimPrefix(value, "v:")
+	value = strings.TrimPrefix(value, "h:")
+
+	coloursString := strings.Split(value, ",")
+	colours := make([]color.Color, 0, len(coloursString))
+
+	for _, colour := range coloursString {
+		value, err := strconv.ParseInt(colour, 16, 64)
+		if err != nil {
+			continue
+		}
+
+		colours = append(colours, color.RGBA{
+			R: uint8((value >> 16) & 0xFF),
+			G: uint8((value >> 8) & 0xFF),
+			B: uint8(value & 0xFF),
+			A: 0xFF,
+		})
+	}
+
+	return FullImage{
+		Format: welcomer.ImageFileTypeImagePng,
+		Frames: []image.Image{makeFlag(colours, themeSize, isVertical)},
+		Config: image.Config{
+			Width:  themeSize.Dx(),
+			Height: themeSize.Dy(),
+		},
+	}, nil
+}
+
+func makeFlag(colours []color.Color, size image.Rectangle, isVertical bool) image.Image {
+	im := image.NewRGBA(size)
+
+	if isVertical {
+		for y := 0; y < size.Dy(); y++ {
+			index := int(math.Min(
+				float64(len(colours)-1),
+				float64(y)*float64(len(colours))/float64(size.Dy()),
+			))
+			for x := 0; x < size.Dx(); x++ {
+				im.Set(x, y, colours[index])
+			}
+		}
+	} else {
+		for y := 0; y < size.Dy(); y++ {
+			for x := 0; x < size.Dx(); x++ {
+				index := int(math.Min(
+					float64(len(colours)-1),
+					float64(x)*float64(len(colours))/float64(size.Dx()),
+				))
+				im.Set(x, y, colours[index])
+			}
+		}
+	}
+
+	return im
 }
 
 // openImage decodes an image from byte data based on the specified format.
