@@ -505,13 +505,23 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Str("invite_code", invite.InviteCode).
 					Msg("Received invite from buffer")
 
+				user, err := welcomer.FetchUser(eventCtx.Context, discord.Snowflake(invite.CreatedBy))
+				if err != nil {
+					welcomer.Logger.Warn().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to fetch user from database for invite")
+
+					user = &discord.User{
+						ID: discord.Snowflake(invite.CreatedBy),
+					}
+				}
+
 				usedInvite = &discord.Invite{
 					CreatedAt: invite.CreatedAt,
-					Inviter: &discord.User{
-						ID: discord.Snowflake(invite.CreatedBy),
-					},
-					Code: invite.InviteCode,
-					Uses: int32(invite.Uses),
+					Inviter:   user,
+					Code:      invite.InviteCode,
+					Uses:      int32(invite.Uses),
 				}
 			}
 		}
@@ -545,13 +555,23 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Int64("user_id", int64(event.Member.User.ID)).
 					Msg("Received invite from database")
 
+				user, err := welcomer.FetchUser(eventCtx.Context, discord.Snowflake(recentEvent.CreatedBy.Int64))
+				if err != nil {
+					welcomer.Logger.Warn().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to fetch user from database for invite")
+
+					user = &discord.User{
+						ID: discord.Snowflake(recentEvent.CreatedBy.Int64),
+					}
+				}
+
 				usedInvite = &discord.Invite{
 					CreatedAt: recentEvent.CreatedAt_2.Time,
-					Inviter: &discord.User{
-						ID: discord.Snowflake(recentEvent.CreatedBy.Int64),
-					},
-					Code: recentEvent.InviteCode.String,
-					Uses: int32(recentEvent.Uses.Int64),
+					Inviter:   user,
+					Code:      recentEvent.InviteCode.String,
+					Uses:      int32(recentEvent.Uses.Int64),
 				}
 				// TODO: store more invite data or fetch from DC
 			}
