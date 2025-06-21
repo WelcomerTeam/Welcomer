@@ -14,6 +14,7 @@ import (
 	"time"
 
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
+	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/prometheus/client_golang/prometheus"
@@ -32,7 +33,6 @@ func main() {
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
 	prometheusHost := flag.String("prometheusHost", os.Getenv("PROMETHEUS_HOST"), "Prometheus host")
 	grpcHost := flag.String("grpcHost", os.Getenv("GRPC_HOST"), "GRPC host")
-	configurationLocation := flag.String("configurationLocation", os.Getenv("CONFIGURATION_LOCATION"), "Configuration file location")
 	proxyHost := flag.String("proxyHost", os.Getenv("PROXY_HOST"), "Proxy host")
 
 	flag.Parse()
@@ -67,7 +67,7 @@ func main() {
 
 	sandwich := sandwich_daemon.NewSandwich(
 		logger,
-		sandwich_daemon.NewConfigProviderFromPath(*configurationLocation),
+		welcomer.GatherConfiguration(),
 		NewProxyClient(*http.DefaultClient, *proxyURL),
 		sandwich_daemon.NewEventProviderWithBlacklist(sandwich_daemon.NewBuiltinDispatchProvider(true)),
 		sandwich_daemon.NewIdentifyViaBuckets(),
