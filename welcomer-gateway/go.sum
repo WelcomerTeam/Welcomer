@@ -8,8 +8,8 @@ github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20250526181512-3510f834ce1c h1:45GmGepyhP7yigy4BqRBHJQf2jOHHdbF9bTnvST7OBM=
 github.com/WelcomerTeam/Sandwich v0.0.0-20250526181512-3510f834ce1c/go.mod h1:6Q3mG52q7xq3ToHHNAutU+iqghkbRn7fDgbr2a4LUjI=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526181236-2da744537022 h1:jkl+xH1JQa2IOueuty1Wd1y5QGeSsnf1S1cTy5/TinA=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526181236-2da744537022/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1 h1:LBvzwmU/bl8GAr62RcblzCCZBVY3HrBi+5tPNbggjbs=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Subway v0.0.0-20250525081542-86e0d3930f44 h1:WbFmaRgpW3vUS5xnXi3qb5OTwb3EbqCW6btGCLY0bJg=
 github.com/WelcomerTeam/Subway v0.0.0-20250525081542-86e0d3930f44/go.mod h1:+ebCkOsYYc3o0YA0aDSBA+nZvxB7LeScQA5JoZ+yuLM=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 h1:WV4Ok6b0/kgczuLAgGTNtLVOB5JIqdfzJzgOpdlDM8Q=
@@ -302,8 +302,8 @@ golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 h1:cJfm9zPbe1e873mHJzmQ1nwVEeRDU/T1wXDK2kUSU34=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a h1:v2PbRU4K3llS09c7zodFpNePeamkAwG3mPrAery9VeE=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/grpc v1.72.2 h1:TdbGzwb82ty4OusHWepvFWGLgIbNo1/SUynEN0ssqv8=
 google.golang.org/grpc v1.72.2/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
 google.golang.org/protobuf v1.36.6 h1:z1NpPI8ku2WgiWnf+t9wTPsn6eP1L7ksHUlkfLvd9xY=
