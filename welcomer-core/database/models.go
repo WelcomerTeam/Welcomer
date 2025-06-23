@@ -30,6 +30,17 @@ type BorderwallRequests struct {
 	UaOsVersion     sql.NullString  `json:"ua_os_version"`
 }
 
+type CustomBots struct {
+	CustomBotUuid     uuid.UUID `json:"custom_bot_uuid"`
+	GuildID           int64     `json:"guild_id"`
+	Token             string    `json:"token"`
+	CreatedAt         time.Time `json:"created_at"`
+	IsActive          bool      `json:"is_active"`
+	ApplicationID     int64     `json:"application_id"`
+	ApplicationName   string    `json:"application_name"`
+	ApplicationAvatar string    `json:"application_avatar"`
+}
+
 type DiscordSubscriptions struct {
 	SubscriptionID  string        `json:"subscription_id"`
 	CreatedAt       time.Time     `json:"created_at"`
