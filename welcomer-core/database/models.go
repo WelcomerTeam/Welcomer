@@ -146,6 +146,13 @@ type Guilds struct {
 	SiteAllowInvites bool   `json:"site_allow_invites"`
 }
 
+type InteractionCommands struct {
+	ApplicationID int64     `json:"application_id"`
+	Command       string    `json:"command"`
+	InteractionID int64     `json:"interaction_id"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
 type PatreonUsers struct {
 	PatreonUserID    int64     `json:"patreon_user_id"`
 	CreatedAt        time.Time `json:"created_at"`

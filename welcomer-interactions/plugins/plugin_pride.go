@@ -293,7 +293,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 				Background:         newBackground,
 				TextColor:          0xFFFFFFFF,
 				ProfileBorderColor: 0xFFFFFFFF,
-				GuildID:            int64(*interaction.GuildID),
+				GuildID:            0,
 				ImageBorderColor:   0xFFFFFFFF,
 				Theme:              int32(welcomer.ImageThemeDefault),
 				ImageBorderWidth:   16,

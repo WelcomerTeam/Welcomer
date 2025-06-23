@@ -7,7 +7,7 @@ toolchain go1.23.1
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea
 	github.com/WelcomerTeam/Sandwich v0.0.0-20250526181512-3510f834ce1c
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526181236-2da744537022
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
@@ -56,11 +56,6 @@ require (
 	github.com/prometheus/common v0.64.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect

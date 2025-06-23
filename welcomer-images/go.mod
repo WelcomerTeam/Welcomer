@@ -18,15 +18,15 @@ require (
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287
 	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
 	golang.org/x/image v0.26.0
-	google.golang.org/grpc v1.72.1
+	google.golang.org/grpc v1.72.2
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250525094129-26ea756376cb // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250525131813-98bbacb25e8a // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250526181512-3510f834ce1c // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1 // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20250525081542-86e0d3930f44 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -76,7 +76,7 @@ require (
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
 	CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
 	CreateBorderwallRequest(ctx context.Context, arg CreateBorderwallRequestParams) (*BorderwallRequests, error)
@@ -21,6 +22,7 @@ type Querier interface {
 	CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error)
 	CreateGuildInvites(ctx context.Context, arg CreateGuildInvitesParams) (*GuildInvites, error)
 	CreateLeaverGuildSettings(ctx context.Context, arg CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error)
+	CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error)
 	CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error)
 	CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error)
 	CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
@@ -71,6 +73,7 @@ type Querier interface {
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
+	GetInteractionCommand(ctx context.Context, arg GetInteractionCommandParams) (*InteractionCommands, error)
 	GetLeaverGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsLeaver, error)
 	GetPatreonUser(ctx context.Context, patreonUserID int64) (*PatreonUsers, error)
 	GetPatreonUsers(ctx context.Context) ([]*PatreonUsers, error)

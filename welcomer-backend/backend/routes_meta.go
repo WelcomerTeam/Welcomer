@@ -2,6 +2,7 @@ package backend
 
 import (
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -80,6 +81,10 @@ func getStatus(ctx *gin.Context) {
 				Uptime:  int(time.Since(time.Unix(shard.GetStartedAt(), 0)).Seconds()),
 			})
 		}
+
+		slices.SortFunc(newShards, func(a, b GetStatusResponseShard) int {
+			return a.ShardID - b.ShardID
+		})
 
 		newApplications = append(newApplications, GetStatusResponseManager{
 			Name:   application.GetDisplayName(),
