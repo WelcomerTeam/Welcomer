@@ -9,6 +9,41 @@ import (
 	"context"
 )
 
+// iteratorForCreateManyInteractionCommands implements pgx.CopyFromSource.
+type iteratorForCreateManyInteractionCommands struct {
+	rows                 []CreateManyInteractionCommandsParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForCreateManyInteractionCommands) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForCreateManyInteractionCommands) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].ApplicationID,
+		r.rows[0].Command,
+		r.rows[0].InteractionID,
+		r.rows[0].CreatedAt,
+	}, nil
+}
+
+func (r iteratorForCreateManyInteractionCommands) Err() error {
+	return nil
+}
+
+func (q *Queries) CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"interaction_commands"}, []string{"application_id", "command", "interaction_id", "created_at"}, &iteratorForCreateManyInteractionCommands{rows: arg})
+}
+
 // iteratorForCreateManyScienceGuildEvents implements pgx.CopyFromSource.
 type iteratorForCreateManyScienceGuildEvents struct {
 	rows                 []CreateManyScienceGuildEventsParams
