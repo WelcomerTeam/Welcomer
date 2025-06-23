@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS interaction_commands (
     created_at timestamp NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS interaction_commands_unique ON bot_interaction_commands (application_id, command, interaction_id);
+CREATE UNIQUE INDEX IF NOT EXISTS interaction_commands_unique ON interaction_commands (application_id, command, interaction_id);
