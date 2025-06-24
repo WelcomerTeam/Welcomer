@@ -51,6 +51,9 @@ func GetManagerNameFromContext(ctx context.Context) string {
 	}
 
 	manager, _ = ctx.Value(ManagerNameContextKey).(string)
+	if manager != "" {
+		return manager
+	}
 
 	return DefaultManagerName
 }
