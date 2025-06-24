@@ -4,21 +4,19 @@ VALUES ($1, $2, $3, now(), $4, $5, $6, $7)
 RETURNING
     *;
 
--- name: GetCustomBotByGuildId :one
+-- name: GetCustomBotsByGuildId :many
 SELECT
-    *
+    custom_bot_uuid,
+    guild_id,
+    created_at,
+    is_active,
+    application_id,
+    application_name,
+    application_avatar
 FROM
     custom_bots
 WHERE
     guild_id = $1;
-
--- name: GetCustomBotByApplicationId :one
-SELECT
-    *
-FROM
-    custom_bots
-WHERE
-    application_id = $1;
 
 -- name: UpdateCustomBotToken :one
 UPDATE
@@ -38,9 +36,10 @@ RETURNING
 UPDATE
     custom_bots
 SET
-    application_id = $2,
-    application_name = $3,
-    application_avatar = $4
+    is_active = $2,
+    application_id = $3,
+    application_name = $4,
+    application_avatar = $5
 WHERE
     custom_bot_uuid = $1
 RETURNING
@@ -51,3 +50,21 @@ DELETE FROM
     custom_bots
 WHERE
     custom_bot_uuid = $1;
+
+-- name: GetCustomBotByIdWithToken :one
+SELECT
+    *
+FROM
+    custom_bots
+WHERE
+    custom_bot_uuid = $1;
+
+-- name: GetAllCustomBotsWithToken :many
+SELECT
+    *
+FROM
+    custom_bots
+WHERE
+    is_active = true
+    AND token IS NOT NULL
+    AND token != '';

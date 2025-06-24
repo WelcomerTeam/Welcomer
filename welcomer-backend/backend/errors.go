@@ -102,3 +102,9 @@ var (
 	ErrWebhookValidationFailed    = NewErrorWithCode(13009, "failed to validate webhook message")
 	ErrCannotTransferMembership   = NewErrorWithCode(13010, "cannot transfer membership")
 )
+
+// Custom bot errors.
+var (
+	ErrInvalidToken          = NewErrorWithCode(13100, "invalid token")
+	ErrCustomBotLimitReached = NewErrorWithCode(13101, "custom bot limit reached")
+)
