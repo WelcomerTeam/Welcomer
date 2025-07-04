@@ -36,6 +36,7 @@ var (
 	ErrWelcomerMissing      = NewErrorWithCode(10005, "bot is missing from server")
 	ErrEnsureFailure        = NewErrorWithCode(10006, "failed to ensure guild")
 	ErrOAuthFailure         = NewErrorWithCode(10007, "issue checking oauth2 token")
+	ErrInvalidPermissions   = NewErrorWithCode(10008, "invalid permissions for this endpoint")
 )
 
 func NewMissingParameterError(parameter string) error {
