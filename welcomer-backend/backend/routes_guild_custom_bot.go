@@ -18,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-var regexDiscordToken = regexp.MustCompile(`^[A-Za-z0-9\-_]{24}\.[A-Za-z0-9\-_]{6}\.[A-Za-z0-9\-_]{27}$`)
+var regexDiscordToken = regexp.MustCompile(`^[A-Za-z0-9_\-]{24,28}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,38}$`)
 
 func isValidDiscordToken(token string) bool {
 	return regexDiscordToken.MatchString(token)
@@ -63,7 +63,7 @@ func getGuildCustomBots(ctx *gin.Context) {
 				return
 			}
 
-			var bots []GuildCustomBot
+			bots := make([]GuildCustomBot, 0)
 
 			applicationsPb, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{})
 			if err != nil {
@@ -131,8 +131,8 @@ func postGuildCustomBot(ctx *gin.Context) {
 				return
 			}
 
-			if !isValidDiscordToken(payload.Token) {
-				welcomer.Logger.Warn().Str("token", payload.Token).Msg("Invalid Discord token format")
+			if payload.Token != "" && !isValidDiscordToken(payload.Token) {
+				welcomer.Logger.Warn().Msg("Invalid Discord token format")
 
 				ctx.JSON(http.StatusBadRequest, NewInvalidParameterError("token"))
 
@@ -187,8 +187,10 @@ func postGuildCustomBot(ctx *gin.Context) {
 					return
 				}
 
+				customBotUUID = uuid.Must(gen.NewV7())
+
 				_, err = welcomer.Queries.CreateCustomBot(ctx, database.CreateCustomBotParams{
-					CustomBotUuid:     uuid.Must(gen.NewV7()),
+					CustomBotUuid:     customBotUUID,
 					GuildID:           int64(guildID),
 					Token:             encryptedToken,
 					IsActive:          true,
@@ -205,8 +207,11 @@ func postGuildCustomBot(ctx *gin.Context) {
 				}
 			}
 
+			// TODO: tell integrations to pull new public keys
+
 			_, err = welcomer.Queries.UpdateCustomBotToken(ctx, database.UpdateCustomBotTokenParams{
 				CustomBotUuid:     customBotUUID,
+				PublicKey:         payload.PublicKey,
 				Token:             encryptedToken,
 				IsActive:          true,
 				ApplicationID:     int64(currentUser.ID),
@@ -333,8 +338,9 @@ func postGuildCustomBotStop(ctx *gin.Context) {
 }
 
 func registerGuildCustomBotRoutes(g *gin.Engine) {
-	g.GET("/api/guild/:guildID/custom-bot", getGuildCustomBots)
-	g.POST("/api/guild/:guildID/custom-bot/:botID", postGuildCustomBot)
-	g.POST("/api/guild/:guildID/custom-bot/start", postGuildCustomBotStart)
-	g.POST("/api/guild/:guildID/custom-bot/stop", postGuildCustomBotStop)
+	g.GET("/api/guild/:guildID/custom-bots", getGuildCustomBots)
+	g.POST("/api/guild/:guildID/custom-bots/", postGuildCustomBot)
+	g.POST("/api/guild/:guildID/custom-bots/:botID", postGuildCustomBot)
+	g.POST("/api/guild/:guildID/custom-bots/start", postGuildCustomBotStart)
+	g.POST("/api/guild/:guildID/custom-bots/stop", postGuildCustomBotStop)
 }

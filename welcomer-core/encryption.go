@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/gofrs/uuid"
@@ -40,7 +41,7 @@ func LoadRSAKey(keyType KeyType) (interface{}, error) {
 
 	pemData, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read %s key file: %w", keyType, err)
 	}
 
 	block, _ := pem.Decode(pemData)
@@ -56,7 +57,7 @@ func LoadRSAKey(keyType KeyType) (interface{}, error) {
 
 		pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse public key: %w", err)
 		}
 
 		rsaPubKey, ok := pubKey.(*rsa.PublicKey)
@@ -73,7 +74,7 @@ func LoadRSAKey(keyType KeyType) (interface{}, error) {
 
 		privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse private key: %w", err)
 		}
 
 		return privKey, nil
@@ -89,7 +90,7 @@ func EncryptBotToken(token string, botID uuid.UUID) (string, error) {
 
 	key, err := LoadRSAKey(PublicKey)
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to load public key: " + err.Error())
 	}
 
 	pubKey, ok := key.(*rsa.PublicKey)
@@ -99,7 +100,7 @@ func EncryptBotToken(token string, botID uuid.UUID) (string, error) {
 
 	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey, []byte(token))
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to encrypt token: " + err.Error())
 	}
 
 	return base64.StdEncoding.EncodeToString(cipherText), nil
@@ -122,12 +123,12 @@ func DecryptBotToken(encryptedToken string, botID uuid.UUID) (string, error) {
 
 	cipherBytes, err := base64.StdEncoding.DecodeString(encryptedToken)
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to decode base64 string: " + err.Error())
 	}
 
 	plainText, err := rsa.DecryptPKCS1v15(rand.Reader, privKey, cipherBytes)
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to decrypt token: " + err.Error())
 	}
 
 	return string(plainText), nil

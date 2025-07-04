@@ -33,6 +33,7 @@ type BorderwallRequests struct {
 type CustomBots struct {
 	CustomBotUuid     uuid.UUID `json:"custom_bot_uuid"`
 	GuildID           int64     `json:"guild_id"`
+	PublicKey         string    `json:"public_key"`
 	Token             string    `json:"token"`
 	CreatedAt         time.Time `json:"created_at"`
 	IsActive          bool      `json:"is_active"`

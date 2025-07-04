@@ -18,5 +18,6 @@ type GuildCustomBot struct {
 }
 
 type GuildCustomBotPayload struct {
-	Token string `json:"token"`
+	Token     string `json:"token"`
+	PublicKey string `json:"public_key,omitempty"`
 }

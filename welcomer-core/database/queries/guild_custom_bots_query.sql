@@ -1,6 +1,6 @@
 -- name: CreateCustomBot :one
-INSERT INTO custom_bots (custom_bot_uuid, guild_id, token, created_at, is_active, application_id, application_name, application_avatar)
-VALUES ($1, $2, $3, now(), $4, $5, $6, $7)
+INSERT INTO custom_bots (custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar)
+VALUES ($1, $2, $3, $4, now(), $5, $6, $7, $8)
 RETURNING
     *;
 
@@ -8,6 +8,7 @@ RETURNING
 SELECT
     custom_bot_uuid,
     guild_id,
+    public_key,
     created_at,
     is_active,
     application_id,
@@ -22,24 +23,26 @@ WHERE
 UPDATE
     custom_bots
 SET
-    token = $2,
-    is_active = $3,
-    application_id = $4,
-    application_name = $5,
-    application_avatar = $6
+    public_key = $2,
+    token = $3,
+    is_active = $4,
+    application_id = $5,
+    application_name = $6,
+    application_avatar = $7
 WHERE
     custom_bot_uuid = $1
 RETURNING
     *;
 
--- name: UpdateCustomBotApplication :one
+-- name: UpdateCustomBot :one
 UPDATE
     custom_bots
 SET
-    is_active = $2,
-    application_id = $3,
-    application_name = $4,
-    application_avatar = $5
+    public_key = $2,
+    is_active = $3,
+    application_id = $4,
+    application_name = $5,
+    application_avatar = $6
 WHERE
     custom_bot_uuid = $1
 RETURNING
