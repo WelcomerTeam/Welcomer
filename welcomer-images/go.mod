@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20250522224859-48581d6270ea
+	github.com/WelcomerTeam/Discord v0.0.0-20250703103132-438d228c84e3
 	github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/disintegration/imaging v1.6.2
@@ -18,15 +18,15 @@ require (
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287
 	github.com/ultimate-guitar/go-imagequant v0.0.0-20201216103743-29e607cca148
 	golang.org/x/image v0.26.0
-	google.golang.org/grpc v1.72.2
+	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250526181512-3510f834ce1c // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250531083823-9b5f5ab350e1 // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250703105228-b78fd6d6c544 // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20250525081542-86e0d3930f44 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -66,17 +66,17 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/plutov/paypal/v4 v4.12.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.64.0 // indirect
-	github.com/prometheus/procfs v0.16.1 // indirect
+	github.com/prometheus/common v0.65.0 // indirect
+	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.16.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
+	golang.org/x/text v0.26.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
