@@ -19,6 +19,22 @@ FROM
 WHERE
     guild_id = $1;
 
+-- name: GetCustomBotById :one
+SELECT
+    custom_bot_uuid,
+    guild_id,
+    public_key,
+    created_at,
+    is_active,
+    application_id,
+    application_name,
+    application_avatar
+FROM
+    custom_bots
+WHERE
+    custom_bot_uuid = $1
+    AND guild_id = $2;
+
 -- name: UpdateCustomBotToken :one
 UPDATE
     custom_bots
@@ -60,7 +76,8 @@ SELECT
 FROM
     custom_bots
 WHERE
-    custom_bot_uuid = $1;
+    custom_bot_uuid = $1
+    AND guild_id = $2;
 
 -- name: GetAllCustomBotsWithToken :many
 SELECT

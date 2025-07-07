@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -15,20 +16,38 @@ func GetCustomBotKey(v uuid.UUID) string {
 	return "custom_bot_" + v.String()
 }
 
-func GetCustomBotConfiguration(customBotUUID uuid.UUID, botToken string) sandwich_daemon.ApplicationConfiguration {
+func GetGuildCustomBotLimit(ctx context.Context, guildID discord.Snowflake) int {
+	memberships, err := Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
+	if err != nil {
+		Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer memberships")
+
+		return 0
+	}
+
+	hasWelcomerPro, _ := CheckGuildMemberships(memberships)
+
+	if hasWelcomerPro {
+		return 1
+	}
+
+	return 0
+}
+
+func GetCustomBotConfiguration(customBotUUID uuid.UUID, botToken string, autoStart bool, guildID discord.Snowflake) sandwich_daemon.ApplicationConfiguration {
 	return sandwich_daemon.ApplicationConfiguration{
 		ApplicationIdentifier: GetCustomBotKey(customBotUUID),
 		ProducerIdentifier:    "welcomer",
 		DisplayName:           fmt.Sprintf("Custom Bot %s", customBotUUID.String()),
 		ClientName:            GetCustomBotKey(customBotUUID),
 		BotToken:              botToken,
-		AutoStart:             true,
+		AutoStart:             autoStart,
 		Intents:               32511,
 		AutoSharded:           true,
 		Values: map[string]any{
 			"public":     false,
 			"custom_bot": true,
 			"bot_uuid":   customBotUUID,
+			"guild_id":   guildID,
 		},
 
 		IncludeRandomSuffix: false,
@@ -41,7 +60,7 @@ func GetCustomBotConfiguration(customBotUUID uuid.UUID, botToken string) sandwic
 	}
 }
 
-func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken string, blocking bool) error {
+func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken string, guildID discord.Snowflake, blocking bool) error {
 	identifier := GetCustomBotKey(customBotUUID)
 
 	applications, err := SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
@@ -51,7 +70,7 @@ func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken strin
 	application, ok := applications.GetApplications()[identifier]
 
 	if err != nil || !ok || application.GetBotToken() != botToken {
-		configuration := GetCustomBotConfiguration(customBotUUID, botToken)
+		configuration := GetCustomBotConfiguration(customBotUUID, botToken, true, guildID)
 
 		values, err := json.Marshal(configuration.Values)
 		if err != nil {
@@ -77,11 +96,11 @@ func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken strin
 		Blocking:              blocking,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to start custom bot: %w", err)
+		return fmt.Errorf("failed to start custom bot %s: %w", identifier, err)
 	}
 
 	if !resp.GetOk() {
-		return fmt.Errorf("failed to start custom bot: %s", resp.GetError())
+		return fmt.Errorf("failed to start custom bot %s: %s", identifier, resp.GetError())
 	}
 
 	return nil

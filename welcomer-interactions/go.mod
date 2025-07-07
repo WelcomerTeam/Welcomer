@@ -8,7 +8,7 @@ require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250703103132-438d228c84e3
 	github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250703105228-b78fd6d6c544
-	github.com/WelcomerTeam/Subway v0.0.0-20250525081542-86e0d3930f44
+	github.com/WelcomerTeam/Subway v0.0.0-20250705101815-ec1eeca1e3c2
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgtype v1.14.4

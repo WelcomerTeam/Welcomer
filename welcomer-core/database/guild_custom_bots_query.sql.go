@@ -112,6 +112,55 @@ func (q *Queries) GetAllCustomBotsWithToken(ctx context.Context) ([]*CustomBots,
 	return items, nil
 }
 
+const GetCustomBotById = `-- name: GetCustomBotById :one
+SELECT
+    custom_bot_uuid,
+    guild_id,
+    public_key,
+    created_at,
+    is_active,
+    application_id,
+    application_name,
+    application_avatar
+FROM
+    custom_bots
+WHERE
+    custom_bot_uuid = $1
+    AND guild_id = $2
+`
+
+type GetCustomBotByIdParams struct {
+	CustomBotUuid uuid.UUID `json:"custom_bot_uuid"`
+	GuildID       int64     `json:"guild_id"`
+}
+
+type GetCustomBotByIdRow struct {
+	CustomBotUuid     uuid.UUID `json:"custom_bot_uuid"`
+	GuildID           int64     `json:"guild_id"`
+	PublicKey         string    `json:"public_key"`
+	CreatedAt         time.Time `json:"created_at"`
+	IsActive          bool      `json:"is_active"`
+	ApplicationID     int64     `json:"application_id"`
+	ApplicationName   string    `json:"application_name"`
+	ApplicationAvatar string    `json:"application_avatar"`
+}
+
+func (q *Queries) GetCustomBotById(ctx context.Context, arg GetCustomBotByIdParams) (*GetCustomBotByIdRow, error) {
+	row := q.db.QueryRow(ctx, GetCustomBotById, arg.CustomBotUuid, arg.GuildID)
+	var i GetCustomBotByIdRow
+	err := row.Scan(
+		&i.CustomBotUuid,
+		&i.GuildID,
+		&i.PublicKey,
+		&i.CreatedAt,
+		&i.IsActive,
+		&i.ApplicationID,
+		&i.ApplicationName,
+		&i.ApplicationAvatar,
+	)
+	return &i, err
+}
+
 const GetCustomBotByIdWithToken = `-- name: GetCustomBotByIdWithToken :one
 SELECT
     custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar

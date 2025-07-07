@@ -79,10 +79,10 @@ func getStatus(ctx *gin.Context) {
 			welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal application values")
 		}
 
-		if applicationValues.IsCustomBot {
-			// Skip custom bots
-			continue
-		}
+		// if applicationValues.IsCustomBot {
+		// 	// Skip custom bots
+		// 	continue
+		// }
 
 		newShards := make([]GetStatusResponseShard, 0)
 

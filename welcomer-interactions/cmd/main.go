@@ -5,7 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
@@ -72,6 +74,27 @@ func main() {
 		PrometheusAddress: *prometheusAddress,
 	})
 
+	err = UpdatePublicKeys(ctx, *publicKeys, app)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to update public keys")
+		panic(fmt.Errorf("failed to update public keys: %w", err))
+	}
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/internal/fetch-public-keys", func(w http.ResponseWriter, _ *http.Request) {
+		err = UpdatePublicKeys(ctx, *publicKeys, app)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to update public keys")
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	if err != nil {
 		welcomer.Logger.Panic().Err(err).Msg("Exception creating app")
 	}
@@ -105,7 +128,7 @@ func main() {
 		return
 	}
 
-	if err = app.ListenAndServe("", *host); err != nil {
+	if err = app.ListenAndServe("", *host, mux); err != nil {
 		welcomer.Logger.Panic().Err(err).Msg("Exceptions whilst starting app")
 	}
 
@@ -114,4 +137,36 @@ func main() {
 	if err = welcomer.GRPCConnection.Close(); err != nil {
 		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
+}
+
+func UpdatePublicKeys(ctx context.Context, publicKeysStr string, app *subway.Subway) error {
+	publicKeys, err := FetchPublicKeys(ctx, publicKeysStr)
+	if err != nil {
+		return err
+	}
+
+	_ = app.SetPublicKeys(publicKeys, true)
+
+	return nil
+}
+
+func FetchPublicKeys(ctx context.Context, publicKeysStr string) ([]string, error) {
+	publicKeys := strings.Split(publicKeysStr, ",")
+
+	customBots, err := welcomer.Queries.GetAllCustomBotsWithToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch custom bots: %w", err)
+	}
+
+	for _, bot := range customBots {
+		if bot.PublicKey != "" {
+			if welcomer.IsValidPublicKey(bot.PublicKey) {
+				publicKeys = append(publicKeys, bot.PublicKey)
+			} else {
+				welcomer.Logger.Warn().Str("publicKey", bot.PublicKey).Msg("Invalid public key format for custom bot")
+			}
+		}
+	}
+
+	return publicKeys, nil
 }

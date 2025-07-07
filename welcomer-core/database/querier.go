@@ -70,6 +70,7 @@ type Querier interface {
 	GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddress pgtype.Inet) ([]*BorderwallRequests, error)
 	GetCommandError(ctx context.Context, commandUuid uuid.UUID) (*GetCommandErrorRow, error)
 	GetCommandUsage(ctx context.Context, commandUuid uuid.UUID) (*ScienceCommandUsages, error)
+	GetCustomBotById(ctx context.Context, arg GetCustomBotByIdParams) (*GetCustomBotByIdRow, error)
 	GetCustomBotByIdWithToken(ctx context.Context, customBotUuid uuid.UUID) (*CustomBots, error)
 	GetCustomBotsByGuildId(ctx context.Context, guildID int64) ([]*GetCustomBotsByGuildIdRow, error)
 	GetDiscordSubscriptionsByUserID(ctx context.Context, userID int64) ([]*DiscordSubscriptions, error)

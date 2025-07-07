@@ -68,13 +68,28 @@ func LoadRSAKey(keyType KeyType) (interface{}, error) {
 		return rsaPubKey, nil
 
 	case PrivateKey:
-		if block.Type != "RSA PRIVATE KEY" {
-			return nil, errors.New("expected RSA PRIVATE KEY block")
-		}
+		var privKey *rsa.PrivateKey
 
-		privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse private key: %w", err)
+		switch block.Type {
+		case "RSA PRIVATE KEY":
+			privKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse PKCS1 private key: %w", err)
+			}
+		case "PRIVATE KEY":
+			// For "PRIVATE KEY" block, we need to parse it as PKCS8
+			privKeyInterface, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse PKCS8 private key: %w", err)
+			}
+
+			var ok bool
+			privKey, ok = privKeyInterface.(*rsa.PrivateKey)
+			if !ok {
+				return nil, errors.New("not an RSA private key")
+			}
+		default:
+			return nil, fmt.Errorf("unexpected key type: %s", block.Type)
 		}
 
 		return privKey, nil
