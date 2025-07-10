@@ -161,37 +161,16 @@ export default {
   },
 
   getConfig(endpoint, callback, errorCallback) {
-    getRequest(
-      endpoint,
-      (response) => {
-        if (response.status === 401) {
-          doLogin();
-        } else if (response.status == 403) {
-          callback({ config: null });
-        } else {
-          response
-            .json()
-            .then((res) => {
-              if (res.ok) {
-                callback({ config: res.data });
-              } else {
-                errorCallback(res.error);
-              }
-            })
-            .catch((error) => {
-              errorCallback(error);
-            });
-        }
-      },
-      (error) => {
-        errorCallback(error);
-      }
-    );
+    return this.doAPICall("GET", endpoint, undefined, undefined, callback, errorCallback);
   },
 
-  setConfig(endpoint, data, files, callback, errorCallback) {
-    doRequest(
-      "POST",
+  doPost(endpoint, data, files, callback, errorCallback) {
+    return this.doAPICall("POST", endpoint, data, files, callback, errorCallback);
+  },
+
+  doAPICall(method, endpoint, data, files, callback, errorCallback) {
+    return doRequest(
+      method,
       endpoint,
       data,
       files,
@@ -253,7 +232,7 @@ export default {
       "POST",
       "/api/borderwall/" + borderwallId,
       response,
-      null, 
+      null,
       (response) => {
         if (response.status === 401) {
           doLogin();
@@ -264,15 +243,18 @@ export default {
               if (res.ok) {
                 callback(res.data);
               } else {
+                console.debug("Ok is false", res);
                 errorCallback(res.error);
               }
             })
             .catch((error) => {
+              console.debug("Caught error", error);
               errorCallback(error);
             });
         }
       },
       (error) => {
+        console.debug("doRequest error", error);
         errorCallback(error);
       }
     );
