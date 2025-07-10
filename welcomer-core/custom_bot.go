@@ -10,6 +10,7 @@ import (
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/gofrs/uuid"
+	"google.golang.org/grpc/status"
 )
 
 func GetCustomBotKey(v uuid.UUID) string {
@@ -95,6 +96,12 @@ func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken strin
 		ApplicationIdentifier: identifier,
 		Blocking:              blocking,
 	})
+
+	// TODO: Add status codes to sandwich daemon for better error handling
+	if err != nil && status.Convert(err).Message() == "application already running" {
+		return nil // Application is already running, so do not need to do anything
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to start custom bot %s: %w", identifier, err)
 	}
@@ -113,12 +120,38 @@ func StopCustomBot(ctx context.Context, customBotUUID uuid.UUID, blocking bool) 
 		ApplicationIdentifier: identifier,
 		Blocking:              blocking,
 	})
+
+	// TODO: Add status codes to sandwich daemon for better error handling
+	if err != nil && status.Convert(err).Message() == "application not found" {
+		// Application is not in sandwich daemon, so do not need to do anything
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to stop custom bot: %w", err)
 	}
 
 	if !resp.GetOk() {
 		return fmt.Errorf("failed to stop custom bot: %s", resp.GetError())
+	}
+
+	// Cleanup the application if it was stopped successfully.
+
+	resp, err = SandwichClient.DeleteApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
+		ApplicationIdentifier: identifier,
+	})
+
+	if err != nil && status.Convert(err).Message() == "application not found" {
+		// Application is not in sandwich daemon, so do not need to do anything
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to delete custom bot %s: %w", identifier, err)
+	}
+
+	if !resp.GetOk() {
+		return fmt.Errorf("failed to delete custom bot %s: %s", identifier, resp.GetError())
 	}
 
 	return nil
