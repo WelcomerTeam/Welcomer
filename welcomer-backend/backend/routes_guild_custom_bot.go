@@ -126,7 +126,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 				if !welcomer.IsValidPublicKey(payload.PublicKey) {
 					welcomer.Logger.Warn().Msg("Invalid public key format")
 
-					ctx.JSON(http.StatusBadRequest, NewInvalidParameterError("publicKey"))
+					ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("publicKey"), nil))
 
 					return
 				}
@@ -136,7 +136,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 				if !welcomer.IsValidDiscordToken(payload.Token) {
 					welcomer.Logger.Warn().Msg("Invalid Discord token format")
 
-					ctx.JSON(http.StatusBadRequest, NewInvalidParameterError("token"))
+					ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("token"), nil))
 
 					return
 				}
@@ -166,7 +166,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 			if botID != "" {
 				customBotUUID, err = uuid.FromString(botID)
 				if err != nil {
-					ctx.JSON(http.StatusBadRequest, NewInvalidParameterError("botID"))
+					ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
 
 					return
 				}
@@ -282,6 +282,69 @@ func postGuildCustomBot(ctx *gin.Context) {
 	})
 }
 
+// ROUTE DELETE /api/guild/:guildID/custom-bot/:botID
+func deleteGuildCustomBot(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			guildID := tryGetGuildID(ctx)
+
+			botID := ctx.Param("botID")
+			if botID == "" {
+				ctx.JSON(http.StatusBadRequest, NewMissingParameterError("botID"))
+
+				return
+			}
+
+			customBotUUID, err := uuid.FromString(botID)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
+
+				return
+			}
+
+			_, err = welcomer.Queries.GetCustomBotById(ctx, database.GetCustomBotByIdParams{
+				CustomBotUuid: customBotUUID,
+				GuildID:       int64(guildID),
+			})
+
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			err = welcomer.StopCustomBot(ctx, customBotUUID, true)
+			if err != nil && err.Error() != "application not found" {
+				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to stop custom bot")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			_, err = welcomer.Queries.DeleteCustomBot(ctx, customBotUUID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to delete custom bot")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			err = UpdateIntegrationPublicKeys(ctx)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Msg("Failed to update integration public keys")
+			}
+
+			ctx.JSON(http.StatusOK, BaseResponse{
+				Ok: true,
+			})
+		})
+	})
+}
+
 // Route POST /api/guild/:guildID/custom-bot/start
 func postGuildCustomBotStart(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
@@ -297,7 +360,20 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 
 			customBotUUID, err := uuid.FromString(botID)
 			if err != nil {
-				ctx.JSON(http.StatusBadRequest, NewInvalidParameterError("botID"))
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
+
+				return
+			}
+
+			_, err = welcomer.Queries.GetCustomBotById(ctx, database.GetCustomBotByIdParams{
+				CustomBotUuid: customBotUUID,
+				GuildID:       int64(guildID),
+			})
+
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -366,7 +442,20 @@ func postGuildCustomBotStop(ctx *gin.Context) {
 
 		customBotUUID, err := uuid.FromString(botID)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, NewInvalidParameterError("botID"))
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
+
+			return
+		}
+
+		_, err = welcomer.Queries.GetCustomBotById(ctx, database.GetCustomBotByIdParams{
+			CustomBotUuid: customBotUUID,
+			GuildID:       int64(guildID),
+		})
+
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -389,11 +478,10 @@ func postGuildCustomBotStop(ctx *gin.Context) {
 func registerGuildCustomBotRoutes(g *gin.Engine) {
 	g.GET("/api/guild/:guildID/custom-bots", getGuildCustomBots)
 	g.POST("/api/guild/:guildID/custom-bots/", postGuildCustomBot)
+	g.DELETE("/api/guild/:guildID/custom-bots/:botID", deleteGuildCustomBot)
 	g.POST("/api/guild/:guildID/custom-bots/:botID", postGuildCustomBot)
 	g.POST("/api/guild/:guildID/custom-bots/:botID/start", postGuildCustomBotStart)
 	g.POST("/api/guild/:guildID/custom-bots/:botID/stop", postGuildCustomBotStop)
-	// TODO: delete bot
-	// TODO: clear bot tokens
 }
 
 func UpdateIntegrationPublicKeys(ctx context.Context) error {
