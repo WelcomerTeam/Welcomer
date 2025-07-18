@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -37,7 +38,7 @@ func GetGuildCustomBotLimit(ctx context.Context, guildID discord.Snowflake) int 
 func GetCustomBotConfiguration(customBotUUID uuid.UUID, botToken string, autoStart bool, guildID discord.Snowflake) sandwich_daemon.ApplicationConfiguration {
 	return sandwich_daemon.ApplicationConfiguration{
 		ApplicationIdentifier: GetCustomBotKey(customBotUUID),
-		ProducerIdentifier:    "welcomer",
+		ProducerIdentifier:    os.Getenv("CUSTOM_BOT_PRODUCER_IDENTIFIER"),
 		DisplayName:           fmt.Sprintf("Custom Bot %s", customBotUUID.String()),
 		ClientName:            GetCustomBotKey(customBotUUID),
 		BotToken:              botToken,
