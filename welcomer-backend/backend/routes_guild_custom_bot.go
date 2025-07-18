@@ -1,7 +1,9 @@
 package backend
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -412,6 +414,15 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 				return
 			}
 
+			err = UpdateInteractionCommands(ctx, decryptedBotToken, discord.Snowflake(customBot.ApplicationID))
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update interaction commands")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
 			err = welcomer.StartCustomBot(ctx, customBotUUID, decryptedBotToken, guildID, true)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to start custom bot")
@@ -484,6 +495,49 @@ func registerGuildCustomBotRoutes(g *gin.Engine) {
 	g.POST("/api/guild/:guildID/custom-bots/:botID/stop", postGuildCustomBotStop)
 }
 
+func UpdateInteractionCommands(ctx context.Context, token string, applicationID discord.Snowflake) error {
+	body := struct {
+		Token         string            `json:"token"`
+		ApplicationID discord.Snowflake `json:"application_id"`
+	}{token, applicationID}
+
+	bodyBuffer := bytes.NewBuffer(nil)
+
+	err := json.NewEncoder(bodyBuffer).Encode(body)
+	if err != nil {
+		return fmt.Errorf("failed to encode request body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, os.Getenv("WELCOMER_INTEGRATIONS_ADDRESS")+"/internal/sync-commands", bodyBuffer)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to update integration commands")
+
+		return fmt.Errorf("failed to update integration commands: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to update integration commands")
+
+		return fmt.Errorf("failed to update integration commands: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		welcomer.Logger.Error().Str("status", resp.Status).Str("body", string(body)).Msg("Failed to update integration commands")
+
+		return fmt.Errorf("failed to update integration commands: %s", string(body))
+	}
+
+	println(resp.StatusCode)
+
+	welcomer.Logger.Info().Str("application_id", applicationID.String()).Msg("Successfully updated integration commands")
+
+	return nil
+}
+
 func UpdateIntegrationPublicKeys(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, os.Getenv("WELCOMER_INTEGRATIONS_ADDRESS")+"/internal/fetch-public-keys", nil)
 	if err != nil {
@@ -507,6 +561,8 @@ func UpdateIntegrationPublicKeys(ctx context.Context) error {
 
 		return fmt.Errorf("failed to update integration public keys: %s", string(body))
 	}
+
+	welcomer.Logger.Info().Msg("Successfully updated integration public keys")
 
 	return nil
 }

@@ -2,17 +2,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
@@ -82,12 +85,73 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/internal/sync-commands", func(w http.ResponseWriter, r *http.Request) {
+		body := struct {
+			Token         string            `json:"token"`
+			ApplicationID discord.Snowflake `json:"application_id"`
+		}{}
+
+		defer r.Body.Close()
+
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to decode request body")
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+
+			return
+		}
+
+		now := time.Now()
+
+		applicationCommands := app.Commands.MapApplicationCommands()
+
+		session := discord.NewSession("Bot "+body.Token, welcomer.RESTInterface)
+
+		applicationCommands, err := discord.BulkOverwriteGlobalApplicationCommands(ctx, session, body.ApplicationID, applicationCommands)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to sync commands")
+			http.Error(w, fmt.Sprintf("Failed to sync commands: %v", err), http.StatusInternalServerError)
+
+			return
+		}
+
+		// Copy of code from jobs/sync-interaction-commands.go
+
+		_, err = welcomer.Queries.ClearInteractionCommands(ctx, int64(body.ApplicationID))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to clear interaction commands")
+			http.Error(w, fmt.Sprintf("Failed to clear interaction commands: %v", err), http.StatusInternalServerError)
+
+			return
+		}
+
+		manyInteractionCommands := make([]database.CreateManyInteractionCommandsParams, 0)
+
+		for _, command := range applicationCommands {
+			manyInteractionCommands = append(manyInteractionCommands, database.CreateManyInteractionCommandsParams{
+				ApplicationID: int64(body.ApplicationID),
+				Command:       command.Name,
+				InteractionID: int64(*command.ID),
+				CreatedAt:     now,
+			})
+		}
+
+		_, err = welcomer.Queries.CreateManyInteractionCommands(ctx, manyInteractionCommands)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to create many interaction commands")
+			http.Error(w, fmt.Sprintf("Failed to create many interaction commands: %v", err), http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	mux.HandleFunc("/internal/fetch-public-keys", func(w http.ResponseWriter, _ *http.Request) {
 		err = UpdatePublicKeys(ctx, *publicKeys, app)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to update public keys")
 
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Failed to update public keys: %v", err), http.StatusInternalServerError)
 
 			return
 		}
