@@ -89,6 +89,11 @@ const routes = [
             component: () => import("@/pages/dashboard/Memberships.vue"),
           },
           {
+            name: "dashboard.guild.custombots",
+            path: "custombots",
+            component: () => import("@/pages/dashboard/CustomBots.vue"),
+          },
+          {
             name: "dashboard.guild.settings",
             path: "settings",
             component: () => import("@/pages/dashboard/Settings.vue"),

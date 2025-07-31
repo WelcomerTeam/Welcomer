@@ -428,7 +428,6 @@ const features = [
   {
     name: "Custom Bot",
     icon: "plug-circle-plus",
-    soon: true,
     description:
       "Run Welcomer with it's own unique account with a customizable username and avatar, all with the same reliability and uptime."
   },
