@@ -167,7 +167,7 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 	return nil
 }
 
-func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category discord.Snowflake, channelLobby discord.Snowflake, member *discord.GuildMember) (channel *discord.Channel, err error) {
+func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, guildID, category, channelLobby discord.Snowflake, member *discord.GuildMember) (channel *discord.Channel, err error) {
 	channels, err := welcomer.FetchGuildChannels(eventCtx.Context, guildID)
 	if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, gu
 	return nil, nil
 }
 
-func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, guildID discord.Snowflake, category discord.Snowflake, channelLobby discord.Snowflake, member *discord.GuildMember) (err error) {
+func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, guildID, category, channelLobby discord.Snowflake, member *discord.GuildMember) (err error) {
 	channel, err := p.findChannelForUser(eventCtx, guildID, category, channelLobby, member)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
