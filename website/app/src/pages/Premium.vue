@@ -292,7 +292,7 @@
                       <span class="flex items-center h-6 ml-6">
                         <ChevronDownIcon :class="[
                           open ? '-rotate-180' : 'rotate-0',
-                          'h-6 w-6 transform',
+                          'h-6 w-6 transform transition-all duration-100',
                         ]" aria-hidden="true" />
                       </span>
                     </DisclosureButton>

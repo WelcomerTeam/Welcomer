@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS custom_bots (
     is_active boolean NOT NULL DEFAULT true,
     application_id bigint NOT NULL,
     application_name text NOT NULL,
-    application_avatar text NOT NULL
+    application_avatar text NOT NULL,
+    environment text NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS custom_bots_guild_id_idx ON custom_bots (guild_id);

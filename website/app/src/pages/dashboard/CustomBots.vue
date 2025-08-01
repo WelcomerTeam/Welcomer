@@ -62,6 +62,9 @@
                         <div class="flex text-sm">
                           <p class="font-bold truncate dark:text-gray-50">
                             {{ customBot.application_name }}
+                            <span v-if="customBot.environment !== ''" class="font-bold text-sm px-2 py-1 rounded-md ml-2 bg-fuchsia-100 text-fuchsia-800 ring-fuchsia-800">
+                              {{ customBot.environment }}
+                            </span>
                           </p>
                         </div>
                       </div>
@@ -77,7 +80,7 @@
                           getLabelForShard(customBot.shards[0]) }} </div>
                     </div>
                     <div class="flex-shrink-0">
-                      <ChevronRightIcon :class="['h-5 w-5 text-gray-400', customBot.open ? 'rotate-90' : '-rotate-90']"
+                      <ChevronRightIcon :class="['h-5 w-5 text-gray-400 transition-all duration-100', customBot.open ? 'rotate-90' : '']"
                         aria-hidden="true" />
                     </div>
                   </div>
@@ -585,22 +588,12 @@ export default {
 
     validateToken(token, successCallback, errorCallback) {
       if (!token || token.trim() === "") {
-        this.$store.dispatch("createToast", {
-          title: "Token is required",
-          icon: "xmark",
-          class: "text-red-500 bg-red-100",
-        });
-        return errorCallback();
+        return errorCallback("token is required");
       }
 
       const tokenRegex = /^[A-Za-z0-9_\-]{24,28}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,38}$/;
       if (!tokenRegex.test(token)) {
-        this.$store.dispatch("createToast", {
-          title: "Invalid Token format",
-          icon: "xmark",
-          class: "text-red-500 bg-red-100",
-        });
-        return errorCallback();
+        return errorCallback("invalid token format");
       }
 
       fetch(`https://discord.com/api/v10/users/@me`, {
@@ -608,21 +601,16 @@ export default {
           "Authorization": `Bot ${token}`
         }
       })
-        .then((response) => {
-          if (response.status !== 200) {
-            this.$store.dispatch("createToast", {
-              title: "Invalid Token",
-              icon: "xmark",
-              class: "text-red-500 bg-red-100",
-            });
-            return errorCallback();
-          }
-          return successCallback();
-        })
-        .catch((error) => {
-          console.error("Error validating token:", error);
-          return errorCallback();
-        });
+      .then((response) => {
+        if (response.status !== 200) {
+          return errorCallback("invalid token");
+        }
+        return successCallback();
+      })
+      .catch((error) => {
+        console.error("Error validating token:", error);
+        return errorCallback(error);
+      });
     },
   }
 }

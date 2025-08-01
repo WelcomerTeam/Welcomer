@@ -15,6 +15,7 @@ type GuildCustomBot struct {
 	ApplicationName   string                   `json:"application_name"`
 	ApplicationAvatar string                   `json:"application_avatar"`
 	Shards            []GetStatusResponseShard `json:"shards"`
+	Environment       string                   `json:"environment"`
 }
 
 type GuildCustomBotPayload struct {

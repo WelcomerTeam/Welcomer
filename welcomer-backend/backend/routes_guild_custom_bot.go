@@ -84,6 +84,7 @@ func getGuildCustomBots(ctx *gin.Context) {
 					ApplicationName:   bot.ApplicationName,
 					ApplicationAvatar: bot.ApplicationAvatar,
 					Shards:            shards,
+					Environment:       bot.Environment,
 				})
 			}
 
@@ -223,6 +224,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 					ApplicationID:     int64(currentUser.ID),
 					ApplicationName:   welcomer.GetUserDisplayName(currentUser),
 					ApplicationAvatar: currentUser.Avatar,
+					Environment:       welcomer.GetCustomBotEnvironmentType(),
 				})
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create custom bot")
@@ -251,6 +253,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 					ApplicationID:     int64(currentUser.ID),
 					ApplicationName:   welcomer.GetUserDisplayName(currentUser),
 					ApplicationAvatar: currentUser.Avatar,
+					Environment:       welcomer.GetCustomBotEnvironmentType(),
 				})
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update custom bot")
@@ -267,6 +270,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 					ApplicationID:     existingCustomBot.ApplicationID,
 					ApplicationName:   existingCustomBot.ApplicationName,
 					ApplicationAvatar: existingCustomBot.ApplicationAvatar,
+					Environment:       welcomer.GetCustomBotEnvironmentType(),
 				})
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update custom bot")
@@ -380,7 +384,10 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 				return
 			}
 
-			customBot, err := welcomer.Queries.GetCustomBotByIdWithToken(ctx, customBotUUID)
+			customBot, err := welcomer.Queries.GetCustomBotByIdWithToken(ctx, database.GetCustomBotByIdWithTokenParams{
+				CustomBotUuid: customBotUUID,
+				GuildID:       int64(guildID),
+			})
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
 

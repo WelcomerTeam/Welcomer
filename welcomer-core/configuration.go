@@ -32,6 +32,14 @@ func getEnvironmentType() EnvironmentType {
 	}
 }
 
+func GetCustomBotEnvironmentType() string {
+	if getEnvironmentType() == EnvironmentTypeDevelopment {
+		return "beta"
+	}
+
+	return ""
+}
+
 type WelcomerDatabaseConfigProvider struct {
 	DefaultConfigProvider sandwich_daemon.ConfigProvider
 }
@@ -59,7 +67,7 @@ func (p *WelcomerDatabaseConfigProvider) GetConfig(ctx context.Context) (*sandwi
 		return nil, fmt.Errorf("failed to get configuration: %w", err)
 	}
 
-	customBots, err := Queries.GetAllCustomBotsWithToken(ctx)
+	customBots, err := Queries.GetAllCustomBotsWithToken(ctx, GetCustomBotEnvironmentType())
 	if err != nil {
 		panic(fmt.Errorf("failed to get custom bots: %w", err))
 	}

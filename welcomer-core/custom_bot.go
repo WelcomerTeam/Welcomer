@@ -29,7 +29,7 @@ func GetGuildCustomBotLimit(ctx context.Context, guildID discord.Snowflake) int 
 	hasWelcomerPro, _ := CheckGuildMemberships(memberships)
 
 	if hasWelcomerPro {
-		return 1
+		return 2
 	}
 
 	return 0

@@ -1,6 +1,6 @@
 -- name: CreateCustomBot :one
-INSERT INTO custom_bots (custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar)
-VALUES ($1, $2, $3, $4, now(), $5, $6, $7, $8)
+INSERT INTO custom_bots (custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment)
+VALUES ($1, $2, $3, $4, now(), $5, $6, $7, $8, $9)
 RETURNING
     *;
 
@@ -13,7 +13,8 @@ SELECT
     is_active,
     application_id,
     application_name,
-    application_avatar
+    application_avatar,
+    environment
 FROM
     custom_bots
 WHERE
@@ -28,7 +29,8 @@ SELECT
     is_active,
     application_id,
     application_name,
-    application_avatar
+    application_avatar,
+    environment
 FROM
     custom_bots
 WHERE
@@ -44,7 +46,8 @@ SET
     is_active = $4,
     application_id = $5,
     application_name = $6,
-    application_avatar = $7
+    application_avatar = $7,
+    environment = $8
 WHERE
     custom_bot_uuid = $1
 RETURNING
@@ -58,7 +61,8 @@ SET
     is_active = $3,
     application_id = $4,
     application_name = $5,
-    application_avatar = $6
+    application_avatar = $6,
+    environment = $7
 WHERE
     custom_bot_uuid = $1
 RETURNING
@@ -87,4 +91,5 @@ FROM
 WHERE
     is_active = true
     AND token IS NOT NULL
-    AND token != '';
+    AND token != ''
+    AND environment = $1;

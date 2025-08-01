@@ -217,7 +217,7 @@ func UpdatePublicKeys(ctx context.Context, publicKeysStr string, app *subway.Sub
 func FetchPublicKeys(ctx context.Context, publicKeysStr string) ([]string, error) {
 	publicKeys := strings.Split(publicKeysStr, ",")
 
-	customBots, err := welcomer.Queries.GetAllCustomBotsWithToken(ctx)
+	customBots, err := welcomer.Queries.GetAllCustomBotsWithToken(ctx, welcomer.GetCustomBotEnvironmentType())
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch custom bots: %w", err)
 	}

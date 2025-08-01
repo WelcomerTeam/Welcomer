@@ -13,10 +13,10 @@ import (
 )
 
 const CreateCustomBot = `-- name: CreateCustomBot :one
-INSERT INTO custom_bots (custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar)
-VALUES ($1, $2, $3, $4, now(), $5, $6, $7, $8)
+INSERT INTO custom_bots (custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment)
+VALUES ($1, $2, $3, $4, now(), $5, $6, $7, $8, $9)
 RETURNING
-    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar
+    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment
 `
 
 type CreateCustomBotParams struct {
@@ -28,6 +28,7 @@ type CreateCustomBotParams struct {
 	ApplicationID     int64     `json:"application_id"`
 	ApplicationName   string    `json:"application_name"`
 	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
 }
 
 func (q *Queries) CreateCustomBot(ctx context.Context, arg CreateCustomBotParams) (*CustomBots, error) {
@@ -40,6 +41,7 @@ func (q *Queries) CreateCustomBot(ctx context.Context, arg CreateCustomBotParams
 		arg.ApplicationID,
 		arg.ApplicationName,
 		arg.ApplicationAvatar,
+		arg.Environment,
 	)
 	var i CustomBots
 	err := row.Scan(
@@ -52,6 +54,7 @@ func (q *Queries) CreateCustomBot(ctx context.Context, arg CreateCustomBotParams
 		&i.ApplicationID,
 		&i.ApplicationName,
 		&i.ApplicationAvatar,
+		&i.Environment,
 	)
 	return &i, err
 }
@@ -73,17 +76,18 @@ func (q *Queries) DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) 
 
 const GetAllCustomBotsWithToken = `-- name: GetAllCustomBotsWithToken :many
 SELECT
-    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar
+    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment
 FROM
     custom_bots
 WHERE
     is_active = true
     AND token IS NOT NULL
     AND token != ''
+    AND environment = $1
 `
 
-func (q *Queries) GetAllCustomBotsWithToken(ctx context.Context) ([]*CustomBots, error) {
-	rows, err := q.db.Query(ctx, GetAllCustomBotsWithToken)
+func (q *Queries) GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error) {
+	rows, err := q.db.Query(ctx, GetAllCustomBotsWithToken, environment)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +105,7 @@ func (q *Queries) GetAllCustomBotsWithToken(ctx context.Context) ([]*CustomBots,
 			&i.ApplicationID,
 			&i.ApplicationName,
 			&i.ApplicationAvatar,
+			&i.Environment,
 		); err != nil {
 			return nil, err
 		}
@@ -121,7 +126,8 @@ SELECT
     is_active,
     application_id,
     application_name,
-    application_avatar
+    application_avatar,
+    environment
 FROM
     custom_bots
 WHERE
@@ -143,6 +149,7 @@ type GetCustomBotByIdRow struct {
 	ApplicationID     int64     `json:"application_id"`
 	ApplicationName   string    `json:"application_name"`
 	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
 }
 
 func (q *Queries) GetCustomBotById(ctx context.Context, arg GetCustomBotByIdParams) (*GetCustomBotByIdRow, error) {
@@ -157,21 +164,28 @@ func (q *Queries) GetCustomBotById(ctx context.Context, arg GetCustomBotByIdPara
 		&i.ApplicationID,
 		&i.ApplicationName,
 		&i.ApplicationAvatar,
+		&i.Environment,
 	)
 	return &i, err
 }
 
 const GetCustomBotByIdWithToken = `-- name: GetCustomBotByIdWithToken :one
 SELECT
-    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar
+    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment
 FROM
     custom_bots
 WHERE
     custom_bot_uuid = $1
+    AND guild_id = $2
 `
 
-func (q *Queries) GetCustomBotByIdWithToken(ctx context.Context, customBotUuid uuid.UUID) (*CustomBots, error) {
-	row := q.db.QueryRow(ctx, GetCustomBotByIdWithToken, customBotUuid)
+type GetCustomBotByIdWithTokenParams struct {
+	CustomBotUuid uuid.UUID `json:"custom_bot_uuid"`
+	GuildID       int64     `json:"guild_id"`
+}
+
+func (q *Queries) GetCustomBotByIdWithToken(ctx context.Context, arg GetCustomBotByIdWithTokenParams) (*CustomBots, error) {
+	row := q.db.QueryRow(ctx, GetCustomBotByIdWithToken, arg.CustomBotUuid, arg.GuildID)
 	var i CustomBots
 	err := row.Scan(
 		&i.CustomBotUuid,
@@ -183,6 +197,7 @@ func (q *Queries) GetCustomBotByIdWithToken(ctx context.Context, customBotUuid u
 		&i.ApplicationID,
 		&i.ApplicationName,
 		&i.ApplicationAvatar,
+		&i.Environment,
 	)
 	return &i, err
 }
@@ -196,7 +211,8 @@ SELECT
     is_active,
     application_id,
     application_name,
-    application_avatar
+    application_avatar,
+    environment
 FROM
     custom_bots
 WHERE
@@ -212,6 +228,7 @@ type GetCustomBotsByGuildIdRow struct {
 	ApplicationID     int64     `json:"application_id"`
 	ApplicationName   string    `json:"application_name"`
 	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
 }
 
 func (q *Queries) GetCustomBotsByGuildId(ctx context.Context, guildID int64) ([]*GetCustomBotsByGuildIdRow, error) {
@@ -232,6 +249,7 @@ func (q *Queries) GetCustomBotsByGuildId(ctx context.Context, guildID int64) ([]
 			&i.ApplicationID,
 			&i.ApplicationName,
 			&i.ApplicationAvatar,
+			&i.Environment,
 		); err != nil {
 			return nil, err
 		}
@@ -251,11 +269,12 @@ SET
     is_active = $3,
     application_id = $4,
     application_name = $5,
-    application_avatar = $6
+    application_avatar = $6,
+    environment = $7
 WHERE
     custom_bot_uuid = $1
 RETURNING
-    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar
+    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment
 `
 
 type UpdateCustomBotParams struct {
@@ -265,6 +284,7 @@ type UpdateCustomBotParams struct {
 	ApplicationID     int64     `json:"application_id"`
 	ApplicationName   string    `json:"application_name"`
 	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
 }
 
 func (q *Queries) UpdateCustomBot(ctx context.Context, arg UpdateCustomBotParams) (*CustomBots, error) {
@@ -275,6 +295,7 @@ func (q *Queries) UpdateCustomBot(ctx context.Context, arg UpdateCustomBotParams
 		arg.ApplicationID,
 		arg.ApplicationName,
 		arg.ApplicationAvatar,
+		arg.Environment,
 	)
 	var i CustomBots
 	err := row.Scan(
@@ -287,6 +308,7 @@ func (q *Queries) UpdateCustomBot(ctx context.Context, arg UpdateCustomBotParams
 		&i.ApplicationID,
 		&i.ApplicationName,
 		&i.ApplicationAvatar,
+		&i.Environment,
 	)
 	return &i, err
 }
@@ -300,11 +322,12 @@ SET
     is_active = $4,
     application_id = $5,
     application_name = $6,
-    application_avatar = $7
+    application_avatar = $7,
+    environment = $8
 WHERE
     custom_bot_uuid = $1
 RETURNING
-    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar
+    custom_bot_uuid, guild_id, public_key, token, created_at, is_active, application_id, application_name, application_avatar, environment
 `
 
 type UpdateCustomBotTokenParams struct {
@@ -315,6 +338,7 @@ type UpdateCustomBotTokenParams struct {
 	ApplicationID     int64     `json:"application_id"`
 	ApplicationName   string    `json:"application_name"`
 	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
 }
 
 func (q *Queries) UpdateCustomBotToken(ctx context.Context, arg UpdateCustomBotTokenParams) (*CustomBots, error) {
@@ -326,6 +350,7 @@ func (q *Queries) UpdateCustomBotToken(ctx context.Context, arg UpdateCustomBotT
 		arg.ApplicationID,
 		arg.ApplicationName,
 		arg.ApplicationAvatar,
+		arg.Environment,
 	)
 	var i CustomBots
 	err := row.Scan(
@@ -338,6 +363,7 @@ func (q *Queries) UpdateCustomBotToken(ctx context.Context, arg UpdateCustomBotT
 		&i.ApplicationID,
 		&i.ApplicationName,
 		&i.ApplicationAvatar,
+		&i.Environment,
 	)
 	return &i, err
 }

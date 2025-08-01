@@ -40,6 +40,7 @@ type CustomBots struct {
 	ApplicationID     int64     `json:"application_id"`
 	ApplicationName   string    `json:"application_name"`
 	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
 }
 
 type DiscordSubscriptions struct {
