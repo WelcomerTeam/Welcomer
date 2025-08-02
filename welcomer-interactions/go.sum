@@ -10,8 +10,8 @@ github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21 h1:VZwsKeXEi
 github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21/go.mod h1:Xq4betj/qubXGfdsM9BQ0qaeWsg2f+LFst6THpQxT0M=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250726105723-3b5ecd209cde h1:Pk1RNy+IzJN3ODa+e4JiM1L9JuChUPiVsswqy4n55lY=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250726105723-3b5ecd209cde/go.mod h1:fNWSeFmkdGRtZakfgFgkln+y82hGw+kocJKEXmMsUBc=
-github.com/WelcomerTeam/Subway v0.0.0-20250705101815-ec1eeca1e3c2 h1:ivjgRxfwW64vjvWn/SQChkE5qkE/A8wTGH0G/UpCxOs=
-github.com/WelcomerTeam/Subway v0.0.0-20250705101815-ec1eeca1e3c2/go.mod h1:BCxt3zhbMpozZcJ2KZN+J40xfJLTuv+dkyQ9OaDSQxc=
+github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689 h1:gJVjmHUDIqDAMsdCRADu/79YsnoXfNwEP2TOdavAxbY=
+github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689/go.mod h1:BCxt3zhbMpozZcJ2KZN+J40xfJLTuv+dkyQ9OaDSQxc=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 h1:WV4Ok6b0/kgczuLAgGTNtLVOB5JIqdfzJzgOpdlDM8Q=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904/go.mod h1:rCfCrg0xPnEoVKPXk+GNyHgzTWMzJjhnPaAfDe7UPJE=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Sandwich-Daemon/pkg/syncmap"
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -25,6 +28,84 @@ import (
 const (
 	PermissionsDefault = 0o744
 )
+
+type PublicKeyHandler struct {
+	PublicKeys  syncmap.Map[string, ed25519.PublicKey]
+	DefaultKeys []ed25519.PublicKey
+}
+
+func NewPublicKeyHandler() *PublicKeyHandler {
+	return &PublicKeyHandler{
+		PublicKeys:  syncmap.Map[string, ed25519.PublicKey]{},
+		DefaultKeys: make([]ed25519.PublicKey, 0),
+	}
+}
+
+func stringToPublicKey(key string) (ed25519.PublicKey, error) {
+	if !welcomer.IsValidPublicKey(key) {
+		return nil, fmt.Errorf("invalid public key format: %s", key)
+	}
+
+	hex, err := hex.DecodeString(key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode public key %s: %w", key, err)
+	}
+
+	return ed25519.PublicKey(hex), nil
+}
+
+func (h *PublicKeyHandler) SetDefaultPublicKeys(keys []string) error {
+	h.DefaultKeys = make([]ed25519.PublicKey, 0, len(keys))
+
+	for _, key := range keys {
+		publicKey, err := stringToPublicKey(key)
+		if err != nil {
+			return fmt.Errorf("failed to set default public key %s: %w", key, err)
+		}
+
+		h.DefaultKeys = append(h.DefaultKeys, publicKey)
+	}
+
+	return nil
+}
+
+func (h *PublicKeyHandler) SetPublicKey(manager, key string) error {
+	if manager == "" {
+		return fmt.Errorf("manager name cannot be empty")
+	}
+
+	publicKey, err := stringToPublicKey(key)
+	if err != nil {
+		return fmt.Errorf("failed to set public key for manager %s: %w", manager, err)
+	}
+
+	h.PublicKeys.Store(manager, publicKey)
+
+	return nil
+}
+
+func (h *PublicKeyHandler) GetPublicKeys(r *http.Request) []ed25519.PublicKey {
+	keys := make([]ed25519.PublicKey, 0)
+	keys = append(keys, h.DefaultKeys...)
+
+	manager := r.URL.Query().Get("manager")
+	if manager == "" {
+		welcomer.Logger.Warn().Msg("No manager specified in request path")
+
+		return keys
+	}
+
+	key, ok := h.PublicKeys.Load(manager)
+	if ok {
+		keys = append(keys, key)
+	} else {
+		welcomer.Logger.Warn().Str("manager", manager).Msg("No public key found for manager")
+	}
+
+	return keys
+}
+
+var PublicKeyHandlerInstance = NewPublicKeyHandler()
 
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
@@ -73,14 +154,18 @@ func main() {
 		SandwichClient:    welcomer.SandwichClient,
 		RESTInterface:     welcomer.RESTInterface,
 		Logger:            slog.Default(),
-		PublicKeys:        *publicKeys,
+		PublicKeysHandler: PublicKeyHandlerInstance,
 		PrometheusAddress: *prometheusAddress,
 	})
 
-	err = UpdatePublicKeys(ctx, *publicKeys, app)
+	err = PublicKeyHandlerInstance.SetDefaultPublicKeys(strings.Split(*publicKeys, ","))
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Msg("Failed to update public keys")
-		panic(fmt.Errorf("failed to update public keys: %w", err))
+		panic(fmt.Errorf("failed to set default public keys: %w", err))
+	}
+
+	err = FetchPublicKeys(ctx)
+	if err != nil {
+		panic(fmt.Errorf("failed to fetch public keys: %w", err))
 	}
 
 	mux := http.NewServeMux()
@@ -147,7 +232,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/internal/fetch-public-keys", func(w http.ResponseWriter, _ *http.Request) {
-		err = UpdatePublicKeys(ctx, *publicKeys, app)
+		err = FetchPublicKeys(ctx)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to update public keys")
 
@@ -203,34 +288,24 @@ func main() {
 	}
 }
 
-func UpdatePublicKeys(ctx context.Context, publicKeysStr string, app *subway.Subway) error {
-	publicKeys, err := FetchPublicKeys(ctx, publicKeysStr)
-	if err != nil {
-		return err
-	}
-
-	_ = app.SetPublicKeys(publicKeys, true)
-
-	return nil
-}
-
-func FetchPublicKeys(ctx context.Context, publicKeysStr string) ([]string, error) {
-	publicKeys := strings.Split(publicKeysStr, ",")
-
+func FetchPublicKeys(ctx context.Context) error {
 	customBots, err := welcomer.Queries.GetAllCustomBotsWithToken(ctx, welcomer.GetCustomBotEnvironmentType())
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch custom bots: %w", err)
+		return fmt.Errorf("failed to fetch custom bots: %w", err)
 	}
 
 	for _, bot := range customBots {
 		if bot.PublicKey != "" {
 			if welcomer.IsValidPublicKey(bot.PublicKey) {
-				publicKeys = append(publicKeys, bot.PublicKey)
+				err = PublicKeyHandlerInstance.SetPublicKey(welcomer.GetCustomBotKey(bot.CustomBotUuid), bot.PublicKey)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Str("applicationName", bot.ApplicationName).Msg("Failed to set public key for custom bot")
+				}
 			} else {
 				welcomer.Logger.Warn().Str("publicKey", bot.PublicKey).Msg("Invalid public key format for custom bot")
 			}
 		}
 	}
 
-	return publicKeys, nil
+	return nil
 }
