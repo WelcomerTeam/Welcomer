@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/sandwich
 go 1.23.1
 
 require (
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250726105723-3b5ecd209cde
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250802101748-9052bf06297e
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20250525174419-22c0c7646db0
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.23.0
@@ -13,10 +13,10 @@ require (
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
-	github.com/WelcomerTeam/Discord v0.0.0-20250703103132-438d228c84e3 // indirect
+	github.com/WelcomerTeam/Discord v0.0.0-20250802100629-f340fe10f307 // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21 // indirect
-	github.com/WelcomerTeam/Subway v0.0.0-20250705101815-ec1eeca1e3c2 // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250802102905-99606ddf4e9e // indirect
+	github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

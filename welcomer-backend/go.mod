@@ -5,9 +5,9 @@ go 1.23.0
 toolchain go1.23.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20250703103132-438d228c84e3
+	github.com/WelcomerTeam/Discord v0.0.0-20250802100629-f340fe10f307
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250726105723-3b5ecd209cde
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250802101748-9052bf06297e
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gin-contrib/cache v1.4.0
 	github.com/gin-contrib/gzip v1.2.3
