@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20250703103132-438d228c84e3
+	github.com/WelcomerTeam/Discord v0.0.0-20250802100629-f340fe10f307
 	github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/disintegration/imaging v1.6.2

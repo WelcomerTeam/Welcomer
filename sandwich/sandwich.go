@@ -18,6 +18,7 @@ import (
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -67,8 +68,8 @@ func main() {
 	logger := slog.Default()
 
 	registry := prometheus.NewPedanticRegistry()
-	registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
-	registry.MustRegister(prometheus.NewGoCollector())
+	registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	registry.MustRegister(collectors.NewGoCollector())
 
 	sandwich := sandwich_daemon.NewSandwich(
 		logger,
