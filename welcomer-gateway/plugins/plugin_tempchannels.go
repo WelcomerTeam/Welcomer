@@ -174,9 +174,9 @@ func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, gu
 	}
 
 	for _, guildChannel := range channels {
-		if guildChannel.Type == discord.ChannelTypeGuildVoice && // Check if the channel is a voice channel
+		if guildChannel.Type == discord.ChannelTypeGuildVoice && // Filter for voice channels
 			(channelLobby.IsNil() || guildChannel.ID != channelLobby) && // Exclude the lobby channel
-			(category.IsNil() || (guildChannel.ParentID != nil && *guildChannel.ParentID == category)) { // Check if the channel is in the specified category
+			(category.IsNil() || (guildChannel.ParentID != nil && *guildChannel.ParentID == category)) { // Ensure the channel is in the specified category (if set)
 			return guildChannel, nil
 		}
 	}
