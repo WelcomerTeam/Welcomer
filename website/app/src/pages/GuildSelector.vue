@@ -33,7 +33,7 @@
                   </div>
                 </li>
                 <li v-else v-for="guild in $store.getters.getGuilds" :key="guild.id" @click="setSelectedGuild(guild)">
-                  <button class="block hover:bg-gray-50 dark:hover:bg-secondary w-full">
+                  <button class="block hover:bg-gray-50 dark:hover:bg-secondary w-full rounded-md">
                     <div class="px-4 py-4 flex items-center space-x-5 group">
                       <div class="flex-shrink-0">
                         <div class="flex -space-x-1">

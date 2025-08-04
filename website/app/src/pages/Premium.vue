@@ -292,7 +292,7 @@
                       <span class="flex items-center h-6 ml-6">
                         <ChevronDownIcon :class="[
                           open ? '-rotate-180' : 'rotate-0',
-                          'h-6 w-6 transform',
+                          'h-6 w-6 transform transition-all duration-100',
                         ]" aria-hidden="true" />
                       </span>
                     </DisclosureButton>
@@ -428,7 +428,6 @@ const features = [
   {
     name: "Custom Bot",
     icon: "plug-circle-plus",
-    soon: true,
     description:
       "Run Welcomer with it's own unique account with a customizable username and avatar, all with the same reliability and uptime."
   },

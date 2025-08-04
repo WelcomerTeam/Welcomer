@@ -8,9 +8,6 @@ const state = () => ({
     getPopups: (state) => {
       return state.popups;
     },
-    getPopups: (state) => {
-      return state.popups;
-    },
   };
   
   // actions

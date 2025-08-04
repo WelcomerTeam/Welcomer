@@ -229,6 +229,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildSettingsTempChannelsRoutes(router)
 	registerGuildSettingsTimeRolesRoutes(router)
 	registerGuildSettingsWelcomerRoutes(router)
+	registerGuildCustomBotRoutes(router)
 
 	return router
 }

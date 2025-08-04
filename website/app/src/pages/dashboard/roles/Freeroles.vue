@@ -144,7 +144,7 @@ export default {
 
       this.isChangeInProgress = true;
 
-      dashboardAPI.setConfig(
+      dashboardAPI.doPost(
         endpoints.EndpointGuildFreeroles(this.$store.getters.getSelectedGuildID),
         this.config,
         null,

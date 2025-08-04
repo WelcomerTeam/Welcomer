@@ -59,7 +59,7 @@ func main() {
 		PrometheusAddress: *prometheusAddress,
 	})
 
-	configurationGatherer := welcomer.GatherConfiguration()
+	configurationGatherer := welcomer.GetConfigurationGatherer(ctx)
 
 	configuration, err := configurationGatherer.GetConfig(ctx)
 	if err != nil {

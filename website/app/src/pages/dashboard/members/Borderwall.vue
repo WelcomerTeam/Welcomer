@@ -193,7 +193,7 @@ export default {
 
       this.isChangeInProgress = true;
 
-      dashboardAPI.setConfig(
+      dashboardAPI.doPost(
         endpoints.EndpointGuildBorderwall(this.$store.getters.getSelectedGuildID),
         this.config,
         null,

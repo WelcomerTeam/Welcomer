@@ -24,7 +24,7 @@
             <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
               <ChevronDownIcon :class="[
                 open ? 'transform rotate-180' : '',
-                'w-5 h-5 text-gray-400',
+                'w-5 h-5 text-gray-400 transition-all duration-100',
               ]" aria-hidden="true" />
             </span>
           </PopoverButton>
