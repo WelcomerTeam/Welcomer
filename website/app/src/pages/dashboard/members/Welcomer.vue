@@ -334,7 +334,7 @@ export default {
 
       this.isChangeInProgress = true;
 
-      dashboardAPI.setConfig(
+      dashboardAPI.doPost(
         endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
         this.config,
         this.files,

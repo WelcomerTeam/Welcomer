@@ -21,9 +21,9 @@ func FetchGuild(ctx context.Context, guildID discord.Snowflake) (*discord.Guild,
 	guildPb, ok := guilds.GetGuilds()[int64(guildID)]
 	if ok {
 		return sandwich_protobuf.PBToGuild(guildPb), nil
-	} else {
-		return nil, ErrMissingGuild
 	}
+
+	return nil, ErrMissingGuild
 }
 
 func FetchGuildChannels(ctx context.Context, guildID discord.Snowflake) ([]*discord.Channel, error) {
@@ -36,7 +36,7 @@ func FetchGuildChannels(ctx context.Context, guildID discord.Snowflake) ([]*disc
 			Msg("Failed to fetch channels from state cache")
 	}
 
-	var discordChannels []*discord.Channel
+	discordChannels := make([]*discord.Channel, 0, len(channels.GetChannels()))
 
 	for _, channelPb := range channels.GetChannels() {
 		discordChannels = append(discordChannels, sandwich_protobuf.PBToChannel(channelPb))

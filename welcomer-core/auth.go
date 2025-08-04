@@ -187,7 +187,7 @@ func AcquireSession(ctx context.Context, applicationIdentifier string) (*discord
 		ApplicationIdentifier: applicationIdentifier,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch application: %v", err)
 	}
 
 	configuration, sessionInContext := configurations.GetApplications()[applicationIdentifier]

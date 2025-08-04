@@ -270,11 +270,12 @@ func requireGuildElevation(ctx *gin.Context, handler gin.HandlerFunc) {
 			welcomer.Logger.Warn().
 				Int64("user_id", int64(user.ID)).
 				Int64("guild_id", int64(guildID)).
+				Str("endpoint", ctx.FullPath()).
 				Msg("User does not have elevation")
 
-			ctx.JSON(http.StatusUnauthorized, BaseResponse{
+			ctx.JSON(http.StatusForbidden, BaseResponse{
 				Ok:    false,
-				Error: ErrMissingUser.Error(),
+				Error: ErrInvalidPermissions.Error(),
 			})
 
 			return

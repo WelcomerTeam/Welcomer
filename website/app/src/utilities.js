@@ -85,7 +85,6 @@ export function getRolePermissionListAsString(permissions) {
 }
 
 export function ordinal(number) {
-    console.log(number);
     const suffixes = ["th", "st", "nd", "rd"];
 
     return number.toString() + suffixes[(number % 100 >= 11 && number % 100 <= 13) ? 0 : (number % 10 < 4 ? number % 10 : 0)];

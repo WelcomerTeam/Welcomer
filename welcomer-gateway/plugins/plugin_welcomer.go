@@ -505,21 +505,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Str("invite_code", invite.InviteCode).
 					Msg("Received invite from buffer")
 
-				user, err := welcomer.FetchUser(eventCtx.Context, discord.Snowflake(invite.CreatedBy))
-				if err != nil {
-					welcomer.Logger.Warn().Err(err).
-						Int64("guild_id", int64(eventCtx.Guild.ID)).
-						Int64("user_id", int64(event.Member.User.ID)).
-						Msg("Failed to fetch user from database for invite")
-
-					user = &discord.User{
-						ID: discord.Snowflake(invite.CreatedBy),
-					}
-				}
-
 				usedInvite = &discord.Invite{
 					CreatedAt: invite.CreatedAt,
-					Inviter:   user,
+					Inviter:   &discord.User{ID: discord.Snowflake(invite.CreatedBy)},
 					Code:      invite.InviteCode,
 					Uses:      int32(invite.Uses),
 				}
@@ -546,34 +534,31 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Msg("Failed to get guild join leave event for user")
 			}
 
-			if recentEvent != nil &&
-				database.ScienceGuildEventType(recentEvent.EventType) == database.ScienceGuildEventTypeGuildJoin &&
-				recentEvent.InviteCode.Valid {
+			if recentEvent != nil && database.ScienceGuildEventType(recentEvent.EventType) == database.ScienceGuildEventTypeGuildJoin && recentEvent.InviteCode.Valid {
+				// If we found the event in the database, get the invite from the database.
 
-				welcomer.Logger.Info().
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Received invite from database")
-
-				user, err := welcomer.FetchUser(eventCtx.Context, discord.Snowflake(recentEvent.CreatedBy.Int64))
-				if err != nil {
+				invite, err := welcomer.Queries.GetGuildInvite(eventCtx.Context, database.GetGuildInviteParams{
+					InviteCode: recentEvent.InviteCode.String,
+					GuildID:    int64(eventCtx.Guild.ID),
+				})
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					welcomer.Logger.Warn().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Str("invite_code", recentEvent.InviteCode.String).
+						Msg("Failed to get guild invite")
+				} else {
+					welcomer.Logger.Info().
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Msg("Failed to fetch user from database for invite")
+						Msg("Received invite from database")
 
-					user = &discord.User{
-						ID: discord.Snowflake(recentEvent.CreatedBy.Int64),
+					usedInvite = &discord.Invite{
+						CreatedAt: recentEvent.CreatedAt_2.Time,
+						Inviter:   &discord.User{ID: discord.Snowflake(invite.CreatedBy)},
+						Code:      recentEvent.InviteCode.String,
+						Uses:      int32(recentEvent.Uses.Int64),
 					}
 				}
-
-				usedInvite = &discord.Invite{
-					CreatedAt: recentEvent.CreatedAt_2.Time,
-					Inviter:   user,
-					Code:      recentEvent.InviteCode.String,
-					Uses:      int32(recentEvent.Uses.Int64),
-				}
-				// TODO: store more invite data or fetch from DC
 			}
 		}
 
@@ -589,6 +574,42 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Msg("Failed to track invites")
+			}
+		}
+
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Str("invite_code", welcomer.IfFunc(usedInvite != nil, func() string { return usedInvite.Code }, func() string { return "" })).
+			Str("inviter_username", welcomer.IfFunc(usedInvite != nil && usedInvite.Inviter != nil, func() string { return usedInvite.Inviter.Username }, func() string { return "" })).
+			Str("inviter_id", welcomer.IfFunc(usedInvite != nil && usedInvite.Inviter != nil, func() string { return usedInvite.Inviter.ID.String() }, func() string { return "" })).
+			Msg("Used invite for user")
+
+		// If we have an invite, make sure the inviter is fetched from the database or Discord API if they are only an ID.
+		if usedInvite != nil && usedInvite.Inviter != nil && usedInvite.Inviter.Username == "" && !usedInvite.Inviter.ID.IsNil() {
+			usedInvite.Inviter, err = welcomer.FetchUser(eventCtx.Context, usedInvite.Inviter.ID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to fetch user from database for invite")
+
+				discordUser, err := discord.GetUser(eventCtx.Context, eventCtx.Session, usedInvite.Inviter.ID)
+				if err != nil {
+					welcomer.Logger.Warn().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Msg("Failed to fetch user from Discord API for invite")
+				} else {
+					welcomer.Logger.Info().
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Str("inviter_id", usedInvite.Inviter.ID.String()).
+						Str("inviter_username", usedInvite.Inviter.Username).
+						Msg("Fetched inviter from Discord API for invite")
+
+					usedInvite.Inviter = discordUser
+				}
 			}
 		}
 	}

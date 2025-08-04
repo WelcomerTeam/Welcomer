@@ -160,7 +160,7 @@ export default {
 
       this.isChangeInProgress = true;
 
-      dashboardAPI.setConfig(
+      dashboardAPI.doPost(
         endpoints.EndpointGuildTempchannels(this.$store.getters.getSelectedGuildID),
         this.config,
         null,

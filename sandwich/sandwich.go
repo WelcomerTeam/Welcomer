@@ -18,6 +18,7 @@ import (
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -29,6 +30,8 @@ func panicHandler(_ *sandwich_daemon.Sandwich, err any) {
 }
 
 func main() {
+	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
+	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
 	prometheusHost := flag.String("prometheusHost", os.Getenv("PROMETHEUS_HOST"), "Prometheus host")
@@ -39,6 +42,9 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	welcomer.SetupLogger(*loggingLevel)
+	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	stateProvider := sandwich_daemon.NewStateProviderMemoryOptimized()
 
@@ -62,12 +68,12 @@ func main() {
 	logger := slog.Default()
 
 	registry := prometheus.NewPedanticRegistry()
-	registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
-	registry.MustRegister(prometheus.NewGoCollector())
+	registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	registry.MustRegister(collectors.NewGoCollector())
 
 	sandwich := sandwich_daemon.NewSandwich(
 		logger,
-		welcomer.GatherConfiguration(),
+		welcomer.GetConfigurationGatherer(ctx),
 		NewProxyClient(*http.DefaultClient, *proxyURL),
 		sandwich_daemon.NewEventProviderWithBlacklist(sandwich_daemon.NewBuiltinDispatchProvider(true)),
 		sandwich_daemon.NewIdentifyViaBuckets(),
@@ -152,8 +158,6 @@ func (t *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to round trip: %w", err)
 	}
-
-	println(proxyReq.Method, proxyReq.URL.String(), resp.StatusCode)
 
 	return resp, nil
 }
