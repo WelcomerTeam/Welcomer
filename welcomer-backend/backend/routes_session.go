@@ -63,7 +63,9 @@ func callback(ctx *gin.Context) {
 	if err != nil {
 		welcomer.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
-		doDiscordOAuthAuthorize(session, ctx)
+		// doDiscordOAuthAuthorize(session, ctx)
+
+		ctx.Redirect(http.StatusTemporaryRedirect, "/")
 
 		return
 	}
@@ -76,10 +78,15 @@ func callback(ctx *gin.Context) {
 
 	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(ctx, discordSession)
 	if err != nil || authorizationInformation == nil {
-		doDiscordOAuthAuthorize(session, ctx)
+		// doDiscordOAuthAuthorize(session, ctx)
+
+		ctx.Redirect(http.StatusTemporaryRedirect, "/")
 
 		return
 	}
+
+	welcomer.Logger.Info().Int64("user_id", int64(authorizationInformation.User.ID)).
+		Msg("User authorized successfully")
 
 	sessionUser := SessionUser{
 		ID:            authorizationInformation.User.ID,
