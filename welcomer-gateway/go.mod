@@ -6,7 +6,7 @@ toolchain go1.23.1
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250802100629-f340fe10f307
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250804200442-87f55f3a09a7
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250802101748-9052bf06297e
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible

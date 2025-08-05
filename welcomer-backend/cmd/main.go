@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"strings"
 
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -48,6 +49,8 @@ func main() {
 	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
 
 	flag.Parse()
+
+	backend.DiscordOAuth2Config.Endpoint.TokenURL = strings.ReplaceAll(backend.DiscordOAuth2Config.Endpoint.TokenURL, "https://discord.com", *proxyAddress)
 
 	var err error
 
