@@ -47,6 +47,7 @@ func main() {
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	stateProvider := sandwich_daemon.NewStateProviderMemoryOptimized()
+	dedupeProvider := sandwich_daemon.NewInMemoryDedupeProvider()
 
 	producerProvider, err := jetstream_client.NewJetstreamProducerProvider(
 		ctx,
@@ -79,6 +80,7 @@ func main() {
 		sandwich_daemon.NewIdentifyViaBuckets(),
 		producerProvider,
 		stateProvider,
+		dedupeProvider,
 	).
 		WithPanicHandler(panicHandler).
 		WithPrometheusAnalytics(

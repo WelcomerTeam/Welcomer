@@ -8,8 +8,8 @@ github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20250804200442-87f55f3a09a7 h1:jS5zjK9CrL0DXIIvzDd8fLwcQ/WFCIMFQgsZGbI03GM=
 github.com/WelcomerTeam/Sandwich v0.0.0-20250804200442-87f55f3a09a7/go.mod h1:IORMtbJV404LBbMcbSjFMeRNaNHHyWiqzb3kzkLw6tg=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250813155503-ae7cc91f52ec h1:Lsjv6hkANqFK4SuqOpL9vCooSvzaprVioPA/VNX4TlE=
-github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250813155503-ae7cc91f52ec/go.mod h1:rhHsEcjtio9oEW0XtMhlKmrm2sdaW5XNLwo8qRnPsiY=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250816134540-3e2d376fca3d h1:r9aeJ+ip8eMTCFYsuIzbwQ7zDKR6FvxAPkxBXZ4qQms=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250816134540-3e2d376fca3d/go.mod h1:rhHsEcjtio9oEW0XtMhlKmrm2sdaW5XNLwo8qRnPsiY=
 github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689 h1:gJVjmHUDIqDAMsdCRADu/79YsnoXfNwEP2TOdavAxbY=
 github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689/go.mod h1:BCxt3zhbMpozZcJ2KZN+J40xfJLTuv+dkyQ9OaDSQxc=
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20250525174419-22c0c7646db0 h1:GGgpGzTvBvJAtuMmyHW08ZdiEaWWqmYgQtkTK5evIeM=
