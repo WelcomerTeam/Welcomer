@@ -21,13 +21,16 @@ func TestFormatString(t *testing.T) {
 			Avatar:        "1234567890",
 		},
 		Pending: false,
-	}, &discord.Guild{
-		ID:          1234567890,
-		Name:        "Test Server",
-		Icon:        "1234567890",
-		Splash:      "",
-		MemberCount: 100,
-		Banner:      "",
+	}, GuildVariables{
+		Guild: &discord.Guild{
+			ID:          1234567890,
+			Name:        "Test Server",
+			Icon:        "1234567890",
+			Splash:      "",
+			MemberCount: 100,
+			Banner:      "",
+		},
+		MembersJoined: 151,
 	}, nil, nil)
 
 	testCases := map[string]string{
@@ -43,14 +46,16 @@ func TestFormatString(t *testing.T) {
 		"{{User.Bot}}":           "false",
 		"{{User.Pending}}":       "false",
 
-		"{{Guild.Name}}":    "Test Server",
-		"{{Guild.Icon}}":    "https://cdn.discordapp.com/icons/1234567890/1234567890.png",
-		"{{Guild.Splash}}":  "",
-		"{{Guild.Banner}}":  "",
-		"{{Guild.ID}}":      "1234567890",
-		"{{Guild.Members}}": "100",
+		"{{Guild.Name}}":          "Test Server",
+		"{{Guild.Icon}}":          "https://cdn.discordapp.com/icons/1234567890/1234567890.png",
+		"{{Guild.Splash}}":        "",
+		"{{Guild.Banner}}":        "",
+		"{{Guild.ID}}":            "1234567890",
+		"{{Guild.Members}}":       "100",
+		"{{Guild.MembersJoined}}": "150",
 
-		"{{Ordinal(Guild.Members)}}": "100th",
+		"{{Ordinal(Guild.Members)}}":       "100th",
+		"{{Ordinal(Guild.MembersJoined)}}": "151st",
 
 		"":                        "",
 		"Hello, world!":           "Hello, world!",

@@ -113,6 +113,9 @@ export function formatText(text) {
         "{{Guild.Splash}}": `https://cdn.discordapp.com/splashes/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.splash}.png`,
         "{{Guild.Members}}": store.getters.getCurrentSelectedGuild?.member_count,
         "{{Ordinal(Guild.Members)}}": ordinal(store.getters.getCurrentSelectedGuild?.member_count),
+        // TODO: Use members joined counter
+        "{{Guild.MembersJoined}}": store.getters.getCurrentSelectedGuild?.member_count,
+        "{{Ordinal(Guild.MembersJoined)}}": ordinal(store.getters.getCurrentSelectedGuild?.member_count),
         "{{Guild.Banner}}": `https://cdn.discordapp.com/banners/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.banner}.png`,
         "{{Invite.Code}}": "Unknown",
         "{{Invite.Uses}}": "0",

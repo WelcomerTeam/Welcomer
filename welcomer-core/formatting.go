@@ -66,7 +66,12 @@ func EscapeStringForJSON(value string) string {
 	return strings.ReplaceAll(value, `"`, `\"`)
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild *discord.Guild, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
+type GuildVariables struct {
+	*discord.Guild
+	MembersJoined int32
+}
+
+func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
 	vars = make(map[string]any)
 
 	vars["User"] = StubUser{
@@ -84,12 +89,13 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 	}
 
 	vars["Guild"] = StubGuild{
-		ID:      guild.ID,
-		Name:    EscapeStringForJSON(guild.Name),
-		Icon:    getGuildIcon(guild),
-		Splash:  getGuildSplash(guild),
-		Members: guild.MemberCount,
-		Banner:  getGuildBanner(guild),
+		ID:            guild.ID,
+		Name:          EscapeStringForJSON(guild.Name),
+		Icon:          getGuildIcon(guild.Guild),
+		Splash:        getGuildSplash(guild.Guild),
+		Members:       guild.MemberCount,
+		MembersJoined: guild.MembersJoined,
+		Banner:        getGuildBanner(guild.Guild),
 	}
 
 	if invite != nil {
@@ -272,12 +278,13 @@ func (s StubUser) String() string {
 
 // Guild represents a guild on discord.
 type StubGuild struct {
-	Name    string            `json:"name"`
-	Icon    string            `json:"icon"`
-	Splash  string            `json:"splash"`
-	Banner  string            `json:"banner"`
-	ID      discord.Snowflake `json:"id"`
-	Members int32             `json:"members"`
+	Name          string            `json:"name"`
+	Icon          string            `json:"icon"`
+	Splash        string            `json:"splash"`
+	Banner        string            `json:"banner"`
+	ID            discord.Snowflake `json:"id"`
+	Members       int32             `json:"members"`
+	MembersJoined int32             `json:"members_joined"`
 }
 
 func (s StubGuild) String() string {

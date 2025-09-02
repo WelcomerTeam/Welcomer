@@ -218,7 +218,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	)
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, guild, nil, map[string]any{
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{Guild: guild}, nil, map[string]any{
 		"Borderwall": BorderwallVariables{
 			Link: borderwallLink,
 		},
@@ -531,7 +531,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, guild, nil, nil)
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{Guild: guild}, nil, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams

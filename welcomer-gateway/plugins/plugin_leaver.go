@@ -159,7 +159,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 	variables := welcomer.GatherVariables(eventCtx, &discord.GuildMember{
 		GuildID: &event.GuildID,
 		User:    &event.User,
-	}, guild, nil, nil)
+	}, core.GuildVariables{Guild: guild}, nil, nil)
 
 	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
 	if err != nil {
