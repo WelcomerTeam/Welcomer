@@ -6,8 +6,8 @@ toolchain go1.23.1
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20250802100629-f340fe10f307
-	github.com/WelcomerTeam/Sandwich v0.0.0-20250704091340-1979653e6d21
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250802101748-9052bf06297e
+	github.com/WelcomerTeam/Sandwich v0.0.0-20250804200442-87f55f3a09a7
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250816134540-3e2d376fca3d
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
@@ -28,6 +28,8 @@ require (
 	github.com/coder/websocket v1.8.13 // indirect
 	github.com/coder/websocket v1.8.13 // indirect
 	github.com/davidmytton/url-verifier v1.0.1 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -51,12 +53,12 @@ require (
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250728155136-f173205681a0 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811230008-5f3141c8851a // indirect
+	google.golang.org/protobuf v1.36.7 // indirect
 )
 
 replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core
