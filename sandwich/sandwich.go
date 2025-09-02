@@ -16,6 +16,7 @@ import (
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -35,6 +36,7 @@ func main() {
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
 	prometheusHost := flag.String("prometheusHost", os.Getenv("PROMETHEUS_HOST"), "Prometheus host")
+	redisHost := flag.String("redisHost", os.Getenv("REDIS_HOST"), "Redis host")
 	grpcHost := flag.String("grpcHost", os.Getenv("GRPC_HOST"), "GRPC host")
 	proxyHost := flag.String("proxyHost", os.Getenv("PROXY_HOST"), "Proxy host")
 
@@ -46,8 +48,12 @@ func main() {
 	welcomer.SetupLogger(*loggingLevel)
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: *redisHost,
+	})
+
 	stateProvider := sandwich_daemon.NewStateProviderMemoryOptimized()
-	dedupeProvider := sandwich_daemon.NewInMemoryDedupeProvider()
+	dedupeProvider := welcomer.NewRedisDedupeProvider(redisClient, slog.Default())
 
 	producerProvider, err := jetstream_client.NewJetstreamProducerProvider(
 		ctx,

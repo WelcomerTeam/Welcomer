@@ -2,3 +2,4 @@
 ./build-gateway.sh
 ./build-images.sh
 ./build-interactions.sh
+./build-sandwich.sh
