@@ -1,18 +1,19 @@
 -- name: CreateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING
     *;
 
 -- name: CreateOrUpdateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT(guild_id) DO UPDATE
     SET embed_colour = EXCLUDED.embed_colour,
         site_splash_url = EXCLUDED.site_splash_url,
         site_staff_visible = EXCLUDED.site_staff_visible,
         site_guild_visible = EXCLUDED.site_guild_visible,
-        site_allow_invites = EXCLUDED.site_allow_invites
+        site_allow_invites = EXCLUDED.site_allow_invites,
+        member_count = EXCLUDED.member_count
 RETURNING
     *;
 
@@ -36,3 +37,20 @@ SET
 WHERE
     guild_id = $1;
 
+-- name: IncrementGuildMemberCount :one
+UPDATE
+    guilds
+SET
+    member_count = GREATEST(member_count + $2, $3)
+WHERE
+    guild_id = $1
+RETURNING
+    member_count;
+
+-- name: SetGuildMemberCount :execrows
+UPDATE
+    guilds
+SET
+    member_count = GREATEST(member_count, $2)
+WHERE
+    guild_id = $1;

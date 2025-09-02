@@ -10,10 +10,10 @@ import (
 )
 
 const CreateGuild = `-- name: CreateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count
 `
 
 type CreateGuildParams struct {
@@ -23,6 +23,7 @@ type CreateGuildParams struct {
 	SiteStaffVisible bool   `json:"site_staff_visible"`
 	SiteGuildVisible bool   `json:"site_guild_visible"`
 	SiteAllowInvites bool   `json:"site_allow_invites"`
+	MemberCount      int32  `json:"member_count"`
 }
 
 func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error) {
@@ -33,6 +34,7 @@ func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guil
 		arg.SiteStaffVisible,
 		arg.SiteGuildVisible,
 		arg.SiteAllowInvites,
+		arg.MemberCount,
 	)
 	var i Guilds
 	err := row.Scan(
@@ -42,21 +44,23 @@ func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guil
 		&i.SiteStaffVisible,
 		&i.SiteGuildVisible,
 		&i.SiteAllowInvites,
+		&i.MemberCount,
 	)
 	return &i, err
 }
 
 const CreateOrUpdateGuild = `-- name: CreateOrUpdateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT(guild_id) DO UPDATE
     SET embed_colour = EXCLUDED.embed_colour,
         site_splash_url = EXCLUDED.site_splash_url,
         site_staff_visible = EXCLUDED.site_staff_visible,
         site_guild_visible = EXCLUDED.site_guild_visible,
-        site_allow_invites = EXCLUDED.site_allow_invites
+        site_allow_invites = EXCLUDED.site_allow_invites,
+        member_count = EXCLUDED.member_count
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count
 `
 
 type CreateOrUpdateGuildParams struct {
@@ -66,6 +70,7 @@ type CreateOrUpdateGuildParams struct {
 	SiteStaffVisible bool   `json:"site_staff_visible"`
 	SiteGuildVisible bool   `json:"site_guild_visible"`
 	SiteAllowInvites bool   `json:"site_allow_invites"`
+	MemberCount      int32  `json:"member_count"`
 }
 
 func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGuildParams) (*Guilds, error) {
@@ -76,6 +81,7 @@ func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGui
 		arg.SiteStaffVisible,
 		arg.SiteGuildVisible,
 		arg.SiteAllowInvites,
+		arg.MemberCount,
 	)
 	var i Guilds
 	err := row.Scan(
@@ -85,13 +91,14 @@ func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGui
 		&i.SiteStaffVisible,
 		&i.SiteGuildVisible,
 		&i.SiteAllowInvites,
+		&i.MemberCount,
 	)
 	return &i, err
 }
 
 const GetGuild = `-- name: GetGuild :one
 SELECT
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count
 FROM
     guilds
 WHERE
@@ -108,8 +115,54 @@ func (q *Queries) GetGuild(ctx context.Context, guildID int64) (*Guilds, error) 
 		&i.SiteStaffVisible,
 		&i.SiteGuildVisible,
 		&i.SiteAllowInvites,
+		&i.MemberCount,
 	)
 	return &i, err
+}
+
+const IncrementGuildMemberCount = `-- name: IncrementGuildMemberCount :one
+UPDATE
+    guilds
+SET
+    member_count = member_count + $2
+WHERE
+    guild_id = $1
+RETURNING
+    member_count
+`
+
+type IncrementGuildMemberCountParams struct {
+	GuildID     int64 `json:"guild_id"`
+	MemberCount int32 `json:"member_count"`
+}
+
+func (q *Queries) IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error) {
+	row := q.db.QueryRow(ctx, IncrementGuildMemberCount, arg.GuildID, arg.MemberCount)
+	var member_count int32
+	err := row.Scan(&member_count)
+	return member_count, err
+}
+
+const SetGuildMemberCount = `-- name: SetGuildMemberCount :execrows
+UPDATE
+    guilds
+SET
+    member_count = GREATEST(member_count, $2)
+WHERE
+    guild_id = $1
+`
+
+type SetGuildMemberCountParams struct {
+	GuildID     int64 `json:"guild_id"`
+	MemberCount int32 `json:"member_count"`
+}
+
+func (q *Queries) SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error) {
+	result, err := q.db.Exec(ctx, SetGuildMemberCount, arg.GuildID, arg.MemberCount)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const UpdateGuild = `-- name: UpdateGuild :execrows
