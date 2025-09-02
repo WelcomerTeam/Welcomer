@@ -176,7 +176,8 @@ func (p *TempChannelsCog) findChannelForUser(eventCtx *sandwich.EventContext, gu
 	for _, guildChannel := range channels {
 		if guildChannel.Type == discord.ChannelTypeGuildVoice && // Filter for voice channels
 			(channelLobby.IsNil() || guildChannel.ID != channelLobby) && // Exclude the lobby channel
-			(category.IsNil() || (guildChannel.ParentID != nil && *guildChannel.ParentID == category)) { // Ensure the channel is in the specified category (if set)
+			(category.IsNil() || (guildChannel.ParentID != nil && *guildChannel.ParentID == category)) && // Ensure the channel is in the specified category (if set)
+			guildChannel.MemberCount == 0 { // Check if the channel is empty
 			return guildChannel, nil
 		}
 	}
@@ -266,6 +267,7 @@ func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 	if !p.isTempChannel(channel.Name) {
 		return false, welcomer.ErrInvalidTempChannel
 	}
+
 	if (channel.ParentID != nil && *channel.ParentID == category) && channel.MemberCount == 0 && channel.ID != lobby {
 		err = channel.Delete(eventCtx.Context, eventCtx.Session, welcomer.ToPointer("Automatically deleted by TempChannels"))
 		if err != nil {

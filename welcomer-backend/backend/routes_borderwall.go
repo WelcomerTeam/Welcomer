@@ -159,6 +159,7 @@ func setBorderwall(ctx *gin.Context) {
 			welcomer.Logger.Error().
 				Int64("userID", int64(user.ID)).
 				Int64("borderwallRequestUserID", borderwallRequest.UserID).
+				Str("ip", ctx.ClientIP()).
 				Msg("User ID does not match")
 
 			ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrBorderwallUserInvalid, nil))
@@ -175,7 +176,7 @@ func setBorderwall(ctx *gin.Context) {
 		// Validate reCAPTCHA
 		recaptchaScore, err := welcomer.ValidateRecaptcha(request.Response, ctx.ClientIP())
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Msg("Failed to validate recaptcha")
+			welcomer.Logger.Error().Err(err).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("Failed to validate recaptcha")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrRecaptchaValidationFailed, nil))
 
@@ -183,7 +184,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if recaptchaScore < RecaptchaThreshold {
-			welcomer.Logger.Warn().Float64("score", recaptchaScore).Float64("threshold", RecaptchaThreshold).Msg("Recaptcha score is too low")
+			welcomer.Logger.Warn().Float64("score", recaptchaScore).Float64("threshold", RecaptchaThreshold).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("Recaptcha score is too low")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
@@ -197,7 +198,7 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if ipIntelResponse.Result > IPIntelThreshold {
-			welcomer.Logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Msg("IPIntel score is too high")
+			welcomer.Logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("IPIntel score is too high")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
@@ -207,7 +208,7 @@ func setBorderwall(ctx *gin.Context) {
 		// Broadcast borderwall completion.
 		managers, err := fetchApplicationsForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
 		if err != nil || len(managers) == 0 {
-			welcomer.Logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Msg("Failed to get managers for guild")
+			welcomer.Logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("Failed to get managers for guild")
 
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
@@ -264,6 +265,8 @@ func setBorderwall(ctx *gin.Context) {
 			Str("key", key).
 			Float64("recaptchaScore", recaptchaScore).
 			Float64("ipIntelResponse", ipIntelResponse.Result).
+			Str("ip", ctx.ClientIP()).
+			Int64("userID", int64(user.ID)).
 			Msg("Borderwall request verified")
 
 		// Update the borderwall request with the response

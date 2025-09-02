@@ -61,7 +61,9 @@ func getPatreonCallback(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to exchange code for token")
 
-			doPatreonOAuthAuthorize(session, ctx)
+			// doPatreonOAuthAuthorize(session, ctx)
+
+			ctx.Redirect(http.StatusTemporaryRedirect, "/")
 
 			return
 		}
