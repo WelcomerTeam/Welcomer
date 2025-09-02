@@ -41,7 +41,7 @@ WHERE
 UPDATE
     guilds
 SET
-    member_count = GREATEST(member_count + $2, $3)
+    member_count = COALESCE(member_count, @guild_members_default) + @increment
 WHERE
     guild_id = $1
 RETURNING

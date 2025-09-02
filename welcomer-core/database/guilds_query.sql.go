@@ -124,7 +124,7 @@ const IncrementGuildMemberCount = `-- name: IncrementGuildMemberCount :one
 UPDATE
     guilds
 SET
-    member_count = member_count + $2
+    member_count = COALESCE(member_count, $2) + $3
 WHERE
     guild_id = $1
 RETURNING
@@ -132,12 +132,13 @@ RETURNING
 `
 
 type IncrementGuildMemberCountParams struct {
-	GuildID     int64 `json:"guild_id"`
-	MemberCount int32 `json:"member_count"`
+	GuildID             int64 `json:"guild_id"`
+	GuildMembersDefault int32 `json:"guild_members_default"`
+	Increment           int32 `json:"increment"`
 }
 
 func (q *Queries) IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error) {
-	row := q.db.QueryRow(ctx, IncrementGuildMemberCount, arg.GuildID, arg.MemberCount)
+	row := q.db.QueryRow(ctx, IncrementGuildMemberCount, arg.GuildID, arg.GuildMembersDefault, arg.Increment)
 	var member_count int32
 	err := row.Scan(&member_count)
 	return member_count, err

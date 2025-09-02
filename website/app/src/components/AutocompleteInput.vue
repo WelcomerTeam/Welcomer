@@ -64,6 +64,8 @@ const formattingTags = [
   "{{Guild.Splash}}",
   "{{Guild.Members}}",
   "{{Ordinal(Guild.Members)}}",
+  "{{Guild.MembersJoined}}",
+  "{{Ordinal(Guild.MembersJoined)}}",
   "{{Guild.Banner}}",
   "{{Invite.Code}}",
   "{{Invite.Uses}}",

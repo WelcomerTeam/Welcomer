@@ -453,6 +453,18 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		guild = sandwich_protobuf.PBToGuild(guildPb)
 	}
 
+	guildMembersJoinedCount, err := welcomer.Queries.IncrementGuildMemberCount(eventCtx, database.IncrementGuildMemberCountParams{
+		GuildID:             int64(eventCtx.Guild.ID),
+		GuildMembersDefault: guildPb.GetMemberCount() - 1,
+		Increment:           1,
+	})
+	if err != nil {
+		welcomer.Logger.Warn().Err(err).
+			Msg("Failed to increment guild member count")
+
+		guildMembersJoinedCount = guildPb.GetMemberCount()
+	}
+
 	var usedInvite *discord.Invite
 
 	var joinEvent *welcomer.GuildScienceUserJoined
@@ -615,7 +627,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, guild, usedInvite, nil)
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
+		Guild:         guild,
+		MembersJoined: guildMembersJoinedCount,
+	}, usedInvite, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
