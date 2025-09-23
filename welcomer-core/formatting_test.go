@@ -52,7 +52,7 @@ func TestFormatString(t *testing.T) {
 		"{{Guild.Banner}}":        "",
 		"{{Guild.ID}}":            "1234567890",
 		"{{Guild.Members}}":       "100",
-		"{{Guild.MembersJoined}}": "150",
+		"{{Guild.MembersJoined}}": "151",
 
 		"{{Ordinal(Guild.Members)}}":       "100th",
 		"{{Ordinal(Guild.MembersJoined)}}": "151st",
