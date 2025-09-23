@@ -626,10 +626,24 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
+	var memberships []*database.GetUserMembershipsByGuildIDRow
+
+	// Check if the guild has welcomer pro.
+	memberships, err = welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Warn().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Failed to get welcomer memberships")
+
+		return err
+	}
+
+	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+
 	functions := welcomer.GatherFunctions()
 	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
 		Guild:         guild,
-		MembersJoined: guildMembersJoinedCount,
+		MembersJoined: welcomer.If(hasWelcomerPro, guildMembersJoinedCount, guild.MemberCount),
 	}, usedInvite, nil)
 
 	var serverMessage discord.MessageParams
@@ -651,20 +665,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			return err
 		}
 
-		var memberships []*database.GetUserMembershipsByGuildIDRow
-
-		// Check if the guild has welcomer pro.
-		memberships, err = welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			welcomer.Logger.Warn().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Msg("Failed to get welcomer memberships")
-
-			return err
-		}
-
-		hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
-
 		var borderWidth int32
 		if guildSettingsWelcomerImages.ToggleImageBorder {
 			borderWidth = DefaultImageBorderWidth
@@ -673,6 +673,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 
 		var profileFloat welcomer.ImageAlignment
+
 		switch guildSettingsWelcomerImages.ImageTheme {
 		case int32(welcomer.ImageThemeDefault):
 			profileFloat = welcomer.ImageAlignmentLeft
