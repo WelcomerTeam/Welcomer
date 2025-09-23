@@ -104,11 +104,24 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 			} else if len(messagesToDelete) > 1 {
-				err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
+				if interaction.GuildID == nil {
+					for _, messageID := range messagesToDelete {
+						message := discord.Message{ID: messageID, ChannelID: *interaction.ChannelID}
 
-					return nil, err
+						err = message.Delete(ctx, session, nil)
+						if err != nil {
+							welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
+
+							return nil, err
+						}
+					}
+				} else {
+					err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
+					if err != nil {
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
+
+						return nil, err
+					}
 				}
 			}
 
