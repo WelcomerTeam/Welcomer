@@ -14,4 +14,4 @@ COPY --from=build_base /usr/local/lib /usr/local/lib
 COPY --from=build_base /tmp/welcomer-images/out/images /app/images
 CMD ["/app/images"]
 
-LABEL org.opencontainers.image.source https://github.com/WelcomerTeam/Welcomer
+LABEL org.opencontainers.image.source=https://github.com/WelcomerTeam/Welcomer
