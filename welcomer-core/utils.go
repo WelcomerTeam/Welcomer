@@ -424,7 +424,7 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	}
 
 	for _, embed := range m.Embeds {
-		if embed.Title != "" || embed.Description != "" || embed.URL != "" || len(embed.Fields) > 0 || embed.Color != 0 {
+		if embed.Title != "" || embed.Description != "" || embed.URL != "" || len(embed.Fields) > 0 {
 			return false
 		}
 
