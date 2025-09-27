@@ -644,12 +644,24 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		return err
 	}
 
+	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettings = &welcomer.DefaultGuild
+		} else {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get guild settings")
+		}
+	}
+
 	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
 
-	functions := welcomer.GatherFunctions()
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
 	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
 		Guild:         guild,
 		MembersJoined: welcomer.If(hasWelcomerPro, guildMembersJoinedCount, guild.MemberCount),
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
 	}, usedInvite, nil)
 
 	var serverMessage discord.MessageParams

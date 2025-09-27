@@ -11,6 +11,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	mustache "github.com/WelcomerTeam/Mustachvulate"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 // ordinal takes 1 argument but 0 was given
@@ -24,7 +25,7 @@ func AssertLength(name string, expectedLength int, arguments ...any) (err error)
 	return nil
 }
 
-func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
+func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]govaluate.ExpressionFunction) {
 	funcs = map[string]govaluate.ExpressionFunction{}
 
 	funcs["Ordinal"] = func(arguments ...any) (any, error) {
@@ -58,6 +59,58 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 		return Itoa(int64(argument)) + suffix, nil
 	}
 
+	funcs["FormatNumber"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("FormatNumber", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(float64)
+		if !ok {
+			return nil, fmt.Errorf("formatNumber argument 1 is not supported")
+		}
+
+		return FormatNumber(int64(argument), numberLocale), nil
+	}
+
+	funcs["Upper"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("Upper", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("upper argument 1 is not supported")
+		}
+
+		return strings.ToUpper(argument), nil
+	}
+
+	funcs["Lower"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("Lower", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("lower argument 1 is not supported")
+		}
+
+		return strings.ToLower(argument), nil
+	}
+
+	funcs["Title"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("Title", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("title argument 1 is not supported")
+		}
+
+		return strings.Title(argument), nil
+	}
+
 	return funcs
 }
 
@@ -69,6 +122,7 @@ func EscapeStringForJSON(value string) string {
 type GuildVariables struct {
 	*discord.Guild
 	MembersJoined int32
+	NumberLocale  database.NumberLocale
 }
 
 func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
@@ -115,6 +169,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 
 		var channelID discord.Snowflake
+
 		if invite.Channel != nil {
 			channelID = invite.Channel.ID
 		}

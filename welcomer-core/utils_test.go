@@ -2,6 +2,8 @@ package welcomer
 
 import (
 	"testing"
+
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 func TestParseDurationAsSeconds(t *testing.T) {
@@ -44,6 +46,59 @@ func TestParseDurationAsSeconds(t *testing.T) {
 			}
 			if output != test.expectedOutput {
 				t.Errorf("expected output: %d, got: %d", test.expectedOutput, output)
+			}
+		})
+	}
+}
+func TestFormatNumber(t *testing.T) {
+	type args struct {
+		value  int64
+		locale database.NumberLocale
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected string
+	}{
+		{
+			name:     "English locale (commas)",
+			args:     args{value: 1234567, locale: database.NumberLocaleCommas},
+			expected: "1,234,567",
+		},
+		{
+			name:     "German locale (dots)",
+			args:     args{value: 1234567, locale: database.NumberLocaleDots},
+			expected: "1.234.567",
+		},
+		{
+			name:     "Arabic locale",
+			args:     args{value: 1234567, locale: database.NumberLocaleArabic},
+			expected: "١٬٢٣٤٬٥٦٧",
+		},
+		{
+			name:     "Default locale (fallback to English)",
+			args:     args{value: 1234567},
+			expected: "1234567",
+		},
+		{
+			name:     "Zero value",
+			args:     args{value: 0, locale: database.NumberLocaleCommas},
+			expected: "0",
+		},
+		{
+			name:     "Negative value",
+			args:     args{value: -1234567, locale: database.NumberLocaleCommas},
+			expected: "-1,234,567",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := FormatNumber(test.args.value, test.args.locale)
+			if got != test.expected {
+				t.Errorf("FormatNumber(%d, %v) = %q, want %q", test.args.value, test.args.locale, got, test.expected)
 			}
 		})
 	}

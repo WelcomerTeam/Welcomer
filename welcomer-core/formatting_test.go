@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFormatString(t *testing.T) {
-	funcs := GatherFunctions()
+	funcs := GatherFunctions(database.NumberLocaleDefault)
 	vars := GatherVariables(nil, &discord.GuildMember{
 		JoinedAt: time.Time{},
 		User: &discord.User{
@@ -27,10 +28,11 @@ func TestFormatString(t *testing.T) {
 			Name:        "Test Server",
 			Icon:        "1234567890",
 			Splash:      "",
-			MemberCount: 100,
+			MemberCount: 1234,
 			Banner:      "",
 		},
-		MembersJoined: 151,
+		MembersJoined: 12345,
+		NumberLocale:  database.NumberLocaleDefault,
 	}, nil, nil)
 
 	testCases := map[string]string{
@@ -51,11 +53,18 @@ func TestFormatString(t *testing.T) {
 		"{{Guild.Splash}}":        "",
 		"{{Guild.Banner}}":        "",
 		"{{Guild.ID}}":            "1234567890",
-		"{{Guild.Members}}":       "100",
-		"{{Guild.MembersJoined}}": "151",
+		"{{Guild.Members}}":       "1234",
+		"{{Guild.MembersJoined}}": "12345",
 
-		"{{Ordinal(Guild.Members)}}":       "100th",
-		"{{Ordinal(Guild.MembersJoined)}}": "151st",
+		"{{Ordinal(Guild.Members)}}":       "1234th",
+		"{{Ordinal(Guild.MembersJoined)}}": "12345th",
+
+		"{{FormatNumber(Guild.Members)}}":       "1234",
+		"{{FormatNumber(Guild.MembersJoined)}}": "12345",
+
+		"{{Upper(User.Username)}}": "JOHN.DOE",
+		"{{Lower(User.Username)}}": "john.doe",
+		"{{Title(User.Username)}}": "John.Doe",
 
 		"":                        "",
 		"Hello, world!":           "Hello, world!",
@@ -69,4 +78,65 @@ func TestFormatString(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, testCaseExpected, result)
 	}
+
+	funcs = GatherFunctions(database.NumberLocaleArabic)
+
+	testCases = map[string]string{
+		"{{Ordinal(Guild.Members)}}":            "1234th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{FormatNumber(Guild.Members)}}":       "١٬٢٣٤",
+		"{{FormatNumber(Guild.MembersJoined)}}": "١٢٬٣٤٥",
+	}
+
+	for testCaseMessage, testCaseExpected := range testCases {
+		result, err := FormatString(funcs, vars, testCaseMessage)
+		assert.NoError(t, err)
+		assert.Equal(t, testCaseExpected, result)
+	}
+
+	funcs = GatherFunctions(database.NumberLocaleCommas)
+
+	testCases = map[string]string{
+		"{{Ordinal(Guild.Members)}}":            "1234th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{FormatNumber(Guild.Members)}}":       "1,234",
+		"{{FormatNumber(Guild.MembersJoined)}}": "12,345",
+	}
+
+	for testCaseMessage, testCaseExpected := range testCases {
+		result, err := FormatString(funcs, vars, testCaseMessage)
+		assert.NoError(t, err)
+		assert.Equal(t, testCaseExpected, result)
+	}
+
+	funcs = GatherFunctions(database.NumberLocaleDots)
+
+	testCases = map[string]string{
+		"{{Ordinal(Guild.Members)}}":            "1234th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{FormatNumber(Guild.Members)}}":       "1.234",
+		"{{FormatNumber(Guild.MembersJoined)}}": "12.345",
+	}
+
+	for testCaseMessage, testCaseExpected := range testCases {
+		result, err := FormatString(funcs, vars, testCaseMessage)
+		assert.NoError(t, err)
+		assert.Equal(t, testCaseExpected, result)
+	}
+
+	funcs = GatherFunctions(database.NumberLocaleIndian)
+
+	testCases = map[string]string{
+		"{{Ordinal(Guild.Members)}}":            "1234th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{FormatNumber(Guild.Members)}}":       "1,234",
+		"{{FormatNumber(Guild.MembersJoined)}}": "12,345",
+	}
+
+	for testCaseMessage, testCaseExpected := range testCases {
+		result, err := FormatString(funcs, vars, testCaseMessage)
+		assert.NoError(t, err)
+		assert.Equal(t, testCaseExpected, result)
+	}
+
 }

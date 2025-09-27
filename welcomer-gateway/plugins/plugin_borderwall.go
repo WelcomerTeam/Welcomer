@@ -217,8 +217,23 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		existingRequestUuid.String(),
 	)
 
-	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{Guild: guild}, nil, map[string]any{
+	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettings = &welcomer.DefaultGuild
+		} else {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get guild settings")
+		}
+	}
+
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
+		Guild:         guild,
+		MembersJoined: guildSettings.MemberCount, // Approximate, as this is not real-time.
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
+	}, nil, map[string]any{
 		"Borderwall": BorderwallVariables{
 			Link: borderwallLink,
 		},
@@ -530,8 +545,23 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		guild = eventCtx.Guild
 	}
 
-	functions := welcomer.GatherFunctions()
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{Guild: guild}, nil, nil)
+	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettings = &welcomer.DefaultGuild
+		} else {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get guild settings")
+		}
+	}
+
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
+		Guild:         guild,
+		MembersJoined: guildSettings.MemberCount, // Approximate, as this is not real-time.
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
+	}, nil, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams

@@ -158,6 +158,7 @@ type Guilds struct {
 	SiteGuildVisible bool   `json:"site_guild_visible"`
 	SiteAllowInvites bool   `json:"site_allow_invites"`
 	MemberCount      int32  `json:"member_count"`
+	NumberLocale     int32  `json:"number_locale"`
 }
 
 type InteractionCommands struct {
