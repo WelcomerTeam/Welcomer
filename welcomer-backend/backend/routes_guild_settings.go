@@ -27,6 +27,8 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 						SiteStaffVisible: welcomer.DefaultGuild.SiteStaffVisible,
 						SiteGuildVisible: welcomer.DefaultGuild.SiteGuildVisible,
 						SiteAllowInvites: welcomer.DefaultGuild.SiteAllowInvites,
+						MemberCount:      0,
+						NumberLocale:     welcomer.DefaultGuild.NumberLocale,
 					}
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
@@ -81,14 +83,14 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 
 			settings := PartialToGuildSettings(int64(guildID), partial)
 
-			databaseGuildSettings := database.CreateOrUpdateGuildParams(*settings)
+			databaseGuildSettings := *settings
 
 			user := tryGetUser(ctx)
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
 
-			_, err = welcomer.Queries.CreateOrUpdateGuild(ctx, databaseGuildSettings)
+			_, err = welcomer.Queries.UpdateGuild(ctx, databaseGuildSettings)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild settings settings")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild settings settings")
 			}
 
 			getGuildSettingsSettings(ctx)
@@ -99,6 +101,10 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 // Validates settings.
 func doValidateSettings(guildSettings *GuildSettingsSettings) error {
 	// TODO: validate settings
+
+	if _, err := database.ParseNumberLocale(guildSettings.NumberLocale); err != nil {
+		return NewInvalidParameterError("number_locale")
+	}
 
 	return nil
 }
