@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -11,6 +13,17 @@ type GuildSettingsSettings struct {
 	SiteStaffVisible bool   `json:"site_staff_visible"`
 	SiteGuildVisible bool   `json:"site_guild_visible"`
 	SiteAllowInvites bool   `json:"site_allow_invites"`
+	MemberCount      int32  `json:"member_count"`
+	NumberLocale     string `json:"number_locale"`
+}
+
+func MustParseNumberLocale(locale string) database.NumberLocale {
+	parsed, err := database.ParseNumberLocale(locale)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse number locale: %v", err))
+	}
+
+	return parsed
 }
 
 func GuildSettingsToPartial(
@@ -22,18 +35,29 @@ func GuildSettingsToPartial(
 		SiteStaffVisible: guildSettings.SiteStaffVisible,
 		SiteGuildVisible: guildSettings.SiteGuildVisible,
 		SiteAllowInvites: guildSettings.SiteAllowInvites,
+		MemberCount:      guildSettings.MemberCount,
+		NumberLocale:     database.NumberLocale(guildSettings.NumberLocale).String(),
 	}
 
 	return partial
 }
 
-func PartialToGuildSettings(guildID int64, guildSettings *GuildSettingsSettings) *database.Guilds {
-	return &database.Guilds{
+func MustParseGuildSettingsSettings(partial *GuildSettingsSettings) error {
+	if _, err := database.ParseNumberLocale(partial.NumberLocale); err != nil {
+		return fmt.Errorf("invalid number locale: %w", err)
+	}
+
+	return nil
+}
+
+func PartialToGuildSettings(guildID int64, guildSettings *GuildSettingsSettings) *database.UpdateGuildParams {
+	return &database.UpdateGuildParams{
 		GuildID:          guildID,
 		EmbedColour:      guildSettings.EmbedColour,
 		SiteSplashUrl:    guildSettings.SiteSplashUrl,
 		SiteStaffVisible: guildSettings.SiteStaffVisible,
 		SiteGuildVisible: guildSettings.SiteGuildVisible,
 		SiteAllowInvites: guildSettings.SiteAllowInvites,
+		NumberLocale:     int32(MustParseNumberLocale(guildSettings.NumberLocale)),
 	}
 }
