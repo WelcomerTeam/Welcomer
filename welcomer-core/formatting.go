@@ -45,7 +45,15 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 	funcs = map[string]govaluate.ExpressionFunction{}
 
 	funcs["Ordinal"] = func(arguments ...any) (any, error) {
-		if err := AssertLength("Ordinal", 1, arguments...); err != nil {
+		// if err := AssertLength("Ordinal", 1, arguments...); err != nil {
+		// 	return nil, err
+		// }
+
+		if err := AssertMinLength("FormatNumber", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		if err := AssertMaxLength("FormatNumber", 2, arguments...); err != nil {
 			return nil, err
 		}
 
@@ -72,7 +80,23 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 			suffix = "th"
 		}
 
-		return Itoa(int64(argument)) + suffix, nil
+		if len(arguments) == 2 {
+			localeStr, ok := arguments[1].(string)
+			if !ok {
+				return nil, fmt.Errorf("ordinal argument 2 is not supported")
+			}
+
+			locale, err := database.ParseNumberLocale(localeStr)
+			if err != nil {
+				return nil, fmt.Errorf("ordinal argument 2 is not a valid locale")
+			}
+
+			return FormatNumber(int64(argument), locale) + suffix, nil
+		}
+
+		// Use the guild's locale by default.
+		// return Itoa(int64(argument)) + suffix, nil
+		return FormatNumber(int64(argument), numberLocale) + suffix, nil
 	}
 
 	funcs["FormatNumber"] = func(arguments ...any) (any, error) {
