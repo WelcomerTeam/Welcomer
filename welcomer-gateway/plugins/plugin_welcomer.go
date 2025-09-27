@@ -651,11 +651,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
 
-	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
 	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
 		Guild:         guild,
 		MembersJoined: welcomer.If(hasWelcomerPro, guildMembersJoinedCount, guild.MemberCount),
-		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
 	}, usedInvite, nil)
 
 	var serverMessage discord.MessageParams

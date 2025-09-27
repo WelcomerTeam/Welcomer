@@ -50,6 +50,7 @@ func TestParseDurationAsSeconds(t *testing.T) {
 		})
 	}
 }
+
 func TestFormatNumber(t *testing.T) {
 	type args struct {
 		value  int64

@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -36,7 +37,7 @@ func GuildSettingsToPartial(
 		SiteGuildVisible: guildSettings.SiteGuildVisible,
 		SiteAllowInvites: guildSettings.SiteAllowInvites,
 		MemberCount:      guildSettings.MemberCount,
-		NumberLocale:     database.NumberLocale(guildSettings.NumberLocale).String(),
+		NumberLocale:     database.NumberLocale(guildSettings.NumberLocale.Int32).String(),
 	}
 
 	return partial
@@ -58,6 +59,9 @@ func PartialToGuildSettings(guildID int64, guildSettings *GuildSettingsSettings)
 		SiteStaffVisible: guildSettings.SiteStaffVisible,
 		SiteGuildVisible: guildSettings.SiteGuildVisible,
 		SiteAllowInvites: guildSettings.SiteAllowInvites,
-		NumberLocale:     int32(MustParseNumberLocale(guildSettings.NumberLocale)),
+		NumberLocale: sql.NullInt32{
+			Int32: int32(MustParseNumberLocale(guildSettings.NumberLocale)),
+			Valid: true,
+		},
 	}
 }
