@@ -160,6 +160,78 @@ func (x *MembershipType) UnmarshalText(text []byte) error {
 }
 
 const (
+	// NumberLocaleDefault is a NumberLocale of type Default.
+	NumberLocaleDefault NumberLocale = iota
+	// NumberLocaleCommas is a NumberLocale of type Commas.
+	NumberLocaleCommas
+	// NumberLocaleDots is a NumberLocale of type Dots.
+	NumberLocaleDots
+	// NumberLocaleIndian is a NumberLocale of type Indian.
+	NumberLocaleIndian
+	// NumberLocaleArabic is a NumberLocale of type Arabic.
+	NumberLocaleArabic
+)
+
+var ErrInvalidNumberLocale = errors.New("not a valid NumberLocale")
+
+const _NumberLocaleName = "defaultcommasdotsindianarabic"
+
+var _NumberLocaleMap = map[NumberLocale]string{
+	NumberLocaleDefault: _NumberLocaleName[0:7],
+	NumberLocaleCommas:  _NumberLocaleName[7:13],
+	NumberLocaleDots:    _NumberLocaleName[13:17],
+	NumberLocaleIndian:  _NumberLocaleName[17:23],
+	NumberLocaleArabic:  _NumberLocaleName[23:29],
+}
+
+// String implements the Stringer interface.
+func (x NumberLocale) String() string {
+	if str, ok := _NumberLocaleMap[x]; ok {
+		return str
+	}
+	return fmt.Sprintf("NumberLocale(%d)", x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x NumberLocale) IsValid() bool {
+	_, ok := _NumberLocaleMap[x]
+	return ok
+}
+
+var _NumberLocaleValue = map[string]NumberLocale{
+	_NumberLocaleName[0:7]:   NumberLocaleDefault,
+	_NumberLocaleName[7:13]:  NumberLocaleCommas,
+	_NumberLocaleName[13:17]: NumberLocaleDots,
+	_NumberLocaleName[17:23]: NumberLocaleIndian,
+	_NumberLocaleName[23:29]: NumberLocaleArabic,
+}
+
+// ParseNumberLocale attempts to convert a string to a NumberLocale.
+func ParseNumberLocale(name string) (NumberLocale, error) {
+	if x, ok := _NumberLocaleValue[name]; ok {
+		return x, nil
+	}
+	return NumberLocale(0), fmt.Errorf("%s is %w", name, ErrInvalidNumberLocale)
+}
+
+// MarshalText implements the text marshaller method.
+func (x NumberLocale) MarshalText() ([]byte, error) {
+	return []byte(x.String()), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *NumberLocale) UnmarshalText(text []byte) error {
+	name := string(text)
+	tmp, err := ParseNumberLocale(name)
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// PlatformTypeUnknown is a PlatformType of type Unknown.
 	PlatformTypeUnknown PlatformType = iota
 	// PlatformTypePaypal is a PlatformType of type Paypal.

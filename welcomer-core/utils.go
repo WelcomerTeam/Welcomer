@@ -16,10 +16,13 @@ import (
 	"unicode/utf8"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	urlverifier "github.com/davidmytton/url-verifier"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 	gotils_strconv "github.com/savsgio/gotils/strconv"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -688,4 +691,27 @@ func Int64SliceToString(values []int64) []string {
 	}
 
 	return r
+}
+
+func FormatNumber(value int64, locale database.NumberLocale) string {
+	var lang language.Tag
+
+	switch locale {
+	case database.NumberLocaleDots:
+		lang = language.German
+	case database.NumberLocaleCommas:
+		lang = language.English
+	case database.NumberLocaleArabic:
+		lang = language.Arabic
+	case database.NumberLocaleIndian:
+		lang = language.MustParse("en-IN")
+	case database.NumberLocaleDefault:
+		return Itoa(value)
+	default:
+		return Itoa(value)
+	}
+
+	p := message.NewPrinter(lang)
+
+	return p.Sprintf("%d", value)
 }
