@@ -25,6 +25,22 @@ func AssertLength(name string, expectedLength int, arguments ...any) (err error)
 	return nil
 }
 
+func AssertMaxLength(name string, maximumLength int, arguments ...any) (err error) {
+	if len(arguments) > maximumLength {
+		return fmt.Errorf("%s takes up to %d argument(s) but %d was given", name, maximumLength, len(arguments))
+	}
+
+	return nil
+}
+
+func AssertMinLength(name string, minimumLength int, arguments ...any) (err error) {
+	if len(arguments) < minimumLength {
+		return fmt.Errorf("%s takes at least %d argument(s) but %d was given", name, minimumLength, len(arguments))
+	}
+
+	return nil
+}
+
 func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]govaluate.ExpressionFunction) {
 	funcs = map[string]govaluate.ExpressionFunction{}
 
@@ -60,7 +76,15 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 	}
 
 	funcs["FormatNumber"] = func(arguments ...any) (any, error) {
-		if err := AssertLength("FormatNumber", 1, arguments...); err != nil {
+		// if err := AssertLength("FormatNumber", 1, arguments...); err != nil {
+		// 	return nil, err
+		// }
+
+		if err := AssertMinLength("FormatNumber", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		if err := AssertMaxLength("FormatNumber", 2, arguments...); err != nil {
 			return nil, err
 		}
 
@@ -68,6 +92,22 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 		if !ok {
 			return nil, fmt.Errorf("formatNumber argument 1 is not supported")
 		}
+
+		if len(arguments) == 2 {
+			localeStr, ok := arguments[1].(string)
+			if !ok {
+				return nil, fmt.Errorf("formatNumber argument 2 is not supported")
+			}
+
+			locale, err := database.ParseNumberLocale(localeStr)
+			if err != nil {
+				return nil, fmt.Errorf("formatNumber argument 2 is not a valid locale")
+			}
+
+			return FormatNumber(int64(argument), locale), nil
+		}
+
+		// Use the guild's locale by default.
 
 		return FormatNumber(int64(argument), numberLocale), nil
 	}

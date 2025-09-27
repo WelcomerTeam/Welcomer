@@ -62,6 +62,11 @@ func TestFormatString(t *testing.T) {
 		"{{FormatNumber(Guild.Members)}}":       "1234",
 		"{{FormatNumber(Guild.MembersJoined)}}": "12345",
 
+		"{{FormatNumber(Guild.Members, \"dots\")}}":   "1.234",
+		"{{FormatNumber(Guild.Members, \"commas\")}}": "1,234",
+		"{{FormatNumber(Guild.Members, \"indian\")}}": "1,234",
+		"{{FormatNumber(Guild.Members, \"arabic\")}}": "١٬٢٣٤",
+
 		"{{Upper(User.Username)}}": "JOHN.DOE",
 		"{{Lower(User.Username)}}": "john.doe",
 		"{{Title(User.Username)}}": "John.Doe",
