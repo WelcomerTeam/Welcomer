@@ -151,14 +151,14 @@ type GuildSettingsWelcomerText struct {
 }
 
 type Guilds struct {
-	GuildID          int64  `json:"guild_id"`
-	EmbedColour      int32  `json:"embed_colour"`
-	SiteSplashUrl    string `json:"site_splash_url"`
-	SiteStaffVisible bool   `json:"site_staff_visible"`
-	SiteGuildVisible bool   `json:"site_guild_visible"`
-	SiteAllowInvites bool   `json:"site_allow_invites"`
-	MemberCount      int32  `json:"member_count"`
-	NumberLocale     int32  `json:"number_locale"`
+	GuildID          int64         `json:"guild_id"`
+	EmbedColour      int32         `json:"embed_colour"`
+	SiteSplashUrl    string        `json:"site_splash_url"`
+	SiteStaffVisible bool          `json:"site_staff_visible"`
+	SiteGuildVisible bool          `json:"site_guild_visible"`
+	SiteAllowInvites bool          `json:"site_allow_invites"`
+	MemberCount      int32         `json:"member_count"`
+	NumberLocale     sql.NullInt32 `json:"number_locale"`
 }
 
 type InteractionCommands struct {

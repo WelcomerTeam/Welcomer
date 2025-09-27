@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const CreateGuild = `-- name: CreateGuild :one
@@ -17,14 +18,14 @@ RETURNING
 `
 
 type CreateGuildParams struct {
-	GuildID          int64  `json:"guild_id"`
-	EmbedColour      int32  `json:"embed_colour"`
-	SiteSplashUrl    string `json:"site_splash_url"`
-	SiteStaffVisible bool   `json:"site_staff_visible"`
-	SiteGuildVisible bool   `json:"site_guild_visible"`
-	SiteAllowInvites bool   `json:"site_allow_invites"`
-	MemberCount      int32  `json:"member_count"`
-	NumberLocale     int32  `json:"number_locale"`
+	GuildID          int64         `json:"guild_id"`
+	EmbedColour      int32         `json:"embed_colour"`
+	SiteSplashUrl    string        `json:"site_splash_url"`
+	SiteStaffVisible bool          `json:"site_staff_visible"`
+	SiteGuildVisible bool          `json:"site_guild_visible"`
+	SiteAllowInvites bool          `json:"site_allow_invites"`
+	MemberCount      int32         `json:"member_count"`
+	NumberLocale     sql.NullInt32 `json:"number_locale"`
 }
 
 func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error) {
@@ -68,14 +69,14 @@ RETURNING
 `
 
 type CreateOrUpdateGuildParams struct {
-	GuildID          int64  `json:"guild_id"`
-	EmbedColour      int32  `json:"embed_colour"`
-	SiteSplashUrl    string `json:"site_splash_url"`
-	SiteStaffVisible bool   `json:"site_staff_visible"`
-	SiteGuildVisible bool   `json:"site_guild_visible"`
-	SiteAllowInvites bool   `json:"site_allow_invites"`
-	MemberCount      int32  `json:"member_count"`
-	NumberLocale     int32  `json:"number_locale"`
+	GuildID          int64         `json:"guild_id"`
+	EmbedColour      int32         `json:"embed_colour"`
+	SiteSplashUrl    string        `json:"site_splash_url"`
+	SiteStaffVisible bool          `json:"site_staff_visible"`
+	SiteGuildVisible bool          `json:"site_guild_visible"`
+	SiteAllowInvites bool          `json:"site_allow_invites"`
+	MemberCount      int32         `json:"member_count"`
+	NumberLocale     sql.NullInt32 `json:"number_locale"`
 }
 
 func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGuildParams) (*Guilds, error) {
@@ -189,13 +190,13 @@ WHERE
 `
 
 type UpdateGuildParams struct {
-	GuildID          int64  `json:"guild_id"`
-	EmbedColour      int32  `json:"embed_colour"`
-	SiteSplashUrl    string `json:"site_splash_url"`
-	SiteStaffVisible bool   `json:"site_staff_visible"`
-	SiteGuildVisible bool   `json:"site_guild_visible"`
-	SiteAllowInvites bool   `json:"site_allow_invites"`
-	NumberLocale     int32  `json:"number_locale"`
+	GuildID          int64         `json:"guild_id"`
+	EmbedColour      int32         `json:"embed_colour"`
+	SiteSplashUrl    string        `json:"site_splash_url"`
+	SiteStaffVisible bool          `json:"site_staff_visible"`
+	SiteGuildVisible bool          `json:"site_guild_visible"`
+	SiteAllowInvites bool          `json:"site_allow_invites"`
+	NumberLocale     sql.NullInt32 `json:"number_locale"`
 }
 
 func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (int64, error) {

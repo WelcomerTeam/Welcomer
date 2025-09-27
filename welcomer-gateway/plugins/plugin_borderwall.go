@@ -228,11 +228,11 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		}
 	}
 
-	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
 	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
 		Guild:         guild,
 		MembersJoined: guildSettings.MemberCount, // Approximate, as this is not real-time.
-		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
 	}, nil, map[string]any{
 		"Borderwall": BorderwallVariables{
 			Link: borderwallLink,
@@ -556,11 +556,11 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		}
 	}
 
-	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
 	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
 		Guild:         guild,
 		MembersJoined: guildSettings.MemberCount, // Approximate, as this is not real-time.
-		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
 	}, nil, nil)
 
 	var serverMessage discord.MessageParams

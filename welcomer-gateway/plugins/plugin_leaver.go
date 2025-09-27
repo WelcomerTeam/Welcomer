@@ -166,14 +166,14 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		}
 	}
 
-	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale))
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
 	variables := welcomer.GatherVariables(eventCtx, &discord.GuildMember{
 		GuildID: &event.GuildID,
 		User:    &event.User,
 	}, core.GuildVariables{
 		Guild:         guild,
 		MembersJoined: guildSettings.MemberCount,
-		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale),
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
 	}, nil, nil)
 
 	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
