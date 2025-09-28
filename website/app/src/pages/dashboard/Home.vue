@@ -42,7 +42,7 @@
       <div class="dashboard-content">
         <div class="grid grid-cols-1 gap-5 mt-2 sm:grid-cols-2 lg:grid-cols-3">
           <!-- Card -->
-          <Card name="Server Members" icon="user-group" :amount="$store.getters.getCurrentSelectedGuild?.member_count" />
+          <Card name="Current Server Members" icon="user-group" :amount="$store.getters.getCurrentSelectedGuild?.member_count" />
           <Card name="Text Channels" icon="user-group"
             :amount="filterTextChannels($store.getters.getGuildChannels).length" />
           <Card name="Voice Channels" icon="user-group" :amount="filterVoiceChannels($store.getters.getGuildChannels).length
