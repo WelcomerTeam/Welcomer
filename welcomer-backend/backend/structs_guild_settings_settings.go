@@ -18,6 +18,10 @@ type GuildSettingsSettings struct {
 	NumberLocale     string `json:"number_locale"`
 }
 
+type GuildSettingsUpdateMemberCount struct {
+	Value int32 `json:"value"`
+}
+
 func MustParseNumberLocale(locale string) database.NumberLocale {
 	parsed, err := database.ParseNumberLocale(locale)
 	if err != nil {
