@@ -157,7 +157,7 @@ const SetGuildMemberCount = `-- name: SetGuildMemberCount :execrows
 UPDATE
     guilds
 SET
-    member_count = GREATEST(member_count, $2)
+    member_count = $2
 WHERE
     guild_id = $1
 `
