@@ -31,7 +31,7 @@ func TestFormatString(t *testing.T) {
 			MemberCount: 1234,
 			Banner:      "",
 		},
-		MembersJoined: 12345,
+		MembersJoined: 123456,
 		NumberLocale:  database.NumberLocaleDefault,
 	}, nil, nil)
 
@@ -54,18 +54,19 @@ func TestFormatString(t *testing.T) {
 		"{{Guild.Banner}}":        "",
 		"{{Guild.ID}}":            "1234567890",
 		"{{Guild.Members}}":       "1234",
-		"{{Guild.MembersJoined}}": "12345",
+		"{{Guild.MembersJoined}}": "123456",
 
 		"{{Ordinal(Guild.Members)}}":       "1234th",
-		"{{Ordinal(Guild.MembersJoined)}}": "12345th",
+		"{{Ordinal(Guild.MembersJoined)}}": "123456th",
 
 		"{{FormatNumber(Guild.Members)}}":       "1234",
-		"{{FormatNumber(Guild.MembersJoined)}}": "12345",
+		"{{FormatNumber(Guild.MembersJoined)}}": "123456",
 
-		"{{FormatNumber(Guild.Members, \"dots\")}}":   "1.234",
-		"{{FormatNumber(Guild.Members, \"commas\")}}": "1,234",
-		"{{FormatNumber(Guild.Members, \"indian\")}}": "1,234",
-		"{{FormatNumber(Guild.Members, \"arabic\")}}": "١٬٢٣٤",
+		"{{FormatNumber(Guild.MembersJoined, \"default\")}}":   "123456",
+		"{{FormatNumber(Guild.MembersJoined, \"dots\")}}":   "123.456",
+		"{{FormatNumber(Guild.MembersJoined, \"commas\")}}": "123,456",
+		"{{FormatNumber(Guild.MembersJoined, \"indian\")}}": "1,23,456",
+		"{{FormatNumber(Guild.MembersJoined, \"arabic\")}}": "١٢٣٬٤٥٦",
 
 		"{{Upper(User.Username)}}": "JOHN.DOE",
 		"{{Lower(User.Username)}}": "john.doe",
@@ -87,10 +88,10 @@ func TestFormatString(t *testing.T) {
 	funcs = GatherFunctions(database.NumberLocaleArabic)
 
 	testCases = map[string]string{
-		"{{Ordinal(Guild.Members)}}":            "1234th",
-		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{Ordinal(Guild.Members)}}":            "١٬٢٣٤th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "١٢٣٬٤٥٦th",
 		"{{FormatNumber(Guild.Members)}}":       "١٬٢٣٤",
-		"{{FormatNumber(Guild.MembersJoined)}}": "١٢٬٣٤٥",
+		"{{FormatNumber(Guild.MembersJoined)}}": "١٢٣٬٤٥٦",
 	}
 
 	for testCaseMessage, testCaseExpected := range testCases {
@@ -102,10 +103,10 @@ func TestFormatString(t *testing.T) {
 	funcs = GatherFunctions(database.NumberLocaleCommas)
 
 	testCases = map[string]string{
-		"{{Ordinal(Guild.Members)}}":            "1234th",
-		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{Ordinal(Guild.Members)}}":            "1,234th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "123,456th",
 		"{{FormatNumber(Guild.Members)}}":       "1,234",
-		"{{FormatNumber(Guild.MembersJoined)}}": "12,345",
+		"{{FormatNumber(Guild.MembersJoined)}}": "123,456",
 	}
 
 	for testCaseMessage, testCaseExpected := range testCases {
@@ -117,10 +118,10 @@ func TestFormatString(t *testing.T) {
 	funcs = GatherFunctions(database.NumberLocaleDots)
 
 	testCases = map[string]string{
-		"{{Ordinal(Guild.Members)}}":            "1234th",
-		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{Ordinal(Guild.Members)}}":            "1.234th",
+		"{{Ordinal(Guild.MembersJoined)}}":      "123.456th",
 		"{{FormatNumber(Guild.Members)}}":       "1.234",
-		"{{FormatNumber(Guild.MembersJoined)}}": "12.345",
+		"{{FormatNumber(Guild.MembersJoined)}}": "123.456",
 	}
 
 	for testCaseMessage, testCaseExpected := range testCases {
@@ -132,10 +133,10 @@ func TestFormatString(t *testing.T) {
 	funcs = GatherFunctions(database.NumberLocaleIndian)
 
 	testCases = map[string]string{
-		"{{Ordinal(Guild.Members)}}":            "1234th",
-		"{{Ordinal(Guild.MembersJoined)}}":      "12345th",
+		"{{Ordinal(Guild.Members)}}":            "1,234th",
 		"{{FormatNumber(Guild.Members)}}":       "1,234",
-		"{{FormatNumber(Guild.MembersJoined)}}": "12,345",
+		"{{Ordinal(Guild.MembersJoined)}}":      "1,23,456th",
+		"{{FormatNumber(Guild.MembersJoined)}}": "1,23,456",
 	}
 
 	for testCaseMessage, testCaseExpected := range testCases {
