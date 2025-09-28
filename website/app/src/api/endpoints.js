@@ -38,6 +38,10 @@ let EndpointGuildSettings = function(guildID) {
   return `${EndpointGuild(guildID)}/settings`;
 }
 
+let EndpointGuildSettingsUpdateMemberCount = function(guildID) {
+  return `${EndpointGuildSettings(guildID)}/update-member-count`;
+}
+
 let EndpointGuildCustomBots = function(guildID) {
   return `${EndpointGuild(guildID)}/custom-bots`;
 }
@@ -65,6 +69,7 @@ export default {
   EndpointGuildTimeroles,
   EndpointGuildWelcomer,
   EndpointGuildSettings,
+  EndpointGuildSettingsUpdateMemberCount,
   EndpointGuildCustomBots,
   EndpointGuildCustomBot,
   EndpointStartGuildCustomBot,

@@ -6,8 +6,8 @@ const state = () => ({
   guild: null,
   guildHasWelcomer: false,
 
-  guildHasWelcomerPro: false, // TODO
-  guildHasCustomBackgrounds: false, // TODO
+  guildHasWelcomerPro: false,
+  guildHasCustomBackgrounds: false,
 
   isLoadingGuild: false,
 

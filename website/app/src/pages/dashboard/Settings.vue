@@ -14,10 +14,29 @@
         </div>
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
+            <form-value title="Number Format" :type="FormTypeDropdown" v-model="config.number_locale	"
+            @update:modelValue="onValueUpdate" :validation="v$.number_locale" :values="[
+              { key: 'Default (123456)', value: 'default' },
+              { key: 'Dots (123.456)', value: 'dots' },
+              { key: 'Commas (123,456)', value: 'commas' },
+              { key: 'Indian (1,23,456)', value: 'indian' },
+              { key: 'Arabic (١٢٣٬٤٥٦)', value: 'arabic' },
+            ]">This setting changes how numbers are formatted across Welcomer when using <code class="bg-secondary-dark px-2 py-1 rounded-md">Ordinal()</code> or <code class="bg-secondary-dark px-2 py-1 rounded-md">FormatNumber()</code> in your messages.</form-value>
+            <form-value title="Total Members Joined" :type="FormTypeNumberWithConfirm" v-model="config.member_count"
+            :disabled="!$store.getters.guildHasWelcomerPro"
+            @update:modelValue="onValueUpdate" :validation="v$.member_count" @save="(value) => { onNumberFormatSave(value) }">
+            This is the total number of members who have joined your server since Welcomer was added. You can reference this value in your welcome messages using <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.MembersJoined&#125;&#125;</code> in your welcomer messages, instead of <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.Members&#125;&#125;</code>.
+            <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50">
+              Using and editing the members joined counter requires a Welcomer Pro subscription.
+              <a href="/premium" class="underline">Learn more</a>
+            </div>
+            </form-value>
+          </div>
+          <!-- <div class="dashboard-inputs">
             <form-value title="Embed Colour" :type="FormTypeColour" v-model="config.embed_colour"
             @update:modelValue="onValueUpdate" :validation="v$.embed_colour">This changes the embed colour accent on any commands you run with Welcomer</form-value>
-          </div>
-          <div class="dashboard-inputs">
+          </div> -->
+          <!-- <div class="dashboard-inputs">
             <div class="dashboard-heading">Server Web Page</div>
             <form-value title="Show Server on Website" :type="FormTypeToggle" v-model="config.site_guild_visible"
             @update:modelValue="onValueUpdate" :validation="v$.site_guild_visible">When enabled, users will be able to publicly see your server information on the website.</form-value>
@@ -27,7 +46,7 @@
 
             <form-value title="Allow Users to Join on Website" :type="FormTypeToggle" v-model="config.site_allow_invites"
             @update:modelValue="onValueUpdate" :validation="v$.site_allow_invites">When enabled, users will be able to use Welcomer to get an invite for your server through the website. If you have a vanity invite, this will be used instead.</form-value>
-          </div>
+          </div> -->
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
             @save="saveConfig"></unsaved-changes>
         </div>
@@ -36,14 +55,20 @@
   </div>
 </template>
 
+<style lang="scss">
+code {
+  @apply bg-secondary-dark text-white px-2 py-1 rounded-md;
+}
+</style>
+
 <script>
 import { computed, ref } from "vue";
 
 import useVuelidate from "@vuelidate/core";
 
 import {
-  FormTypeColour,
-  FormTypeToggle,
+  FormTypeDropdown,
+  FormTypeNumberWithConfirm,
 } from "@/components/dashboard/FormValueEnum";
 
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
@@ -85,7 +110,11 @@ export default {
         site_splash_url: {},
         site_staff_visible: {},
         site_guild_visible: {},
-        site_allow_invites: {}
+        site_allow_invites: {},
+        number_locale: {},
+        member_count: {
+          minValue: (value) => value >= 0 || "Member count must be 0 or higher"
+        },
       };
 
       return validation_rules;
@@ -94,8 +123,8 @@ export default {
     const v$ = useVuelidate(validation_rules, config, { $rewardEarly: true });
 
     return {
-      FormTypeColour,
-      FormTypeToggle,
+      FormTypeDropdown,
+      FormTypeNumberWithConfirm,
 
       isDataFetched,
       isDataError,
@@ -164,6 +193,36 @@ export default {
           this.isChangeInProgress = false;
         }
       );
+    },
+
+    async onNumberFormatSave(value) {
+      const validForm = await this.v$.$validate();
+
+      if (!validForm) {
+        this.$store.dispatch("createToast", getValidationToast());
+        navigateToErrors();
+
+        return;
+      }
+
+      this.isChangeInProgress = true;
+      dashboardAPI.doPost(
+        endpoints.EndpointGuildSettingsUpdateMemberCount(this.$store.getters.getSelectedGuildID),
+        { value: Number(value) },
+        null,
+        () => {
+          this.$store.dispatch("createToast", getSuccessToast());
+
+          this.unsavedChanges = false;
+          this.isChangeInProgress = false;
+        },
+        (error) => {
+          this.$store.dispatch("createToast", getErrorToast(error));
+
+          this.isChangeInProgress = false;
+        }
+      );
+
     },
 
     onValueUpdate() {
