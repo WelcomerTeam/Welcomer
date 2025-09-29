@@ -871,6 +871,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	var serr error
 	var dmerr error
 
+	var messageID discord.Snowflake
+	var channelID discord.Snowflake
+
 	// Send server message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(serverMessage) {
 		validGuild, err := core.CheckChannelGuild(eventCtx.Context, welcomer.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsWelcomerText.Channel))
@@ -887,7 +890,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
-			_, serr = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
+			message, serr := channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			welcomer.Logger.Info().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -899,6 +902,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("channel_id", guildSettingsWelcomerText.Channel).
 					Msg("Failed to send welcomer message to channel")
+			} else {
+				messageID = message.ID
+				channelID = channel.ID
 			}
 		}
 	}
@@ -937,6 +943,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		welcomer.GuildScienceUserWelcomed{
 			HasImage:          file != nil,
 			HasMessage:        !welcomer.IsMessageParamsEmpty(serverMessage),
+			MessageID:         messageID,
+			MessageChannelID:  channelID,
 			HasDM:             !welcomer.IsMessageParamsEmpty(directMessage),
 			HasInviteTracking: hasInviteVariable,
 			IsInviteTracked:   usedInvite != nil,
