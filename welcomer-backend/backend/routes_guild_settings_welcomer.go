@@ -48,6 +48,20 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
+			welcomerConfig, err := welcomer.Queries.GetWelcomerGuildSettings(ctx, int64(guildID))
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					welcomerConfig = &database.GuildSettingsWelcomer{
+						GuildID:                          int64(guildID),
+						AutoDeleteWelcomeMessages:        welcomer.DefaultWelcomer.AutoDeleteWelcomeMessages,
+						WelcomeMessageLifetime:           welcomer.DefaultWelcomer.WelcomeMessageLifetime,
+						AutoDeleteWelcomeMessagesOnLeave: welcomer.DefaultWelcomer.AutoDeleteWelcomeMessagesOnLeave,
+					}
+				}
+
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer settings")
+			}
+
 			welcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
@@ -112,7 +126,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 				customIDs[i] = b.ImageUuid.String()
 			}
 
-			partial := GuildSettingsWelcomerSettingsToPartial(*welcomerText, *welcomerImages, *welcomerDMs, &GuildSettingsWelcomerCustom{
+			partial := GuildSettingsWelcomerSettingsToPartial(*welcomerConfig, *welcomerText, *welcomerImages, *welcomerDMs, &GuildSettingsWelcomerCustom{
 				CustomBackgroundIDs: customIDs,
 			})
 
@@ -183,7 +197,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(int64(guildID), partial)
+			welcomerConfig, welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(int64(guildID), partial)
 
 			if welcomerImages.BackgroundName == welcomer.CustomBackgroundPrefix+"upload" {
 				if fileValue != nil {
@@ -332,9 +346,34 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				}
 			}
 
+			user := tryGetUser(ctx)
+
+			databaseWelcomerGuildSettings := database.CreateOrUpdateWelcomerGuildSettingsParams(*welcomerConfig)
+
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerConfig).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomer config settings")
+
+			err = welcomer.RetryWithFallback(
+				func() error {
+					_, err = welcomer.Queries.CreateOrUpdateWelcomerGuildSettings(ctx, databaseWelcomerGuildSettings)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(ctx, guildID)
+				},
+				nil,
+			)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer config settings")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return
+			}
+
 			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(*welcomerText)
 
-			user := tryGetUser(ctx)
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerText).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerText settings")
 
 			err = welcomer.RetryWithFallback(
