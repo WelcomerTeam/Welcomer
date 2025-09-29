@@ -119,6 +119,13 @@ type GuildSettingsTimeroles struct {
 	Timeroles     pgtype.JSONB `json:"timeroles"`
 }
 
+type GuildSettingsWelcomer struct {
+	GuildID                          int64 `json:"guild_id"`
+	AutoDeleteWelcomeMessages        bool  `json:"auto_delete_welcome_messages"`
+	WelcomeMessageLifetime           int32 `json:"welcome_message_lifetime"`
+	AutoDeleteWelcomeMessagesOnLeave bool  `json:"auto_delete_welcome_messages_on_leave"`
+}
+
 type GuildSettingsWelcomerDms struct {
 	GuildID             int64        `json:"guild_id"`
 	ToggleEnabled       bool         `json:"toggle_enabled"`
