@@ -14,8 +14,12 @@ type GuildScienceUserJoined struct {
 }
 
 type GuildScienceUserWelcomed struct {
-	HasImage          bool   `json:"has_image,omitempty"`
-	HasMessage        bool   `json:"has_message,omitempty"`
+	HasImage bool `json:"has_image,omitempty"`
+
+	HasMessage       bool              `json:"has_message,omitempty"`
+	MessageID        discord.Snowflake `json:"message_id,omitempty"`
+	MessageChannelID discord.Snowflake `json:"channel_id,omitempty"`
+
 	HasDM             bool   `json:"has_dm,omitempty"`
 	HasInviteTracking bool   `json:"has_invite_tracking,omitempty"`
 	IsInviteTracked   bool   `json:"is_invite_tracked,omitempty"`
