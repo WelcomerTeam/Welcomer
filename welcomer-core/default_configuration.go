@@ -94,6 +94,12 @@ var DefaultWelcomerText database.GuildSettingsWelcomerText = database.GuildSetti
 	}),
 }
 
+var DefaultWelcomer database.GuildSettingsWelcomer = database.GuildSettingsWelcomer{
+	AutoDeleteWelcomeMessages:        false,
+	WelcomeMessageLifetime:           0,
+	AutoDeleteWelcomeMessagesOnLeave: false,
+}
+
 var DefaultWelcomerImages database.GuildSettingsWelcomerImages = database.GuildSettingsWelcomerImages{
 	ToggleEnabled:          false,
 	ToggleImageBorder:      true,

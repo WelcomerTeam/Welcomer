@@ -6,10 +6,17 @@ import (
 )
 
 type GuildSettingsWelcomer struct {
+	Config *GuildSettingsWelcomerConfig `json:"config"`
 	Text   *GuildSettingsWelcomerText   `json:"text"`
 	Images *GuildSettingsWelcomerImages `json:"images"`
 	DMs    *GuildSettingsWelcomerDms    `json:"dms"`
 	Custom *GuildSettingsWelcomerCustom `json:"custom,omitempty"`
+}
+
+type GuildSettingsWelcomerConfig struct {
+	AutoDeleteWelcomeMessages        bool  `json:"auto_delete_welcome_messages"`
+	WelcomeMessageLifetime           int32 `json:"welcome_message_lifetime"` // In seconds, 0 = disabled
+	AutoDeleteWelcomeMessagesOnLeave bool  `json:"auto_delete_welcome_messages_on_leave"`
 }
 
 type GuildSettingsWelcomerText struct {
@@ -44,8 +51,13 @@ type GuildSettingsWelcomerCustom struct {
 	CustomBackgroundIDs []string `json:"custom_ids"`
 }
 
-func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerText, images database.GuildSettingsWelcomerImages, dms database.GuildSettingsWelcomerDms, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
+func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GuildSettingsWelcomerText, images database.GuildSettingsWelcomerImages, dms database.GuildSettingsWelcomerDms, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
+		Config: &GuildSettingsWelcomerConfig{
+			AutoDeleteWelcomeMessages:        config.AutoDeleteWelcomeMessages,
+			WelcomeMessageLifetime:           config.WelcomeMessageLifetime,
+			AutoDeleteWelcomeMessagesOnLeave: config.AutoDeleteWelcomeMessagesOnLeave,
+		},
 		Text: &GuildSettingsWelcomerText{
 			ToggleEnabled: text.ToggleEnabled,
 			Channel:       welcomer.Int64ToStringPointer(text.Channel),
@@ -77,8 +89,14 @@ func GuildSettingsWelcomerSettingsToPartial(text database.GuildSettingsWelcomerT
 	return partial
 }
 
-func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildSettingsWelcomer) (*database.GuildSettingsWelcomerText, *database.GuildSettingsWelcomerImages, *database.GuildSettingsWelcomerDms) {
-	return &database.GuildSettingsWelcomerText{
+func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildSettingsWelcomer) (*database.GuildSettingsWelcomer, *database.GuildSettingsWelcomerText, *database.GuildSettingsWelcomerImages, *database.GuildSettingsWelcomerDms) {
+	return &database.GuildSettingsWelcomer{
+			GuildID:                          guildID,
+			AutoDeleteWelcomeMessages:        guildSettings.Config.AutoDeleteWelcomeMessages,
+			WelcomeMessageLifetime:           guildSettings.Config.WelcomeMessageLifetime,
+			AutoDeleteWelcomeMessagesOnLeave: guildSettings.Config.AutoDeleteWelcomeMessagesOnLeave,
+		},
+		&database.GuildSettingsWelcomerText{
 			GuildID:       guildID,
 			ToggleEnabled: guildSettings.Text.ToggleEnabled,
 			Channel:       welcomer.StringPointerToInt64(guildSettings.Text.Channel),
