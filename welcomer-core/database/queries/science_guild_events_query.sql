@@ -29,3 +29,26 @@ WHERE
 ORDER BY
     science_guild_events.created_at DESC
 LIMIT 1;
+
+-- name: GetExpiredWelcomeMessageEvents :many
+SELECT
+    science_guild_events.guild_id,
+    science_guild_events.user_id,
+    CAST(science_guild_events.data ->> 'channel_id' AS BIGINT) AS channel_id,
+    CAST(science_guild_events.data ->> 'message_id' AS BIGINT) AS message_id
+FROM 
+    science_guild_events
+    LEFT JOIN
+        science_guild_events message_deleted
+    ON
+        message_deleted.guild_id = science_guild_events.guild_id
+        AND message_deleted.user_id = science_guild_events.user_id
+        AND message_deleted.event_type = @science_guild_event_type_welcome_message_removed
+        AND message_deleted.data ->> 'message_id' = science_guild_events.data ->> 'message_id'
+WHERE
+    science_guild_events.guild_id = @guild_id
+    AND science_guild_events.event_type = @science_guild_event_type_user_welcomed
+    AND science_guild_events.data ->> 'message_id' IS NOT NULL
+    AND science_guild_events.created_at < @welcome_message_lifetime
+    AND message_deleted.guild_event_uuid IS NULL
+LIMIT @event_limit;

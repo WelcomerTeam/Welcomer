@@ -76,6 +76,7 @@ type Querier interface {
 	GetCustomBotByIdWithToken(ctx context.Context, arg GetCustomBotByIdWithTokenParams) (*CustomBots, error)
 	GetCustomBotsByGuildId(ctx context.Context, guildID int64) ([]*GetCustomBotsByGuildIdRow, error)
 	GetDiscordSubscriptionsByUserID(ctx context.Context, userID int64) ([]*DiscordSubscriptions, error)
+	GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExpiredWelcomeMessageEventsParams) ([]*GetExpiredWelcomeMessageEventsRow, error)
 	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
