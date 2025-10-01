@@ -56,6 +56,76 @@ func (q *Queries) CreateScienceGuildEvent(ctx context.Context, arg CreateScience
 	return &i, err
 }
 
+const GetExpiredWelcomeMessageEvents = `-- name: GetExpiredWelcomeMessageEvents :many
+SELECT
+    science_guild_events.guild_id,
+    science_guild_events.user_id,
+    CAST(science_guild_events.data ->> 'channel_id' AS BIGINT) AS channel_id,
+    CAST(science_guild_events.data ->> 'message_id' AS BIGINT) AS message_id
+FROM 
+    science_guild_events
+    LEFT JOIN
+        science_guild_events message_deleted
+    ON
+        message_deleted.guild_id = science_guild_events.guild_id
+        AND message_deleted.user_id = science_guild_events.user_id
+        AND message_deleted.event_type = $1
+        AND message_deleted.data ->> 'message_id' = science_guild_events.data ->> 'message_id'
+WHERE
+    science_guild_events.guild_id = $2
+    AND science_guild_events.event_type = $3
+    AND science_guild_events.data ->> 'message_id' IS NOT NULL
+    AND science_guild_events.created_at < $4
+    AND message_deleted.guild_event_uuid IS NULL
+LIMIT $5
+`
+
+type GetExpiredWelcomeMessageEventsParams struct {
+	ScienceGuildEventTypeWelcomeMessageRemoved int32     `json:"science_guild_event_type_welcome_message_removed"`
+	GuildID                                    int64     `json:"guild_id"`
+	ScienceGuildEventTypeUserWelcomed          int32     `json:"science_guild_event_type_user_welcomed"`
+	WelcomeMessageLifetime                     time.Time `json:"welcome_message_lifetime"`
+	EventLimit                                 int32     `json:"event_limit"`
+}
+
+type GetExpiredWelcomeMessageEventsRow struct {
+	GuildID   int64         `json:"guild_id"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	ChannelID int64         `json:"channel_id"`
+	MessageID int64         `json:"message_id"`
+}
+
+func (q *Queries) GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExpiredWelcomeMessageEventsParams) ([]*GetExpiredWelcomeMessageEventsRow, error) {
+	rows, err := q.db.Query(ctx, GetExpiredWelcomeMessageEvents,
+		arg.ScienceGuildEventTypeWelcomeMessageRemoved,
+		arg.GuildID,
+		arg.ScienceGuildEventTypeUserWelcomed,
+		arg.WelcomeMessageLifetime,
+		arg.EventLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetExpiredWelcomeMessageEventsRow{}
+	for rows.Next() {
+		var i GetExpiredWelcomeMessageEventsRow
+		if err := rows.Scan(
+			&i.GuildID,
+			&i.UserID,
+			&i.ChannelID,
+			&i.MessageID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetScienceGuildEvent = `-- name: GetScienceGuildEvent :one
 SELECT
     guild_event_uuid, guild_id, user_id, created_at, event_type, data
