@@ -47,3 +47,10 @@ type GuildScienceMembershipReceived struct {
 type GuildScienceMembershipRemoved struct {
 	MembershipUUID uuid.UUID `json:"membership_uuid"`
 }
+
+type GuildScienceWelcomeMessageRemoved struct {
+	HasMessage       bool              `json:"has_message,omitempty"`
+	Successful       bool              `json:"successful,omitempty"`
+	MessageID        discord.Snowflake `json:"message_id,omitempty"`
+	MessageChannelID discord.Snowflake `json:"channel_id,omitempty"`
+}

@@ -392,27 +392,30 @@ const (
 	ScienceGuildEventTypeGuildOnboarded
 	// ScienceGuildEventTypeGuildUserOnboarded is a ScienceGuildEventType of type GuildUserOnboarded.
 	ScienceGuildEventTypeGuildUserOnboarded
+	// ScienceGuildEventTypeWelcomeMessageRemoved is a ScienceGuildEventType of type WelcomeMessageRemoved.
+	ScienceGuildEventTypeWelcomeMessageRemoved
 )
 
 var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
 
-const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboarded"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoved"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
-	ScienceGuildEventTypeUnknown:             _ScienceGuildEventTypeName[0:7],
-	ScienceGuildEventTypeUserJoin:            _ScienceGuildEventTypeName[7:15],
-	ScienceGuildEventTypeUserLeave:           _ScienceGuildEventTypeName[15:24],
-	ScienceGuildEventTypeUserWelcomed:        _ScienceGuildEventTypeName[24:36],
-	ScienceGuildEventTypeTimeRoleGiven:       _ScienceGuildEventTypeName[36:49],
-	ScienceGuildEventTypeBorderwallChallenge: _ScienceGuildEventTypeName[49:68],
-	ScienceGuildEventTypeBorderwallCompleted: _ScienceGuildEventTypeName[68:87],
-	ScienceGuildEventTypeTempChannelCreated:  _ScienceGuildEventTypeName[87:105],
-	ScienceGuildEventTypeMembershipReceived:  _ScienceGuildEventTypeName[105:123],
-	ScienceGuildEventTypeMembershipRemoved:   _ScienceGuildEventTypeName[123:140],
-	ScienceGuildEventTypeGuildJoin:           _ScienceGuildEventTypeName[140:149],
-	ScienceGuildEventTypeGuildLeave:          _ScienceGuildEventTypeName[149:159],
-	ScienceGuildEventTypeGuildOnboarded:      _ScienceGuildEventTypeName[159:173],
-	ScienceGuildEventTypeGuildUserOnboarded:  _ScienceGuildEventTypeName[173:191],
+	ScienceGuildEventTypeUnknown:               _ScienceGuildEventTypeName[0:7],
+	ScienceGuildEventTypeUserJoin:              _ScienceGuildEventTypeName[7:15],
+	ScienceGuildEventTypeUserLeave:             _ScienceGuildEventTypeName[15:24],
+	ScienceGuildEventTypeUserWelcomed:          _ScienceGuildEventTypeName[24:36],
+	ScienceGuildEventTypeTimeRoleGiven:         _ScienceGuildEventTypeName[36:49],
+	ScienceGuildEventTypeBorderwallChallenge:   _ScienceGuildEventTypeName[49:68],
+	ScienceGuildEventTypeBorderwallCompleted:   _ScienceGuildEventTypeName[68:87],
+	ScienceGuildEventTypeTempChannelCreated:    _ScienceGuildEventTypeName[87:105],
+	ScienceGuildEventTypeMembershipReceived:    _ScienceGuildEventTypeName[105:123],
+	ScienceGuildEventTypeMembershipRemoved:     _ScienceGuildEventTypeName[123:140],
+	ScienceGuildEventTypeGuildJoin:             _ScienceGuildEventTypeName[140:149],
+	ScienceGuildEventTypeGuildLeave:            _ScienceGuildEventTypeName[149:159],
+	ScienceGuildEventTypeGuildOnboarded:        _ScienceGuildEventTypeName[159:173],
+	ScienceGuildEventTypeGuildUserOnboarded:    _ScienceGuildEventTypeName[173:191],
+	ScienceGuildEventTypeWelcomeMessageRemoved: _ScienceGuildEventTypeName[191:212],
 }
 
 // String implements the Stringer interface.
@@ -445,6 +448,7 @@ var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[149:159]: ScienceGuildEventTypeGuildLeave,
 	_ScienceGuildEventTypeName[159:173]: ScienceGuildEventTypeGuildOnboarded,
 	_ScienceGuildEventTypeName[173:191]: ScienceGuildEventTypeGuildUserOnboarded,
+	_ScienceGuildEventTypeName[191:212]: ScienceGuildEventTypeWelcomeMessageRemoved,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.
