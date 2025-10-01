@@ -28,25 +28,25 @@
       <PopoverPanel
         class="block w-full overflow-auto text-base bg-white dark:bg-secondary rounded-md shadow-sm sm:text-sm rounded-t-none border-t-0">
         <div class="border-gray-300 dark:border-secondary-light rounded-md border shadow-sm p-4 space-y-1">
-          <div class="flex items-center gap-2"><input v-model="years" type="number" min="0"
+          <div v-if="showYears" class="flex items-center gap-2"><input v-model="years" type="number" min="0"
               class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @blur="onUpdate" />
+              @input="onUpdate" />
             years</div>
-          <div class="flex items-center gap-2"><input v-model="days" type="number" min="0"
+          <div v-if="showDays" class="flex items-center gap-2"><input v-model="days" type="number" min="0"
               class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @blur="onUpdate" />
+              @input="onUpdate" />
             days</div>
-          <div class="flex items-center gap-2"><input v-model="hours" type="number" min="0"
+          <div v-if="showHours" class="flex items-center gap-2"><input v-model="hours" type="number" min="0"
               class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @blur="onUpdate" />
+              @input="onUpdate" />
             hours</div>
-          <div class="flex items-center gap-2"><input v-model="minutes" type="number" min="0"
+          <div v-if="showMinutes" class="flex items-center gap-2"><input v-model="minutes" type="number" min="0"
               class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @blur="onUpdate" />
+              @input="onUpdate" />
             minutes</div>
-          <div class="flex items-center gap-2"><input v-model="seconds" type="number" min="0"
+          <div v-if="showSeconds" class="flex items-center gap-2"><input v-model="seconds" type="number" min="0"
               class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @blur="onUpdate" />
+              @input="onUpdate" />
             seconds</div>
         </div>
       </PopoverPanel>
@@ -81,7 +81,36 @@ export default {
     },
     invalid: {
       type: Boolean,
-    }
+    },
+    blankDisplay: {
+      type: String,
+      default: 'Immediately',
+    },
+
+    showYears: {
+      type: Boolean,
+      default: true,
+    },
+    showDays: {
+      type: Boolean,
+      default: true,
+    },
+    showDays: {
+      type: Boolean,
+      default: true,
+    },
+    showHours: {
+      type: Boolean,
+      default: true,
+    },
+    showMinutes: {
+      type: Boolean,
+      default: true,
+    },
+    showSeconds: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   emits: ['update:modelValue'],
@@ -102,13 +131,28 @@ export default {
     modelValue: {
       immediate: true,
       handler(newValue) {
-        this.years = Math.floor(newValue / (365 * 24 * 60 * 60));
-        let remaining = newValue % (365 * 24 * 60 * 60);
-        this.days = Math.floor(remaining / (24 * 60 * 60));
-        remaining %= (24 * 60 * 60);
-        this.hours = Math.floor(remaining / (60 * 60));
-        remaining %= (60 * 60);
-        this.minutes = Math.floor(remaining / 60);
+        let remaining = newValue;
+
+        if (this.showYears) {
+          this.years = Math.floor(remaining / (365 * 24 * 60 * 60));
+          remaining = remaining % (365 * 24 * 60 * 60);
+        }
+
+        if (this.showDays) {
+          this.days = Math.floor(remaining / (24 * 60 * 60));
+          remaining %= (24 * 60 * 60);
+        }
+
+        if (this.showHours) {
+          this.hours = Math.floor(remaining / (60 * 60));
+          remaining %= (60 * 60);
+        }
+
+        if (this.showMinutes) {
+          this.minutes = Math.floor(remaining / 60);
+          remaining %= 60;
+        }
+
         this.seconds = remaining % 60;
 
         const parts = [];
@@ -118,7 +162,7 @@ export default {
         if (this.minutes) parts.push(`${this.minutes} minute${this.minutes > 1 ? 's' : ''}`);
         if (this.seconds) parts.push(`${this.seconds} second${this.seconds > 1 ? 's' : ''}`);
         if (parts.length === 0) {
-          this.friendlyString = 'Immediately';
+          this.friendlyString = this.blankDisplay;
           return;
         }
 
@@ -134,11 +178,11 @@ export default {
   methods: {
     onUpdate() {
       this.updateValue(
-        (this.years * 365 * 24 * 60 * 60) +
-        (this.days * 24 * 60 * 60) +
-        (this.hours * 60 * 60) +
-        (this.minutes * 60) +
-        this.seconds
+        (this.showYears ? this.years : 0) * 365 * 24 * 60 * 60 +
+        (this.showDays ? this.days : 0) * 24 * 60 * 60 +
+        (this.showHours ? this.hours : 0) * 60 * 60 +
+        (this.showMinutes ? this.minutes : 0) * 60 +
+        (this.showSeconds ? this.seconds : 0)
       );
     },
     updateValue(value) {

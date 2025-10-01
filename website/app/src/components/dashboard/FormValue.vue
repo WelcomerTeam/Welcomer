@@ -879,6 +879,13 @@
           <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
         </div>
       </div>
+
+      <div v-else-if="type == FormTypeDuration">
+        <DurationSelector :disabled="$props.disabled" :modelValue="modelValue" @update:modelValue="updateValue($event)" blankDisplay="Never" :showYears="false" :showDays="false" :showSeconds="false" />
+        <div v-if="$props.validation?.$invalid" class="errors">
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0" v-if="!$props.inlineSlot">
@@ -937,9 +944,11 @@ import {
   FormTypeGuildList,
   FormTypeCustom,
   FormTypeNumberWithConfirm,
+  FormTypeDuration,
 } from "./FormValueEnum";
 import EmbedBuilder from "./EmbedBuilder.vue";
 import BackgroundSelector from "./BackgroundSelector.vue";
+import DurationSelector from "./DurationSelector.vue";
 
 import { getHexColor } from "@/utilities";
 
@@ -959,6 +968,7 @@ export default {
     EmbedBuilder,
     BackgroundSelector,
     AutocompleteInput,
+    DurationSelector,
   },
 
   props: {
@@ -992,6 +1002,7 @@ export default {
           FormTypeGuildList,
           FormTypeCustom,
           FormTypeNumberWithConfirm,
+          FormTypeDuration,
         ].includes(value);
       },
     },
@@ -1088,6 +1099,7 @@ export default {
       FormTypeGuildList,
       FormTypeCustom,
       FormTypeNumberWithConfirm,
+      FormTypeDuration,
 
       idRegex,
 
