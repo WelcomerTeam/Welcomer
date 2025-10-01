@@ -17,23 +17,27 @@
             <div class="dashboard-heading">Auto Deletion</div>
             <form-value title="Auto Delete Welcomer Messages" :type="FormTypeToggle"
               v-model="config.config.auto_delete_welcome_messages" @update:modelValue="onValueUpdate"
-              :validation="v$.config.auto_delete_welcome_messages" :hideBorder="true"></form-value>
+              :validation="v$.config.auto_delete_welcome_messages" :hideBorder="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
             
             <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
 
               <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.config.welcome_message_lifetime"
                 @update:modelValue="onValueUpdate" :validation="v$.config.welcome_message_lifetime"
-                :disabled="!config.config.auto_delete_welcome_messages" :hideBorder="true">This is the duration before a welcomer message
+                :hideBorder="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a welcomer message
                 is automatically deleted.</form-value>
 
               <form-value title="Auto Delete Welcomer Messages On Leave" :type="FormTypeToggle"
                 v-model="config.config.auto_delete_welcome_messages_on_leave" @update:modelValue="onValueUpdate"
                 :validation="v$.config.auto_delete_welcome_messages_on_leave"
-                :disabled="!config.config.auto_delete_welcome_messages" :hideBorder="true">When enabled, if a user leaves the server
+                :hideBorder="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">When enabled, if a user leaves the server
                 their welcomer message will be deleted immediately.</form-value>
-
+              <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
+                Auto deletion of welcome messages requires a Welcomer Pro subscription.
+                <a href="/premium" class="underline">Learn more</a>
+              </div>
             </div>
-
+          </div>
+          <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer Text</div>
             <form-value title="Enable Welcomer Text" :type="FormTypeToggle" v-model="config.text.enabled"
               @update:modelValue="onValueUpdate" :validation="v$.text.enabled">Welcome users when they join with a
