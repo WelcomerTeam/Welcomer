@@ -164,6 +164,11 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
+	// Handle removal of messages when users leave.
+	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, member discord.User) error {
+		return p.HandleGuildMemberRemoved(eventCtx, member)
+	})
+
 	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
 	p.EventHandler.RegisterEvent(core.CustomEventInvokeWelcomer, nil, (welcomer.OnInvokeWelcomerFuncType)(p.OnInvokeWelcomerEvent))
 
@@ -956,6 +961,125 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		})
 
 	return err
+}
+
+func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, member discord.User) error {
+	guildSettings, err := welcomer.Queries.GetWelcomerGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettings = &database.GuildSettingsWelcomer{
+				AutoDeleteWelcomeMessages:        welcomer.DefaultWelcomer.AutoDeleteWelcomeMessages,
+				WelcomeMessageLifetime:           welcomer.DefaultWelcomer.WelcomeMessageLifetime,
+				AutoDeleteWelcomeMessagesOnLeave: welcomer.DefaultWelcomer.AutoDeleteWelcomeMessagesOnLeave,
+			}
+		} else {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get guild settings")
+
+			return err
+		}
+	}
+
+	// Do nothing if auto delete welcome messages is not enabled or auto delete on leave is not enabled.
+	if !guildSettings.AutoDeleteWelcomeMessages || !guildSettings.AutoDeleteWelcomeMessagesOnLeave {
+		return nil
+	}
+
+	// Check if the guild has welcomer pro.
+	memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Warn().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Failed to get welcomer memberships")
+
+		return err
+	}
+
+	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+	if !hasWelcomerPro {
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Guild does not have welcomer pro, skipping auto delete welcome messages")
+
+		return nil
+	}
+
+	var messageEvent *database.GetScienceGuildJoinLeaveEventForUserRow
+
+	// Get most recent UserWelcomed or WelcomeMessageRemoved event for the user.
+	messageEvent, err = welcomer.Queries.GetScienceGuildJoinLeaveEventForUser(eventCtx.Context, database.GetScienceGuildJoinLeaveEventForUserParams{
+		EventType:   int32(database.ScienceGuildEventTypeUserWelcomed),
+		EventType_2: int32(database.ScienceGuildEventTypeWelcomeMessageRemoved),
+		GuildID:     int64(eventCtx.Guild.ID),
+		UserID:      sql.NullInt64{Int64: int64(member.ID), Valid: true},
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Warn().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(member.ID)).
+			Msg("Failed to get welcomed removed event for user")
+	}
+
+	if messageEvent != nil && database.ScienceGuildEventType(messageEvent.EventType) == database.ScienceGuildEventTypeUserWelcomed {
+		// If the most recent event is UserWelcomed, delete the message.
+
+		var userWelcomedEvent *welcomer.GuildScienceUserWelcomed
+
+		err = json.Unmarshal(messageEvent.Data.Bytes, &userWelcomedEvent)
+		if err != nil {
+			welcomer.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(member.ID)).
+				Msg("Failed to unmarshal user welcomed event")
+		}
+
+		var hasDeleted bool
+
+		if !userWelcomedEvent.MessageID.IsNil() && !userWelcomedEvent.MessageChannelID.IsNil() {
+			message := discord.Message{ChannelID: userWelcomedEvent.MessageChannelID, ID: userWelcomedEvent.MessageID}
+
+			err = message.Delete(eventCtx.Context, eventCtx.Session, welcomer.ToPointer("Auto delete welcome message on leave"))
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(member.ID)).
+					Int64("channel_id", int64(userWelcomedEvent.MessageChannelID)).
+					Int64("message_id", int64(userWelcomedEvent.MessageID)).
+					Msg("Failed to delete welcome message")
+			}
+
+			hasDeleted = err == nil
+		} else {
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(member.ID)).
+				Msg("No message ID or channel ID to delete")
+		}
+
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(member.ID)).
+			Int64("channel_id", int64(userWelcomedEvent.MessageChannelID)).
+			Int64("message_id", int64(userWelcomedEvent.MessageID)).
+			Msg("Deleted welcome message")
+
+		// Push WelcomeMessageRemoved event to the buffer.
+		welcomer.PushGuildScience.Push(
+			eventCtx.Context,
+			eventCtx.Guild.ID,
+			member.ID,
+			database.ScienceGuildEventTypeWelcomeMessageRemoved,
+			welcomer.GuildScienceWelcomeMessageRemoved{
+				MessageID:        userWelcomedEvent.MessageID,
+				MessageChannelID: userWelcomedEvent.MessageChannelID,
+				HasMessage:       !userWelcomedEvent.MessageID.IsNil() && !userWelcomedEvent.MessageChannelID.IsNil(),
+				Successful:       hasDeleted,
+			},
+		)
+	}
+
+	return nil
 }
 
 func tryParseColourAsInt64(str string, defaultValue *color.RGBA) int64 {

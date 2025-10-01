@@ -5,7 +5,7 @@ package database
 // ENUM(unknown)
 type ScienceEventType int32
 
-// ENUM(unknown, userJoin, userLeave, userWelcomed, timeRoleGiven, borderwallChallenge, borderwallCompleted, tempChannelCreated, membershipReceived, membershipRemoved, guildJoin, guildLeave, guildOnboarded, guildUserOnboarded)
+// ENUM(unknown, userJoin, userLeave, userWelcomed, timeRoleGiven, borderwallChallenge, borderwallCompleted, tempChannelCreated, membershipReceived, membershipRemoved, guildJoin, guildLeave, guildOnboarded, guildUserOnboarded, welcomeMessageRemoved)
 type ScienceGuildEventType int32
 
 // ENUM(unknown, idle, active, expired, refunded, removed)
