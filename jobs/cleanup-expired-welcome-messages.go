@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -136,6 +137,25 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 }
 
 func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowflake, welcomeMessageLifetime int32) (int, error) {
+	var memberships []*database.GetUserMembershipsByGuildIDRow
+
+	// Check if the guild has welcomer pro.
+	memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Warn().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get welcomer memberships")
+
+		return 0, err
+	}
+
+	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+
+	if !hasWelcomerPro {
+		// Guild does not have welcomer pro, skip.
+		return 0, nil
+	}
+
 	pbRoles, err := welcomer.SandwichClient.FetchGuildRole(ctx, &sandwich_protobuf.FetchGuildRoleRequest{
 		GuildId: int64(guildID),
 	})
@@ -218,9 +238,6 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 	if err != nil {
 		return 0, fmt.Errorf("failed to get expired welcome message events: %w", err)
 	}
-
-	println(len(messagesToDelete))
-	println(guildID, welcomeMessageLifetime, time.Now().Add(time.Second*time.Duration(-welcomeMessageLifetime)).String())
 
 	channels := make(map[discord.Snowflake]bool)
 
