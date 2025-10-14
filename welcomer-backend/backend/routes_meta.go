@@ -1,7 +1,9 @@
 package backend
 
 import (
+	"encoding/json"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -69,6 +71,19 @@ func getStatus(ctx *gin.Context) {
 	newApplications := make([]GetStatusResponseManager, 0, len(applications))
 
 	for _, application := range applications {
+		applicationValues := welcomer.ApplicationValues{}
+
+		// Unmarshal the application values.
+		err = json.Unmarshal(application.GetValues(), &applicationValues)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal application values")
+		}
+
+		if applicationValues.IsCustomBot {
+			// Skip custom bots
+			continue
+		}
+
 		newShards := make([]GetStatusResponseShard, 0)
 
 		for _, shard := range application.Shards {
@@ -80,6 +95,10 @@ func getStatus(ctx *gin.Context) {
 				Uptime:  int(time.Since(time.Unix(shard.GetStartedAt(), 0)).Seconds()),
 			})
 		}
+
+		slices.SortFunc(newShards, func(a, b GetStatusResponseShard) int {
+			return a.ShardID - b.ShardID
+		})
 
 		newApplications = append(newApplications, GetStatusResponseManager{
 			Name:   application.GetDisplayName(),

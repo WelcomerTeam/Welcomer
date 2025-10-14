@@ -77,6 +77,12 @@ const navigation = [
         icon: "fa-heart",
         class: "text-primary",
       },
+      {
+        name: "Custom Bots",
+        linkname: "dashboard.guild.custombots",
+        icon: "fa-robot",
+        class: "text-primary",
+      }
     ],
   },
   {
@@ -86,11 +92,11 @@ const navigation = [
         linkname: "dashboard.guild.overview",
         icon: "fa-chart-line",
       },
-      // {
-      //   name: "Bot Settings",
-      //   linkname: "dashboard.guild.settings",
-      //   icon: "fa-wrench",
-      // },
+      {
+        name: "Bot Settings",
+        linkname: "dashboard.guild.settings",
+        icon: "fa-wrench",
+      },
     ],
   },
   {

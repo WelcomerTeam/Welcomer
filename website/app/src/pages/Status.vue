@@ -40,13 +40,11 @@
             </div>
             <div class="flex flex-wrap gap-2 mt-8">
               <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 0 })]">Idle</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 1 })]">Connecting</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 2 })]">Connected</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 3 })]">Ready</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 4 })]">Reconnecting</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 5 })]">Closing</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 6 })]">Closed</span>
-              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 7 })]">Erroring</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 2 })]">Connecting</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 3 })]">Connected</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 4 })]">Ready</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 5 })]">Stopping</span>
+              <span :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard({ status: 6 })]">Stopped</span>
             </div>
           </div>
         </div>
@@ -164,26 +162,24 @@ export default {
 
     getStyleForShard(shard) {
       if (shard.latency < 0) {
-        shard.status = 4;
+        shard.status = 2;
       }
 
       switch (shard.status) {
-        case 1: // connecting
-          return "bg-fuchsia-100 text-fuchsia-700 ring-fuchsia-700"
-        case 2: // connected
-          return "bg-fuchsia-200 text-fuchsia-800 ring-fuchsia-800"
-        case 3: // ready
-          return "bg-emerald-200 text-emerald-800 ring-emerald-800"
-        case 4: // reconnecting
-          return "bg-emerald-100 text-emerald-700 ring-emerald-700"
-        case 5: // closing
-          return "bg-amber-200 text-amber-800 ring-amber-800"
-        case 6: // closed
-          return "bg-amber-100 text-amber-700 ring-amber-700"
-        case 7: // erroring
-          return "bg-red-200 text-red-800 ring-red-800"
-        default:
-          return "bg-gray-200 text-gray-800 ring-gray-800"
+        case 1: // failed
+          return "bg-red-200 text-red-800 ring-red-800";
+        case 2: // connecting
+          return "bg-fuchsia-100 text-fuchsia-700 ring-fuchsia-700";
+        case 3: // connected
+          return "bg-fuchsia-200 text-fuchsia-800 ring-fuchsia-800";
+        case 4: // ready
+          return "bg-emerald-200 text-emerald-800 ring-emerald-800";
+        case 5: /// stopping
+          return "bg-emerald-100 text-emerald-700 ring-emerald-700";
+        case 6: // stopped
+          return "bg-amber-200 text-amber-800 ring-amber-800";
+        default: // idle
+          return "bg-gray-200 text-gray-800 ring-gray-800";
       }
     }
   },

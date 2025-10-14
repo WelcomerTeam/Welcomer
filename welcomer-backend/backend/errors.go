@@ -36,6 +36,7 @@ var (
 	ErrWelcomerMissing      = NewErrorWithCode(10005, "bot is missing from server")
 	ErrEnsureFailure        = NewErrorWithCode(10006, "failed to ensure guild")
 	ErrOAuthFailure         = NewErrorWithCode(10007, "issue checking oauth2 token")
+	ErrInvalidPermissions   = NewErrorWithCode(10008, "invalid permissions for this endpoint")
 )
 
 func NewMissingParameterError(parameter string) error {
@@ -101,4 +102,10 @@ var (
 	ErrCreateMembershipFailed     = NewErrorWithCode(13008, "failed to create membership")
 	ErrWebhookValidationFailed    = NewErrorWithCode(13009, "failed to validate webhook message")
 	ErrCannotTransferMembership   = NewErrorWithCode(13010, "cannot transfer membership")
+)
+
+// Custom bot errors.
+var (
+	ErrInvalidToken          = NewErrorWithCode(13100, "invalid token")
+	ErrCustomBotLimitReached = NewErrorWithCode(13101, "custom bot limit reached")
 )

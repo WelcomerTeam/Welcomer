@@ -119,24 +119,21 @@ func getGuild(ctx *gin.Context) {
 			// Convert role back into pointers
 			rolePointers := make([]*discord.Role, len(roles))
 			for i, role := range roles {
-				r := role
-				rolePointers[i] = &r
+				rolePointers[i] = &role
 			}
 
-			partialGuild := GuildToPartial(discordGuild)
+			partialGuild := GuildToPartial(discordGuild, guildConfig)
 			partialGuild.Roles = welcomer.CalculateRoleValues(rolePointers, guildMembers)
 
 			guild := Guild{
-				Guild: partialGuild,
-
+				Guild:                partialGuild,
 				HasWelcomerPro:       hasWelcomerPro,
 				HasCustomBackgrounds: hasCustomBackgrounds,
-
-				EmbedColour:  int(guildConfig.EmbedColour),
-				SplashURL:    guildConfig.SiteSplashUrl,
-				StaffVisible: guildConfig.SiteStaffVisible,
-				GuildVisible: guildConfig.SiteGuildVisible,
-				AllowInvites: guildConfig.SiteAllowInvites,
+				EmbedColour:          int(guildConfig.EmbedColour),
+				SplashURL:            guildConfig.SiteSplashUrl,
+				StaffVisible:         guildConfig.SiteStaffVisible,
+				GuildVisible:         guildConfig.SiteGuildVisible,
+				AllowInvites:         guildConfig.SiteAllowInvites,
 			}
 
 			ctx.JSON(http.StatusOK, BaseResponse{

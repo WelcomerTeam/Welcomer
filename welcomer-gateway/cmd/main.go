@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 )
 
 func main() {
-	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
+	// loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 	sandwichGRPCHost := flag.String("grpcAddress", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
 	sandwichProducerName := flag.String("producerName", os.Getenv("SANDWICH_PRODUCER_NAME"), "Sandwich producer identifier name")
 	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
@@ -38,7 +39,9 @@ func main() {
 	restInterface := welcomer.NewTwilightProxy(*proxyAddress)
 	restInterface.SetDebug(*proxyDebug)
 
-	writer := welcomer.SetupLogger(*loggingLevel)
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
+	// writer := welcomer.SetupLogger(*loggingLevel)
 	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
@@ -74,7 +77,8 @@ func main() {
 
 	// Setup sandwich.
 
-	sandwichClient := sandwich.NewSandwich(welcomer.GRPCConnection, restInterface, writer)
+	sandwichClient := sandwich.NewSandwich(welcomer.GRPCConnection, restInterface, os.Stdout)
+	sandwichClient.SetErrorOnInvalidIdentifier(true)
 
 	bot := gateway.NewWelcomer(*sandwichProducerName, sandwichClient)
 	sandwichClient.RegisterBot(*sandwichProducerName, bot.Bot)

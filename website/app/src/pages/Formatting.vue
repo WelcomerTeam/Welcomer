@@ -129,6 +129,7 @@ const formattingTags = [
       { name: "{{Guild.Icon}}", description: "The guild's icon as a URL", example: "https://cdn.discordapp.com/icons/341685098468343822/09cfc7fe72945a7c04ec6d3ddd01767c.png" },
       { name: "{{Guild.Splash}}", description: "The guild's splash image as a URL", example: "" },
       { name: "{{Guild.Members}}", description: "The guild's member count", example: "7600" },
+      { name: "{{Guild.MembersJoined}}", description: "The guild's members joined counter. This value goes up even when members leave the server.", example: "8500" },
       { name: "{{Guild.Banner}}", description: "The guild's banner image as a URL", example: "" },
     ]
   },
@@ -149,7 +150,7 @@ const formattingTags = [
   {
     name: "Functions",
     values: [
-      { name: "{{Ordinal(int)}}", description: "Returns the ordinal (st, nd, rd, th) for an integer passed in. You can do `{{Ordinal(Guild.Members)}}` to display the member count.", example: "7600th" },
+      { name: "{{Ordinal(int)}}", description: "Returns the ordinal (st, nd, rd, th) for an integer passed in. You can do `{{Ordinal(Guild.Members)}}` or `{{Ordinal(Guild.MembersJoined)}}` to display the member count.", example: "7600th" },
     ]
   }
 ]

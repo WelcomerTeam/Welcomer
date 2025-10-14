@@ -30,6 +30,19 @@ type BorderwallRequests struct {
 	UaOsVersion     sql.NullString  `json:"ua_os_version"`
 }
 
+type CustomBots struct {
+	CustomBotUuid     uuid.UUID `json:"custom_bot_uuid"`
+	GuildID           int64     `json:"guild_id"`
+	PublicKey         string    `json:"public_key"`
+	Token             string    `json:"token"`
+	CreatedAt         time.Time `json:"created_at"`
+	IsActive          bool      `json:"is_active"`
+	ApplicationID     int64     `json:"application_id"`
+	ApplicationName   string    `json:"application_name"`
+	ApplicationAvatar string    `json:"application_avatar"`
+	Environment       string    `json:"environment"`
+}
+
 type DiscordSubscriptions struct {
 	SubscriptionID  string        `json:"subscription_id"`
 	CreatedAt       time.Time     `json:"created_at"`
@@ -106,6 +119,13 @@ type GuildSettingsTimeroles struct {
 	Timeroles     pgtype.JSONB `json:"timeroles"`
 }
 
+type GuildSettingsWelcomer struct {
+	GuildID                          int64 `json:"guild_id"`
+	AutoDeleteWelcomeMessages        bool  `json:"auto_delete_welcome_messages"`
+	WelcomeMessageLifetime           int32 `json:"welcome_message_lifetime"`
+	AutoDeleteWelcomeMessagesOnLeave bool  `json:"auto_delete_welcome_messages_on_leave"`
+}
+
 type GuildSettingsWelcomerDms struct {
 	GuildID             int64        `json:"guild_id"`
 	ToggleEnabled       bool         `json:"toggle_enabled"`
@@ -138,12 +158,21 @@ type GuildSettingsWelcomerText struct {
 }
 
 type Guilds struct {
-	GuildID          int64  `json:"guild_id"`
-	EmbedColour      int32  `json:"embed_colour"`
-	SiteSplashUrl    string `json:"site_splash_url"`
-	SiteStaffVisible bool   `json:"site_staff_visible"`
-	SiteGuildVisible bool   `json:"site_guild_visible"`
-	SiteAllowInvites bool   `json:"site_allow_invites"`
+	GuildID          int64         `json:"guild_id"`
+	EmbedColour      int32         `json:"embed_colour"`
+	SiteSplashUrl    string        `json:"site_splash_url"`
+	SiteStaffVisible bool          `json:"site_staff_visible"`
+	SiteGuildVisible bool          `json:"site_guild_visible"`
+	SiteAllowInvites bool          `json:"site_allow_invites"`
+	MemberCount      int32         `json:"member_count"`
+	NumberLocale     sql.NullInt32 `json:"number_locale"`
+}
+
+type InteractionCommands struct {
+	ApplicationID int64     `json:"application_id"`
+	Command       string    `json:"command"`
+	InteractionID int64     `json:"interaction_id"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type PatreonUsers struct {
@@ -240,6 +269,7 @@ type Users struct {
 	Name          string    `json:"name"`
 	Discriminator string    `json:"discriminator"`
 	AvatarHash    string    `json:"avatar_hash"`
+	Background    string    `json:"background"`
 }
 
 type WelcomerImages struct {

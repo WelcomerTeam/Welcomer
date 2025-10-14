@@ -12,6 +12,7 @@ var (
 	SolidColourPrefix      = "solid:"
 	SolidColourPrefixBased = "profile"
 	UnsplashPrefix         = "unsplash:"
+	StripesPrefix          = "stripes:"
 
 	RGBAPrefix = "rgba"
 	RGBPrefix  = "rgb"
@@ -57,7 +58,7 @@ type ImageTheme int32
 // ENUM(circular, rounded, squared, hexagonal)
 type ImageProfileBorderType int32
 
-// ENUM(default, welcomer, solid, solidProfile, unsplash, url)
+// ENUM(default, welcomer, solid, solidProfile, unsplash, url, stripes)
 type BackgroundType int32
 
 // ENUM(unknown, image/png, image/jpeg, image/gif, image/webp)
@@ -125,6 +126,13 @@ func ParseBackground(str string) (Background, bool) {
 				Value: value,
 			}, true
 		}
+	case strings.HasPrefix(str, StripesPrefix):
+		// extract value
+		value := strings.TrimPrefix(str, StripesPrefix)
+		return Background{
+			Type:  BackgroundTypeStripes,
+			Value: value,
+		}, true
 	case strings.HasPrefix(str, CustomBackgroundPrefix):
 		// extract value
 		value := strings.TrimPrefix(str, CustomBackgroundPrefix)

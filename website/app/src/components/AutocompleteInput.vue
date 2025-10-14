@@ -46,7 +46,7 @@ var iconTypeChannel = 1;
 var iconTypeRole = 1;
 var iconTypeIcon = 2;
 
-const formattingTags = [
+var formattingTags = [
   "{{User.ID}}",
   "{{User.Name}}",
   "{{User.Username}}",
@@ -63,7 +63,7 @@ const formattingTags = [
   "{{Guild.Icon}}",
   "{{Guild.Splash}}",
   "{{Guild.Members}}",
-  "{{Ordinal(Guild.Members)}}",
+  "{{Guild.MembersJoined}}",
   "{{Guild.Banner}}",
   "{{Invite.Code}}",
   "{{Invite.Uses}}",
@@ -75,6 +75,33 @@ const formattingTags = [
   "{{Invite.MaxUses}}",
   "{{Invite.Temporary}}",
 ];
+
+const integerTags = [
+  "Guild.Members",
+  "Guild.MembersJoined",
+  "Invite.Uses",
+  "Invite.MaxUses",
+];
+
+const numberLocales = [
+  "default",
+  "dots",
+  "commas",
+  "indian",
+  "arabic",
+];
+
+for (const tag of integerTags) {
+  formattingTags.push(`{{FormatNumber(${tag})}}`);
+  formattingTags.push(`{{Ordinal(${tag})}}`);
+
+  // for (const locale of numberLocales) {
+  //   formattingTags.push(`{{FormatNumber(${tag}, "${locale}")}}`);
+  //   formattingTags.push(`{{Ordinal(${tag}, "${locale}")}}`);
+  // }
+}
+
+formattingTags.sort((a, b) => a.length - b.length || a.localeCompare(b));
 
 export default {
   props: {

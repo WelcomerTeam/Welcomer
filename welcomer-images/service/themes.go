@@ -12,6 +12,12 @@ func registerThemeFunc(theme welcomer.ImageTheme, f func(*ImageService, Generate
 	themes[theme] = f
 }
 
+var themeSizes = make(map[welcomer.ImageTheme]image.Rectangle)
+
+func registerThemeSize(theme welcomer.ImageTheme, size image.Rectangle) {
+	themeSizes[theme] = size
+}
+
 type GenerateImageArguments struct {
 	ImageOptions GenerateImageOptions
 

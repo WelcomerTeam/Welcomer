@@ -14,6 +14,30 @@
         </div>
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
+            <div class="dashboard-heading">Auto Deletion</div>
+            <form-value title="Auto Delete Welcomer Messages" :type="FormTypeToggle"
+              v-model="config.config.auto_delete_welcome_messages" @update:modelValue="onValueUpdate"
+              :validation="v$.config.auto_delete_welcome_messages" :hideBorder="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
+            
+            <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
+
+              <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.config.welcome_message_lifetime"
+                @update:modelValue="onValueUpdate" :validation="v$.config.welcome_message_lifetime"
+                :hideBorder="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a welcomer message
+                is automatically deleted.</form-value>
+
+              <form-value title="Auto Delete Welcomer Messages On Leave" :type="FormTypeToggle"
+                v-model="config.config.auto_delete_welcome_messages_on_leave" @update:modelValue="onValueUpdate"
+                :validation="v$.config.auto_delete_welcome_messages_on_leave"
+                :hideBorder="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">When enabled, if a user leaves the server
+                their welcomer message will be deleted immediately.</form-value>
+              <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
+                Auto deletion of welcome messages requires a Welcomer Pro subscription.
+                <a href="/premium" class="underline">Learn more</a>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer Text</div>
             <form-value title="Enable Welcomer Text" :type="FormTypeToggle" v-model="config.text.enabled"
               @update:modelValue="onValueUpdate" :validation="v$.text.enabled">Welcome users when they join with a
@@ -163,6 +187,7 @@ import {
   FormTypeDropdown,
   FormTypeEmbed,
   FormTypeBackground,
+  FormTypeDuration,
 } from "@/components/dashboard/FormValueEnum";
 
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
@@ -224,6 +249,18 @@ export default {
 
     const validation_rules = computed(() => {
       const validation_rules = {
+        config: {
+          auto_delete_welcome_messages: {},
+          welcome_message_lifetime: {
+            minValue: helpers.withMessage("The lifetime is not valid", (value) => {
+              return value === undefined || value === null || value >= 0;
+            }),
+            maxValue: helpers.withMessage("The lifetime cannot be longer than one day", (value) => {
+              return value === undefined || value === null || value <= 86400;
+            }),
+          },
+          auto_delete_welcome_messages_on_leave: {}
+        },
         text: {
           enabled: {},
           channel: {
@@ -281,6 +318,7 @@ export default {
       FormTypeDropdown,
       FormTypeEmbed,
       FormTypeBackground,
+      FormTypeDuration,
 
       isDataFetched,
       isDataError,
@@ -334,7 +372,7 @@ export default {
 
       this.isChangeInProgress = true;
 
-      dashboardAPI.setConfig(
+      dashboardAPI.doPost(
         endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
         this.config,
         this.files,

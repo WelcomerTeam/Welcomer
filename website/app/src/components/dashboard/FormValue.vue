@@ -855,6 +855,37 @@
         </div>
       </div>
 
+      <div v-else-if="type == FormTypeCustom">
+        <slot name="custom"></slot>
+      </div>
+
+      <div v-else-if="type == FormTypeNumberWithConfirm">
+        <div class="flex flex-row space-x-2">
+          <input :id="componentId" type="number" :class="[
+            $props.validation?.$invalid
+              ? 'ring-red-500 border-red-500 dark:ring-red-500 dark:border-red-500'
+              : '',
+            $props.disabled
+              ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
+              : 'bg-white dark:bg-secondary-dark',
+            'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
+          ]" :disabled="$props.disabled" :value="modelValue" @input="updateValue($event.target.value)" @blur="blur" />
+          <button type="button" :class="[$props.disabled ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500' : 'bg-primary hover:bg-primary-dark', 'cta-button']" @click="save(modelValue)" :disabled="$props.disabled">
+            Save
+          </button>
+        </div>
+
+        <div v-if="$props.validation?.$invalid" class="errors">
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+        </div>
+      </div>
+
+      <div v-else-if="type == FormTypeDuration">
+        <DurationSelector :disabled="$props.disabled" :modelValue="modelValue" @update:modelValue="updateValue($event)" blankDisplay="Never" :showYears="false" :showDays="false" :showSeconds="false" />
+        <div v-if="$props.validation?.$invalid" class="errors">
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0" v-if="!$props.inlineSlot">
@@ -911,9 +942,13 @@ import {
   FormTypeEmbed,
   FormTypeBackground,
   FormTypeGuildList,
+  FormTypeCustom,
+  FormTypeNumberWithConfirm,
+  FormTypeDuration,
 } from "./FormValueEnum";
 import EmbedBuilder from "./EmbedBuilder.vue";
 import BackgroundSelector from "./BackgroundSelector.vue";
+import DurationSelector from "./DurationSelector.vue";
 
 import { getHexColor } from "@/utilities";
 
@@ -933,6 +968,7 @@ export default {
     EmbedBuilder,
     BackgroundSelector,
     AutocompleteInput,
+    DurationSelector,
   },
 
   props: {
@@ -964,6 +1000,9 @@ export default {
           FormTypeEmbed,
           FormTypeBackground,
           FormTypeGuildList,
+          FormTypeCustom,
+          FormTypeNumberWithConfirm,
+          FormTypeDuration,
         ].includes(value);
       },
     },
@@ -1030,7 +1069,7 @@ export default {
     }
   },
 
-  emits: ["update:modelValue", "update:files", "blur"],
+  emits: ["update:modelValue", "update:files", "blur", "save"],
 
   setup() {
     let componentId = "formvalue_" + Math.random().toString(16).slice(2);
@@ -1058,6 +1097,9 @@ export default {
       FormTypeEmbed,
       FormTypeBackground,
       FormTypeGuildList,
+      FormTypeCustom,
+      FormTypeNumberWithConfirm,
+      FormTypeDuration,
 
       idRegex,
 
@@ -1142,6 +1184,10 @@ export default {
 
     blur() {
       this.$props.validation?.$touch();
+    },
+
+    save(value) {
+      this.$emit("save", value);
     },
 
     filterChannels(channels) {

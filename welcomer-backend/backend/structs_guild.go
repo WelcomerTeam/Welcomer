@@ -5,6 +5,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 type Guild struct {
@@ -22,10 +23,13 @@ type Guild struct {
 
 type PartialGuild struct {
 	*MinimalGuild
-	Channels    []*MinimalChannel          `json:"channels"`
-	Roles       []*welcomer.AssignableRole `json:"roles"`
-	Emojis      []*MinimalEmoji            `json:"emojis"`
-	MemberCount int32                      `json:"member_count"`
+	Channels []*MinimalChannel          `json:"channels"`
+	Roles    []*welcomer.AssignableRole `json:"roles"`
+	Emojis   []*MinimalEmoji            `json:"emojis"`
+
+	MemberCount   int32  `json:"member_count"`
+	MembersJoined int32  `json:"members_joined"`
+	NumberLocale  string `json:"number_locale"`
 }
 
 type MinimalGuild struct {
@@ -54,13 +58,15 @@ type MinimalEmoji struct {
 	Available bool              `json:"available"`
 }
 
-func GuildToPartial(guild *discord.Guild) *PartialGuild {
+func GuildToPartial(guild *discord.Guild, guildConfig *database.Guilds) *PartialGuild {
 	return &PartialGuild{
-		MinimalGuild: GuildToMinimal(guild),
-		MemberCount:  guild.MemberCount,
-		Channels:     ChannelsToMinimal(guild.Channels),
-		Roles:        RolesToMinimal(guild.Roles),
-		Emojis:       EmojisToMinimal(guild.Emojis),
+		MinimalGuild:  GuildToMinimal(guild),
+		Channels:      ChannelsToMinimal(guild.Channels),
+		Roles:         RolesToMinimal(guild.Roles),
+		Emojis:        EmojisToMinimal(guild.Emojis),
+		MemberCount:   guild.MemberCount,
+		NumberLocale:  database.NumberLocale(guildConfig.NumberLocale.Int32).String(),
+		MembersJoined: guildConfig.MemberCount,
 	}
 }
 
@@ -96,9 +102,8 @@ func RolesToMinimal(roles []discord.Role) []*welcomer.AssignableRole {
 	minimalRoles := make([]*welcomer.AssignableRole, len(roles))
 
 	for i, role := range roles {
-		r := role // Create a local copy of the loop variable
 		minimalRoles[i] = &welcomer.AssignableRole{
-			Role:         &r,
+			Role:         &role,
 			IsAssignable: false,
 			IsElevated:   false,
 		}

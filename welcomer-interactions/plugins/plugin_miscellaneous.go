@@ -104,11 +104,24 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 			} else if len(messagesToDelete) > 1 {
-				err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
+				if interaction.GuildID == nil {
+					for _, messageID := range messagesToDelete {
+						message := discord.Message{ID: messageID, ChannelID: *interaction.ChannelID}
 
-					return nil, err
+						err = message.Delete(ctx, session, nil)
+						if err != nil {
+							welcomer.Logger.Error().Err(err).Msg("Failed to delete message")
+
+							return nil, err
+						}
+					}
+				} else {
+					err = channel.DeleteMessages(ctx, session, messagesToDelete, nil)
+					if err != nil {
+						welcomer.Logger.Error().Err(err).Msg("Failed to delete messages")
+
+						return nil, err
+					}
 				}
 			}
 
@@ -501,7 +514,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					i := 0
-					guildMembers := make([]*sandwich_protobuf.GuildMember, len(guildMembersResp.GuildMembers))
+					guildMembers := make([]*sandwich_protobuf.GuildMember, len(guildMembersResp.GetGuildMembers()))
 					for _, guildMember := range guildMembersResp.GuildMembers {
 						guildMembers[i] = guildMember
 						i++
@@ -865,6 +878,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "support",
 		Description: "Need help with the bot?",
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return &discord.InteractionResponse{

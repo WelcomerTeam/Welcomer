@@ -311,6 +311,14 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		}
 
 		if eligibleChannel == nil {
+			welcomer.PushGuildScience.Push(
+				eventCtx.Context,
+				guild.ID,
+				0,
+				database.ScienceGuildEventTypeGuildOnboarded,
+				false,
+			)
+
 			return nil
 		}
 

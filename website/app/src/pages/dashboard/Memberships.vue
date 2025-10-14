@@ -133,7 +133,7 @@
                                 <MenuItem v-slot="{ active }">
                                   <button v-if="membership.guild_id == this.$store.getters.getSelectedGuildID" @click="removeMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Remove membership from this server</button>
                                   <button v-else-if="membership.guild_id > 0" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Transfer membership to this server</button>
-                                  <button v-else="isMembershipAssignable(membership)" :disabled="!isMembershipAssignable(membership)" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full disabled:bg-gray-100 disabled:dark:bg-secondary-light disabled:text-neutral-500']">Add membership to this server</button>
+                                  <button v-else :disabled="!isMembershipAssignable(membership)" @click="addMembership(membership)" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full disabled:bg-gray-100 disabled:dark:bg-secondary-light disabled:text-neutral-500']">Add membership to this server</button>
                                 </MenuItem>
                                 <MenuItem v-slot="{ active }" v-if="membership.platform_type == PlatformTypeDiscord || membership.platform_type == PlatformTypePatreon">
                                   <button v-if="membership.platform_type == PlatformTypeDiscord" @click="showDiscordPopup = true" type="button" :class="[active ? 'hover:bg-gray-50 dark:hover:bg-secondary-light' : '', 'block px-4 py-2 text-sm w-full']">Manage subscription</button>
@@ -512,7 +512,7 @@ export default {
 
       this.isChangeInProgress = true;
 
-      dashboardAPI.setConfig(
+      dashboardAPI.doPost(
         endpoints.EndpointGuild(this.$store.getters.getSelectedGuildID),
         this.config,
         null,

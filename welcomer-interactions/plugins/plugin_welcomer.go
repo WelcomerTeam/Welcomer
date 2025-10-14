@@ -185,8 +185,6 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				println("MANAGER NAME: ", core.GetManagerNameFromContext(ctx))
-
 				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
 					Identifier: core.GetManagerNameFromContext(ctx),
 					Type:       core.CustomEventInvokeWelcomer,

@@ -155,11 +155,26 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		guild = eventCtx.Guild
 	}
 
-	functions := welcomer.GatherFunctions()
+	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			guildSettings = &welcomer.DefaultGuild
+		} else {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to get guild settings")
+		}
+	}
+
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
 	variables := welcomer.GatherVariables(eventCtx, &discord.GuildMember{
 		GuildID: &event.GuildID,
 		User:    &event.User,
-	}, guild, nil, nil)
+	}, core.GuildVariables{
+		Guild:         guild,
+		MembersJoined: guildSettings.MemberCount,
+		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
+	}, nil, nil)
 
 	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
 	if err != nil {

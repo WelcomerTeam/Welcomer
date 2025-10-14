@@ -62,7 +62,6 @@ func (p *JetstreamProducerProvider) GetProducer(ctx context.Context, application
 }
 
 func (p *JetstreamProducer) Publish(ctx context.Context, shard *sandwich.Shard, payload *sandwich.ProducedPayload) error {
-	println("PRODUCE", shard.Application.Identifier, shard.ShardID, payload.Type)
 	payloadData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal produced payload: %w", err)

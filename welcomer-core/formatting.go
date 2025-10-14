@@ -11,6 +11,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	mustache "github.com/WelcomerTeam/Mustachvulate"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 // ordinal takes 1 argument but 0 was given
@@ -24,11 +25,35 @@ func AssertLength(name string, expectedLength int, arguments ...any) (err error)
 	return nil
 }
 
-func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
+func AssertMaxLength(name string, maximumLength int, arguments ...any) (err error) {
+	if len(arguments) > maximumLength {
+		return fmt.Errorf("%s takes up to %d argument(s) but %d was given", name, maximumLength, len(arguments))
+	}
+
+	return nil
+}
+
+func AssertMinLength(name string, minimumLength int, arguments ...any) (err error) {
+	if len(arguments) < minimumLength {
+		return fmt.Errorf("%s takes at least %d argument(s) but %d was given", name, minimumLength, len(arguments))
+	}
+
+	return nil
+}
+
+func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]govaluate.ExpressionFunction) {
 	funcs = map[string]govaluate.ExpressionFunction{}
 
 	funcs["Ordinal"] = func(arguments ...any) (any, error) {
-		if err := AssertLength("Ordinal", 1, arguments...); err != nil {
+		// if err := AssertLength("Ordinal", 1, arguments...); err != nil {
+		// 	return nil, err
+		// }
+
+		if err := AssertMinLength("FormatNumber", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		if err := AssertMaxLength("FormatNumber", 2, arguments...); err != nil {
 			return nil, err
 		}
 
@@ -55,7 +80,99 @@ func GatherFunctions() (funcs map[string]govaluate.ExpressionFunction) {
 			suffix = "th"
 		}
 
-		return Itoa(int64(argument)) + suffix, nil
+		if len(arguments) == 2 {
+			localeStr, ok := arguments[1].(string)
+			if !ok {
+				return nil, fmt.Errorf("ordinal argument 2 is not supported")
+			}
+
+			locale, err := database.ParseNumberLocale(localeStr)
+			if err != nil {
+				return nil, fmt.Errorf("ordinal argument 2 is not a valid locale")
+			}
+
+			return FormatNumber(int64(argument), locale) + suffix, nil
+		}
+
+		// Use the guild's locale by default.
+		// return Itoa(int64(argument)) + suffix, nil
+		return FormatNumber(int64(argument), numberLocale) + suffix, nil
+	}
+
+	funcs["FormatNumber"] = func(arguments ...any) (any, error) {
+		// if err := AssertLength("FormatNumber", 1, arguments...); err != nil {
+		// 	return nil, err
+		// }
+
+		if err := AssertMinLength("FormatNumber", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		if err := AssertMaxLength("FormatNumber", 2, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(float64)
+		if !ok {
+			return nil, fmt.Errorf("formatNumber argument 1 is not supported")
+		}
+
+		if len(arguments) == 2 {
+			localeStr, ok := arguments[1].(string)
+			if !ok {
+				return nil, fmt.Errorf("formatNumber argument 2 is not supported")
+			}
+
+			locale, err := database.ParseNumberLocale(localeStr)
+			if err != nil {
+				return nil, fmt.Errorf("formatNumber argument 2 is not a valid locale")
+			}
+
+			return FormatNumber(int64(argument), locale), nil
+		}
+
+		// Use the guild's locale by default.
+
+		return FormatNumber(int64(argument), numberLocale), nil
+	}
+
+	funcs["Upper"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("Upper", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("upper argument 1 is not supported")
+		}
+
+		return strings.ToUpper(argument), nil
+	}
+
+	funcs["Lower"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("Lower", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("lower argument 1 is not supported")
+		}
+
+		return strings.ToLower(argument), nil
+	}
+
+	funcs["Title"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("Title", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argument, ok := arguments[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("title argument 1 is not supported")
+		}
+
+		return strings.Title(argument), nil
 	}
 
 	return funcs
@@ -66,7 +183,13 @@ func EscapeStringForJSON(value string) string {
 	return strings.ReplaceAll(value, `"`, `\"`)
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild *discord.Guild, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
+type GuildVariables struct {
+	*discord.Guild
+	MembersJoined int32
+	NumberLocale  database.NumberLocale
+}
+
+func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
 	vars = make(map[string]any)
 
 	vars["User"] = StubUser{
@@ -84,12 +207,13 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 	}
 
 	vars["Guild"] = StubGuild{
-		ID:      guild.ID,
-		Name:    EscapeStringForJSON(guild.Name),
-		Icon:    getGuildIcon(guild),
-		Splash:  getGuildSplash(guild),
-		Members: guild.MemberCount,
-		Banner:  getGuildBanner(guild),
+		ID:            guild.ID,
+		Name:          EscapeStringForJSON(guild.Name),
+		Icon:          getGuildIcon(guild.Guild),
+		Splash:        getGuildSplash(guild.Guild),
+		Members:       guild.MemberCount,
+		MembersJoined: guild.MembersJoined,
+		Banner:        getGuildBanner(guild.Guild),
 	}
 
 	if invite != nil {
@@ -109,6 +233,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 
 		var channelID discord.Snowflake
+
 		if invite.Channel != nil {
 			channelID = invite.Channel.ID
 		}
@@ -272,12 +397,13 @@ func (s StubUser) String() string {
 
 // Guild represents a guild on discord.
 type StubGuild struct {
-	Name    string            `json:"name"`
-	Icon    string            `json:"icon"`
-	Splash  string            `json:"splash"`
-	Banner  string            `json:"banner"`
-	ID      discord.Snowflake `json:"id"`
-	Members int32             `json:"members"`
+	Name          string            `json:"name"`
+	Icon          string            `json:"icon"`
+	Splash        string            `json:"splash"`
+	Banner        string            `json:"banner"`
+	ID            discord.Snowflake `json:"id"`
+	Members       int32             `json:"members"`
+	MembersJoined int32             `json:"members_joined"`
 }
 
 func (s StubGuild) String() string {

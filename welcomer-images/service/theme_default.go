@@ -9,10 +9,12 @@ import (
 	"golang.org/x/image/font"
 )
 
+var defaultThemeSize = image.Rect(0, 0, 1000, 300)
+
 func CreateRegularImage(
 	is *ImageService, args GenerateImageArguments,
 ) (resp *GenerateThemeResponse, err error) {
-	imageSize := image.Rect(0, 0, 1000, 300)
+	imageSize := defaultThemeSize
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 936, 236)
 
@@ -109,4 +111,5 @@ func CreateRegularImage(
 
 func init() {
 	registerThemeFunc(welcomer.ImageThemeDefault, CreateRegularImage)
+	registerThemeSize(welcomer.ImageThemeDefault, defaultThemeSize)
 }

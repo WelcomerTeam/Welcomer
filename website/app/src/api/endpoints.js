@@ -38,6 +38,26 @@ let EndpointGuildSettings = function(guildID) {
   return `${EndpointGuild(guildID)}/settings`;
 }
 
+let EndpointGuildSettingsUpdateMemberCount = function(guildID) {
+  return `${EndpointGuildSettings(guildID)}/update-member-count`;
+}
+
+let EndpointGuildCustomBots = function(guildID) {
+  return `${EndpointGuild(guildID)}/custom-bots`;
+}
+
+let EndpointGuildCustomBot = function(guildID, botID) {
+  return `${EndpointGuildCustomBots(guildID)}/${botID}`;
+}
+
+let EndpointStartGuildCustomBot = function(guildID, botID) {
+  return `${EndpointGuildCustomBot(guildID, botID)}/start`;
+}
+
+let EndpointStopGuildCustomBot = function(guildID, botID) {
+  return `${EndpointGuildCustomBot(guildID, botID)}/stop`;
+}
+
 export default {
   EndpointGuild,
   EndpointGuildAutorole,
@@ -48,5 +68,10 @@ export default {
   EndpointGuildTempchannels,
   EndpointGuildTimeroles,
   EndpointGuildWelcomer,
-  EndpointGuildSettings
+  EndpointGuildSettings,
+  EndpointGuildSettingsUpdateMemberCount,
+  EndpointGuildCustomBots,
+  EndpointGuildCustomBot,
+  EndpointStartGuildCustomBot,
+  EndpointStopGuildCustomBot
 };

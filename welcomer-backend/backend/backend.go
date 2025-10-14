@@ -104,8 +104,6 @@ func NewBackend(options Options) (*Backend, error) {
 	b.BotSession = discord.NewSession(b.Options.BotToken, welcomer.RESTInterface)
 	b.DonatorBotSession = discord.NewSession(b.Options.DonatorBotToken, welcomer.RESTInterface)
 
-	println(welcomer.RESTInterface)
-
 	if options.NginxAddress != "" {
 		err := b.Route.SetTrustedProxies([]string{options.NginxAddress})
 		if err != nil {
@@ -231,6 +229,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildSettingsTempChannelsRoutes(router)
 	registerGuildSettingsTimeRolesRoutes(router)
 	registerGuildSettingsWelcomerRoutes(router)
+	registerGuildCustomBotRoutes(router)
 
 	return router
 }
