@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"time"
 
+	_ "image/jpeg"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
