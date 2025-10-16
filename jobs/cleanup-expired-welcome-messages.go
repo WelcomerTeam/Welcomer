@@ -15,7 +15,6 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4"
 	_ "github.com/joho/godotenv/autoload"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -245,7 +244,7 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 		channels[discord.Snowflake(message.ChannelID)] = true
 	}
 
-	for channelID, _ := range channels {
+	for channelID := range channels {
 		messageIDs := make([]discord.Snowflake, 0)
 		messages := make([]database.GetExpiredWelcomeMessageEventsRow, 0)
 
