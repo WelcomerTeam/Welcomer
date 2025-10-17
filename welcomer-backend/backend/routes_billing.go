@@ -257,7 +257,7 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 			Name: paypal.CreateOrderPayerName{
 				GivenName: user.GlobalName,
 			},
-			ShippingAddress: paypal.ShippingDetail{
+			ShippingAddress: &paypal.ShippingDetail{
 				Name: &paypal.Name{
 					FullName: user.GlobalName,
 				},

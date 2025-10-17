@@ -8,13 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	_ "image/jpeg"
 	"image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"time"
-
-	_ "image/jpeg"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
