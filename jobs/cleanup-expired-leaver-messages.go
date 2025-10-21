@@ -45,7 +45,7 @@ func main() {
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Cleanup Expired Welcome Messages Job",
+						Title:       "Cleanup Expired Leaver Messages Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
 						Timestamp:   welcomer.ToPointer(time.Now()),
@@ -89,16 +89,16 @@ func main() {
 const FETCH_ENABLED_GUILDS = `-- name: FetchEnabledGuilds :many
 SELECT
 	guild_id,
-	welcome_message_lifetime
+	leaver_message_lifetime
 FROM
-	guild_settings_welcomer
+	guild_settings_leaver
 WHERE
-	auto_delete_welcome_messages = TRUE
-	AND welcome_message_lifetime > 0`
+	auto_delete_leaver_messages = TRUE
+	AND leaver_message_lifetime > 0`
 
 type FetchEnabledGuildsRow struct {
-	GuildID                int64 `json:"guild_id"`
-	WelcomeMessageLifetime int32 `json:"welcome_message_lifetime"`
+	GuildID               int64 `json:"guild_id"`
+	LeaverMessageLifetime int32 `json:"leaver_message_lifetime"`
 }
 
 func entrypoint(ctx context.Context, db *pgx.Conn) {
@@ -114,17 +114,17 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 	for rows.Next() {
 		var item FetchEnabledGuildsRow
 
-		if err := rows.Scan(&item.GuildID, &item.WelcomeMessageLifetime); err != nil {
+		if err := rows.Scan(&item.GuildID, &item.LeaverMessageLifetime); err != nil {
 			panic(err)
 		}
 
 		welcomer.Logger.Info().Int64("guild_id", item.GuildID).
-			Int32("welcome_message_lifetime", item.WelcomeMessageLifetime).
-			Msg("Cleaning up expired welcome messages for guild")
+			Int32("leaver_message_lifetime", item.LeaverMessageLifetime).
+			Msg("Cleaning up expired leaver messages for guild")
 
-		countDeleted, err := cleanupWelcomeMessagesForGuild(ctx, discord.Snowflake(item.GuildID), item.WelcomeMessageLifetime)
+		countDeleted, err := cleanupLeaverMessagesForGuild(ctx, discord.Snowflake(item.GuildID), item.LeaverMessageLifetime)
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Int64("guild_id", item.GuildID).Msg("Failed to cleanup welcome messages for guild")
+			welcomer.Logger.Error().Err(err).Int64("guild_id", item.GuildID).Msg("Failed to cleanup leaver messages for guild")
 		}
 
 		totalCountDeleted += countDeleted
@@ -135,7 +135,7 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 		Msg("Completed cleanup of expired welcome messages")
 }
 
-func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowflake, welcomeMessageLifetime int32) (int, error) {
+func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflake, leaverMessageLifetime int32) (int, error) {
 	var memberships []*database.GetUserMembershipsByGuildIDRow
 
 	// Check if the guild has welcomer pro.
@@ -228,11 +228,11 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 	session := discord.NewSession("Bot "+botToken, welcomer.RESTInterface)
 
 	messagesToDelete, err := welcomer.Queries.GetExpiredWelcomeMessageEvents(ctx, database.GetExpiredWelcomeMessageEventsParams{
-		ScienceGuildEventTypeUserWelcomed:          int32(database.ScienceGuildEventTypeUserWelcomed),
-		ScienceGuildEventTypeWelcomeMessageRemoved: int32(database.ScienceGuildEventTypeWelcomeMessageRemoved),
+		ScienceGuildEventTypeUserWelcomed:          int32(database.ScienceGuildEventTypeUserLeftMessage),
+		ScienceGuildEventTypeWelcomeMessageRemoved: int32(database.ScienceGuildEventTypeLeaverMessageRemoved),
 		GuildID:                int64(guildID),
 		EventLimit:             50,
-		WelcomeMessageLifetime: time.Now().Add(time.Second * time.Duration(-welcomeMessageLifetime)),
+		WelcomeMessageLifetime: time.Now().Add(time.Second * time.Duration(-leaverMessageLifetime)),
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to get expired welcome message events: %w", err)
@@ -277,12 +277,12 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 				ctx,
 				guildID,
 				discord.Snowflake(messages[i].UserID.Int64),
-				database.ScienceGuildEventTypeWelcomeMessageRemoved,
-				welcomer.GuildScienceWelcomeMessageRemoved{
-					MessageID:        messageID,
-					MessageChannelID: channelID,
+				database.ScienceGuildEventTypeLeaverMessageRemoved,
+				welcomer.GuildScienceLeaverMessageRemoved{
 					HasMessage:       true,
 					Successful:       err == nil,
+					MessageID:        messageID,
+					MessageChannelID: channelID,
 				},
 			)
 		}

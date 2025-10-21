@@ -91,10 +91,12 @@ type GuildSettingsFreeroles struct {
 }
 
 type GuildSettingsLeaver struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID                  int64        `json:"guild_id"`
+	ToggleEnabled            bool         `json:"toggle_enabled"`
+	Channel                  int64        `json:"channel"`
+	MessageFormat            pgtype.JSONB `json:"message_format"`
+	AutoDeleteLeaverMessages bool         `json:"auto_delete_leaver_messages"`
+	LeaverMessageLifetime    int32        `json:"leaver_message_lifetime"`
 }
 
 type GuildSettingsRules struct {

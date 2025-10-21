@@ -12,17 +12,19 @@ import (
 )
 
 const CreateLeaverGuildSettings = `-- name: CreateLeaverGuildSettings :one
-INSERT INTO guild_settings_leaver (guild_id, toggle_enabled, channel, message_format)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO guild_settings_leaver (guild_id, toggle_enabled, channel, message_format, auto_delete_leaver_messages, leaver_message_lifetime)
+    VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING
-    guild_id, toggle_enabled, channel, message_format
+    guild_id, toggle_enabled, channel, message_format, auto_delete_leaver_messages, leaver_message_lifetime
 `
 
 type CreateLeaverGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID                  int64        `json:"guild_id"`
+	ToggleEnabled            bool         `json:"toggle_enabled"`
+	Channel                  int64        `json:"channel"`
+	MessageFormat            pgtype.JSONB `json:"message_format"`
+	AutoDeleteLeaverMessages bool         `json:"auto_delete_leaver_messages"`
+	LeaverMessageLifetime    int32        `json:"leaver_message_lifetime"`
 }
 
 func (q *Queries) CreateLeaverGuildSettings(ctx context.Context, arg CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error) {
@@ -31,6 +33,8 @@ func (q *Queries) CreateLeaverGuildSettings(ctx context.Context, arg CreateLeave
 		arg.ToggleEnabled,
 		arg.Channel,
 		arg.MessageFormat,
+		arg.AutoDeleteLeaverMessages,
+		arg.LeaverMessageLifetime,
 	)
 	var i GuildSettingsLeaver
 	err := row.Scan(
@@ -38,26 +42,32 @@ func (q *Queries) CreateLeaverGuildSettings(ctx context.Context, arg CreateLeave
 		&i.ToggleEnabled,
 		&i.Channel,
 		&i.MessageFormat,
+		&i.AutoDeleteLeaverMessages,
+		&i.LeaverMessageLifetime,
 	)
 	return &i, err
 }
 
 const CreateOrUpdateLeaverGuildSettings = `-- name: CreateOrUpdateLeaverGuildSettings :one
-INSERT INTO guild_settings_leaver (guild_id, toggle_enabled, channel, message_format)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO guild_settings_leaver (guild_id, toggle_enabled, channel, message_format, auto_delete_leaver_messages, leaver_message_lifetime)
+    VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         channel = EXCLUDED.channel,
-        message_format = EXCLUDED.message_format
+        message_format = EXCLUDED.message_format,
+        auto_delete_leaver_messages = EXCLUDED.auto_delete_leaver_messages,
+        leaver_message_lifetime = EXCLUDED.leaver_message_lifetime
 RETURNING
-    guild_id, toggle_enabled, channel, message_format
+    guild_id, toggle_enabled, channel, message_format, auto_delete_leaver_messages, leaver_message_lifetime
 `
 
 type CreateOrUpdateLeaverGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID                  int64        `json:"guild_id"`
+	ToggleEnabled            bool         `json:"toggle_enabled"`
+	Channel                  int64        `json:"channel"`
+	MessageFormat            pgtype.JSONB `json:"message_format"`
+	AutoDeleteLeaverMessages bool         `json:"auto_delete_leaver_messages"`
+	LeaverMessageLifetime    int32        `json:"leaver_message_lifetime"`
 }
 
 func (q *Queries) CreateOrUpdateLeaverGuildSettings(ctx context.Context, arg CreateOrUpdateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error) {
@@ -66,6 +76,8 @@ func (q *Queries) CreateOrUpdateLeaverGuildSettings(ctx context.Context, arg Cre
 		arg.ToggleEnabled,
 		arg.Channel,
 		arg.MessageFormat,
+		arg.AutoDeleteLeaverMessages,
+		arg.LeaverMessageLifetime,
 	)
 	var i GuildSettingsLeaver
 	err := row.Scan(
@@ -73,13 +85,15 @@ func (q *Queries) CreateOrUpdateLeaverGuildSettings(ctx context.Context, arg Cre
 		&i.ToggleEnabled,
 		&i.Channel,
 		&i.MessageFormat,
+		&i.AutoDeleteLeaverMessages,
+		&i.LeaverMessageLifetime,
 	)
 	return &i, err
 }
 
 const GetLeaverGuildSettings = `-- name: GetLeaverGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, channel, message_format
+    guild_id, toggle_enabled, channel, message_format, auto_delete_leaver_messages, leaver_message_lifetime
 FROM
     guild_settings_leaver
 WHERE
@@ -94,6 +108,8 @@ func (q *Queries) GetLeaverGuildSettings(ctx context.Context, guildID int64) (*G
 		&i.ToggleEnabled,
 		&i.Channel,
 		&i.MessageFormat,
+		&i.AutoDeleteLeaverMessages,
+		&i.LeaverMessageLifetime,
 	)
 	return &i, err
 }
@@ -104,16 +120,20 @@ UPDATE
 SET
     toggle_enabled = $2,
     channel = $3,
-    message_format = $4
+    message_format = $4,
+    auto_delete_leaver_messages = $5,
+    leaver_message_lifetime = $6
 WHERE
     guild_id = $1
 `
 
 type UpdateLeaverGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID                  int64        `json:"guild_id"`
+	ToggleEnabled            bool         `json:"toggle_enabled"`
+	Channel                  int64        `json:"channel"`
+	MessageFormat            pgtype.JSONB `json:"message_format"`
+	AutoDeleteLeaverMessages bool         `json:"auto_delete_leaver_messages"`
+	LeaverMessageLifetime    int32        `json:"leaver_message_lifetime"`
 }
 
 func (q *Queries) UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error) {
@@ -122,6 +142,8 @@ func (q *Queries) UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeave
 		arg.ToggleEnabled,
 		arg.Channel,
 		arg.MessageFormat,
+		arg.AutoDeleteLeaverMessages,
+		arg.LeaverMessageLifetime,
 	)
 	if err != nil {
 		return 0, err
