@@ -199,6 +199,9 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		return err
 	}
 
+	var messageID discord.Snowflake
+	var channelID discord.Snowflake
+
 	// Send the message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(serverMessage) {
 		validGuild, err := core.CheckChannelGuild(eventCtx.Context, welcomer.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
@@ -215,7 +218,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsLeaver.Channel)}
 
-			_, err = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
+			message, err := channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			welcomer.Logger.Info().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -227,9 +230,24 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("channel_id", guildSettingsLeaver.Channel).
 					Msg("Failed to send leaver message to channel")
+			} else {
+				messageID = message.ID
+				channelID = channel.ID
 			}
 		}
 	}
+
+	welcomer.PushGuildScience.Push(
+		eventCtx.Context,
+		eventCtx.Guild.ID,
+		event.User.ID,
+		database.ScienceGuildEventTypeUserLeftMessage,
+		core.GuildScienceUserLeftMessage{
+			HasMessage:       messageID != 0,
+			MessageID:        messageID,
+			MessageChannelID: channelID,
+		},
+	)
 
 	return nil
 }

@@ -1,4 +1,4 @@
-FROM golang:1.23 AS build_base
+FROM golang:1.25 AS build_base
 COPY . /tmp
 WORKDIR /tmp/welcomer-images
 RUN cd /tmp/welcomer-images

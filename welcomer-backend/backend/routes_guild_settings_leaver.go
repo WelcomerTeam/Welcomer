@@ -21,10 +21,12 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					leaver = &database.GuildSettingsLeaver{
-						GuildID:       int64(guildID),
-						ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
-						Channel:       welcomer.DefaultLeaver.Channel,
-						MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+						GuildID:                  int64(guildID),
+						ToggleEnabled:            welcomer.DefaultLeaver.ToggleEnabled,
+						Channel:                  welcomer.DefaultLeaver.Channel,
+						MessageFormat:            welcomer.DefaultLeaver.MessageFormat,
+						AutoDeleteLeaverMessages: welcomer.DefaultLeaver.AutoDeleteLeaverMessages,
+						LeaverMessageLifetime:    welcomer.DefaultLeaver.LeaverMessageLifetime,
 					}
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")

@@ -65,6 +65,8 @@ var DefaultLeaver database.GuildSettingsLeaver = database.GuildSettingsLeaver{
 	MessageFormat: MustConvertToJSONB(discord.MessageParams{
 		Content: "{{User.Name}} has left the server. We now have {{Guild.Members}} members.",
 	}),
+	AutoDeleteLeaverMessages: false,
+	LeaverMessageLifetime:    0,
 }
 
 var DefaultRules database.GuildSettingsRules = database.GuildSettingsRules{
