@@ -26,6 +26,12 @@ type GuildScienceUserWelcomed struct {
 	InviteCode        string `json:"invite_code,omitempty"`
 }
 
+type GuildScienceUserLeftMessage struct {
+	HasMessage       bool              `json:"has_message,omitempty"`
+	MessageID        discord.Snowflake `json:"message_id,omitempty"`
+	MessageChannelID discord.Snowflake `json:"channel_id,omitempty"`
+}
+
 type GuildScienceTimeRoleGiven struct {
 	RoleID discord.Snowflake `json:"role_id"`
 }
@@ -49,6 +55,13 @@ type GuildScienceMembershipRemoved struct {
 }
 
 type GuildScienceWelcomeMessageRemoved struct {
+	HasMessage       bool              `json:"has_message,omitempty"`
+	Successful       bool              `json:"successful,omitempty"`
+	MessageID        discord.Snowflake `json:"message_id,omitempty"`
+	MessageChannelID discord.Snowflake `json:"channel_id,omitempty"`
+}
+
+type GuildScienceLeaverMessageRemoved struct {
 	HasMessage       bool              `json:"has_message,omitempty"`
 	Successful       bool              `json:"successful,omitempty"`
 	MessageID        discord.Snowflake `json:"message_id,omitempty"`

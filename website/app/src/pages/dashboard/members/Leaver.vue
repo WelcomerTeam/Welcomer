@@ -14,6 +14,23 @@
         </div>
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
+            <div class="dashboard-heading">Auto Deletion</div>
+            <form-value title="Auto Delete Leaver Messages" :type="FormTypeToggle"
+              v-model="config.auto_delete_leaver_messages" @update:modelValue="onValueUpdate"
+              :validation="v$.auto_delete_leaver_messages" :hideBorder="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
+            
+            <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
+              <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.leaver_message_lifetime"
+                @update:modelValue="onValueUpdate" :validation="v$.leaver_message_lifetime"
+                :hideBorder="true" :disabled="!config.auto_delete_leaver_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a leaver message
+                is automatically deleted.</form-value>
+              <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
+                Auto deletion of leaver messages requires a Welcomer Pro subscription.
+                <a href="/premium" class="underline">Learn more</a>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-inputs">
             <form-value title="Enable Leaver" :type="FormTypeToggle" v-model="config.enabled"
               @update:modelValue="onValueUpdate" :validation="v$.enabled">Send messages in a channel when users leave your
               server.</form-value>
@@ -48,6 +65,7 @@ import {
   FormTypeToggle,
   FormTypeChannelListCategories,
   FormTypeEmbed,
+  FormTypeDuration,
 } from "@/components/dashboard/FormValueEnum";
 
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
@@ -84,6 +102,15 @@ export default {
     const validation_rules = computed(() => {
       const validation_rules = {
         enabled: {},
+        auto_delete_leaver_messages: {},
+        leaver_message_lifetime: {
+          minValue: helpers.withMessage("The lifetime is not valid", (value) => {
+            return value === undefined || value === null || value >= 0;
+          }),
+          maxValue: helpers.withMessage("The lifetime cannot be longer than one day", (value) => {
+            return value === undefined || value === null || value <= 86400;
+          }),
+        },
         channel: {
           required: helpers.withMessage("The channel must be selected if you do not send a DM", requiredIf(
             config.value.enabled
@@ -109,6 +136,7 @@ export default {
       FormTypeToggle,
       FormTypeChannelListCategories,
       FormTypeEmbed,
+      FormTypeDuration,
 
       isDataFetched,
       isDataError,
