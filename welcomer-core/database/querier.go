@@ -110,6 +110,7 @@ type Querier interface {
 	GetWelcomerImagesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerImages, error)
 	GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error)
 	IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error)
+	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error)
 	InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error)
 	SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error)
 	UpdateAutoRolesGuildSettings(ctx context.Context, arg UpdateAutoRolesGuildSettingsParams) (int64, error)
