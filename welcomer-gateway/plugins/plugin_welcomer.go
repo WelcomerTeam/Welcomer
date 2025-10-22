@@ -73,21 +73,15 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
 
-		println("B")
-
 		if invokeWelcomerPayload.Member.GuildID != nil {
 			eventCtx.Guild = sandwich.NewGuild(*invokeWelcomerPayload.Member.GuildID)
 		}
-
-		println("C")
 
 		eventCtx.EventHandler.EventsMu.RLock()
 		defer eventCtx.EventHandler.EventsMu.RUnlock()
 
 		for _, event := range eventCtx.EventHandler.Events {
-			println("D")
 			if f, ok := event.(welcomer.OnInvokeWelcomerFuncType); ok {
-				println("E")
 				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokeWelcomerPayload))
 			}
 		}

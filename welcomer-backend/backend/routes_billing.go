@@ -750,8 +750,6 @@ func paymentCallback(ctx *gin.Context) {
 
 			var guildIDSnowflake discord.Snowflake
 
-			println("guildID", guildID)
-
 			if guildID != "" {
 				guildIDInt, _ := welcomer.Atoi(guildID)
 				guildIDSnowflake = discord.Snowflake(guildIDInt)
