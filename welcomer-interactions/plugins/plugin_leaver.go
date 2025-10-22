@@ -183,12 +183,12 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -249,12 +249,12 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -352,12 +352,12 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},

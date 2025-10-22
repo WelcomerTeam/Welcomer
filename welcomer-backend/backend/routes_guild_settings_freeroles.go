@@ -86,7 +86,8 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, databaseFreeRolesGuildSettings)
+					_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, databaseFreeRolesGuildSettings, user.ID)
+
 					return err
 				},
 				func() error {

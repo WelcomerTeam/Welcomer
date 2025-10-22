@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
@@ -84,7 +85,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, databaseAutoRolesGuildSettings)
+					_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx, databaseAutoRolesGuildSettings, discord.Snowflake(user.ID))
 
 					return err
 				},

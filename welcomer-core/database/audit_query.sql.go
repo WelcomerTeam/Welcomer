@@ -8,20 +8,22 @@ package database
 import (
 	"context"
 	"database/sql"
+
+	"github.com/jackc/pgtype"
 )
 
 const InsertAuditLog = `-- name: InsertAuditLog :one
-INSERT INTO audit_logs (audit_uuid, created_at, guild_id, user_id, audit_type, changes_bytes)
+INSERT INTO audit_logs (audit_uuid, created_at, guild_id, user_id, audit_type, changes)
     VALUES (uuid_generate_v7(), now(), $1, $2, $3, $4)
 RETURNING
-    audit_uuid, created_at, guild_id, user_id, audit_type, changes_bytes
+    audit_uuid, created_at, guild_id, user_id, audit_type, changes
 `
 
 type InsertAuditLogParams struct {
-	GuildID      sql.NullInt64 `json:"guild_id"`
-	UserID       int64         `json:"user_id"`
-	AuditType    int32         `json:"audit_type"`
-	ChangesBytes []byte        `json:"changes_bytes"`
+	GuildID   sql.NullInt64 `json:"guild_id"`
+	UserID    int64         `json:"user_id"`
+	AuditType int32         `json:"audit_type"`
+	Changes   pgtype.JSONB  `json:"changes"`
 }
 
 func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error) {
@@ -29,7 +31,7 @@ func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) 
 		arg.GuildID,
 		arg.UserID,
 		arg.AuditType,
-		arg.ChangesBytes,
+		arg.Changes,
 	)
 	var i AuditLogs
 	err := row.Scan(
@@ -38,7 +40,7 @@ func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) 
 		&i.GuildID,
 		&i.UserID,
 		&i.AuditType,
-		&i.ChangesBytes,
+		&i.Changes,
 	)
 	return &i, err
 }

@@ -143,6 +143,8 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 func setGuildSettingsWelcomer(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			userID := tryGetUser(ctx).ID
+
 			partial := &GuildSettingsWelcomer{}
 
 			var fileValue *multipart.FileHeader
@@ -264,14 +266,14 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					case MIMEGIF, MIMEPNG, MIMEJPEG:
 						switch {
 						case mimeType == MIMEGIF && hasWelcomerPro:
-							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, fileValue, fileOpen)
+							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, fileValue, fileOpen, userID)
 						case mimeType == MIMEJPEG, mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
 							// We will still accept GIFs if they do not have Welcomer Pro, however
 							// they will be converted to PNG. This saves having to extract the first
 							// frame every time we try to generate the resulting welcome image.
 							// If you do not like this, get Welcomer Pro :)
 							// It helps me out.
-							res, err = welcomerCustomBackgroundsUploadStatic(ctx, guildID, fileOpen)
+							res, err = welcomerCustomBackgroundsUploadStatic(ctx, guildID, fileOpen, userID)
 						default:
 							ctx.JSON(http.StatusBadRequest, BaseResponse{
 								Ok:    false,
@@ -355,7 +357,8 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateWelcomerGuildSettings(ctx, databaseWelcomerGuildSettings)
+					_, err = welcomer.CreateOrUpdateWelcomerGuildSettingsWithAudit(ctx, databaseWelcomerGuildSettings, discord.Snowflake(user.ID))
+
 					return err
 				},
 				func() error {
@@ -379,7 +382,8 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, databaseWelcomerTextGuildSettings)
+					_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx, databaseWelcomerTextGuildSettings, 0)
+
 					return err
 				},
 				func() error {
@@ -401,7 +405,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")
 
-			_, err = welcomer.Queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, databaseWelcomerImagesGuildSettings)
+			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, databaseWelcomerImagesGuildSettings, 0)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
 
@@ -416,7 +420,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerDMs).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerDMs settings")
 
-			_, err = welcomer.Queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, databaseWelcomerDMsGuildSettings)
+			_, err = welcomer.CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx, databaseWelcomerDMsGuildSettings, 0)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
 
@@ -460,7 +464,7 @@ func getGuildWelcomerPreview(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, background.ImageType, background.Data)
 }
 
-func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker, userID discord.Snowflake) (*database.WelcomerImages, error) {
 	start := time.Now()
 
 	welcomer.Logger.Info().Int64("size", file.Size).Msg("Recoding image")
@@ -482,16 +486,16 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	var welcomerImageUUID uuid.UUID
 	welcomerImageUUID, _ = gen.NewV7()
 
-	return welcomer.Queries.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
+	return welcomer.CreateWelcomerImagesWithAudit(ctx, database.CreateWelcomerImagesParams{
 		ImageUuid: welcomerImageUUID,
 		GuildID:   int64(guildID),
 		CreatedAt: time.Now(),
 		ImageType: welcomer.ImageFileTypeImageGif.String(),
 		Data:      buf.Bytes(),
-	})
+	}, userID)
 }
 
-func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker, userID discord.Snowflake) (*database.WelcomerImages, error) {
 	// Validate file and get size
 	img, _, err := image.Decode(fileBytes)
 	if err != nil {
@@ -523,13 +527,13 @@ func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.
 	var welcomerImageUUID uuid.UUID
 	welcomerImageUUID, _ = gen.NewV7()
 
-	return welcomer.Queries.CreateWelcomerImages(ctx, database.CreateWelcomerImagesParams{
+	return welcomer.CreateWelcomerImagesWithAudit(ctx, database.CreateWelcomerImagesParams{
 		ImageUuid: welcomerImageUUID,
 		GuildID:   int64(guildID),
 		CreatedAt: time.Now(),
 		ImageType: welcomer.ImageFileTypeImagePng.String(),
 		Data:      buf.Bytes(),
-	})
+	}, userID)
 }
 
 // Validates welcomer guild settings.

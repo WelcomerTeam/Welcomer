@@ -35,7 +35,7 @@ func TestCompareStructs_Basic(t *testing.T) {
 		Inner: struct{ Field int }{Field: 20},
 	}
 
-	got := CompareStructs(oldStruct, newStruct)
+	got, _ := CompareStructs(oldStruct, newStruct)
 
 	want := CompareStructResult{
 		"id":    [2]any{1, 2},
@@ -74,7 +74,7 @@ func TestCompareStructs_NoDifferences(t *testing.T) {
 
 	newStruct := testStruct{ID: 1, Name: "A", Age: 10, Extra: "x"}
 
-	got := CompareStructs(oldStruct, newStruct)
+	got, _ := CompareStructs(oldStruct, newStruct)
 	if len(got) != 0 {
 		t.Errorf("expected no differences, got %v", got)
 	}
@@ -92,7 +92,7 @@ func TestCompareStructs_JSONTagWithComma(t *testing.T) {
 
 	newStruct := tagStruct{Field1: 2, Field2: 2}
 
-	got := CompareStructs(oldStruct, newStruct)
+	got, _ := CompareStructs(oldStruct, newStruct)
 
 	if _, ok := got["field1"]; !ok {
 		t.Errorf("expected field 'field1' to be present")
@@ -112,7 +112,7 @@ func TestCompareStructs_EmptyStruct(t *testing.T) {
 
 	newStruct := emptyStruct{}
 
-	got := CompareStructs(oldStruct, newStruct)
+	got, _ := CompareStructs(oldStruct, newStruct)
 	if len(got) != 0 {
 		t.Errorf("expected no differences for empty struct, got %v", got)
 	}

@@ -30,10 +30,12 @@ func CompareStructs[T comparable](oldStruct, newStruct T) (CompareStructResult, 
 	for fieldIndex := range t.NumField() {
 		field := t.Field(fieldIndex)
 
+		println(fieldIndex, field.Type.Kind().String(), field.PkgPath, field.Tag.Get("json"))
+
 		// Skip nested structs
-		if field.Type.Kind() == reflect.Struct {
-			continue
-		}
+		// if field.Type.Kind() == reflect.Struct {
+		// 	continue
+		// }
 
 		// Skip unexported fields
 		if field.PkgPath != "" {

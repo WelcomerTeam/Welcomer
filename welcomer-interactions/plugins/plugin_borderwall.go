@@ -135,7 +135,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -144,7 +144,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -258,7 +258,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -267,7 +267,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -395,7 +395,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -404,7 +404,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -685,7 +685,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -694,7 +694,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -822,7 +822,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
 							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
@@ -831,7 +831,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},

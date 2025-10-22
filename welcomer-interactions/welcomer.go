@@ -104,6 +104,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 						Trace:       interactionError.Error(),
 						Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},
 					})
+
 					return err
 				},
 				func() error {

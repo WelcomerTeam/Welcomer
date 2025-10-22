@@ -175,7 +175,7 @@ func (q *Queries) SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCou
 	return result.RowsAffected(), nil
 }
 
-const UpdateGuild = `-- name: UpdateGuild :execrows
+const UpdateGuild = `-- name: UpdateGuild :one
 UPDATE
     guilds
 SET
@@ -187,6 +187,8 @@ SET
     number_locale = $7
 WHERE
     guild_id = $1
+RETURNING
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale
 `
 
 type UpdateGuildParams struct {
@@ -199,8 +201,8 @@ type UpdateGuildParams struct {
 	NumberLocale     sql.NullInt32 `json:"number_locale"`
 }
 
-func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (int64, error) {
-	result, err := q.db.Exec(ctx, UpdateGuild,
+func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (*Guilds, error) {
+	row := q.db.QueryRow(ctx, UpdateGuild,
 		arg.GuildID,
 		arg.EmbedColour,
 		arg.SiteSplashUrl,
@@ -209,8 +211,16 @@ func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (int64
 		arg.SiteAllowInvites,
 		arg.NumberLocale,
 	)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+	var i Guilds
+	err := row.Scan(
+		&i.GuildID,
+		&i.EmbedColour,
+		&i.SiteSplashUrl,
+		&i.SiteStaffVisible,
+		&i.SiteGuildVisible,
+		&i.SiteAllowInvites,
+		&i.MemberCount,
+		&i.NumberLocale,
+	)
+	return &i, err
 }

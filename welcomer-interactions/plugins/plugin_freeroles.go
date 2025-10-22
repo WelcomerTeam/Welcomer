@@ -84,11 +84,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -147,11 +147,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -655,11 +655,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -744,11 +744,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateFreeRolesGuildSettings(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},

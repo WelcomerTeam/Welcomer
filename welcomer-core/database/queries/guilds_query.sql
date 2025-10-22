@@ -26,7 +26,7 @@ FROM
 WHERE
     guild_id = $1;
 
--- name: UpdateGuild :execrows
+-- name: UpdateGuild :one
 UPDATE
     guilds
 SET
@@ -37,7 +37,9 @@ SET
     site_allow_invites = $6,
     number_locale = $7
 WHERE
-    guild_id = $1;
+    guild_id = $1
+RETURNING
+    *;
 
 -- name: IncrementGuildMemberCount :one
 UPDATE

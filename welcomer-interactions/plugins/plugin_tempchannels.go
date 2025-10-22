@@ -226,14 +226,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -338,14 +338,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -430,14 +430,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},
@@ -514,14 +514,14 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTempChannelsGuildSettings(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx, database.CreateOrUpdateTempChannelsGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsTempChannels.ToggleEnabled,
 							ToggleAutopurge:  guildSettingsTempChannels.ToggleAutopurge,
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						})
+						}, interaction.User.ID)
 
 						return err
 					},

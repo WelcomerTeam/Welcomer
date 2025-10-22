@@ -88,7 +88,7 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateLeaverGuildSettings(ctx, databaseLeaverGuildSettings)
+					_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, databaseLeaverGuildSettings, user.ID)
 
 					return err
 				},
