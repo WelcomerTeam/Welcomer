@@ -23,8 +23,7 @@
               { key: 'Arabic (١٢٣٬٤٥٦)', value: 'arabic' },
             ]">This setting changes how numbers are formatted across Welcomer when using <code class="bg-secondary-dark px-2 py-1 rounded-md">Ordinal()</code> or <code class="bg-secondary-dark px-2 py-1 rounded-md">FormatNumber()</code> in your messages.</form-value>
             <form-value title="Total Members Joined" :type="FormTypeNumberWithConfirm" v-model="config.member_count"
-            :disabled="!$store.getters.guildHasWelcomerPro"
-            @update:modelValue="onValueUpdate" :validation="v$.member_count" @save="(value) => { onNumberFormatSave(value) }">
+            :disabled="!$store.getters.guildHasWelcomerPro" :validation="v$.member_count" @save="(value) => { onNumberFormatSave(value) }">
             This is the total number of members who have joined your server since Welcomer was added. You can reference this value in your welcome messages using <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.MembersJoined&#125;&#125;</code> in your welcomer messages, instead of <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.Members&#125;&#125;</code>.
             <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50">
               Using and editing the members joined counter requires a Welcomer Pro subscription.
@@ -175,6 +174,8 @@ export default {
       }
 
       this.isChangeInProgress = true;
+
+      this.config.member_count = Number(this.config.member_count);
 
       dashboardAPI.doPost(
         endpoints.EndpointGuildSettings(this.$store.getters.getSelectedGuildID),
