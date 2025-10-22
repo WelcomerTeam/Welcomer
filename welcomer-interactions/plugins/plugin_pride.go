@@ -89,9 +89,9 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			var user discord.User
 			if interaction.Member != nil {
-				user = *interaction.Member.User
+				user = *interaction.GetUser()
 			} else {
-				user = *interaction.User
+				user = *interaction.GetUser()
 			}
 
 			if _, err := welcomer.Queries.CreateOrUpdateUser(ctx, database.CreateOrUpdateUserParams{
@@ -199,9 +199,9 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			var user discord.User
 			if interaction.Member != nil {
-				user = *interaction.Member.User
+				user = *interaction.GetUser()
 			} else {
-				user = *interaction.User
+				user = *interaction.GetUser()
 			}
 
 			background := subway.MustGetArgument(ctx, "background").MustString()

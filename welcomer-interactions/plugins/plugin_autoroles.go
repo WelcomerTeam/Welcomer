@@ -86,7 +86,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -149,7 +149,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -357,7 +357,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -445,7 +445,7 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

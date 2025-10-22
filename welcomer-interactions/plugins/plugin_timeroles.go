@@ -90,7 +90,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -153,7 +153,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -554,7 +554,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTempChannels.ToggleEnabled,
 							Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(timeRoles)),
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -643,7 +643,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(timeRoles)),
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

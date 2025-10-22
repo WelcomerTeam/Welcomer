@@ -315,7 +315,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					leaderboardMap[invite.Inviter.ID] += invite.Uses
 
-					if invite.Inviter.ID == interaction.Member.User.ID {
+					if invite.Inviter.ID == interaction.GetUser().ID {
 						doesUserHaveInvites = true
 					}
 				}
@@ -337,7 +337,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				if doesUserHaveInvites {
 					for i, entry := range leaderboard {
-						if entry.InviterID == interaction.Member.User.ID {
+						if entry.InviterID == interaction.GetUser().ID {
 							userPosition = i + 1
 							userTotalInvites = entry.Uses
 
@@ -793,8 +793,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						ctx, session,
 						welcomer.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
-							welcomer.GetUserDisplayName(interaction.Member.User),
-							interaction.Member.User.ID,
+							welcomer.GetUserDisplayName(interaction.GetUser()),
+							interaction.GetUser().ID,
 							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
@@ -809,8 +809,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						messagesToDelete,
 						welcomer.ToPointer(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
-							welcomer.GetUserDisplayName(interaction.Member.User),
-							interaction.Member.User.ID,
+							welcomer.GetUserDisplayName(interaction.GetUser()),
+							interaction.GetUser().ID,
 							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)
@@ -831,8 +831,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						},
 						welcomer.ToPointer(fmt.Sprintf(
 							"Timeout from purge by %s (%d). Reason: %s",
-							welcomer.GetUserDisplayName(interaction.Member.User),
-							interaction.Member.User.ID,
+							welcomer.GetUserDisplayName(interaction.GetUser()),
+							interaction.GetUser().ID,
 							welcomer.If(argumentReason == "", "No reason provided", argumentReason),
 						)),
 					)

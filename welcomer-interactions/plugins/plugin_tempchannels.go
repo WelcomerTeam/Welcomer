@@ -233,7 +233,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -345,7 +345,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -437,7 +437,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -521,7 +521,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							ChannelLobby:     guildSettingsTempChannels.ChannelLobby,
 							ChannelCategory:  guildSettingsTempChannels.ChannelCategory,
 							DefaultUserCount: guildSettingsTempChannels.DefaultUserCount,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

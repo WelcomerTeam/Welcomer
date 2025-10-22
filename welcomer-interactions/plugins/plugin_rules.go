@@ -123,7 +123,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 							Rules:            guildSettingsRules.Rules,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -238,7 +238,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 							Rules:            guildSettingsRules.Rules,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -424,7 +424,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled:    rules.ToggleEnabled,
 							ToggleDmsEnabled: rules.ToggleDmsEnabled,
 							Rules:            rules.Rules,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -575,7 +575,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled:    rules.ToggleEnabled,
 							ToggleDmsEnabled: rules.ToggleDmsEnabled,
 							Rules:            rules.Rules,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

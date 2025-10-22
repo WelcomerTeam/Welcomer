@@ -327,7 +327,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 							Channel:       guildSettingsWelcomerText.Channel,
 							MessageFormat: guildSettingsWelcomerText.MessageFormat,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -358,7 +358,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					ImageTheme:             guildSettingsWelcomerImages.ImageTheme,
 					ImageMessage:           guildSettingsWelcomerImages.ImageMessage,
 					ImageProfileBorderType: guildSettingsWelcomerImages.ImageProfileBorderType,
-				}, interaction.User.ID)
+				}, interaction.GetUser().ID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -373,7 +373,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					ToggleUseTextFormat: guildSettingsWelcomerDMs.ToggleUseTextFormat,
 					ToggleIncludeImage:  guildSettingsWelcomerDMs.ToggleIncludeImage,
 					MessageFormat:       guildSettingsWelcomerDMs.MessageFormat,
-				}, interaction.User.ID)
+				}, interaction.GetUser().ID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -549,7 +549,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 							Channel:       guildSettingsWelcomerText.Channel,
 							MessageFormat: guildSettingsWelcomerText.MessageFormat,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -580,7 +580,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					ImageTheme:             guildSettingsWelcomerImages.ImageTheme,
 					ImageMessage:           guildSettingsWelcomerImages.ImageMessage,
 					ImageProfileBorderType: guildSettingsWelcomerImages.ImageProfileBorderType,
-				}, interaction.User.ID)
+				}, interaction.GetUser().ID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -595,7 +595,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					ToggleUseTextFormat: guildSettingsWelcomerDMs.ToggleUseTextFormat,
 					ToggleIncludeImage:  guildSettingsWelcomerDMs.ToggleIncludeImage,
 					MessageFormat:       guildSettingsWelcomerDMs.MessageFormat,
-				}, interaction.User.ID)
+				}, interaction.GetUser().ID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -696,7 +696,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsWelcomerText.ToggleEnabled,
 							Channel:       guildSettingsWelcomerText.Channel,
 							MessageFormat: guildSettingsWelcomerText.MessageFormat,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

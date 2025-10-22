@@ -144,7 +144,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -267,7 +267,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -404,7 +404,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -694,7 +694,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -831,7 +831,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 							MessageVerified: guildSettingsBorderwall.MessageVerified,
 							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
 							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

@@ -88,7 +88,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -151,7 +151,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -659,7 +659,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -748,7 +748,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
 							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},

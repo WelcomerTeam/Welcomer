@@ -188,7 +188,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -254,7 +254,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -357,7 +357,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
 							Channel:       guildSettingsLeaver.Channel,
 							MessageFormat: guildSettingsLeaver.MessageFormat,
-						}, interaction.User.ID)
+						}, interaction.GetUser().ID)
 
 						return err
 					},
