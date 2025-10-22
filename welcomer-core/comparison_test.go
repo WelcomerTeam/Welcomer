@@ -41,6 +41,7 @@ func TestCompareStructs_Basic(t *testing.T) {
 		"id":    [2]any{1, 2},
 		"name":  [2]any{"Alice", "Bob"},
 		"Extra": [2]any{"foo", "bar"},
+		"Inner": [2]any{struct{ Field int }{Field: 10}, struct{ Field int }{Field: 20}},
 	}
 
 	if len(got) != len(want) {
@@ -60,10 +61,6 @@ func TestCompareStructs_Basic(t *testing.T) {
 
 	if _, ok := got["privateField"]; ok {
 		t.Errorf("unexported field 'privateField' should be skipped")
-	}
-
-	if _, ok := got["Inner"]; ok {
-		t.Errorf("nested struct 'Inner' should be skipped")
 	}
 }
 

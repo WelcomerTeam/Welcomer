@@ -538,8 +538,6 @@ func UpdateInteractionCommands(ctx context.Context, token string, applicationID 
 		return fmt.Errorf("failed to update integration commands: %s", string(body))
 	}
 
-	println(resp.StatusCode)
-
 	welcomer.Logger.Info().Str("application_id", applicationID.String()).Msg("Successfully updated integration commands")
 
 	return nil
