@@ -382,7 +382,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx, databaseWelcomerTextGuildSettings, 0)
+					_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx, databaseWelcomerTextGuildSettings, user.ID)
 
 					return err
 				},
@@ -405,7 +405,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")
 
-			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, databaseWelcomerImagesGuildSettings, 0)
+			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, databaseWelcomerImagesGuildSettings, user.ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
 
@@ -420,7 +420,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerDMs).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerDMs settings")
 
-			_, err = welcomer.CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx, databaseWelcomerDMsGuildSettings, 0)
+			_, err = welcomer.CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx, databaseWelcomerDMsGuildSettings, user.ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
 
