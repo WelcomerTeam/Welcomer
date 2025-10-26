@@ -596,21 +596,26 @@ export default {
         return errorCallback("invalid token format");
       }
 
-      fetch(`https://discord.com/api/v10/users/@me`, {
-        headers: {
-          "Authorization": `Bot ${token}`
-        }
-      })
-      .then((response) => {
-        if (response.status !== 200) {
-          return errorCallback("invalid token");
-        }
+      try {
+        fetch(`https://discord.com/api/v10/users/@me`, {
+          headers: {
+            "Authorization": `Bot ${token}`
+          }
+        })
+        .then((response) => {
+          if (response.status !== 200) {
+            return errorCallback("invalid token");
+          }
+          return successCallback();
+        })
+        .catch((error) => {
+          console.error("Error validating token:", error);
+          return errorCallback(error);
+        });
+      } catch (error) {
+        console.warn("Error validating token:", error);
         return successCallback();
-      })
-      .catch((error) => {
-        console.error("Error validating token:", error);
-        return errorCallback(error);
-      });
+      }
     },
   }
 }
