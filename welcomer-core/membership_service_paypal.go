@@ -48,9 +48,7 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 	for _, membership := range memberships {
 		if database.PlatformType(membership.PlatformType) == database.PlatformTypePaypalSubscription &&
 			membership.TransactionID == paypalSale.BillingAgreementID &&
-			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle))
-			// membership.ExpiresAt.After(time.Now()) {
-		{
+			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) {
 			paypalMemberships = append(paypalMemberships, membership)
 			userID = discord.Snowflake(membership.UserID)
 		}
