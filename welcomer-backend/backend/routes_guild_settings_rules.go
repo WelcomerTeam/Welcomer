@@ -86,7 +86,8 @@ func setGuildSettingsRules(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, databaseRulesGuildSettings)
+					_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, databaseRulesGuildSettings, user.ID)
+
 					return err
 				},
 				func() error {

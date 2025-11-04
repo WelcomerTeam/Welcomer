@@ -161,14 +161,14 @@ func EnsureGuild(ctx context.Context, guildID discord.Snowflake) error {
 		return nil
 	}
 
-	_, err := Queries.CreateGuild(ctx, database.CreateGuildParams{
+	_, err := CreateGuildWithAudit(ctx, database.CreateGuildParams{
 		GuildID:          int64(guildID),
 		EmbedColour:      DefaultGuild.EmbedColour,
 		SiteSplashUrl:    DefaultGuild.SiteSplashUrl,
 		SiteStaffVisible: DefaultGuild.SiteStaffVisible,
 		SiteGuildVisible: DefaultGuild.SiteGuildVisible,
 		SiteAllowInvites: DefaultGuild.SiteAllowInvites,
-	})
+	}, 0)
 	if err != nil {
 		return fmt.Errorf("failed to ensure guild: %w", err)
 	}

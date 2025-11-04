@@ -216,7 +216,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 
 				customBotUUID = uuid.Must(gen.NewV7())
 
-				_, err = welcomer.Queries.CreateCustomBot(ctx, database.CreateCustomBotParams{
+				_, err = welcomer.CreateCustomBotWithAudit(ctx, database.CreateCustomBotParams{
 					CustomBotUuid:     customBotUUID,
 					GuildID:           int64(guildID),
 					Token:             encryptedToken,
@@ -225,7 +225,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 					ApplicationName:   welcomer.GetUserDisplayName(currentUser),
 					ApplicationAvatar: currentUser.Avatar,
 					Environment:       welcomer.GetCustomBotEnvironmentType(),
-				})
+				}, currentUser.ID)
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create custom bot")
 
@@ -263,7 +263,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 					return
 				}
 			} else {
-				_, err = welcomer.Queries.UpdateCustomBot(ctx, database.UpdateCustomBotParams{
+				_, err = welcomer.UpdateCustomBotWithAudit(ctx, database.UpdateCustomBotParams{
 					CustomBotUuid:     customBotUUID,
 					PublicKey:         payload.PublicKey,
 					IsActive:          true,
@@ -271,7 +271,7 @@ func postGuildCustomBot(ctx *gin.Context) {
 					ApplicationName:   existingCustomBot.ApplicationName,
 					ApplicationAvatar: existingCustomBot.ApplicationAvatar,
 					Environment:       welcomer.GetCustomBotEnvironmentType(),
-				})
+				}, currentUser.ID, guildID)
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update custom bot")
 
@@ -537,8 +537,6 @@ func UpdateInteractionCommands(ctx context.Context, token string, applicationID 
 
 		return fmt.Errorf("failed to update integration commands: %s", string(body))
 	}
-
-	println(resp.StatusCode)
 
 	welcomer.Logger.Info().Str("application_id", applicationID.String()).Msg("Successfully updated integration commands")
 

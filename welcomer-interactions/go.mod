@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-interactions
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20250802100629-f340fe10f307
+	github.com/WelcomerTeam/Discord v0.0.0-20251022115749-c37beefd01fd
 	github.com/WelcomerTeam/Sandwich v0.0.0-20251016134429-dd369b2da974
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20251016134030-3c744a556789
 	github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689

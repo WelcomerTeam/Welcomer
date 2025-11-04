@@ -227,8 +227,6 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 
 	var guildName string
 
-	println(membership.GuildID)
-
 	if membership.GuildID != 0 {
 		guild, err := FetchGuild(ctx, discord.Snowflake(membership.GuildID))
 		if err != nil {

@@ -73,21 +73,15 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
 
-		println("B")
-
 		if invokeWelcomerPayload.Member.GuildID != nil {
 			eventCtx.Guild = sandwich.NewGuild(*invokeWelcomerPayload.Member.GuildID)
 		}
-
-		println("C")
 
 		eventCtx.EventHandler.EventsMu.RLock()
 		defer eventCtx.EventHandler.EventsMu.RUnlock()
 
 		for _, event := range eventCtx.EventHandler.Events {
-			println("D")
 			if f, ok := event.(welcomer.OnInvokeWelcomerFuncType); ok {
-				println("E")
 				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokeWelcomerPayload))
 			}
 		}
@@ -377,6 +371,9 @@ func HasInviteVariable(guildSettingsWelcomerText *database.GuildSettingsWelcomer
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
 func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeWelcomerStructure) (err error) {
+	var dmerr error
+	var serr error
+
 	defer func() {
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to execute welcomer event")
@@ -391,8 +388,19 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Embeds: welcomer.NewEmbed("Executed successfully", welcomer.EmbedColourSuccess),
 				}
 			} else {
-				message = discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
+				switch {
+				case serr != nil && strings.Contains(serr.Error(), "403 Forbidden"):
+					message = discord.WebhookMessageParams{
+						Embeds: welcomer.NewEmbed("Welcomer might be missing permissions to send messages in the configured channel.", welcomer.EmbedColourError),
+					}
+				case dmerr != nil && strings.Contains(dmerr.Error(), "403 Forbidden"):
+					message = discord.WebhookMessageParams{
+						Embeds: welcomer.NewEmbed("Welcomer might be missing permissions to send direct messages to the user.", welcomer.EmbedColourError),
+					}
+				default:
+					message = discord.WebhookMessageParams{
+						Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
+					}
 				}
 			}
 
@@ -873,9 +881,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	var serr error
-	var dmerr error
-
 	var messageID discord.Snowflake
 	var channelID discord.Snowflake
 
@@ -895,7 +900,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
-			message, serr := channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
+			var message *discord.Message
+
+			message, serr = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 
 			welcomer.Logger.Info().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

@@ -88,7 +88,8 @@ func setGuildSettingsTempChannels(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateTempChannelsGuildSettings(ctx, databaseTempChannelsGuildSettings)
+					_, err = welcomer.CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx, databaseTempChannelsGuildSettings, user.ID)
+
 					return err
 				},
 				func() error {

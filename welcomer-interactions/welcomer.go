@@ -61,12 +61,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 		command := subway.GetInteractionCommandFromContext(ctx)
 		interactionCommandName := strings.Join(append([]string{command.Name}, commandTree...), " ")
 
-		var userID int64
-		if interaction.Member != nil {
-			userID = int64(interaction.Member.User.ID)
-		} else {
-			userID = int64(interaction.User.ID)
-		}
+		userID := int64(interaction.GetUser().ID)
 
 		var usage *database.ScienceCommandUsages
 
@@ -80,6 +75,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 					Errored:         interactionError != nil,
 					ExecutionTimeMs: time.Since(interaction.ID.Time()).Milliseconds(),
 				})
+
 				return err
 			},
 			func() error {
@@ -104,6 +100,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 						Trace:       interactionError.Error(),
 						Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},
 					})
+
 					return err
 				},
 				func() error {

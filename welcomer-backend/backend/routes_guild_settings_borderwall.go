@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
@@ -89,7 +90,8 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateOrUpdateBorderwallGuildSettings(ctx, databaseBorderwallGuildSettings)
+					_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, databaseBorderwallGuildSettings, discord.Snowflake(user.ID))
+
 					return err
 				},
 				func() error {

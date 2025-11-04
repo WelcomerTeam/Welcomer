@@ -23,7 +23,24 @@
               </div>
             </div>
 
-            <table class="mt-8 w-full">
+            <div class="block md:hidden mt-8 w-full">
+              <div v-for="formattingTag in formattingTags" :key="formattingTag.name" class="mb-6 border rounded-lg">
+                <h2 class="bg-gray-50 py-2 px-3 text-left text-sm font-semibold">{{ formattingTag.name }}</h2>
+                <div v-for="(value, id) in formattingTag.values" :key="value.name"
+                  :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t flex flex-col md:flex-row']">
+                  <div class="py-4 px-3 text-sm font-medium w-full md:w-1/4">
+                    <code class="cursor-copy relative whitespace-nowrap" @click="copyTag(value)">
+                      {{ value.name }}
+                      <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400" aria-hidden="true" />
+                    </code>
+                  </div>
+                  <div class="px-3 py-2 text-sm w-full md:w-3/4" v-html="marked(value.description, true, true)"></div>
+                  <div class="px-3 py-2 text-sm w-full md:w-3/4 break-all" v-html="marked(value.example, true)"></div>
+                </div>
+              </div>
+            </div>
+
+            <table class="hidden md:table mt-8 w-full">
               <thead>
                 <tr>
                   <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">Name</th>

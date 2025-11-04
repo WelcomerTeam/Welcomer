@@ -56,7 +56,7 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			auditEvent := discord.AuditLogEntry{
 				TargetID:   &interaction.ApplicationID,
-				UserID:     &interaction.Member.User.ID,
+				UserID:     &interaction.GetUser().ID,
 				ActionType: discord.AuditLogActionBotAdd,
 			}
 

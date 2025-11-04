@@ -86,11 +86,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -149,11 +149,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     guildSettingsTimeRoles.Timeroles,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -550,11 +550,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				// Update the guild settings with the new timeRoles
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTempChannels.ToggleEnabled,
 							Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(timeRoles)),
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -639,11 +639,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				// Update the guild settings with the new timeRoles
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateTimeRolesGuildSettings(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
 							Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(timeRoles)),
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},

@@ -88,7 +88,7 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			user := tryGetUser(ctx)
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
 
-			_, err = welcomer.Queries.UpdateGuild(ctx, databaseGuildSettings)
+			_, err = welcomer.UpdateGuildWithAudit(ctx, databaseGuildSettings, user.ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild settings")
 

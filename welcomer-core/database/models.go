@@ -12,6 +12,15 @@ import (
 	"github.com/jackc/pgtype"
 )
 
+type AuditLogs struct {
+	AuditUuid uuid.UUID     `json:"audit_uuid"`
+	CreatedAt time.Time     `json:"created_at"`
+	GuildID   sql.NullInt64 `json:"guild_id"`
+	UserID    int64         `json:"user_id"`
+	AuditType int32         `json:"audit_type"`
+	Changes   pgtype.JSONB  `json:"changes"`
+}
+
 type BorderwallRequests struct {
 	RequestUuid     uuid.UUID       `json:"request_uuid"`
 	CreatedAt       time.Time       `json:"created_at"`

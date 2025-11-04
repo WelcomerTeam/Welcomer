@@ -118,12 +118,12 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 							Rules:            guildSettingsRules.Rules,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -233,12 +233,12 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
 							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
 							Rules:            guildSettingsRules.Rules,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -419,12 +419,12 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    rules.ToggleEnabled,
 							ToggleDmsEnabled: rules.ToggleDmsEnabled,
 							Rules:            rules.Rules,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -570,12 +570,12 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateRulesGuildSettings(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    rules.ToggleEnabled,
 							ToggleDmsEnabled: rules.ToggleDmsEnabled,
 							Rules:            rules.Rules,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},

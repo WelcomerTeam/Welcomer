@@ -135,12 +135,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		Description: "Lists all memberships you have available.",
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			var userID discord.Snowflake
-			if interaction.Member != nil {
-				userID = interaction.Member.User.ID
-			} else {
-				userID = interaction.User.ID
-			}
+			userID := interaction.GetUser().ID
 
 			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
 			if err != nil {
@@ -243,17 +238,12 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		DMPermission: &welcomer.False,
 
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
-			var userID discord.Snowflake
-			if interaction.Member != nil {
-				userID = interaction.Member.User.ID
-			} else {
-				userID = interaction.User.ID
-			}
+			userID := interaction.GetUser().ID
 
 			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
-					Int64("user_id", int64(interaction.User.ID)).
+					Int64("user_id", int64(interaction.GetUser().ID)).
 					Msg("Failed to get user memberships")
 			}
 
@@ -380,17 +370,12 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				return nil, err
 			}
 
-			var userID discord.Snowflake
-			if interaction.Member != nil {
-				userID = interaction.Member.User.ID
-			} else {
-				userID = interaction.User.ID
-			}
+			userID := interaction.GetUser().ID
 
 			memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
-					Int64("user_id", int64(interaction.User.ID)).
+					Int64("user_id", int64(interaction.GetUser().ID)).
 					Msg("Failed to get user memberships")
 
 				return nil, err
@@ -511,17 +496,12 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		Description: "Removes a membership from a server.",
 
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
-			var userID discord.Snowflake
-			if interaction.Member != nil {
-				userID = interaction.Member.User.ID
-			} else {
-				userID = interaction.User.ID
-			}
+			userID := interaction.GetUser().ID
 
 			memberships, err := getUserMembershipsByUserID(ctx, sub, userID)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
-					Int64("user_id", int64(interaction.User.ID)).
+					Int64("user_id", int64(interaction.GetUser().ID)).
 					Msg("Failed to get user memberships")
 			}
 
@@ -608,17 +588,12 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				return nil, err
 			}
 
-			var userID discord.Snowflake
-			if interaction.Member != nil {
-				userID = interaction.Member.User.ID
-			} else {
-				userID = interaction.User.ID
-			}
+			userID := interaction.GetUser().ID
 
 			memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
-					Int64("user_id", int64(interaction.User.ID)).
+					Int64("user_id", int64(interaction.GetUser().ID)).
 					Msg("Failed to get user memberships")
 
 				return nil, err

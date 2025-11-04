@@ -82,11 +82,11 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -145,11 +145,11 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -353,11 +353,11 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
@@ -441,11 +441,11 @@ func (r *AutoRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				err = welcomer.RetryWithFallback(
 					func() error {
-						_, err = welcomer.Queries.CreateOrUpdateAutoRolesGuildSettings(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
+						_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateAutoRolesGuildSettingsParams{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: guildSettingsAutoRoles.ToggleEnabled,
 							Roles:         guildSettingsAutoRoles.Roles,
-						})
+						}, interaction.GetUser().ID)
 
 						return err
 					},
