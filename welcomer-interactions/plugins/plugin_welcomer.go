@@ -164,11 +164,11 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				// If text or images are enabled, but no channel is set, let the user know.
-				if !guildSettingsWelcomerDMs.ToggleEnabled && guildSettingsWelcomerText.Channel == 0 {
+				if (guildSettingsWelcomerText.ToggleEnabled || guildSettingsWelcomerImages.ToggleEnabled) && guildSettingsWelcomerText.Channel == 0 {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No channel is set. Please use `/welcomer channel`", welcomer.EmbedColourError),
+							Embeds: welcomer.NewEmbed("No channel is set. Please use `/welcomer setchannel`", welcomer.EmbedColourError),
 							Flags:  uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
