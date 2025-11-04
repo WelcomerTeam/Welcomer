@@ -392,7 +392,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				case serr != nil && strings.Contains(serr.Error(), "403 Forbidden"):
 					message = discord.WebhookMessageParams{
 						Embeds: welcomer.NewEmbed("Welcomer might be missing permissions to send messages in the configured channel.", welcomer.EmbedColourError),
-					}/x
+					}
 				case dmerr != nil && strings.Contains(dmerr.Error(), "403 Forbidden"):
 					message = discord.WebhookMessageParams{
 						Embeds: welcomer.NewEmbed("Welcomer might be missing permissions to send direct messages to the user.", welcomer.EmbedColourError),
