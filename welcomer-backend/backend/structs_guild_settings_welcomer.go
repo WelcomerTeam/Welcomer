@@ -38,6 +38,9 @@ type GuildSettingsWelcomerImages struct {
 	ToggleEnabled          bool   `json:"enabled"`
 	ToggleImageBorder      bool   `json:"enable_border"`
 	ToggleShowAvatar       bool   `json:"show_avatar"`
+
+	UseCustomBuilder  bool   `json:"use_custom_builder"`
+	CustomBuilderData string `json:"custom_builder_data"`
 }
 
 type GuildSettingsWelcomerDms struct {
@@ -76,6 +79,8 @@ func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcome
 			ImageTheme:             welcomer.ImageTheme(images.ImageTheme).String(),
 			ImageMessage:           images.ImageMessage,
 			ImageProfileBorderType: welcomer.ImageProfileBorderType(images.ImageProfileBorderType).String(),
+			UseCustomBuilder:       images.UseCustomBuilder,
+			CustomBuilderData:      welcomer.JSONBToString(images.CustomBuilderData),
 		},
 		DMs: &GuildSettingsWelcomerDms{
 			ToggleEnabled:       dms.ToggleEnabled,
@@ -115,6 +120,8 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 			ImageTheme:             int32(ParseImageTheme(guildSettings.Images.ImageTheme)),
 			ImageMessage:           guildSettings.Images.ImageMessage,
 			ImageProfileBorderType: int32(ParseImageProfileBorderType(guildSettings.Images.ImageProfileBorderType)),
+			UseCustomBuilder:       guildSettings.Images.UseCustomBuilder,
+			CustomBuilderData:      welcomer.StringToJSONB(guildSettings.Images.CustomBuilderData),
 		}, &database.GuildSettingsWelcomerDms{
 			GuildID:             guildID,
 			ToggleEnabled:       guildSettings.DMs.ToggleEnabled,

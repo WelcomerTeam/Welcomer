@@ -146,19 +146,21 @@ type GuildSettingsWelcomerDms struct {
 }
 
 type GuildSettingsWelcomerImages struct {
-	GuildID                int64  `json:"guild_id"`
-	ToggleEnabled          bool   `json:"toggle_enabled"`
-	ToggleImageBorder      bool   `json:"toggle_image_border"`
-	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
-	BackgroundName         string `json:"background_name"`
-	ColourText             string `json:"colour_text"`
-	ColourTextBorder       string `json:"colour_text_border"`
-	ColourImageBorder      string `json:"colour_image_border"`
-	ColourProfileBorder    string `json:"colour_profile_border"`
-	ImageAlignment         int32  `json:"image_alignment"`
-	ImageTheme             int32  `json:"image_theme"`
-	ImageMessage           string `json:"image_message"`
-	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	GuildID                int64        `json:"guild_id"`
+	ToggleEnabled          bool         `json:"toggle_enabled"`
+	ToggleImageBorder      bool         `json:"toggle_image_border"`
+	ToggleShowAvatar       bool         `json:"toggle_show_avatar"`
+	BackgroundName         string       `json:"background_name"`
+	ColourText             string       `json:"colour_text"`
+	ColourTextBorder       string       `json:"colour_text_border"`
+	ColourImageBorder      string       `json:"colour_image_border"`
+	ColourProfileBorder    string       `json:"colour_profile_border"`
+	ImageAlignment         int32        `json:"image_alignment"`
+	ImageTheme             int32        `json:"image_theme"`
+	ImageMessage           string       `json:"image_message"`
+	ImageProfileBorderType int32        `json:"image_profile_border_type"`
+	UseCustomBuilder       bool         `json:"use_custom_builder"`
+	CustomBuilderData      pgtype.JSONB `json:"custom_builder_data"`
 }
 
 type GuildSettingsWelcomerText struct {

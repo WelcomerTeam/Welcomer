@@ -7,11 +7,13 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgtype"
 )
 
 const CreateOrUpdateWelcomerImagesGuildSettings = `-- name: CreateOrUpdateWelcomerImagesGuildSettings :one
-INSERT INTO guild_settings_welcomer_images (guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+INSERT INTO guild_settings_welcomer_images (guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         toggle_image_border = EXCLUDED.toggle_image_border,
@@ -24,25 +26,29 @@ ON CONFLICT(guild_id) DO UPDATE
         image_alignment = EXCLUDED.image_alignment,
         image_theme = EXCLUDED.image_theme,
         image_message = EXCLUDED.image_message,
-        image_profile_border_type = EXCLUDED.image_profile_border_type
+        image_profile_border_type = EXCLUDED.image_profile_border_type,
+        use_custom_builder = EXCLUDED.use_custom_builder,
+        custom_builder_data = EXCLUDED.custom_builder_data
 RETURNING
-    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type
+    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
 `
 
 type CreateOrUpdateWelcomerImagesGuildSettingsParams struct {
-	GuildID                int64  `json:"guild_id"`
-	ToggleEnabled          bool   `json:"toggle_enabled"`
-	ToggleImageBorder      bool   `json:"toggle_image_border"`
-	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
-	BackgroundName         string `json:"background_name"`
-	ColourText             string `json:"colour_text"`
-	ColourTextBorder       string `json:"colour_text_border"`
-	ColourImageBorder      string `json:"colour_image_border"`
-	ColourProfileBorder    string `json:"colour_profile_border"`
-	ImageAlignment         int32  `json:"image_alignment"`
-	ImageTheme             int32  `json:"image_theme"`
-	ImageMessage           string `json:"image_message"`
-	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	GuildID                int64        `json:"guild_id"`
+	ToggleEnabled          bool         `json:"toggle_enabled"`
+	ToggleImageBorder      bool         `json:"toggle_image_border"`
+	ToggleShowAvatar       bool         `json:"toggle_show_avatar"`
+	BackgroundName         string       `json:"background_name"`
+	ColourText             string       `json:"colour_text"`
+	ColourTextBorder       string       `json:"colour_text_border"`
+	ColourImageBorder      string       `json:"colour_image_border"`
+	ColourProfileBorder    string       `json:"colour_profile_border"`
+	ImageAlignment         int32        `json:"image_alignment"`
+	ImageTheme             int32        `json:"image_theme"`
+	ImageMessage           string       `json:"image_message"`
+	ImageProfileBorderType int32        `json:"image_profile_border_type"`
+	UseCustomBuilder       bool         `json:"use_custom_builder"`
+	CustomBuilderData      pgtype.JSONB `json:"custom_builder_data"`
 }
 
 func (q *Queries) CreateOrUpdateWelcomerImagesGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error) {
@@ -60,6 +66,8 @@ func (q *Queries) CreateOrUpdateWelcomerImagesGuildSettings(ctx context.Context,
 		arg.ImageTheme,
 		arg.ImageMessage,
 		arg.ImageProfileBorderType,
+		arg.UseCustomBuilder,
+		arg.CustomBuilderData,
 	)
 	var i GuildSettingsWelcomerImages
 	err := row.Scan(
@@ -76,31 +84,35 @@ func (q *Queries) CreateOrUpdateWelcomerImagesGuildSettings(ctx context.Context,
 		&i.ImageTheme,
 		&i.ImageMessage,
 		&i.ImageProfileBorderType,
+		&i.UseCustomBuilder,
+		&i.CustomBuilderData,
 	)
 	return &i, err
 }
 
 const CreateWelcomerImagesGuildSettings = `-- name: CreateWelcomerImagesGuildSettings :one
-INSERT INTO guild_settings_welcomer_images (guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+INSERT INTO guild_settings_welcomer_images (guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 RETURNING
-    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type
+    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
 `
 
 type CreateWelcomerImagesGuildSettingsParams struct {
-	GuildID                int64  `json:"guild_id"`
-	ToggleEnabled          bool   `json:"toggle_enabled"`
-	ToggleImageBorder      bool   `json:"toggle_image_border"`
-	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
-	BackgroundName         string `json:"background_name"`
-	ColourText             string `json:"colour_text"`
-	ColourTextBorder       string `json:"colour_text_border"`
-	ColourImageBorder      string `json:"colour_image_border"`
-	ColourProfileBorder    string `json:"colour_profile_border"`
-	ImageAlignment         int32  `json:"image_alignment"`
-	ImageTheme             int32  `json:"image_theme"`
-	ImageMessage           string `json:"image_message"`
-	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	GuildID                int64        `json:"guild_id"`
+	ToggleEnabled          bool         `json:"toggle_enabled"`
+	ToggleImageBorder      bool         `json:"toggle_image_border"`
+	ToggleShowAvatar       bool         `json:"toggle_show_avatar"`
+	BackgroundName         string       `json:"background_name"`
+	ColourText             string       `json:"colour_text"`
+	ColourTextBorder       string       `json:"colour_text_border"`
+	ColourImageBorder      string       `json:"colour_image_border"`
+	ColourProfileBorder    string       `json:"colour_profile_border"`
+	ImageAlignment         int32        `json:"image_alignment"`
+	ImageTheme             int32        `json:"image_theme"`
+	ImageMessage           string       `json:"image_message"`
+	ImageProfileBorderType int32        `json:"image_profile_border_type"`
+	UseCustomBuilder       bool         `json:"use_custom_builder"`
+	CustomBuilderData      pgtype.JSONB `json:"custom_builder_data"`
 }
 
 func (q *Queries) CreateWelcomerImagesGuildSettings(ctx context.Context, arg CreateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error) {
@@ -118,6 +130,8 @@ func (q *Queries) CreateWelcomerImagesGuildSettings(ctx context.Context, arg Cre
 		arg.ImageTheme,
 		arg.ImageMessage,
 		arg.ImageProfileBorderType,
+		arg.UseCustomBuilder,
+		arg.CustomBuilderData,
 	)
 	var i GuildSettingsWelcomerImages
 	err := row.Scan(
@@ -134,13 +148,15 @@ func (q *Queries) CreateWelcomerImagesGuildSettings(ctx context.Context, arg Cre
 		&i.ImageTheme,
 		&i.ImageMessage,
 		&i.ImageProfileBorderType,
+		&i.UseCustomBuilder,
+		&i.CustomBuilderData,
 	)
 	return &i, err
 }
 
 const GetWelcomerImagesGuildSettings = `-- name: GetWelcomerImagesGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type
+    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
 FROM
     guild_settings_welcomer_images
 WHERE
@@ -164,6 +180,8 @@ func (q *Queries) GetWelcomerImagesGuildSettings(ctx context.Context, guildID in
 		&i.ImageTheme,
 		&i.ImageMessage,
 		&i.ImageProfileBorderType,
+		&i.UseCustomBuilder,
+		&i.CustomBuilderData,
 	)
 	return &i, err
 }
@@ -183,25 +201,29 @@ SET
     image_alignment = $10,
     image_theme = $11,
     image_message = $12,
-    image_profile_border_type = $13
+    image_profile_border_type = $13,
+    use_custom_builder = $14,
+    custom_builder_data = $15
 WHERE
     guild_id = $1
 `
 
 type UpdateWelcomerImagesGuildSettingsParams struct {
-	GuildID                int64  `json:"guild_id"`
-	ToggleEnabled          bool   `json:"toggle_enabled"`
-	ToggleImageBorder      bool   `json:"toggle_image_border"`
-	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
-	BackgroundName         string `json:"background_name"`
-	ColourText             string `json:"colour_text"`
-	ColourTextBorder       string `json:"colour_text_border"`
-	ColourImageBorder      string `json:"colour_image_border"`
-	ColourProfileBorder    string `json:"colour_profile_border"`
-	ImageAlignment         int32  `json:"image_alignment"`
-	ImageTheme             int32  `json:"image_theme"`
-	ImageMessage           string `json:"image_message"`
-	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	GuildID                int64        `json:"guild_id"`
+	ToggleEnabled          bool         `json:"toggle_enabled"`
+	ToggleImageBorder      bool         `json:"toggle_image_border"`
+	ToggleShowAvatar       bool         `json:"toggle_show_avatar"`
+	BackgroundName         string       `json:"background_name"`
+	ColourText             string       `json:"colour_text"`
+	ColourTextBorder       string       `json:"colour_text_border"`
+	ColourImageBorder      string       `json:"colour_image_border"`
+	ColourProfileBorder    string       `json:"colour_profile_border"`
+	ImageAlignment         int32        `json:"image_alignment"`
+	ImageTheme             int32        `json:"image_theme"`
+	ImageMessage           string       `json:"image_message"`
+	ImageProfileBorderType int32        `json:"image_profile_border_type"`
+	UseCustomBuilder       bool         `json:"use_custom_builder"`
+	CustomBuilderData      pgtype.JSONB `json:"custom_builder_data"`
 }
 
 func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error) {
@@ -219,6 +241,8 @@ func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg Upd
 		arg.ImageTheme,
 		arg.ImageMessage,
 		arg.ImageProfileBorderType,
+		arg.UseCustomBuilder,
+		arg.CustomBuilderData,
 	)
 	if err != nil {
 		return 0, err
