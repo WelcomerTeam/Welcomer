@@ -103,6 +103,7 @@
                       : '',
                     'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
                   ]" />
+                  <span class="sr-only">Select background {{ image.name }}</span>
                 </button>
               </div>
             </div>
@@ -135,6 +136,7 @@
                 <div class="absolute top-2 right-2">
                   <button @click="removeFiles">
                     <font-awesome-icon icon="xmark" />
+                    <span class="sr-only">Remove uploaded file</span>
                   </button>
                 </div>
                 <div class="flex text-sm text-gray-600 dark:text-gray-200">
@@ -169,6 +171,7 @@
                   'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary',
                 ]" />
               </button>
+              <span class="sr-only">Select custom background</span>
             </div>
           </div>
           <!-- <div v-if="this.page == 3">Unsplash</div> -->

@@ -65,6 +65,11 @@ const routes = [
     component: () => import("@/pages/Privacy.vue"),
   },
   {
+    name: "dashboard.guild.welcomer_builder",
+    path: "/dashboard/:guildID/builder",
+    component: () => import("@/pages/dashboard/members/WelcomerImageBuilder.vue"),
+  },
+  {
     path: "/dashboard",
     name: "dashboard",
     component: Dashboard,

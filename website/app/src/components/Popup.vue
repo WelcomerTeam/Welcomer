@@ -15,6 +15,7 @@
                   </div>
                   <button v-if="showCloseButton" @click="$emit('close')">
                       <font-awesome-icon icon="times" />
+                      <span class="sr-only">Close popup</span>
                   </button>
               </div>
 
