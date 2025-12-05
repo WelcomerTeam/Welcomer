@@ -63,3 +63,9 @@ func SetupPushGuildScience(limit int) func(ctx context.Context, interval time.Du
 
 	return PushGuildScience.Run
 }
+
+var DedupeProvider *RedisDedupeProvider
+
+func SetupDedupeProvider(provider RedisDedupeProvider) {
+	DedupeProvider = &provider
+}
