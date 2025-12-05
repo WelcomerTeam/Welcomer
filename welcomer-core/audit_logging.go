@@ -12,7 +12,11 @@ import (
 func AuditChange(ctx context.Context, guildID discord.Snowflake, userID discord.Snowflake, oldValue, newValue interface{}, auditType database.AuditType) {
 	changesAsJSON, hasChanges, err := CompareStructsAsJSON(oldValue, newValue)
 	if err != nil {
-		Logger.Warn().Err(err).Msg("Failed to compare structs for audit logging")
+		Logger.Warn().Err(err).
+			Str("audit_type", auditType.String()).
+			Int64("guild_id", int64(guildID)).
+			Int64("user_id", int64(userID)).
+			Msg("Failed to compare structs for audit logging")
 
 		return
 	}
