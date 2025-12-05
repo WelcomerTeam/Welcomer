@@ -1,6 +1,16 @@
+<!-- TODO:
+
+- canvas controls
+  - image upload
+
+- palette for selecting imge, text, shapes
+- drag layers (keybinds?)
+- saving
+  - change detection
+-->
 <template>
   <div class="builder-container">
-    <div v-if="isDataError" class="w-full h-screen flex items-center justify-center">
+    <div v-if="isDataError" class="w-full h-dvh flex items-center justify-center">
       <p>Failed to load builder</p>
       <button @click="fetchConfig" class="ml-2 px-3 py-1 bg-primary text-white rounded">
         Retry
@@ -9,33 +19,86 @@
         Go Back
       </button>
     </div>
-    <div v-else-if="!isDataFetched" class="w-full h-screen flex items-center justify-center">
+    <div v-else-if="!isDataFetched" class="w-full h-dvh flex items-center justify-center">
       <LoadingIcon :isLight="true" />
     </div>
     <div v-else class="builder-portal">
       <div class="builder-canvas">
+        <div class="bg-secondary-dark border border-secondary-light absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-50 flex flex-row divide-x divide-secondary-light">
+          <div class="p-2 gap-2 flex flex-row h-full">
+            <button @click="selectedAction = 0" :class="[selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+              <font-awesome-icon icon="mouse-pointer" class="w-6 h-6 text-white" aria-hidden="true" />
+              <span class="sr-only">Select</span>
+            </button>
+            <button @click="selectedAction = 1" :class="[selectedAction == 1 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+              <font-awesome-icon icon="text" class="w-6 h-6 text-white" aria-hidden="true" />
+              <span class="sr-only">Text</span>
+            </button>
+            <button @click="selectedAction = 2" :class="[selectedAction == 2 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+              <font-awesome-icon icon="image" class="w-6 h-6 text-white" aria-hidden="true" />
+              <span class="sr-only">Image</span>
+            </button>
+            <button @click="selectedAction = 3" :class="[selectedAction == 3 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+              <font-awesome-icon icon="square" class="w-6 h-6 text-white" aria-hidden="true" />
+              <span class="sr-only">Square</span>
+            </button>
+            <button @click="selectedAction = 4" :class="[selectedAction == 4 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+              <font-awesome-icon icon="circle" class="w-6 h-6 text-white" aria-hidden="true" />
+              <span class="sr-only">Circle</span>
+            </button>
+          </div>
+          <div class="p-2 gap-2 flex flex-row h-full">
+            <button @click="preview = !preview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']"></button>
+          </div>
+        </div>
         <div class="m-4 flex gap-2 z-50 absolute">
-          <button class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer" @click="x = defaultX; y = defaultY">
+          <button
+            class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer"
+            @click="fitCanvas">
             {{ defaultX - x }}, {{ defaultY - y }}
             {{ selectedObject > -1 ? 'object selected: ' + selectedObject : '' }}
           </button>
-          <button class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer" v-if="zoom != defaultZoom" @click="zoom = defaultZoom">
-            {{ Math.round((zoom/defaultZoom) * 100) }}%
+          <button
+            class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer"
+            v-if="zoom != defaultZoom" @click="zoom = defaultZoom">
+            {{ Math.round((zoom / defaultZoom) * 100) }}%
             <span class="sr-only">Reset zoom</span>
           </button>
         </div>
-        <div class="canvas" :style="getCanvasStyle(x, y)">
-          <div v-for="(obj, index) in image_config.layers" :key="index">
-            <div @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()" :style="getObjectStyleBase(obj, index)">
-              <div v-if="obj.type == CustomWelcomerImageLayerTypeText" :style="getObjectStyle(obj, index)" class="pointer-events-none"><span v-html="marked(obj.value, true)"></span></div>
-              <img v-else-if="obj.type == CustomWelcomerImageLayerTypeImage" :style="getObjectStyle(obj, index)" class="pointer-events-none" :src="obj.value" />
-              <div v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeRectangle || obj.type == CustomWelcomerImageLayerTypeShapeCircle" :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
+        <div class="absolute inset-0 pointer-events-none" :style="{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+          backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
+          backgroundPosition: `${x}px ${y}px`,
+        }"></div>
 
-              <div v-if="hoveredObject == index || selectedObject == index" class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0)">
-                <div v-if="selectedObject == index" class="absolute -left-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab" @mousedown="onGrabStart(1)"></div>
-                <div v-if="selectedObject == index" class="absolute -right-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab" @mousedown="onGrabStart(2)"></div>
-                <div v-if="selectedObject == index" class="absolute -left-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab" @mousedown="onGrabStart(3)"></div>
-                <div v-if="selectedObject == index" class="absolute -right-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab" @mousedown="onGrabStart(4)"></div>
+        <!-- canvas -->
+
+        <div :class="[selectedAction == 0 ? '' : 'cursor-crosshair', 'canvas']" @mousedown="onCanvasMouseDown" :style="getCanvasStyle(x, y)">
+          <div v-for="(obj, index) in image_config.layers" :key="index">
+            <div @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
+              :style="getObjectStyleBase(obj, index)">
+              <div v-if="obj.type == CustomWelcomerImageLayerTypeText" :style="getObjectStyle(obj, index)"
+                class="pointer-events-none"><span v-html="marked(obj.value, true)"></span></div>
+              <img v-else-if="obj.type == CustomWelcomerImageLayerTypeImage" :style="getObjectStyle(obj, index)"
+                class="pointer-events-none" :src="obj.value" />
+              <div
+                v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeRectangle || obj.type == CustomWelcomerImageLayerTypeShapeCircle"
+                :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
+
+              <div v-if="hoveredObject == index || selectedObject == index"
+                class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0)">
+                <div v-if="selectedObject == index"
+                  class="absolute -left-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                  @mousedown="onGrabStart(1)"></div>
+                <div v-if="selectedObject == index"
+                  class="absolute -right-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                  @mousedown="onGrabStart(2)"></div>
+                <div v-if="selectedObject == index"
+                  class="absolute -left-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                  @mousedown="onGrabStart(3)"></div>
+                <div v-if="selectedObject == index"
+                  class="absolute -right-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                  @mousedown="onGrabStart(4)"></div>
               </div>
             </div>
           </div>
@@ -45,80 +108,190 @@
         <div class="p-4 border-b border-secondary-light">
           <span class="font-semibold text-sm">Layers</span>
           <ul>
-            <li v-for="(obj, index) in image_config.layers" :key="index" @click="onLayerClick(index)" @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
+            <li v-for="(obj, index) in image_config.layers" :key="index" @click="onLayerClick(index)"
+              @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
               :class="[selectedObject == index ? 'bg-primary text-white' : hoveredObject == index ? 'bg-secondary-light text-white' : 'hover:bg-secondary-light cursor-pointer', ' whitespace-nowrap overflow-ellipsis overflow-hidden px-2 py-1 rounded-md hover:cursor-pointer']">
               <span v-if="obj.type == CustomWelcomerImageLayerTypeText">
                 <font-awesome-icon icon="text" class="mr-2" />
-                {{ obj.value || 'Text ' + (index+1) }}
+                {{ obj.value || 'Text ' + (index + 1) }}
               </span>
               <span v-else-if="obj.type == CustomWelcomerImageLayerTypeImage">
                 <font-awesome-icon icon="image" class="mr-2" />
-                {{ obj.value || 'Image ' + (index+1) }}
+                {{ obj.value || 'Image ' + (index + 1) }}
               </span>
               <span v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeRectangle">
                 <font-awesome-icon icon="square" class="mr-2" />
-                Rectangle {{ index+1 }}
+                Rectangle {{ index + 1 }}
               </span>
               <span v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeCircle">
                 <font-awesome-icon icon="circle" class="mr-2" />
-                Circle {{ index+1 }}
+                Circle {{ index + 1 }}
               </span>
             </li>
           </ul>
         </div>
-        <div class="overflow-y-auto flex-1 divide-secondary-light divide-y">
-          <div class="p-4" v-if="selectedObject > -1">
+        <div class="overflow-y-auto flex-1 divide-secondary-light divide-y" v-if="selectedObject === -1">
+          <!-- canvas controls -->
+          <div class="p-4">
+            <span class="font-semibold text-sm mb-2 block">Layout</span>
+            <div class="grid grid-cols-2 gap-2">
+              <InputCalculator :min="getMinimumWidth()" max="2000" type="number" v-model="image_config.dimensions[0]">
+                Width
+              </InputCalculator>
+              <InputCalculator :min="getMinimumHeight()" max="2000" type="number" v-model="image_config.dimensions[1]">
+                Height
+              </InputCalculator>
+            </div>
+          </div>
+
+          <div class="p-4">
+            <span class="font-semibold text-sm mb-2 block">Fill</span>
+            <Listbox as="div" class="flex-1">
+              <div class="relative">
+                <ListboxButton
+                  class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 dark:bg-secondary dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <font-awesome-icon icon="square" class="inline w-4 h-4 mr-1 border-primary" :style="{
+                      color: `${image_config.fill}`,
+                    }" />
+                  </div>
+                  <span class="block pl-10 truncate">{{
+                    image_config.fill.toUpperCase()
+                    }}</span>
+                  <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  </span>
+                </ListboxButton>
+
+                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                  leave-to-class="opacity-0">
+                  <ListboxOptions class="absolute z-10 mt-1">
+                    <ColorPicker theme="dark" :color="image_config.fill || '#000000'"
+                      @changeColor="image_config.fill = rgbaToHex($event)" :sucker-hide="true" />
+                  </ListboxOptions>
+                </transition>
+              </div>
+            </Listbox>
+          </div>
+          <div class="p-4">
+            <span class="font-semibold text-sm mb-2 block">Stroke</span>
+            <Listbox as="div" class="flex-1">
+              <div class="relative">
+                <ListboxButton
+                  class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 dark:bg-secondary dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <font-awesome-icon icon="square" class="inline w-4 h-4 mr-1 border-primary" :style="{
+                      color: `${image_config.stroke.color}`,
+                    }" />
+                  </div>
+                  <span class="block pl-10 truncate">{{
+                    image_config.stroke.color.toUpperCase()
+                    }}</span>
+                  <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  </span>
+                </ListboxButton>
+
+                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                  leave-to-class="opacity-0">
+                  <ListboxOptions class="absolute z-10 mt-1">
+                    <ColorPicker theme="dark" :color="image_config.stroke.color || '#000000'"
+                      @changeColor="image_config.stroke.color = rgbaToHex($event)"
+                      :sucker-hide="true" />
+                  </ListboxOptions>
+                </transition>
+              </div>
+            </Listbox>
+            <div class="mt-2">
+              <InputCalculator type="number" min="0" :max="Math.min(image_config.dimensions[0]/2, image_config.dimensions[1]/2)" v-model="image_config.stroke.width">
+                Width
+              </InputCalculator>
+            </div>
+          </div>
+
+          <div class="p-4">
+            <span class="font-semibold text-sm mb-2 block">Debug</span>
+            <code>
+              {{ image_config }}
+            </code>
+          </div>
+        </div>
+
+
+        <div class="overflow-y-auto flex-1 divide-secondary-light divide-y" v-else>
+          <!-- object controls -->
+          <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
+            <span class="font-semibold text-sm mb-2 block">Text</span>
+            <AutocompleteInput type="text" :isTextarea="true" class="border rounded p-2 bg-transparent w-full"
+              placeholder="Message Content" rows="4" :value="image_config.layers[selectedObject].value"
+              @update:modelValue="image_config.layers[selectedObject].value = $event" />
+          </div>
+          <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeImage">
+            <span class="font-semibold text-sm mb-2 block">Image URL</span>
+            <AutocompleteInput type="text" class="border rounded p-2 bg-transparent w-full" placeholder="Image URL"
+              :value="image_config.layers[selectedObject].value"
+              @update:modelValue="image_config.layers[selectedObject].value = $event" />
+          </div>
+          <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Position</span>
             <div class="grid grid-cols-2 gap-2">
               <InputCalculator type="number" v-model="image_config.layers[selectedObject].position[0]">
                 X
-              </InputCalculator> 
+              </InputCalculator>
               <InputCalculator type="number" v-model="image_config.layers[selectedObject].position[1]">
                 Y
               </InputCalculator>
             </div>
           </div>
-          <div class="p-4" v-if="selectedObject > -1">
+          <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Layout</span>
             <div class="grid grid-cols-2 gap-2">
               <InputCalculator min="16" type="number" v-model="image_config.layers[selectedObject].dimensions[0]">
                 Width
-              </InputCalculator> 
+              </InputCalculator>
               <InputCalculator min="16" type="number" v-model="image_config.layers[selectedObject].dimensions[1]">
                 Height
               </InputCalculator>
             </div>
           </div>
-          <div class="p-4" v-if="selectedObject > -1">
+          <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Appearance</span>
             <span class="block text-neutral-500 text-xs font-medium">Border Radius</span>
             <div class="grid grid-cols-2 gap-2 mt-1">
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" v-model="image_config.layers[selectedObject].border_radius[0]">
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+                v-model="image_config.layers[selectedObject].border_radius[0]">
                 Top Left
               </InputCalculator>
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" v-model="image_config.layers[selectedObject].border_radius[1]">
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+                v-model="image_config.layers[selectedObject].border_radius[1]">
                 Top Right
               </InputCalculator>
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" v-model="image_config.layers[selectedObject].border_radius[3]">
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+                v-model="image_config.layers[selectedObject].border_radius[3]">
                 Bottom Left
               </InputCalculator>
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" v-model="image_config.layers[selectedObject].border_radius[2]">
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+                v-model="image_config.layers[selectedObject].border_radius[2]">
                 Bottom Right
               </InputCalculator>
             </div>
           </div>
-          <div class="p-4" v-if="selectedObject > -1 && image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
+          <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
             <span class="font-semibold text-sm mb-2 block">Typography</span>
-            <Listbox as="div" :model="image_config.layers[selectedObject].typography.font_family" @update:modelValue="updateTypographyFontFamily($event)">
+            <Listbox as="div" :model="image_config.layers[selectedObject].typography.font_family"
+              @update:modelValue="updateTypographyFontFamily($event)">
               <div class="relative">
-                <ListboxButton class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                <ListboxButton
+                  class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
                   {{ fonts[image_config.layers[selectedObject].typography.font_family]?.name || 'Select Font' }}
                 </ListboxButton>
-                <ListboxOptions class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  <ListboxOption v-for="(font, fontKey) in fonts" :key="fontKey" :value="fontKey" v-slot="{ active, selected }">
+                <ListboxOptions
+                  class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                  <ListboxOption v-for="(font, fontKey) in fonts" :key="fontKey" :value="fontKey"
+                    v-slot="{ active, selected }">
                     <li :class="[
                       active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50',
-                      'cursor-default select-none relative py-2 pl-3 pr-9']">                    
+                      'cursor-default select-none relative py-2 pl-3 pr-9']">
                       {{ font.name }}
                     </li>
                   </ListboxOption>
@@ -128,104 +301,166 @@
             <div class="grid grid-cols-2 gap-2 mt-2">
               <Listbox as="div" v-model="image_config.layers[selectedObject].typography.font_weight">
                 <div class="relative">
-                  <ListboxButton class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                    {{ fonts[image_config.layers[selectedObject].typography.font_family]?.weights[image_config.layers[selectedObject].typography.font_weight] ? image_config.layers[selectedObject].typography.font_weight : (fonts[image_config.layers[selectedObject].typography.font_family] ? fonts[image_config.layers[selectedObject].typography.font_family].default : 'normal') }}
+                  <ListboxButton
+                    class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                    {{
+                      fonts[image_config.layers[selectedObject].typography.font_family]?.weights[image_config.layers[selectedObject].typography.font_weight]
+                        ? image_config.layers[selectedObject].typography.font_weight :
+                        (fonts[image_config.layers[selectedObject].typography.font_family] ?
+                          fonts[image_config.layers[selectedObject].typography.font_family].default : 'normal') }}
                   </ListboxButton>
-                  <ListboxOptions class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <ListboxOption v-for="(weight, weightKey) in fonts[image_config.layers[selectedObject].typography.font_family]?.weights" :key="weightKey" :value="weightKey" v-slot="{ active, selected }">
+                  <ListboxOptions
+                    class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    <ListboxOption
+                      v-for="(weight, weightKey) in fonts[image_config.layers[selectedObject].typography.font_family]?.weights"
+                      :key="weightKey" :value="weightKey" v-slot="{ active, selected }">
                       <li :class="[
                         active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50',
-                        'cursor-default select-none relative py-2 pl-3 pr-9']">                    
+                        'cursor-default select-none relative py-2 pl-3 pr-9']">
                         {{ weightKey }}
                       </li>
                     </ListboxOption>
                   </ListboxOptions>
                 </div>
               </Listbox>
-              <InputCalculator type="number" min="8" v-model="image_config.layers[selectedObject].typography.font_size"></InputCalculator>
-              <InputCalculator type="number" min="0.1" step="0.1" v-model="image_config.layers[selectedObject].typography.line_height">Line Height</InputCalculator>
-              <InputCalculator type="number" step="0.1" v-model="image_config.layers[selectedObject].typography.letter_spacing">Letter Spacing</InputCalculator>
+              <InputCalculator type="number" min="8" v-model="image_config.layers[selectedObject].typography.font_size">
+              </InputCalculator>
+              <InputCalculator type="number" min="0.1" step="0.1"
+                v-model="image_config.layers[selectedObject].typography.line_height">Line Height</InputCalculator>
+              <InputCalculator type="number" step="0.1"
+                v-model="image_config.layers[selectedObject].typography.letter_spacing">Letter Spacing</InputCalculator>
             </div>
             <span class="block text-neutral-500 text-xs font-medium mt-2">Alignment</span>
             <div class="grid grid-cols-2 gap-2 mt-1">
               <Listbox as="div" v-model="image_config.layers[selectedObject].typography.horizontal_alignment">
                 <div class="relative">
-                  <ListboxButton class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <ListboxButton
+                    class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
                     {{ image_config.layers[selectedObject].typography.horizontal_alignment || 'Left' }}
                   </ListboxButton>
-                  <ListboxOptions class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <ListboxOption value="left" v-slot="{ active }"><li :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50','cursor-default select-none relative py-2 pl-3 pr-9']">Left</li></ListboxOption>
-                    <ListboxOption value="center" v-slot="{ active }"><li :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50','cursor-default select-none relative py-2 pl-3 pr-9']">Center</li></ListboxOption>
-                    <ListboxOption value="right" v-slot="{ active }"><li :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50','cursor-default select-none relative py-2 pl-3 pr-9']">Right</li></ListboxOption>
+                  <ListboxOptions
+                    class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    <ListboxOption value="left" v-slot="{ active }">
+                      <li
+                        :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
+                        Left</li>
+                    </ListboxOption>
+                    <ListboxOption value="center" v-slot="{ active }">
+                      <li
+                        :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
+                        Center</li>
+                    </ListboxOption>
+                    <ListboxOption value="right" v-slot="{ active }">
+                      <li
+                        :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
+                        Right</li>
+                    </ListboxOption>
                   </ListboxOptions>
                 </div>
               </Listbox>
               <Listbox as="div" v-model="image_config.layers[selectedObject].typography.vertical_alignment">
                 <div class="relative">
-                  <ListboxButton class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <ListboxButton
+                    class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
                     {{ image_config.layers[selectedObject].typography.vertical_alignment || 'Center' }}
                   </ListboxButton>
-                  <ListboxOptions class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <ListboxOption value="start" v-slot="{ active }"><li :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50','cursor-default select-none relative py-2 pl-3 pr-9']">Top</li></ListboxOption>
-                    <ListboxOption value="center" v-slot="{ active }"><li :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50','cursor-default select-none relative py-2 pl-3 pr-9']">Center</li></ListboxOption>
-                    <ListboxOption value="end" v-slot="{ active }"><li :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50','cursor-default select-none relative py-2 pl-3 pr-9']">Bottom</li></ListboxOption>
+                  <ListboxOptions
+                    class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    <ListboxOption value="start" v-slot="{ active }">
+                      <li
+                        :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
+                        Top</li>
+                    </ListboxOption>
+                    <ListboxOption value="center" v-slot="{ active }">
+                      <li
+                        :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
+                        Center</li>
+                    </ListboxOption>
+                    <ListboxOption value="end" v-slot="{ active }">
+                      <li
+                        :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
+                        Bottom</li>
+                    </ListboxOption>
                   </ListboxOptions>
                 </div>
               </Listbox>
             </div>
           </div>
-          <!-- color fill -->
-          <div class="p-4" v-if="selectedObject > -1 && (
-            image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText ||
-            image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeShapeRectangle ||
-            image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeShapeCircle)">
+          <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Fill</span>
             <Listbox as="div" class="flex-1">
-            <div class="relative">
-              <ListboxButton
-                class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 dark:bg-secondary dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <font-awesome-icon icon="square" class="inline w-4 h-4 mr-1 border-primary" :style="{
-                    color: `${image_config.layers[selectedObject].fill}`,
-                  }" />
-                </div>
-                <span class="block pl-10 truncate">{{
-                  image_config.layers[selectedObject].fill.toUpperCase()
-                }}</span>
-                <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
-                </span>
-              </ListboxButton>
+              <div class="relative">
+                <ListboxButton
+                  class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 dark:bg-secondary dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <font-awesome-icon icon="square" class="inline w-4 h-4 mr-1 border-primary" :style="{
+                      color: `${image_config.layers[selectedObject].fill}`,
+                    }" />
+                  </div>
+                  <span class="block pl-10 truncate">{{
+                    image_config.layers[selectedObject].fill.toUpperCase()
+                    }}</span>
+                  <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  </span>
+                </ListboxButton>
 
-              <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                leave-to-class="opacity-0">
-                <ListboxOptions class="absolute z-10 mt-1">
-                  <ColorPicker theme="dark" :color="image_config.layers[selectedObject].fill || '#000000'"
-                    @changeColor="image_config.layers[selectedObject].fill = rgbaToHex($event)" :sucker-hide="true" />
-                </ListboxOptions>
-              </transition>
+                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                  leave-to-class="opacity-0">
+                  <ListboxOptions class="absolute z-10 mt-1">
+                    <ColorPicker theme="dark" :color="image_config.layers[selectedObject].fill || '#000000'"
+                      @changeColor="image_config.layers[selectedObject].fill = rgbaToHex($event)" :sucker-hide="true" />
+                  </ListboxOptions>
+                </transition>
+              </div>
+            </Listbox>
+          </div>
+          <div class="p-4">
+            <span class="font-semibold text-sm mb-2 block">Stroke</span>
+            <Listbox as="div" class="flex-1">
+              <div class="relative">
+                <ListboxButton
+                  class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 dark:bg-secondary dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <font-awesome-icon icon="square" class="inline w-4 h-4 mr-1 border-primary" :style="{
+                      color: `${image_config.layers[selectedObject].stroke.color}`,
+                    }" />
+                  </div>
+                  <span class="block pl-10 truncate">{{
+                    image_config.layers[selectedObject].stroke.color.toUpperCase()
+                    }}</span>
+                  <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  </span>
+                </ListboxButton>
+
+                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                  leave-to-class="opacity-0">
+                  <ListboxOptions class="absolute z-10 mt-1">
+                    <ColorPicker theme="dark" :color="image_config.layers[selectedObject].stroke.color || '#000000'"
+                      @changeColor="image_config.layers[selectedObject].stroke.color = rgbaToHex($event)"
+                      :sucker-hide="true" />
+                  </ListboxOptions>
+                </transition>
+              </div>
+            </Listbox>
+            <div class="mt-2">
+              <InputCalculator type="number" min="0" v-model="image_config.layers[selectedObject].stroke.width">
+              </InputCalculator>
             </div>
-          </Listbox>
           </div>
-          <!-- stroke -->
-          <div class="p-4" v-if="selectedObject > -1 && image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
-            <span class="font-semibold text-sm mb-2 block">Text</span>
-            <AutocompleteInput type="text" :isTextarea="true"
-              class="border rounded p-2 bg-transparent w-full"
-              placeholder="Message Content" rows="4" :value="image_config.layers[selectedObject].value" @update:modelValue="image_config.layers[selectedObject].value = $event"/>
-          </div>
-          <div class="p-4" v-if="selectedObject > -1 && image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeImage">
-            <span class="font-semibold text-sm mb-2 block">Image URL</span>
-            <AutocompleteInput type="text"
-              class="border rounded p-2 bg-transparent w-full"
-              placeholder="Image URL" :value="image_config.layers[selectedObject].value" @update:modelValue="image_config.layers[selectedObject].value = $event"/>
+          <div class="p-4">
+            <span class="font-semibold text-sm mb-2 block">Debug</span>
+            <code>
+              {{ image_config.layers[selectedObject] }}
+            </code>
           </div>
         </div>
       </div>
     </div>
-    
+
     <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-    v-on:save="saveConfig"></unsaved-changes>
+      v-on:save="saveConfig"></unsaved-changes>
     <Toast />
   </div>
 </template>
@@ -234,15 +469,19 @@
 body {
   @apply overflow-hidden;
 }
+
 .builder-container {
-  @apply h-screen;
+  @apply h-dvh;
 }
+
 .builder-portal {
-  @apply h-screen bg-secondary-light flex flex-row;
+  @apply h-dvh bg-secondary-light flex flex-row;
 }
+
 .builder-canvas {
   @apply flex-1 min-w-[50%] overflow-hidden relative;
 }
+
 .builder-sidebar {
   @apply bg-secondary border-secondary-light w-64 border-l shadow-md flex flex-col;
 }
@@ -496,29 +735,29 @@ export default {
   },
   setup() {
     store.watch(
-    () => store.getters.getSelectedGuildID,
-    () => {
-      if (store.getters.getSelectedGuildID !== undefined) {
-        store.dispatch("fillGuild");
+      () => store.getters.getSelectedGuildID,
+      () => {
+        if (store.getters.getSelectedGuildID !== undefined) {
+          store.dispatch("fillGuild");
+        }
       }
-    }
     );
-    
+
     const route = useRoute();
-    
+
     let guildID = route.params.guildID;
     if (guildID !== undefined) {
       store.commit("setSelectedGuild", guildID);
     }
-    
+
     let isDataFetched = ref(false);
     let isDataError = ref(false);
     let unsavedChanges = ref(false);
     let isChangeInProgress = ref(false);
-    
+
     let config = ref({});
     let files = ref([]);
-    
+
     let image_config = ref({});
 
     let x = ref(0);
@@ -532,6 +771,12 @@ export default {
 
     let preview = ref(false);
 
+    // 0: Select
+    // 1: Text
+    // 2: Image
+    // 3: Square
+    // 4: Circle
+    let selectedAction = ref(0);
     let selectedObject = ref(-1);
     let hoveredObject = ref(-1);
     let selectedGrab = ref(-1);
@@ -540,12 +785,12 @@ export default {
       config,
       files,
       image_config,
-      
+
       isDataFetched,
       isDataError,
       unsavedChanges,
       isChangeInProgress,
-      
+
       getErrorToast,
       x, y, zoom,
       defaultX, defaultY, defaultZoom,
@@ -553,12 +798,12 @@ export default {
       preview,
       fonts,
 
-      selectedObject, hoveredObject, selectedGrab,
+      selectedAction, selectedObject, hoveredObject, selectedGrab,
 
       CustomWelcomerImageLayerTypeText, CustomWelcomerImageLayerTypeImage, CustomWelcomerImageLayerTypeShapeRectangle, CustomWelcomerImageLayerTypeShapeCircle,
     }
   },
-  
+
   mounted() {
     this.fetchConfig();
 
@@ -568,7 +813,7 @@ export default {
 
     window.addEventListener('keydown', (e) => {
       // do nothing if anything is focused
-      if (document.activeElement && document.activeElement !== document.body) return;
+      if (document.activeElement && document.activeElement.tagName == "input") return;
 
       if (this.selectedObject == -1) {
         let incr = e.shiftKey ? 16 : 4;
@@ -593,14 +838,14 @@ export default {
           case "ArrowRight": obj.position[0] += incr; break;
           case "ArrowUp": obj.position[1] -= incr; break;
           case "ArrowDown": obj.position[1] += incr; break;
-        } 
+        }
       }
     });
 
     window.addEventListener('wheel', (e) => {
       // check cursor is over the builder-canvas
       const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
-      
+
       // check cursor is inside canvas area
       if (e.clientX < canvasRect.left || e.clientX > canvasRect.right || e.clientY < canvasRect.top || e.clientY > canvasRect.bottom) return;
 
@@ -625,11 +870,11 @@ export default {
     let lastMouse = { x: 0, y: 0 };
 
     const onMouseDown = (e) => {
-      if (e.button == 0) {
+      if (e.button == 0 && this.selectedAction == 0) {
         // check mouse is inside canvas area
         const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
         if (e.clientX < canvasRect.left || e.clientX > canvasRect.right ||
-            e.clientY < canvasRect.top || e.clientY > canvasRect.bottom) return;
+          e.clientY < canvasRect.top || e.clientY > canvasRect.bottom) return;
 
         if (e.clientX == 0 && e.clientY == 0) return; // ignore invalid coordinates
 
@@ -690,12 +935,133 @@ export default {
     this.$el.addEventListener('auxclick', onAuxClick);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-
   },
-  
+
   methods: {
+    onCanvasMouseDown(event) {
+      // handles drawing new layers. users can click which will create a 100x100 layer,
+      // or click and drag to create a custom sized layer.
+
+      if (this.selectedAction === 0) return; // only handle in draw modes
+
+      const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
+
+      if (event.clientX < canvasRect.left || event.clientX > canvasRect.right ||
+      event.clientY < canvasRect.top || event.clientY > canvasRect.bottom) return;
+
+      const canvas = this.$el.querySelector('.canvas');
+      const canvasRect2 = canvas.getBoundingClientRect();
+
+      let startX = ((event.clientX - canvasRect2.left) / this.zoom) - 16;
+      let startY = ((event.clientY - canvasRect2.top) / this.zoom) - 16;
+
+      let isDrawing = false;
+      let endX = startX;
+      let endY = startY;
+      let tempLayerIndex = -1;
+
+      const onMouseMove = (moveEvent) => {
+        isDrawing = true;
+        endX = (moveEvent.clientX - canvasRect2.left) / this.zoom;
+        endY = (moveEvent.clientY - canvasRect2.top) / this.zoom;
+
+        const x = Math.round(Math.min(startX, endX));
+        const y = Math.round(Math.min(startY, endY));
+        const width = Math.round(Math.abs(endX - startX));
+        const height = Math.round(Math.abs(endY - startY));
+
+        // Create temp layer on first move
+        if (tempLayerIndex === -1) {
+          tempLayerIndex = this.createLayer(x, y, width, height);
+        } else {
+          // Update temp layer in real time
+          const tempLayer = this.image_config.layers[tempLayerIndex];
+          if (tempLayer) {
+          tempLayer.position[0] = x;
+          tempLayer.position[1] = y;
+          tempLayer.dimensions[0] = Math.max(10, width);
+          tempLayer.dimensions[1] = Math.max(10, height);
+          }
+        }
+      };
+
+      const onMouseUp = () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+
+        if (!isDrawing && tempLayerIndex === -1) {
+          // Click: create 100x100 at clicked position
+          let x = Math.round(startX);
+          let y = Math.round(startY);
+          let width = this.selectedAction == 1 ? 200 : 100;
+          let height = this.selectedAction == 1 ? 32 : 100;
+
+          this.createLayer(x, y, width, height);
+        } else if (tempLayerIndex !== -1) {
+          // Select the newly created layer
+          this.selectedObject = tempLayerIndex;
+        }
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    },
+
+    createLayer(x, y, width, height) {
+      let newLayer = {
+        type: this.selectedAction - 1,
+        position: [x, y],
+        dimensions: [Math.max(10, width), Math.max(10, height)],
+        rotation: 0,
+        inverted_x: false,
+        inverted_y: false,
+        border_radius: [0, 0, 0, 0],
+        fill: this.selectedAction != 2 ? "#ffffff" : "#ffffff00", // transparent for images
+        stroke: {
+          color: "#ffffff00",
+          width: 0,
+        },
+        value: "",
+      };
+
+      if (newLayer.type == CustomWelcomerImageLayerTypeText) {
+        newLayer.typography = {
+          font_family: "Inter",
+          font_weight: "regular",
+          font_size: 24,
+          line_height: 1.2,
+          letter_spacing: 0,
+          horizontal_alignment: "left",
+          vertical_alignment: "center",
+        };
+        newLayer.value = "New Text";
+      }
+
+      this.image_config.layers.unshift(newLayer); // add layer to top layer
+      this.selectedAction = 0; // reset to select mode
+      this.selectedObject = 0; // select new layer
+
+      return 0;
+    },
+
+    getMinimumWidth() {
+      let minWidth = 100;
+      for (let layer of this.image_config.layers) {
+        minWidth = Math.max(minWidth, layer.position[0] + layer.dimensions[0]);
+      }
+      return minWidth;
+    },
+
+    getMinimumHeight() {
+      let minHeight = 100;
+      for (let layer of this.image_config.layers) {
+        minHeight = Math.max(minHeight, layer.position[1] + layer.dimensions[1]);
+      }
+      return minHeight;
+    },
+
     marked(text, embed) {
-        return marked(text, embed);
+      return marked(text, embed);
     },
 
     rgbaToHex(color) {
@@ -713,27 +1079,27 @@ export default {
     fetchConfig() {
       this.isDataFetched = false;
       this.isDataError = false;
-      
+
       dashboardAPI.getConfig(
-      endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
-      ({ config }) => {
-        this.config = config;
-        this.isDataFetched = true;
-        this.isDataError = false;
-        
-        this.image_config = this.parseDict(config.images.custom_builder_data);
-        this.preemptivelyLoadFonts();
-        this.fitCanvas();
-      },
-      (error) => {
-        this.$store.dispatch("createToast", getErrorToast(error));
-        
-        this.isDataFetched = true;
-        this.isDataError = true;
-      }
+        endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
+        ({ config }) => {
+          this.config = config;
+          this.isDataFetched = true;
+          this.isDataError = false;
+
+          this.image_config = this.parseDict(config.images.custom_builder_data);
+          this.preemptivelyLoadFonts();
+          this.fitCanvas();
+        },
+        (error) => {
+          this.$store.dispatch("createToast", getErrorToast(error));
+
+          this.isDataFetched = true;
+          this.isDataError = true;
+        }
       );
     },
-    
+
     parseDict(data) {
       try {
         return JSON.parse(data);
@@ -741,58 +1107,58 @@ export default {
         return {};
       }
     },
-    
+
     async saveConfig() {
       const validForm = await this.v$.$validate();
-      
+
       if (!validForm) {
         this.$store.dispatch("createToast", getValidationToast());
         navigateToErrors();
-        
+
         return;
       }
-      
+
       this.isChangeInProgress = true;
-      
+
       dashboardAPI.doPost(
-      endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
-      this.config,
-      this.files,
-      ({ config }) => {
-        this.$store.dispatch("createToast", getSuccessToast());
-        
-        this.config = config;
-        this.files = [];
-        this.unsavedChanges = false;
-        this.isChangeInProgress = false;
-      },
-      (error) => {
-        this.$store.dispatch("createToast", getErrorToast(error));
-        
-        this.isChangeInProgress = false;
-      }
+        endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
+        this.config,
+        this.files,
+        ({ config }) => {
+          this.$store.dispatch("createToast", getSuccessToast());
+
+          this.config = config;
+          this.files = [];
+          this.unsavedChanges = false;
+          this.isChangeInProgress = false;
+        },
+        (error) => {
+          this.$store.dispatch("createToast", getErrorToast(error));
+
+          this.isChangeInProgress = false;
+        }
       );
     },
-    
+
     onValueUpdate() {
       this.unsavedChanges = true;
     },
-    
+
     onFilesUpdate(event) {
       this.files = event;
       this.onValueUpdate();
     },
-    
+
     goBack() {
       this.$router.push({
         name: "dashboard.guild.welcomer",
         params: { guildID: this.$store.getters.getSelectedGuildID },
       });
     },
-    
+
     getCanvasStyle(x, y) {
       // this outputs as a style=""
-      
+
       let dimensions = this.image_config?.dimensions || [1000, 300];
 
       return {
@@ -803,7 +1169,8 @@ export default {
         width: (dimensions[0] || 1000) + "px",
         height: (dimensions[1] || 300) + "px",
         backgroundColor: this.getFillAsCSS(this.image_config.fill || '#ffffff'),
-        overflow : this.preview ? "hidden" : "visible",
+        overflow: this.preview ? "hidden" : "visible",
+        border: (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
       };
     },
 
@@ -834,11 +1201,11 @@ export default {
       styles.left = "0px";
       styles.top = "0px";
 
-      styles.borderRadius = obj.type == CustomWelcomerImageLayerTypeShapeCircle ? "100%" : 
-          this.normalizeBorderRadius(obj.border_radius[0]) + " " +
-          this.normalizeBorderRadius(obj.border_radius[1]) + " " +
-          this.normalizeBorderRadius(obj.border_radius[2]) + " " +
-          this.normalizeBorderRadius(obj.border_radius[3])
+      styles.borderRadius = obj.type == CustomWelcomerImageLayerTypeShapeCircle ? "100%" :
+        this.normalizeBorderRadius(obj.border_radius[0]) + " " +
+        this.normalizeBorderRadius(obj.border_radius[1]) + " " +
+        this.normalizeBorderRadius(obj.border_radius[2]) + " " +
+        this.normalizeBorderRadius(obj.border_radius[3])
 
       styles.backgroundColor = (obj.type != CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "transparent")
       styles.color = (obj.type == CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "inherit")
@@ -860,14 +1227,14 @@ export default {
           styles.fontWeight = "normal";
         }
 
-        styles.fontSize      = (obj.typography?.font_size && obj.typography.font_size != 0 ? obj.typography.font_size + "px" : "auto")
-        styles.lineHeight    = (obj.typography?.line_height && obj.typography.line_height != 0 ? obj.typography.line_height + "em" : "normal")
+        styles.fontSize = (obj.typography?.font_size && obj.typography.font_size != 0 ? obj.typography.font_size + "px" : "auto")
+        styles.lineHeight = (obj.typography?.line_height && obj.typography.line_height != 0 ? obj.typography.line_height + "em" : "normal")
         styles.letterSpacing = (obj.typography?.letter_spacing && obj.typography.letter_spacing != 0 ? obj.typography.letter_spacing + "px" : "normal")
 
-        styles.display        = "flex"
+        styles.display = "flex"
         styles.justifyContent = this.normalizeHorizontalAlignment(obj.typography?.horizontal_alignment)
-        styles.alignItems     = this.normalizeVerticalAlignment(obj.typography?.vertical_alignment)
-        styles.whiteSpace     = "pre-wrap"
+        styles.alignItems = this.normalizeVerticalAlignment(obj.typography?.vertical_alignment)
+        styles.whiteSpace = "pre-wrap"
       }
 
       return styles;
@@ -878,6 +1245,7 @@ export default {
     },
 
     onLayerMouseOver(index) {
+      if (this.selectedAction != 0) return; // only hover in select mode
       this.hoveredObject = index;
     },
 
@@ -910,28 +1278,28 @@ export default {
 
       switch (this.selectedGrab) {
         case 0: // nothing, move entire object
-          obj.position[0] += x * (1/this.zoom);
-          obj.position[1] += y * (1/this.zoom);
+          obj.position[0] += x * (1 / this.zoom);
+          obj.position[1] += y * (1 / this.zoom);
           break;
         case 1: // top-left
-          obj.position[0] += x * (1/this.zoom);
-          obj.dimensions[0] -= x * (1/this.zoom);
-          obj.position[1] += y * (1/this.zoom);
-          obj.dimensions[1] -= y * (1/this.zoom);
+          obj.position[0] += x * (1 / this.zoom);
+          obj.dimensions[0] -= x * (1 / this.zoom);
+          obj.position[1] += y * (1 / this.zoom);
+          obj.dimensions[1] -= y * (1 / this.zoom);
           break;
         case 2: // top-right
-          obj.dimensions[0] += x * (1/this.zoom);
-          obj.position[1] += y * (1/this.zoom);
-          obj.dimensions[1] -= y * (1/this.zoom);
+          obj.dimensions[0] += x * (1 / this.zoom);
+          obj.position[1] += y * (1 / this.zoom);
+          obj.dimensions[1] -= y * (1 / this.zoom);
           break;
         case 3: // bottom-left
-          obj.position[0] += x * (1/this.zoom);
-          obj.dimensions[0] -= x * (1/this.zoom);
-          obj.dimensions[1] += y * (1/this.zoom);
+          obj.position[0] += x * (1 / this.zoom);
+          obj.dimensions[0] -= x * (1 / this.zoom);
+          obj.dimensions[1] += y * (1 / this.zoom);
           break;
         case 4: // bottom-right
-          obj.dimensions[0] += x * (1/this.zoom);
-          obj.dimensions[1] += y * (1/this.zoom);
+          obj.dimensions[0] += x * (1 / this.zoom);
+          obj.dimensions[1] += y * (1 / this.zoom);
           break;
       }
 
@@ -974,7 +1342,7 @@ export default {
 
       this.loadFont(value, font.default);
     },
-    
+
     preemptivelyLoadFonts() {
       if (!this.image_config.layers) return;
 
@@ -1024,17 +1392,17 @@ export default {
         this.defaultY = this.y;
       });
     },
-    
+
     getFillAsCSS(value) {
       if (value.startsWith("#")) {
         return value;
       }
-      
+
       if (value == "profile") {
         return this.generateLightHex();
       }
     },
-    
+
     simpleSeededRandom(seedText) {
       // Turn seedText into a 32-bit integer hash
       let h = 0;
@@ -1053,7 +1421,7 @@ export default {
 
     generateLightHex() {
       let r, g, b, luminance;
-      
+
       let i = 0;
 
       do {
@@ -1064,9 +1432,9 @@ export default {
 
         // Calculate luminance using the same formula as the Go code
         luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        
+
       } while (luminance <= 0.7);
-      
+
       // Convert to hex
       const toHex = (n) => n.toString(16).padStart(2, '0');
       return `#${toHex(r)}${toHex(g)}${toHex(b)}`;

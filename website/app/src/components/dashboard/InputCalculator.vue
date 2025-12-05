@@ -9,7 +9,7 @@
             @keydown.up="onarrow($event)"
             @keydown.down="onarrow($event)"
             :placeholder="placeholder"
-            class="border rounded w-full h-9 py-2 pl-3 pr-10 bg-secondary-dark border-secondary-light"/>
+            class="border rounded w-full h-9 py-2 px-3 bg-secondary-dark border-secondary-light"/>
     </div>
 </template>
 
