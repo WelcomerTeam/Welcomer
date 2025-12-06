@@ -34,6 +34,10 @@ let EndpointGuildWelcomer = function(guildID) {
   return `${EndpointGuild(guildID)}/welcomer`;
 }
 
+let EndpointGuildWelcomerBuilder = function(guildID) {
+  return `${EndpointGuildWelcomer(guildID)}/welcomer/builder`;
+}
+
 let EndpointGuildSettings = function(guildID) {
   return `${EndpointGuild(guildID)}/settings`;
 }
@@ -68,6 +72,7 @@ export default {
   EndpointGuildTempchannels,
   EndpointGuildTimeroles,
   EndpointGuildWelcomer,
+  EndpointGuildWelcomerBuilder,
   EndpointGuildSettings,
   EndpointGuildSettingsUpdateMemberCount,
   EndpointGuildCustomBots,

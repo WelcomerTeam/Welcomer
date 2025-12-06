@@ -24,7 +24,7 @@
     </div>
     <div v-else class="builder-portal">
       <div class="builder-canvas">
-        <div class="bg-secondary-dark border border-secondary-light absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-50 flex flex-row divide-x divide-secondary-light">
+        <div class="bg-secondary-dark border border-secondary-light absolute bottom-12 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-50 flex flex-row divide-x divide-secondary-light">
           <div class="p-2 gap-2 flex flex-row h-full">
             <button @click="selectedAction = 0" :class="[selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="mouse-pointer" class="w-6 h-6 text-white" aria-hidden="true" />
@@ -732,6 +732,20 @@ export default {
     "$route.params.guildID"(to) {
       store.commit("setSelectedGuild", to);
     },
+    "image_config.stroke.width"(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.fitCanvas();
+      }
+    },
+    "image_config": {
+      handler(newValue, oldValue) {
+        // excludes initial assignment
+        if (Object.keys(oldValue).length !== 0) {
+          this.onValueUpdate();
+        }
+      },
+      deep: true
+    },
   },
   setup() {
     store.watch(
@@ -1081,13 +1095,13 @@ export default {
       this.isDataError = false;
 
       dashboardAPI.getConfig(
-        endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
+        endpoints.EndpointGuildWelcomerBuilder(this.$store.getters.getSelectedGuildID),
         ({ config }) => {
           this.config = config;
           this.isDataFetched = true;
           this.isDataError = false;
 
-          this.image_config = this.parseDict(config.images.custom_builder_data);
+          this.image_config = this.parseDict(config.custom_builder_data);
           this.preemptivelyLoadFonts();
           this.fitCanvas();
         },
@@ -1109,19 +1123,10 @@ export default {
     },
 
     async saveConfig() {
-      const validForm = await this.v$.$validate();
-
-      if (!validForm) {
-        this.$store.dispatch("createToast", getValidationToast());
-        navigateToErrors();
-
-        return;
-      }
-
       this.isChangeInProgress = true;
 
       dashboardAPI.doPost(
-        endpoints.EndpointGuildWelcomer(this.$store.getters.getSelectedGuildID),
+        endpoints.EndpointGuildWelcomerBuilder(this.$store.getters.getSelectedGuildID),
         this.config,
         this.files,
         ({ config }) => {
@@ -1383,9 +1388,9 @@ export default {
         const canvas = this.$el.querySelector('.canvas');
         if (!canvas) return;
 
-        this.x = (container.clientWidth - canvas.clientWidth) / 2;
+        this.x = (container.offsetWidth - canvas.offsetWidth) / 2;
         this.y = 0;
-        this.zoom = Math.min(1, (container.clientWidth - (padding * 2)) / canvas.clientWidth);
+        this.zoom = Math.min(1, (container.offsetWidth - (padding * 2)) / canvas.offsetWidth);
 
         this.defaultZoom = this.zoom;
         this.defaultX = this.x;
