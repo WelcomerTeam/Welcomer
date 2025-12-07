@@ -285,6 +285,16 @@ type Users struct {
 	Background    string    `json:"background"`
 }
 
+type WelcomerBuilderArtifacts struct {
+	ArtifactUuid uuid.UUID `json:"artifact_uuid"`
+	Reference    string    `json:"reference"`
+	GuildID      int64     `json:"guild_id"`
+	UserID       int64     `json:"user_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	ImageType    string    `json:"image_type"`
+	Data         []byte    `json:"data"`
+}
+
 type WelcomerImages struct {
 	ImageUuid uuid.UUID `json:"image_uuid"`
 	GuildID   int64     `json:"guild_id"`

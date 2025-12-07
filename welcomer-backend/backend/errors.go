@@ -77,6 +77,10 @@ var (
 	ErrCannotUseCustomBackgrounds = NewErrorWithCode(11013, "you cannot upload custom welcomer.backgrounds")
 	ErrStringTooLong              = NewErrorWithCode(11014, "string is too long")
 	ErrListTooLong                = NewErrorWithCode(11015, "list is too long")
+
+	ErrTooManyLayers     = NewErrorWithCode(11016, "too many layers in custom image")
+	ErrDimensionTooLarge = NewErrorWithCode(11017, "custom image dimensions are too large")
+	ErrDimensionTooSmall = NewErrorWithCode(11018, "custom image dimensions are too small")
 )
 
 // Borderwall errors.

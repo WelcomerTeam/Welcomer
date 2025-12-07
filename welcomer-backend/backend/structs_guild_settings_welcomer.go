@@ -54,6 +54,12 @@ type GuildSettingsWelcomerCustom struct {
 	CustomBackgroundIDs []string `json:"custom_ids"`
 }
 
+type GuildSettingsWelcomerCustomBuilder struct {
+	UseCustomBuilder  bool              `json:"use_custom_builder"`
+	CustomBuilderData string            `json:"custom_builder_data"`
+	References        map[string]string `json:"references"`
+}
+
 func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GuildSettingsWelcomerText, images database.GuildSettingsWelcomerImages, dms database.GuildSettingsWelcomerDms, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
 		Config: &GuildSettingsWelcomerConfig{
@@ -129,6 +135,14 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 			ToggleIncludeImage:  guildSettings.DMs.ToggleIncludeImage,
 			MessageFormat:       welcomer.StringToJSONB(guildSettings.DMs.MessageFormat),
 		}
+}
+
+func GuildSettingsWelcomerSettingsToPartialCustomBuilderDataOnly(images database.GuildSettingsWelcomerImages, references map[string]string) GuildSettingsWelcomerCustomBuilder {
+	return GuildSettingsWelcomerCustomBuilder{
+		UseCustomBuilder:  images.UseCustomBuilder,
+		CustomBuilderData: welcomer.JSONBToString(images.CustomBuilderData),
+		References:        references,
+	}
 }
 
 func ParseImageAlignment(value string) welcomer.ImageAlignment {

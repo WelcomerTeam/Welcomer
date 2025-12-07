@@ -35,7 +35,7 @@ let EndpointGuildWelcomer = function(guildID) {
 }
 
 let EndpointGuildWelcomerBuilder = function(guildID) {
-  return `${EndpointGuildWelcomer(guildID)}/welcomer/builder`;
+  return `${EndpointGuildWelcomer(guildID)}/builder`;
 }
 
 let EndpointGuildSettings = function(guildID) {
