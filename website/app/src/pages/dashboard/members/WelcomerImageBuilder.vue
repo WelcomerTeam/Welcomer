@@ -1125,6 +1125,8 @@ export default {
     async saveConfig() {
       this.isChangeInProgress = true;
 
+      this.config.custom_builder_data = JSON.stringify(this.image_config);
+
       dashboardAPI.doPost(
         endpoints.EndpointGuildWelcomerBuilder(this.$store.getters.getSelectedGuildID),
         this.config,
@@ -1132,10 +1134,16 @@ export default {
         ({ config }) => {
           this.$store.dispatch("createToast", getSuccessToast());
 
-          this.config = config;
+          this.image_config = this.parseDict(config.custom_builder_data);
+          this.preemptivelyLoadFonts();
+          this.fitCanvas();
+
           this.files = [];
-          this.unsavedChanges = false;
-          this.isChangeInProgress = false;
+          
+          this.$nextTick(() => {
+            this.unsavedChanges = false;
+            this.isChangeInProgress = false;
+          });
         },
         (error) => {
           this.$store.dispatch("createToast", getErrorToast(error));

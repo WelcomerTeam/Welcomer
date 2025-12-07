@@ -721,9 +721,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 				return
 			}
 
-			ctx.JSON(http.StatusOK, BaseResponse{
-				Ok: true,
-			})
+			getGuildSettingsWelcomerBuilder(ctx)
 		})
 	})
 }
