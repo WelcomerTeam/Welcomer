@@ -63,8 +63,8 @@ type CustomWelcomerImageLayerTypography struct {
 	FontFamily          string              `json:"font_family"`
 	FontWeight          string              `json:"font_weight"`
 	FontSize            int                 `json:"font_size"`
-	LineHeight          int                 `json:"line_height"`
-	LetterSpacing       int                 `json:"letter_spacing"`
+	LineHeight          float64             `json:"line_height"`
+	LetterSpacing       float64             `json:"letter_spacing"`
 	HorizontalAlignment HorizontalAlignment `json:"horizontal_alignment"`
 	VerticalAlignment   VerticalAlignment   `json:"vertical_alignment"`
 }

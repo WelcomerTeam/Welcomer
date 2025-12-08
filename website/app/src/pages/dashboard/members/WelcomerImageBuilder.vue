@@ -203,7 +203,7 @@
               </div>
             </Listbox>
             <div class="mt-2">
-              <InputCalculator type="number" min="0" :max="Math.min(image_config.dimensions[0]/2, image_config.dimensions[1]/2)" v-model="image_config.stroke.width">
+              <InputCalculator type="number" min="0" :max="Math.min(32, Math.min(image_config.dimensions[0]/2, image_config.dimensions[1]/2))" v-model="image_config.stroke.width">
                 Width
               </InputCalculator>
             </div>
@@ -258,19 +258,19 @@
             <span class="font-semibold text-sm mb-2 block">Appearance</span>
             <span class="block text-neutral-500 text-xs font-medium">Border Radius</span>
             <div class="grid grid-cols-2 gap-2 mt-1">
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
                 v-model="image_config.layers[selectedObject].border_radius[0]">
                 Top Left
               </InputCalculator>
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
                 v-model="image_config.layers[selectedObject].border_radius[1]">
                 Top Right
               </InputCalculator>
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
                 v-model="image_config.layers[selectedObject].border_radius[3]">
                 Bottom Left
               </InputCalculator>
-              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100"
+              <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
                 v-model="image_config.layers[selectedObject].border_radius[2]">
                 Bottom Right
               </InputCalculator>
@@ -445,7 +445,7 @@
               </div>
             </Listbox>
             <div class="mt-2">
-              <InputCalculator type="number" min="0" v-model="image_config.layers[selectedObject].stroke.width">
+              <InputCalculator type="number" min="0" max="32" v-model="image_config.layers[selectedObject].stroke.width">
               </InputCalculator>
             </div>
           </div>
@@ -827,7 +827,7 @@ export default {
 
     window.addEventListener('keydown', (e) => {
       // do nothing if anything is focused
-      if (document.activeElement && document.activeElement.tagName == "input") return;
+      if (document.activeElement && (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA")) return;
 
       if (this.selectedObject == -1) {
         let incr = e.shiftKey ? 16 : 4;
@@ -852,6 +852,12 @@ export default {
           case "ArrowRight": obj.position[0] += incr; break;
           case "ArrowUp": obj.position[1] -= incr; break;
           case "ArrowDown": obj.position[1] += incr; break;
+          case "Delete":
+          case "Backspace": {
+            this.image_config.layers.splice(this.selectedObject, 1);
+            this.selectedObject = -1;
+            break;
+          }
         }
       }
     });
@@ -1029,7 +1035,7 @@ export default {
         rotation: 0,
         inverted_x: false,
         inverted_y: false,
-        border_radius: [0, 0, 0, 0],
+        border_radius: ["0", "0", "0", "0"],
         fill: this.selectedAction != 2 ? "#ffffff" : "#ffffff00", // transparent for images
         stroke: {
           color: "#ffffff00",
@@ -1102,8 +1108,11 @@ export default {
           this.isDataError = false;
 
           this.image_config = this.parseDict(config.custom_builder_data);
-          this.preemptivelyLoadFonts();
-          this.fitCanvas();
+
+          this.$nextTick(() => {
+            this.preemptivelyLoadFonts();
+            this.fitCanvas();
+          });
         },
         (error) => {
           this.$store.dispatch("createToast", getErrorToast(error));
@@ -1135,8 +1144,11 @@ export default {
           this.$store.dispatch("createToast", getSuccessToast());
 
           this.image_config = this.parseDict(config.custom_builder_data);
-          this.preemptivelyLoadFonts();
-          this.fitCanvas();
+
+          this.$nextTick(() => {
+            this.preemptivelyLoadFonts();
+            this.fitCanvas();
+          });
 
           this.files = [];
           
@@ -1222,7 +1234,7 @@ export default {
 
       styles.backgroundColor = (obj.type != CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "transparent")
       styles.color = (obj.type == CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "inherit")
-      styles.border = (obj.stroke?.width > 0 ? obj.stroke.width + "px solid " + this.getFillAsCSS(obj.stroke.color) : "none")
+
 
       if (obj.type == CustomWelcomerImageLayerTypeText) {
         let font = this.fonts[obj.typography?.font_family];
@@ -1243,14 +1255,33 @@ export default {
         styles.fontSize = (obj.typography?.font_size && obj.typography.font_size != 0 ? obj.typography.font_size + "px" : "auto")
         styles.lineHeight = (obj.typography?.line_height && obj.typography.line_height != 0 ? obj.typography.line_height + "em" : "normal")
         styles.letterSpacing = (obj.typography?.letter_spacing && obj.typography.letter_spacing != 0 ? obj.typography.letter_spacing + "px" : "normal")
+        // styles["-webkit-text-stroke"] = (obj.stroke?.width > 0 ? obj.stroke.width + "px " + this.getFillAsCSS(obj.stroke.color) : "none")
+        styles.textShadow = (obj.stroke?.width > 0 ? this.generateTextShadow(obj.stroke.width, this.getFillAsCSS(obj.stroke.color)) : "none")
 
         styles.display = "flex"
         styles.justifyContent = this.normalizeHorizontalAlignment(obj.typography?.horizontal_alignment)
         styles.alignItems = this.normalizeVerticalAlignment(obj.typography?.vertical_alignment)
         styles.whiteSpace = "pre-wrap"
+      } else {
+        styles.border = (obj.stroke?.width > 0 ? obj.stroke.width + "px solid " + this.getFillAsCSS(obj.stroke.color) : "none")
       }
 
       return styles;
+    },
+
+    generateTextShadow(strokeWidth, strokeColor) {
+      // approximate text stroke using multiple text shadows
+      let shadows = [];
+      let p = strokeWidth * strokeWidth;
+      for (let dx = -strokeWidth; dx <= strokeWidth; dx++) {
+        for (let dy = -strokeWidth; dy <= strokeWidth; dy++) {
+          // round out stroke
+          if (dx*dx+dy*dy <= p) {
+            shadows.push(`${dx}px ${dy}px 0 ${strokeColor}`);
+          }
+        }
+      }
+      return shadows.join(", ");
     },
 
     onLayerClick(index) {

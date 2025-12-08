@@ -48,6 +48,10 @@ export default {
         step: {
             type: Number,
             default: 1
+        },
+        forceStringOutput: {
+            type: Boolean,
+            default: false
         }
     },
 
@@ -106,6 +110,10 @@ export default {
                 if (this.max !== null) {
                     value = Math.min(this.max, value);
                 }
+            }
+
+            if (this.forceStringOutput) {
+                value = String(value);
             }
 
             this.$emit('update:modelValue', value);
