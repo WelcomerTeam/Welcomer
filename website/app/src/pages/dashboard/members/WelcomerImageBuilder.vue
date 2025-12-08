@@ -3,10 +3,7 @@
 - canvas controls
   - image upload
 
-- palette for selecting imge, text, shapes
 - drag layers (keybinds?)
-- saving
-  - change detection
 -->
 <template>
   <div class="builder-container">
@@ -30,6 +27,8 @@
               <font-awesome-icon icon="mouse-pointer" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Select</span>
             </button>
+          </div>
+          <div class="p-2 gap-2 flex flex-row h-full">
             <button @click="selectedAction = 1" :class="[selectedAction == 1 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="text" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Text</span>
@@ -47,9 +46,9 @@
               <span class="sr-only">Circle</span>
             </button>
           </div>
-          <div class="p-2 gap-2 flex flex-row h-full">
+          <!-- <div class="p-2 gap-2 flex flex-row h-full">
             <button @click="preview = !preview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']"></button>
-          </div>
+          </div> -->
         </div>
         <div class="m-4 flex gap-2 z-50 absolute">
           <button
