@@ -147,20 +147,20 @@ func (q *Queries) GetWelcomerBuilderArtifactsByGuildId(ctx context.Context, guil
 	return items, nil
 }
 
-const RemoveWelcomerArtifactsByReference = `-- name: RemoveWelcomerArtifactsByReference :execrows
+const RemoveWelcomerArtifact = `-- name: RemoveWelcomerArtifact :execrows
 DELETE FROM welcomer_builder_artifacts
 WHERE
-    reference = ANY($2::string[])
-    AND guild_id = $1
+    reference = $1
+    AND guild_id = $2
 `
 
-type RemoveWelcomerArtifactsByReferenceParams struct {
-	GuildID int64    `json:"guild_id"`
-	Refs    []string `json:"refs"`
+type RemoveWelcomerArtifactParams struct {
+	Reference string `json:"reference"`
+	GuildID   int64  `json:"guild_id"`
 }
 
-func (q *Queries) RemoveWelcomerArtifactsByReference(ctx context.Context, arg RemoveWelcomerArtifactsByReferenceParams) (int64, error) {
-	result, err := q.db.Exec(ctx, RemoveWelcomerArtifactsByReference, arg.GuildID, arg.Refs)
+func (q *Queries) RemoveWelcomerArtifact(ctx context.Context, arg RemoveWelcomerArtifactParams) (int64, error) {
+	result, err := q.db.Exec(ctx, RemoveWelcomerArtifact, arg.Reference, arg.GuildID)
 	if err != nil {
 		return 0, err
 	}

@@ -481,38 +481,11 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			partial := &GuildSettingsWelcomerCustomBuilder{}
 
-			files := make(map[string]*multipart.FileHeader)
-
-			var err error
-
-			switch ctx.ContentType() {
-			case gin.MIMEMultipartPOSTForm:
-				multipart, err := ctx.MultipartForm()
-				if err == nil {
-					for i, k := range multipart.File {
-						if ok, reference := isRef(i); ok {
-							files[reference] = k[0]
-						}
-					}
-
-					jsonValue := multipart.Value["json"][0]
-
-					err = json.Unmarshal(gotils_strconv.S2B(jsonValue), &partial)
-					if err != nil {
-						ctx.JSON(http.StatusBadRequest, BaseResponse{
-							Ok:    false,
-							Error: err.Error(),
-						})
-
-						return
-					}
-				}
-			case gin.MIMEJSON:
-				err = ctx.BindJSON(partial)
-			default:
-				ctx.JSON(http.StatusNotAcceptable, BaseResponse{
+			err := ctx.BindJSON(partial)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
 					Ok:    false,
-					Error: ErrInvalidContentType.Error(),
+					Error: err.Error(),
 				})
 
 				return
@@ -573,126 +546,14 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 
 			// if there are removed refs, remove them now.
 			if len(removedRefs) > 0 {
-				_, err = welcomer.Queries.RemoveWelcomerArtifactsByReference(ctx, database.RemoveWelcomerArtifactsByReferenceParams{
-					GuildID: int64(guildID),
-					Refs:    removedRefs,
-				})
-				if err != nil {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to remove welcomer builder artifacts")
-
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
+				for _, ref := range removedRefs {
+					_, err = welcomer.Queries.RemoveWelcomerArtifact(ctx, database.RemoveWelcomerArtifactParams{
+						GuildID:   int64(guildID),
+						Reference: ref,
 					})
-
-					return
-				}
-			}
-
-			for ref, fileHeader := range files {
-				if !slices.Contains(imageRefs, ref) {
-					welcomer.Logger.Info().
-						Int64("guild_id", int64(tryGetGuildID(ctx))).
-						Str("ref", ref).
-						Msg("Skipping upload of welcomer builder artifact as reference not found in custom builder data")
-
-					continue
-				}
-
-				fileBytes, multipartFile, err := getBufferFromFileHeader(fileHeader)
-				if err != nil {
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
-
-					return
-				}
-
-				defer multipartFile.Close()
-
-				mimeType := http.DetectContentType(fileBytes.Bytes())
-
-				switch mimeType {
-				case MIMEGIF, MIMEPNG, MIMEJPEG:
-					// Valid file types for builder artifacts.
-
-					// Validate file and get size
-					img, _, err := image.Decode(fileBytes)
 					if err != nil {
-						welcomer.Logger.Info().Err(err).Msg("Failed to decode image")
-
-						ctx.JSON(http.StatusBadRequest, BaseResponse{
-							Ok:    false,
-							Error: ErrFileNotSupported.Error(),
-						})
-
-						return
+						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to remove welcomer builder artifacts")
 					}
-
-					_, _ = multipartFile.Seek(0, 0)
-
-					// Validate image resolution
-					imageSize := img.Bounds().Size()
-					if (imageSize.X * imageSize.Y) > MaxFileResolution {
-						welcomer.Logger.Info().
-							Int("width", imageSize.X).Int("height", imageSize.Y).
-							Int("total", (imageSize.X*imageSize.Y)).Int("max", MaxFileResolution).
-							Msg("Rejected image due to resolution")
-
-						ctx.JSON(http.StatusBadRequest, BaseResponse{
-							Ok:    false,
-							Error: ErrFileSizeTooLarge.Error(),
-						})
-
-						return
-					}
-
-					buf := bytes.NewBuffer(nil)
-
-					err = png.Encode(buf, img)
-					if err != nil {
-						welcomer.Logger.Info().Err(err).Msg("Failed to encode image to png")
-
-						ctx.JSON(http.StatusInternalServerError, BaseResponse{
-							Ok:    false,
-							Error: ErrConversionFailed.Error(),
-						})
-
-						return
-					}
-
-				default:
-					welcomer.Logger.Info().
-						Int64("guild_id", int64(tryGetGuildID(ctx))).
-						Int64("filesize", fileHeader.Size).
-						Str("mimetype", mimeType).
-						Str("ref", ref).
-						Msg("Rejected welcomer builder artifact")
-
-					ctx.JSON(http.StatusBadRequest, BaseResponse{
-						Ok:    false,
-						Error: ErrFileNotSupported.Error(),
-					})
-
-					return
-				}
-
-				_, err = welcomer.Queries.CreateWelcomerBuilderArtifacts(ctx, database.CreateWelcomerBuilderArtifactsParams{
-					ArtifactUuid: uuid.Must(gen.NewV7()),
-					GuildID:      int64(tryGetGuildID(ctx)),
-					UserID:       int64(tryGetUser(ctx).ID),
-					CreatedAt:    time.Now(),
-					ImageType:    welcomer.ImageFileTypeImagePng.String(),
-					Data:         fileBytes.Bytes(),
-					Reference:    ref,
-				})
-				if err != nil {
-					welcomer.Logger.Warn().Err(err).Str("ref", ref).Msg("Failed to create welcomer builder artifact")
-
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
-
-					return
 				}
 			}
 
@@ -722,6 +583,125 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			}
 
 			getGuildSettingsWelcomerBuilder(ctx)
+		})
+	})
+}
+
+// Route POST /api/guild/:guildID/welcomer/artifact.
+func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		requireGuildElevation(ctx, func(ctx *gin.Context) {
+
+			fileValue, err := ctx.FormFile("file")
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
+					Ok:    false,
+					Error: err.Error(),
+				})
+
+				return
+			}
+
+			fileBytes, multipartFile, err := getBufferFromFileHeader(fileValue)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return
+			}
+
+			mimeType := http.DetectContentType(fileBytes.Bytes())
+
+			buf := bytes.NewBuffer(nil)
+
+			switch mimeType {
+			case MIMEGIF, MIMEPNG, MIMEJPEG:
+				// Valid file types for builder artifacts.
+
+				// Validate file and get size
+				img, _, err := image.Decode(fileBytes)
+				if err != nil {
+					welcomer.Logger.Info().Err(err).Msg("Failed to decode image")
+
+					ctx.JSON(http.StatusBadRequest, BaseResponse{
+						Ok:    false,
+						Error: ErrFileNotSupported.Error(),
+					})
+
+					return
+				}
+
+				_, _ = multipartFile.Seek(0, 0)
+
+				// Validate image resolution
+				imageSize := img.Bounds().Size()
+				if (imageSize.X * imageSize.Y) > MaxFileResolution {
+					welcomer.Logger.Info().
+						Int("width", imageSize.X).Int("height", imageSize.Y).
+						Int("total", (imageSize.X*imageSize.Y)).Int("max", MaxFileResolution).
+						Msg("Rejected image due to resolution")
+
+					ctx.JSON(http.StatusBadRequest, BaseResponse{
+						Ok:    false,
+						Error: ErrFileSizeTooLarge.Error(),
+					})
+
+					return
+				}
+
+				err = png.Encode(buf, img)
+				if err != nil {
+					welcomer.Logger.Info().Err(err).Msg("Failed to encode image to png")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok:    false,
+						Error: ErrConversionFailed.Error(),
+					})
+
+					return
+				}
+
+			default:
+				welcomer.Logger.Info().
+					Int64("guild_id", int64(tryGetGuildID(ctx))).
+					Int64("filesize", fileValue.Size).
+					Str("mimetype", mimeType).
+					Msg("Rejected welcomer builder artifact")
+
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
+					Ok:    false,
+					Error: ErrFileNotSupported.Error(),
+				})
+
+				return
+			}
+
+			ref := uuid.Must(gen.NewV7())
+
+			_, err = welcomer.Queries.CreateWelcomerBuilderArtifacts(ctx, database.CreateWelcomerBuilderArtifactsParams{
+				ArtifactUuid: ref,
+				GuildID:      int64(tryGetGuildID(ctx)),
+				UserID:       int64(tryGetUser(ctx).ID),
+				CreatedAt:    time.Now(),
+				ImageType:    welcomer.ImageFileTypeImagePng.String(),
+				Data:         buf.Bytes(),
+				Reference:    ref.String(),
+			})
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Msg("Failed to create welcomer builder artifact")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok: false,
+				})
+
+				return
+			}
+
+			ctx.JSON(http.StatusOK, BaseResponse{
+				Ok:   true,
+				Data: ref.String(),
+			})
 		})
 	})
 }
@@ -995,6 +975,8 @@ func registerGuildSettingsWelcomerRoutes(g *gin.Engine) {
 	g.GET("/api/guild/:guildID/welcomer/builder", getGuildSettingsWelcomerBuilder)
 	g.POST("/api/guild/:guildID/welcomer/builder", setGuildSettingsWelcomerBuilder)
 
+	g.GET("/api/guild/:guildID/welcomer/artifact/:key", getGuildWelcomerArtifact)
+	g.POST("/api/guild/:guildID/welcomer/artifact", postGuildSettingsWelcomerBuilderArtifact)
+
 	g.GET("/api/welcomer/preview/:key", getGuildWelcomerPreview)
-	g.GET("/api/welcomer/artifact/:key", getGuildWelcomerArtifact)
 }

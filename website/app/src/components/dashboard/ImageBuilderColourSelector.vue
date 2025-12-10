@@ -1,67 +1,5 @@
 <template>
-  <!-- <Popover
-    as="div"
-    v-slot="{ open }"
-    class="relative"
-    :disabled="$props.disabled"
-  > -->
   <Popover as="div" class="relative" :disabled="$props.disabled">
-    <!-- <div
-      :class="[
-        $props.invalid ? 'ring-red-500 border-red-500' : '',
-        open ? 'rounded-b-none' : '',
-        'border border-gray-300 dark:border-secondary-light p-4 rounded-md flex shadow-sm',
-      ]"
-    >
-      <discord-embed
-        class="flex-1"
-        :embeds="displayEmbed.embeds"
-        :content="displayEmbed.content"
-        :isLight="true"
-        :isBot="true"
-      />
-
-      <div class="flex items-end">
-        <div class="relative">
-          <PopoverButton
-            :class="[
-              $props.disabled
-                ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
-                : 'bg-white dark:bg-secondary',
-              'relative py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
-            ]"
-            :disabled="$props.disabled"
-          >
-            <div class="">
-              <font-awesome-icon
-                icon="pen-to-square"
-                class="w-5 h-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </div>
-            <span
-              class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
-            >
-              <ChevronDownIcon
-                :class="[
-                  open ? 'transform rotate-180' : '',
-                  'w-5 h-5 text-gray-400',
-                ]"
-                aria-hidden="true"
-              />
-            </span>
-          </PopoverButton>
-        </div>
-      </div>
-    </div> -->
-    <!-- <transition
-      leave-active-class="transition duration-100 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <PopoverPanel
-        class="block w-full overflow-auto text-base bg-white dark:bg-secondary rounded-md shadow-sm sm:text-sm rounded-t-none border-t-0"
-      > -->
     <div v-if="$props.isLoading" class="flex py-5 w-full justify-center">
       <LoadingIcon />
     </div>
@@ -93,7 +31,7 @@
               <div class="text-xs font-bold uppercase my-4 text-gray-500 dark:text-gray-100">
                 {{ category.name }}
               </div>
-              <div class="grid grid-cols-2 gap-2">
+              <div class="grid grid-cols-1 gap-2">
                 <button as="template" v-for="image in category.images" :key="image" @click="updateValue(image.name)">
                   <img :title="image.name" v-lazy="{
                     src: `/assets/backgrounds/${image.name}.webp`,
@@ -116,8 +54,8 @@
               ">
               <input id="file-upload" name="file-upload" type="file" accept="image/*"
                 class="absolute top-0 left-0 w-full h-full opacity-0" @change="onFileUpdate" />
-              <div class="space-y-1 text-center" v-if="$props.files.length == 0">
-                <div class="flex text-sm text-gray-600 dark:text-gray-200">
+              <div class="space-y-1 text-center" v-if="!$props.modelValue.startsWith('ref:')">
+                <div class="flex text-sm text-gray-600 dark:text-gray-200 flex-col">
                   <label for="file-upload"
                     class="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
                     <span>Upload a file</span>
@@ -125,28 +63,19 @@
                   <p class="pl-1">or drag and drop</p>
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-100">
-                  a
-                  <span v-if="$store.getters.guildHasWelcomerPro"><span class="text-primary">GIF</span>, PNG or
-                    JPG</span>
-                  <span v-else>PNG or JPG</span>
-                  up to 20MB
+                  a PNG or JPG up to 20MB
                 </p>
               </div>
               <div class="space-y-1 text-center" v-else>
                 <div class="absolute top-2 right-2">
-                  <button @click="removeFiles">
+                  <button @click="removeFile">
                     <font-awesome-icon icon="xmark" />
                     <span class="sr-only">Remove uploaded file</span>
                   </button>
                 </div>
                 <div class="flex text-sm text-gray-600 dark:text-gray-200">
-                  <p>{{ $props.files[0].name }}</p>
+                  <p>Uploaded file</p>
                 </div>
-                <p :class="[
-                  $props.files[0].size > 20000000 ? 'text-red-500' : '',
-                ]">
-                  {{ formatBytes($props.files[0].size) }}MB
-                </p>
               </div>
             </div>
             <div v-else class="border-primary border-2 p-4 grid grid-cols-6 gap-4">
@@ -231,8 +160,7 @@
                 </Switch>
               </div>
             </div>
-            <Listbox as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" :disabled="$props.modelValue == solidColourPrefix + solidColourProfileBased
-              ">
+            <Listbox as="div" :modelValue="modelValue" @update:modelValue="updateValue($event)" :disabled="$props.modelValue == solidColourPrefix + solidColourProfileBased">
               <div class="mt-1">
                 <ListboxButton :class="[
                   $props.modelValue ==
@@ -266,8 +194,6 @@
         </div>
       </div>
     </div>
-    <!-- </PopoverPanel>
-    </transition> -->
   </Popover>
 </template>
 
@@ -298,13 +224,21 @@ import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { XIcon } from "@heroicons/vue/outline";
 
 import { ref } from "vue";
-import DiscordEmbed from "@/components/DiscordEmbed.vue";
 
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
+
 import parse from "parse-css-color";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+
 import backgrounds from "@/backgrounds.json";
+
+import {
+  getErrorToast,
+  getSuccessToast,
+} from "@/utilities";
 
 const tabs = [
   { name: "Welcomer", value: 1, enabled: true },
@@ -318,7 +252,7 @@ const customRoot = (id) => `/api/welcomer/preview/${id}`;
 
 const solidColourPrefix = "solid:";
 const unsplashPrefix = "unsplash:";
-const customPrefix = "custom:";
+const customPrefix = "ref:";
 
 const solidColourProfileBased = "profile";
 
@@ -340,7 +274,6 @@ export default {
     Popover,
     PopoverButton,
     PopoverPanel,
-    DiscordEmbed,
     ColorPicker,
   },
 
@@ -405,6 +338,9 @@ export default {
       backgroundRoot,
       customRoot,
 
+      getSuccessToast,
+      getErrorToast,
+
       backgrounds,
     };
   },
@@ -440,56 +376,6 @@ export default {
       );
     },
 
-    removeFiles() {
-      this.updateValue("default");
-      this.updateFiles([]);
-    },
-
-    onFileUpdate(event) {
-      if (event.target.files.length > 0) {
-        if (event.target.files[0].size > 20000000) {
-          this.$store.dispatch("createToast", {
-            title: "Your file is too large. It must be 20MB or less!",
-            icon: "xmark",
-            class: "text-red-500 bg-red-100",
-          });
-
-          return;
-        } else {
-          this.$store.dispatch("createToast", {
-            title:
-              "Your custom background will be uploaded when changes are saved.",
-            icon: "info",
-            class: "text-blue-500 bg-blue-100",
-          });
-        }
-      }
-
-      this.updateValue("custom:upload");
-      this.updateFiles(event.target.files);
-    },
-
-    SetRGBIntToRGB(color) {
-      var { r, g, b, a } = color.rgba;
-      this.updateValue(
-        "#" +
-        ((1 << 24) + (r << 16) + (g << 8) + b)
-          .toString(16)
-          .slice(1)
-          .toUpperCase() +
-        (a !== undefined && a < 1 ? Math.round(a * 255).toString(16).padStart(2, "0").toUpperCase() : "")
-      );
-    },
-
-    trimPrefix(value) {
-      return value.replace(solidColourPrefix, "");
-    },
-
-    formatBytes(size) {
-      var mb = size / 1024000;
-      return mb.toFixed(2);
-    },
-
     parseCSSValue(value, defaultValue) {
       var result;
 
@@ -516,6 +402,59 @@ export default {
 
         return `rgba(${r}, ${g}, ${b}, ${a})`;
       }
+    },
+
+    removeFile() {
+      this.updateValue("default");
+    },
+
+    onFileUpdate(event) {
+      if (event.target.files.length > 0) {
+        if (event.target.files[0].size > 20000000) {
+          this.$store.dispatch("createToast", {
+            title: "Your file is too large. It must be 20MB or less!",
+            icon: "xmark",
+            class: "text-red-500 bg-red-100",
+          });
+
+          return;
+        }
+      }
+
+      dashboardAPI.doPost(
+        endpoints.EndpointGuildWelcomerBuilderArtifact(this.$store.getters.getSelectedGuildID),
+        null,
+        [event.target.files[0]],
+        ({ config }) => {
+          this.$store.dispatch("createToast", getSuccessToast());
+          this.updateValue("ref:" + config);
+        },
+        (error) => {
+          this.$store.dispatch("createToast", getErrorToast(error));
+        }
+      );
+
+    },
+
+    SetRGBIntToRGB(color) {
+      var { r, g, b, a } = color.rgba;
+      this.updateValue(
+        "#" +
+        ((1 << 24) + (r << 16) + (g << 8) + b)
+          .toString(16)
+          .slice(1)
+          .toUpperCase() +
+        (a !== undefined && a < 1 ? Math.round(a * 255).toString(16).padStart(2, "0").toUpperCase() : "")
+      );
+    },
+
+    trimPrefix(value) {
+      return value.replace(solidColourPrefix, "");
+    },
+
+    formatBytes(size) {
+      var mb = size / 1024000;
+      return mb.toFixed(2);
     },
   },
 };

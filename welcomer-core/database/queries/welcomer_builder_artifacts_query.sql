@@ -4,11 +4,11 @@ INSERT INTO welcomer_builder_artifacts (artifact_uuid, guild_id, user_id, create
 RETURNING
     *;
 
--- name: RemoveWelcomerArtifactsByReference :execrows
+-- name: RemoveWelcomerArtifact :execrows
 DELETE FROM welcomer_builder_artifacts
 WHERE
-    reference = ANY(@refs::string[])
-    AND guild_id = $1;
+    reference = $1
+    AND guild_id = $2;
 
 -- name: GetMinimalWelcomerBuilderArtifactByGuildId :many
 SELECT

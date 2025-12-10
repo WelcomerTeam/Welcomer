@@ -1,7 +1,6 @@
 <!-- TODO:
 
-- canvas controls
-  - image upload
+- drag for layers
 - enhancement: snap for vertical or horizontal alignments
 - enhancement: 1:1 aspect ratio when drawing shapes
 -->
@@ -144,7 +143,7 @@
           </div>
 
           <div class="p-4">
-            <span class="font-semibold text-sm mb-2 block">Fill</span>
+            <span class="font-semibold text-sm mb-2 block">Background</span>
             <ImageBuilderColourSelector v-model="image_config.fill" />
           </div>
           <div class="p-4">
@@ -360,7 +359,37 @@
               </Listbox>
             </div>
           </div>
-          <div class="p-4">
+          <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
+            <span class="font-semibold text-sm mb-2 block">Colour</span>
+            <Listbox as="div" class="flex-1">
+              <div class="relative">
+                <ListboxButton
+                  class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 dark:bg-secondary dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <font-awesome-icon icon="square" class="inline w-4 h-4 mr-1 border-primary" :style="{
+                      color: `${image_config.layers[selectedObject].fill}`,
+                    }" />
+                  </div>
+                  <span class="block pl-10 truncate">{{
+                    image_config.layers[selectedObject].fill.toUpperCase()
+                    }}</span>
+                  <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  </span>
+                </ListboxButton>
+
+                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                  leave-to-class="opacity-0">
+                  <ListboxOptions class="absolute z-10 mt-1">
+                    <ColorPicker theme="dark" :color="image_config.layers[selectedObject].fill || '#000000'"
+                      @changeColor="image_config.layers[selectedObject].fill = rgbaToHex($event)"
+                      :sucker-hide="true" />
+                  </ListboxOptions>
+                </transition>
+              </div>
+            </Listbox>
+          </div>
+          <div class="p-4" v-else>
             <span class="font-semibold text-sm mb-2 block">Fill</span>
             <ImageBuilderColourSelector v-model="image_config.layers[selectedObject].fill" />
           </div>
@@ -720,7 +749,6 @@ export default {
     let isChangeInProgress = ref(false);
 
     let config = ref({});
-    let files = ref([]);
 
     let image_config = ref({});
 
@@ -747,7 +775,6 @@ export default {
 
     return {
       config,
-      files,
       image_config,
 
       isDataFetched,
@@ -1113,7 +1140,7 @@ export default {
       dashboardAPI.doPost(
         endpoints.EndpointGuildWelcomerBuilder(this.$store.getters.getSelectedGuildID),
         this.config,
-        this.files,
+        null,
         ({ config }) => {
           this.$store.dispatch("createToast", getSuccessToast());
 
@@ -1123,8 +1150,6 @@ export default {
             this.preemptivelyLoadFonts();
             this.fitCanvas();
           });
-
-          this.files = [];
           
           this.$nextTick(() => {
             this.unsavedChanges = false;
@@ -1141,11 +1166,6 @@ export default {
 
     onValueUpdate() {
       this.unsavedChanges = true;
-    },
-
-    onFilesUpdate(event) {
-      this.files = event;
-      this.onValueUpdate();
     },
 
     goBack() {
@@ -1418,6 +1438,13 @@ export default {
 
       if (value == "solid:profile") {
         return "linear-gradient(to right, #ffffff, #000000)";
+      }
+
+      if (value.startsWith("ref:")) {
+        let refKey = value.slice(4);
+        let url = endpoints.EndpointGuildWelcomerViewBuilderArtifact(this.$store.getters.getSelectedGuildID, refKey);
+
+        return "url('" + url + "') center / cover no-repeat";
       }
 
       return "url('https://beta.welcomer.gg/assets/backgrounds/" + encodeURIComponent(value) + ".webp') center / cover no-repeat";
