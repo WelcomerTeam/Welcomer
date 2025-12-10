@@ -2,8 +2,8 @@
 
 - canvas controls
   - image upload
-
-- drag layers (keybinds?)
+- enhancement: snap for vertical or horizontal alignments
+- enhancement: 1:1 aspect ratio when drawing shapes
 -->
 <template>
   <div class="builder-container">
@@ -79,7 +79,7 @@
               <div v-if="obj.type == CustomWelcomerImageLayerTypeText" :style="getObjectStyle(obj, index)"
                 class="pointer-events-none"><span v-html="marked(obj.value, true)"></span></div>
               <img v-else-if="obj.type == CustomWelcomerImageLayerTypeImage" :style="getObjectStyle(obj, index)"
-                class="pointer-events-none" :src="obj.value" />
+                class="pointer-events-none" :src="formatText(obj.value)" />
               <div
                 v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeRectangle || obj.type == CustomWelcomerImageLayerTypeShapeCircle"
                 :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
@@ -335,24 +335,24 @@
                 <div class="relative">
                   <ListboxButton
                     class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                    {{ image_config.layers[selectedObject].typography.horizontal_alignment || 'Left' }}
+                    {{ image_config.layers[selectedObject].typography.horizontal_alignment || 'left' }}
                   </ListboxButton>
                   <ListboxOptions
                     class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ListboxOption value="left" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        Left</li>
+                        left</li>
                     </ListboxOption>
                     <ListboxOption value="center" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        Center</li>
+                        center</li>
                     </ListboxOption>
                     <ListboxOption value="right" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        Right</li>
+                        right</li>
                     </ListboxOption>
                   </ListboxOptions>
                 </div>
@@ -361,24 +361,24 @@
                 <div class="relative">
                   <ListboxButton
                     class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                    {{ image_config.layers[selectedObject].typography.vertical_alignment || 'Center' }}
+                    {{ image_config.layers[selectedObject].typography.vertical_alignment || 'center' }}
                   </ListboxButton>
                   <ListboxOptions
                     class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ListboxOption value="start" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        Top</li>
+                        start</li>
                     </ListboxOption>
                     <ListboxOption value="center" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        Center</li>
+                        center</li>
                     </ListboxOption>
                     <ListboxOption value="end" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        Bottom</li>
+                        end</li>
                     </ListboxOption>
                   </ListboxOptions>
                 </div>
@@ -514,9 +514,8 @@ import {
 import {
   getErrorToast,
   getSuccessToast,
-  getValidationToast,
-  navigateToErrors,
   marked,
+  formatText,
 } from "@/utilities";
 
 const fonts = {
@@ -857,6 +856,26 @@ export default {
             this.selectedObject = -1;
             break;
           }
+          case "PageUp": {
+            // Move layer up
+            if (this.selectedObject > 0) {
+              const temp = this.image_config.layers[this.selectedObject];
+              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject - 1];
+              this.image_config.layers[this.selectedObject - 1] = temp;
+              this.selectedObject--;
+            }
+            break;
+          }
+          case "PageDown": {
+            // Move layer down
+            if (this.selectedObject < this.image_config.layers.length - 1) {
+              const temp = this.image_config.layers[this.selectedObject];
+              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject + 1];
+              this.image_config.layers[this.selectedObject + 1] = temp;
+              this.selectedObject++;
+            }
+            break;
+          }
         }
       }
     });
@@ -1081,6 +1100,10 @@ export default {
 
     marked(text, embed) {
       return marked(text, embed);
+    },
+
+    formatText(text) {
+      return formatText(text);
     },
 
     rgbaToHex(color) {
