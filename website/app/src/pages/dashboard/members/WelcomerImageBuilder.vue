@@ -1420,7 +1420,7 @@ export default {
         return "linear-gradient(to right, #ffffff, #000000)";
       }
 
-      return "url('https://beta.welcomer.gg/assets/backgrounds/" + value + ".webp') center / cover no-repeat";
+      return "url('https://beta.welcomer.gg/assets/backgrounds/" + encodeURIComponent(value) + ".webp') center / cover no-repeat";
     },
 
     simpleSeededRandom(seedText) {
