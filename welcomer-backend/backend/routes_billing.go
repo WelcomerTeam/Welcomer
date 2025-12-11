@@ -249,17 +249,25 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 		return
 	}
 
+	var name string
+
+	if user.GlobalName != "" {
+		name = user.GlobalName
+	} else {
+		name = user.Username
+	}
+
 	subscriptionBase := paypal.SubscriptionBase{
 		PlanID:   paypalSubscriptionID,
 		Quantity: "1",
 		Subscriber: &paypal.Subscriber{
 			PayerID: user.ID.String(),
 			Name: paypal.CreateOrderPayerName{
-				GivenName: user.GlobalName,
+				GivenName: name,
 			},
 			ShippingAddress: &paypal.ShippingDetail{
 				Name: &paypal.Name{
-					FullName: user.GlobalName,
+					FullName: name,
 				},
 				Address: &paypal.ShippingDetailAddressPortable{
 					AddressLine1: "Unknown",
