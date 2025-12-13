@@ -1,6 +1,6 @@
 -- name: CreateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, trunc(random() * 10000)::int)
 RETURNING
     *;
 

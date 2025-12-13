@@ -68,6 +68,12 @@ type DiscordSubscriptions struct {
 	Consumed        bool          `json:"consumed"`
 }
 
+type GuildFeatures struct {
+	GuildID   int64     `json:"guild_id"`
+	CreatedAt time.Time `json:"created_at"`
+	Feature   string    `json:"feature"`
+}
+
 type GuildInvites struct {
 	InviteCode string    `json:"invite_code"`
 	GuildID    int64     `json:"guild_id"`
@@ -179,6 +185,7 @@ type Guilds struct {
 	SiteAllowInvites bool          `json:"site_allow_invites"`
 	MemberCount      int32         `json:"member_count"`
 	NumberLocale     sql.NullInt32 `json:"number_locale"`
+	BucketID         int16         `json:"bucket_id"`
 }
 
 type InteractionCommands struct {

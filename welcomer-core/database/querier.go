@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
 	CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
@@ -81,6 +82,7 @@ type Querier interface {
 	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
+	GetGuildFeatures(ctx context.Context, guildID int64) ([]string, error)
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
 	GetInteractionCommand(ctx context.Context, arg GetInteractionCommandParams) (*InteractionCommands, error)
@@ -113,9 +115,11 @@ type Querier interface {
 	GetWelcomerImagesByGuildId(ctx context.Context, guildID int64) ([]*WelcomerImages, error)
 	GetWelcomerImagesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerImages, error)
 	GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error)
+	HasGuildFeature(ctx context.Context, arg HasGuildFeatureParams) (int32, error)
 	IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error)
 	InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error)
+	RemoveGuildFeature(ctx context.Context, arg RemoveGuildFeatureParams) error
 	RemoveWelcomerArtifact(ctx context.Context, arg RemoveWelcomerArtifactParams) (int64, error)
 	SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error)
 	UpdateAutoRolesGuildSettings(ctx context.Context, arg UpdateAutoRolesGuildSettingsParams) (int64, error)
