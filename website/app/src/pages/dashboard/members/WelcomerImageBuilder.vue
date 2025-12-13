@@ -6,6 +6,47 @@
 -->
 <template>
   <div class="builder-container">
+    <Popup :open="showHelpDialog" @close="showHelpDialog = false">
+      <template v-slot:title>
+        Welcome to the Welcomer Image Builder Beta!
+      </template>
+
+      <p>This feature is currently in beta and may contain bugs or incomplete features. We appreciate your feedback to help us improve the experience. If you encounter any issues or have suggestions, please reach out to us via our <a href="/support" target="_blank" class="text-primary">support server</a>.</p>
+      <p>This experience is best used on a desktop with a mouse or trackpad. Some features may not work as expected on mobile devices.</p>
+      <p>To get started, select an action from the toolbar at the bottom of the canvas. You can add text, images, and shapes to your welcome image. Click on objects to select and customize them using the sidebar on the right.</p>
+
+      <p class="mt-4">Use the + and - keys to zoom in and out, and scroll using the mouse wheel or holding down middle-click.</p>
+      <p>When selecting a layer, you can move it by dragging, resize it using the handles, and rotate it using the rotation control. To remove the layer press Delete or Backspace and use Page Up and Page Down to change the layer order.</p>
+
+      <h2 class="mt-8 text-xl font-semibold leading-tight text-center">Lets Get Started!</h2>
+      <p class="text-center mb-4">Select a canvas size. You can change this later</p>
+
+      <div class="grid grid-cols-3 gap-2">
+        <button @click="setupCanvas(960, 540)" class="border border-secondary-light rounded p-4 hover:bg-secondary-light flex flex-col items-center">
+          <div class="w-16 h-11 flex items-center mb-2">
+            <div class="w-16 h-9 border border-neutral-500"></div>
+          </div>
+          <p>960 x 540</p>
+          <p class="text-neutral-500">(Discord Banner)</p>
+        </button>
+        <button @click="setupCanvas(1000, 300)" class="border border-secondary-light rounded p-4 hover:bg-secondary-light flex flex-col items-center">
+          <div class="w-16 h-11 flex items-center mb-2">
+            <div class="w-16 h-5 border border-neutral-500"></div>
+          </div>
+          <p>1000 x 300</p>
+          <p class="text-neutral-500">(Welcomer Default)</p>
+        </button>
+        <button @click="setupCanvas(750, 516)" class="border border-secondary-light rounded p-4 hover:bg-secondary-light flex flex-col items-center">
+          <div class="w-16 h-11 flex items-center mb-2">
+            <div class="w-16 h-11 border border-neutral-500"></div>
+          </div>
+          <p>750 x 516</p>
+          <p class="text-neutral-500">(Welcomer Vertical Default)</p>
+        </button>
+      </div>
+
+    </Popup>
+
     <div v-if="isDataError" class="w-full h-dvh flex items-center justify-center">
       <p>Failed to load builder</p>
       <button @click="fetchConfig" class="ml-2 px-3 py-1 bg-primary text-white rounded">
@@ -20,7 +61,7 @@
     </div>
     <div v-else class="builder-portal">
       <div class="builder-canvas">
-        <div class="bg-secondary-dark border border-secondary-light absolute bottom-12 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-50 flex flex-row divide-x divide-secondary-light">
+        <div class="bg-secondary-dark border border-secondary-light absolute bottom-12 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-20 flex flex-row divide-x divide-secondary-light">
           <div class="p-2 gap-2 flex flex-row h-full">
             <button @click="selectedAction = 0" :class="[selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="mouse-pointer" class="w-6 h-6 text-white" aria-hidden="true" />
@@ -49,12 +90,13 @@
             <button @click="preview = !preview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']"></button>
           </div> -->
         </div>
-        <div class="m-4 flex gap-2 z-50 absolute">
-          <button
-            class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer"
-            @click="fitCanvas">
+        
+        <div class="m-4 flex gap-2 z-20 absolute">
+          <button class="cursor-pointer" @click="showHelpDialog = true">
+            <font-awesome-icon icon="question-circle" class="w-8 h-8" />
+          </button>
+          <button class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer" @click="fitCanvas">
             {{ defaultX - x }}, {{ defaultY - y }}
-            {{ selectedObject > -1 ? 'object selected: ' + selectedObject : '' }}
           </button>
           <button
             class="border border-secondary-light shadow-md bg-secondary px-4 py-1 rounded-full w-fit cursor-pointer"
@@ -132,7 +174,7 @@
           <!-- canvas controls -->
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Layout</span>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2" v-if="image_config.dimensions">
               <InputCalculator :min="getMinimumWidth()" max="2000" type="number" v-model="image_config.dimensions[0]">
                 Width
               </InputCalculator>
@@ -175,8 +217,8 @@
                 </transition>
               </div>
             </Listbox>
-            <div class="mt-2">
-              <InputCalculator type="number" min="0" :max="Math.min(32, Math.min(image_config.dimensions[0]/2, image_config.dimensions[1]/2))" v-model="image_config.stroke.width">
+            <div class="mt-2" v-if="image_config.dimensions">
+              <InputCalculator type="number" min="0" :max="Math.min(32, Math.min((image_config.dimensions[0] || 2000)/2, image_config.dimensions[1]/2))" v-model="image_config.stroke.width">
                 Width
               </InputCalculator>
             </div>
@@ -309,24 +351,24 @@
                 <div class="relative">
                   <ListboxButton
                     class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                    {{ image_config.layers[selectedObject].typography.horizontal_alignment || 'left' }}
+                    {{ formatHorizontalAlignment(image_config.layers[selectedObject].typography.horizontal_alignment) || 'Left' }}
                   </ListboxButton>
                   <ListboxOptions
                     class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ListboxOption value="left" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        left</li>
+                        Left</li>
                     </ListboxOption>
                     <ListboxOption value="center" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        center</li>
+                        Center</li>
                     </ListboxOption>
                     <ListboxOption value="right" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        right</li>
+                        Right</li>
                     </ListboxOption>
                   </ListboxOptions>
                 </div>
@@ -335,24 +377,24 @@
                 <div class="relative">
                   <ListboxButton
                     class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                    {{ image_config.layers[selectedObject].typography.vertical_alignment || 'center' }}
+                    {{ formatVerticalAlignment(image_config.layers[selectedObject].typography.vertical_alignment) || 'Middle' }}
                   </ListboxButton>
                   <ListboxOptions
                     class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ListboxOption value="start" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        start</li>
+                        Top</li>
                     </ListboxOption>
                     <ListboxOption value="center" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        center</li>
+                        Middle</li>
                     </ListboxOption>
                     <ListboxOption value="end" v-slot="{ active }">
                       <li
                         :class="[active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50', 'cursor-default select-none relative py-2 pl-3 pr-9']">
-                        end</li>
+                        Bottom</li>
                     </ListboxOption>
                   </ListboxOptions>
                 </div>
@@ -480,6 +522,7 @@ import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
 
 import Toast from "@/components/dashboard/Toast.vue";
+import Popup from "@/components/Popup.vue";
 
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
@@ -702,6 +745,7 @@ export default {
     UnsavedChanges,
     LoadingIcon,
     Toast,
+    Popup,
     Listbox,
     ListboxButton,
     ListboxOption,
@@ -712,6 +756,11 @@ export default {
       store.commit("setSelectedGuild", to);
     },
     "image_config.stroke.width"(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.fitCanvas();
+      }
+    },
+    "image_config.dimensions"(newValue, oldValue) {
       if (newValue !== oldValue) {
         this.fitCanvas();
       }
@@ -761,6 +810,7 @@ export default {
     let defaultY = ref(0);
     let defaultZoom = ref(1.0);
 
+    let showHelpDialog = ref(false);
     let preview = ref(false);
 
     // 0: Select
@@ -785,17 +835,29 @@ export default {
       getErrorToast,
       x, y, zoom,
       defaultX, defaultY, defaultZoom,
-
+      showHelpDialog,
+      
       preview,
       fonts,
 
       selectedAction, selectedObject, hoveredObject, selectedGrab,
 
       CustomWelcomerImageLayerTypeText, CustomWelcomerImageLayerTypeImage, CustomWelcomerImageLayerTypeShapeRectangle, CustomWelcomerImageLayerTypeShapeCircle,
+
     }
   },
 
   mounted() {
+    // check if user is on a mobile device
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      this.$store.dispatch("createToast", {
+            title:
+              "This experience works best on a desktop device. Some features may be limited on mobile.",
+            icon: "info",
+            class: "text-blue-500 bg-blue-100",
+          });
+    }
+
     this.fetchConfig();
 
     window.addEventListener('resize', this.fitCanvas);
@@ -939,7 +1001,7 @@ export default {
         this.x += dx;
         this.y += dy;
       } else {
-        this.onGrabMove(dx, dy)
+        this.onGrabMove(dx, dy, e.shiftKey)
       }
     };
 
@@ -989,15 +1051,22 @@ export default {
 
         // Create temp layer on first move
         if (tempLayerIndex === -1) {
-          tempLayerIndex = this.createLayer(x, y, width, height);
+          tempLayerIndex = this.createLayer(this.selectedAction - 1, x, y, width, height);
         } else {
+
           // Update temp layer in real time
           const tempLayer = this.image_config.layers[tempLayerIndex];
           if (tempLayer) {
-          tempLayer.position[0] = x;
-          tempLayer.position[1] = y;
-          tempLayer.dimensions[0] = Math.max(10, width);
-          tempLayer.dimensions[1] = Math.max(10, height);
+            tempLayer.position[0] = x;
+            tempLayer.position[1] = y;
+            tempLayer.dimensions[0] = Math.max(10, width);
+
+            // If shift is held, maintain aspect ratio
+            if (moveEvent.shiftKey) {
+              tempLayer.dimensions[1] = tempLayer.dimensions[0];
+            } else {
+              tempLayer.dimensions[1] = Math.max(10, height);
+            }
           }
         }
       };
@@ -1013,7 +1082,7 @@ export default {
           let width = this.selectedAction == 1 ? 200 : 100;
           let height = this.selectedAction == 1 ? 32 : 100;
 
-          this.createLayer(x, y, width, height);
+          this.createLayer(this.selectedAction - 1, x, y, width, height);
         } else if (tempLayerIndex !== -1) {
           // Select the newly created layer
           this.selectedObject = tempLayerIndex;
@@ -1024,16 +1093,55 @@ export default {
       window.addEventListener('mouseup', onMouseUp);
     },
 
-    createLayer(x, y, width, height) {
+    setupCanvas(width, height) {
+      this.image_config.dimensions = [width, height];
+      this.image_config.fill = "solid:profile";
+
+      if (this.image_config.layers.length === 0) {
+        this.createLayer(CustomWelcomerImageLayerTypeImage,
+          32, (this.image_config.dimensions[1] - 200) / 2,
+          200, 200,
+        );
+        this.image_config.layers[0].value = "{{User.Avatar}}";
+        this.image_config.layers[0].fill = "#FFFFFFFF";
+        this.image_config.layers[0].stroke = { color: "#FFFFFFFF", width: 8 };
+        this.image_config.layers[0].border_radius = ["100%", "100%", "100%", "100%"];
+
+        this.createLayer(CustomWelcomerImageLayerTypeText,
+          264, 32,
+          (this.image_config.dimensions[0]) - 296, this.image_config.dimensions[1] - 64,
+        )
+        this.image_config.layers[0].value = `Welcome {{User.Name}} to {{Guild.Name}}
+you are the {{Ordinal(Guild.Members)}} member!`;
+        this.image_config.layers[0].typography.font_family = "Balsamiq Sans";
+        this.image_config.layers[0].typography.font_weight = "bold";
+        this.image_config.layers[0].typography.font_size = 32;
+        this.image_config.layers[0].typography.horizontal_alignment = "left";
+        this.image_config.layers[0].typography.vertical_alignment = "center";
+        this.image_config.layers[0].stroke = { color: "#000000FF", width: 3 };
+      }
+
+      this.selectedObject = -1; // reset selection
+
+
+      this.$nextTick(() => {
+        this.preemptivelyLoadFonts();
+        this.fitCanvas();
+      });
+      
+      this.showHelpDialog = false;
+    },
+
+    createLayer(action, x, y, width, height) {
       let newLayer = {
-        type: this.selectedAction - 1,
+        type: action,
         position: [x, y],
         dimensions: [Math.max(10, width), Math.max(10, height)],
         rotation: 0,
         inverted_x: false,
         inverted_y: false,
         border_radius: ["0", "0", "0", "0"],
-        fill: this.selectedAction != 2 ? "#ffffff" : "#ffffff00", // transparent for images
+        fill: action != CustomWelcomerImageLayerTypeImage ? "#ffffff" : "#ffffff00", // transparent for images
         stroke: {
           color: "#ffffff00",
           width: 0,
@@ -1063,17 +1171,24 @@ export default {
 
     getMinimumWidth() {
       let minWidth = 100;
+
+      if (!this.image_config.layers) return minWidth;
+
       for (let layer of this.image_config.layers) {
         minWidth = Math.max(minWidth, layer.position[0] + layer.dimensions[0]);
       }
+
       return minWidth;
     },
 
     getMinimumHeight() {
       let minHeight = 100;
+      if (!this.image_config.layers) return minHeight;
+
       for (let layer of this.image_config.layers) {
         minHeight = Math.max(minHeight, layer.position[1] + layer.dimensions[1]);
       }
+
       return minHeight;
     },
 
@@ -1108,7 +1223,12 @@ export default {
           this.isDataFetched = true;
           this.isDataError = false;
 
-          this.image_config = this.parseDict(config.custom_builder_data);
+          this.setImageData(config.custom_builder_data);
+
+          console.log(this.image_config?.dimensions);
+          this.showHelpDialog = this.image_config?.dimensions == undefined ||
+            this.image_config?.dimensions[0] == 0 ||
+            this.image_config?.dimensions[1] == 0 || this.image_config?.layers.length == 0;
 
           this.$nextTick(() => {
             this.preemptivelyLoadFonts();
@@ -1124,9 +1244,28 @@ export default {
       );
     },
 
-    parseDict(data) {
+    setImageData(data) {
       try {
-        return JSON.parse(data);
+        this.image_config = JSON.parse(data);
+
+        if (!this.image_config.fill) {
+          this.image_config.fill = "#ffffff";
+        }
+
+        if (!this.image_config.stroke) {
+          this.image_config.stroke = {
+            color: "#00000000",
+            width: 0,
+          };
+        }
+
+        if (!this.image_config.dimensions) {
+          this.image_config.dimensions = [0, 0];
+        }
+
+        if (!this.image_config.layers) {
+          this.image_config.layers = [];
+        }
       } catch {
         return {};
       }
@@ -1144,7 +1283,7 @@ export default {
         ({ config }) => {
           this.$store.dispatch("createToast", getSuccessToast());
 
-          this.image_config = this.parseDict(config.custom_builder_data);
+          this.setImageData(config.custom_builder_data);
 
           this.$nextTick(() => {
             this.preemptivelyLoadFonts();
@@ -1178,15 +1317,15 @@ export default {
     getCanvasStyle(x, y) {
       // this outputs as a style=""
 
-      let dimensions = this.image_config?.dimensions || [1000, 300];
+      let dimensions = this.image_config?.dimensions || [0, 0];
 
       return {
         left: "calc(" + x + "px)",
         top: "calc(50% + " + y + "px)",
         transform: "translateY(-50%) scale(" + this.zoom + ")",
         position: "absolute",
-        width: (dimensions[0] || 1000) + "px",
-        height: (dimensions[1] || 300) + "px",
+        width: (dimensions[0] || 0) + "px",
+        height: (dimensions[1] || 0) + "px",
         background: this.getFillAsCSS(this.image_config.fill || '#ffffff'),
         overflow: this.preview ? "hidden" : "visible",
         border: (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
@@ -1303,7 +1442,7 @@ export default {
       this.selectedGrab = -1;
     },
 
-    onGrabMove(x, y) {
+    onGrabMove(x, y, shiftKey) {
       if (this.selectedGrab == -1) return;
 
       let obj = this.image_config.layers[this.selectedObject];
@@ -1349,6 +1488,10 @@ export default {
       obj.position[1] = Math.round(obj.position[1]);
       obj.dimensions[0] = Math.round(obj.dimensions[0]);
       obj.dimensions[1] = Math.round(obj.dimensions[1]);
+
+      if (shiftKey) {
+        obj.dimensions[1] = obj.dimensions[0];
+      }
     },
 
     normalizeBorderRadius(value) {
@@ -1447,7 +1590,7 @@ export default {
         return "url('" + url + "') center / cover no-repeat";
       }
 
-      return "url('https://beta.welcomer.gg/assets/backgrounds/" + encodeURIComponent(value) + ".webp') center / cover no-repeat";
+      return "url('/assets/backgrounds/" + encodeURIComponent(value) + ".webp') center / cover no-repeat";
     },
 
     simpleSeededRandom(seedText) {
@@ -1485,6 +1628,18 @@ export default {
       // Convert to hex
       const toHex = (n) => n.toString(16).padStart(2, '0');
       return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    },
+
+    formatHorizontalAlignment(value) {
+      if (value === "center") return "Center";
+      if (value === "right") return "Right";
+      return "Left";
+    },
+
+    formatVerticalAlignment(value) {
+      if (value === "start") return "Top";
+      if (value === "end") return "Bottom";
+      return "Middle";
     },
   }
 }

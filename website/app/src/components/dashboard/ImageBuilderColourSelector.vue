@@ -48,10 +48,7 @@
           </div>
           <div v-if="this.page == 2" class="space-y-4">
             <div
-              class="lg:max-w-lg flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-secondary-light border-dashed rounded-md relative mx-auto mb-4"
-              v-if="$store.getters.guildHasWelcomerPro ||
-                $store.getters.guildHasCustomBackgrounds
-              ">
+              class="lg:max-w-lg flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-secondary-light border-dashed rounded-md relative mx-auto mb-4">
               <input id="file-upload" name="file-upload" type="file" accept="image/*"
                 class="absolute top-0 left-0 w-full h-full opacity-0" @change="onFileUpdate" />
               <div class="space-y-1 text-center" v-if="!$props.modelValue.startsWith('ref:')">
@@ -77,18 +74,6 @@
                   <p>Uploaded file</p>
                 </div>
               </div>
-            </div>
-            <div v-else class="border-primary border-2 p-4 grid grid-cols-6 gap-4">
-              <div class="col-span-6 items-center grid">
-                <span class="font-bold leading-6">Looking for more?</span>
-                With Welcomer Pro, you can unlock custom backgrounds on your server. You can upload PNG, JPG and even
-                animated GIFs!
-              </div>
-              <a href="/premium" target="_blank" class="col-span-6 items-center grid">
-                <button type="button" class="cta-button bg-primary hover:bg-primary-dark w-full">
-                  Get Welcomer Pro now
-                </button>
-              </a>
             </div>
             <div>
               <button as="template" v-for="image in $props.customImages" :key="image"
@@ -116,7 +101,7 @@
                     updateValue(
                       $event
                         ? solidColourPrefix + solidColourProfileBased
-                        : 'default'
+                        : '#FFFFFF'
                     )
                     " :class="[
                       $props.modelValue ==
