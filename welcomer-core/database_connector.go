@@ -2,9 +2,11 @@ package welcomer
 
 import (
 	"context"
+	"errors"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
 )
 
 // CreateOrUpdateUserWithAudit wraps Queries.CreateOrUpdateUser and logs an audit
@@ -322,4 +324,46 @@ func UpdateGuildWithAudit(ctx context.Context, params database.UpdateGuildParams
 	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds)
 
 	return newRow, nil
+}
+
+func AddGuildFeatureWithAudit(ctx context.Context, params database.AddGuildFeatureParams, actor discord.Snowflake) error {
+	var oldFeatures []string
+	if existing, err := Queries.GetGuildFeatures(ctx, params.GuildID); err == nil {
+		oldFeatures = existing
+	}
+
+	err := Queries.AddGuildFeature(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	newFeatures, err := Queries.GetGuildFeatures(ctx, params.GuildID)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures)
+
+	return nil
+}
+
+func RemoveGuildFeatureWithAudit(ctx context.Context, params database.RemoveGuildFeatureParams, actor discord.Snowflake) error {
+	var oldFeatures []string
+	if existing, err := Queries.GetGuildFeatures(ctx, params.GuildID); err == nil {
+		oldFeatures = existing
+	}
+
+	err := Queries.RemoveGuildFeature(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	newFeatures, err := Queries.GetGuildFeatures(ctx, params.GuildID)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures)
+
+	return nil
 }
