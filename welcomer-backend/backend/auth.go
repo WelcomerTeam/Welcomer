@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -63,6 +64,10 @@ func hasElevation(discordGuild *discord.Guild, user SessionUser) bool {
 }
 
 func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
+	if slices.Contains(welcomer.ElevatedUsers, user.ID) {
+		return true
+	}
+
 	guild, ok := user.Guilds[guildID]
 	if !ok {
 		return false
@@ -182,6 +187,12 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 			return
 		}
 
+		if slices.Contains(welcomer.ElevatedUsers, user.ID) {
+			handler(ctx)
+
+			return
+		}
+
 		for _, guild := range user.Guilds {
 			if guild.ID == guildID {
 				handler(ctx)
@@ -200,6 +211,8 @@ func requireMutualGuild(ctx *gin.Context, handler gin.HandlerFunc) {
 				Error: ErrWelcomerMissing.Error(),
 				Data:  nil,
 			})
+
+			return
 		}
 
 		guilds, err := backend.GetUserGuilds(ctx, session)
