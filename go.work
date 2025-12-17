@@ -1,4 +1,4 @@
-go 1.25.1
+go 1.25.3
 
 use (
 	./sandwich
@@ -6,5 +6,6 @@ use (
 	./welcomer-core
 	./welcomer-gateway
 	./welcomer-images
+	./welcomer-images-next
 	./welcomer-interactions
 )
