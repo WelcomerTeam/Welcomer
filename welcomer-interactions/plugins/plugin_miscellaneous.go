@@ -893,7 +893,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).", welcomer.WebsiteURL+"/support"),
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).\n\nYour guild id is `%s`", welcomer.WebsiteURL+"/support", interaction.GuildID.String()),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},
