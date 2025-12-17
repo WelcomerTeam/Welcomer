@@ -1,0 +1,17 @@
+services:
+  headless:
+    image: chromedp/headless-shell:latest
+    ports:
+      - "15000-15005:9222" # expose Chrome DevTools remote debugging
+    deploy:
+      replicas: 5
+      restart_policy:
+        condition: on-failure
+    shm_size: "1gb"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9222/json/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  

@@ -54,9 +54,9 @@ const (
 type VerticalAlignment string
 
 const (
-	VerticalAlignmentTop    VerticalAlignment = "top"
+	VerticalAlignmentTop    VerticalAlignment = "start"
 	VerticalAlignmentCenter VerticalAlignment = "center"
-	VerticalAlignmentBottom VerticalAlignment = "bottom"
+	VerticalAlignmentBottom VerticalAlignment = "end"
 )
 
 type CustomWelcomerImageLayerTypography struct {
