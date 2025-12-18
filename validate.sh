@@ -2,11 +2,13 @@
 set -euo pipefail
 
 # run vet
+go vet sandwich/sandwich.go &&
 go vet welcomer-backend/cmd/main.go &&
 go vet welcomer-gateway/cmd/main.go &&
+go vet welcomer-images-next/cmd/main.go &&
+go vet welcomer-images-proxy/cmd/main.go
 go vet welcomer-images/cmd/main.go &&
 go vet welcomer-interactions/cmd/main.go &&
-go vet sandwich/sandwich.go
 
 # run tests only if there are *_test.go files in the folder
 dirs=(
@@ -14,6 +16,8 @@ dirs=(
     welcomer-backend
     welcomer-gateway
     welcomer-images
+    welcomer-images-next
+    welcomer-images-proxy
     welcomer-interactions
     sandwich
 )
