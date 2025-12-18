@@ -249,14 +249,14 @@ func IsValidURL(url string) (*url.URL, bool) {
 		return nil, false
 	}
 
-	if !isValidHostname(result.URLComponents.Hostname()) {
+	if !IsValidHostname(result.URLComponents.Hostname()) {
 		return nil, false
 	}
 
 	return result.URLComponents, true
 }
 
-func isValidHostname(host string) bool {
+func IsValidHostname(host string) bool {
 	ips, err := net.LookupIP(host)
 	if err != nil {
 		return false
