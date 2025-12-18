@@ -278,7 +278,7 @@ func main() {
 	}
 
 	if err = app.ListenAndServe("", *host, mux); err != nil {
-		welcomer.Logger.Panic().Err(err).Msg("Exceptions whilst starting app")
+		welcomer.Logger.Panic().Str("host", *host).Err(err).Msg("Failed to serve interactions server")
 	}
 
 	cancel()

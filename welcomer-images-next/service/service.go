@@ -87,7 +87,7 @@ func (is *ImageService) setupPrometheus() error {
 
 	err := http.ListenAndServe(is.Options.PrometheusAddress, nil)
 	if err != nil {
-		welcomer.Logger.Error().Str("host", is.Options.PrometheusAddress).Err(err).Msg("Failed to serve prometheus server")
+		welcomer.Logger.Panic().Str("host", is.Options.PrometheusAddress).Err(err).Msg("Failed to serve prometheus server")
 
 		return fmt.Errorf("failed to serve prometheus: %w", err)
 	}
