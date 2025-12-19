@@ -14,7 +14,7 @@ import (
 
 const PermissionElevated = discord.PermissionAdministrator | discord.PermissionManageServer
 
-var elevatedUsers []discord.Snowflake
+var ElevatedUsers []discord.Snowflake
 
 func init() {
 	elevatedUsersStr := os.Getenv("ELEVATED_USERS")
