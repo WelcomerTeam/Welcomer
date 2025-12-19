@@ -259,12 +259,16 @@ func IsValidURL(url string) (*url.URL, bool) {
 func IsValidHostname(host string) bool {
 	ips, err := net.LookupIP(host)
 	if err != nil {
+		Logger.Warn().Msgf("net.LookupIP(%s): %v", host, err)
+
 		return false
 	}
 
 	// Check each IP to see if it is an internal IP
 	for _, ip := range ips {
 		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsInterfaceLocalMulticast() || ip.IsUnspecified() {
+			Logger.Warn().Msgf("Hostname %s resolved to internal IP %s", host, ip.String())
+
 			return false
 		}
 	}
