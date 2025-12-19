@@ -256,7 +256,7 @@ func (ps *ProxyService) fetchAndStore(ctx context.Context, requestURL url.URL) (
 	}
 	if !entry.permanent {
 		entry.expiresAt = time.Now().Add(resourceTTL)
-		welcomer.Logger.Debug().Msgf("Caching temporary resource %s for %s", requestURL, resourceTTL)
+		welcomer.Logger.Debug().Msgf("Caching temporary resource %s for %s", requestURL.String(), resourceTTL)
 	} else {
 		welcomer.Logger.Info().Msgf("Caching permanent resource %s", requestURL)
 	}
