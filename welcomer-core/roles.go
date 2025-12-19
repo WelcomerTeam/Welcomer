@@ -163,7 +163,7 @@ func CalculateRoleValues(roles []*discord.Role, guildMembers []*discord.GuildMem
 				(role.Position < highestRolePositionForMember) &&
 				GuildMemberCanAssignRoles(guildMember))
 
-			convertedRoles[i].IsElevated = (role.Permissions & discord.PermissionElevated) != 0
+			convertedRoles[i].IsElevated = (role.Permissions & PermissionElevated) != 0
 		}
 	}
 
