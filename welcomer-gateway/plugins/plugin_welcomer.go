@@ -65,6 +65,9 @@ func (p *WelcomerCog) GetEventHandlers() *sandwich.Handlers {
 	return p.EventHandler
 }
 
+// Only welcome a specific user once every 5 minutes, reguardless of how many times they join/leave.
+const WelcomeDeduplicationTimeout = 5 * time.Minute
+
 func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeWelcomer event.
 	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
@@ -91,7 +94,13 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		// Query state cache for guild.
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(member.User.ID)).
+			Bool("is_pending", member.Pending).
+			Msg("Guild member add event")
+
+			// Query state cache for guild.
 		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
@@ -148,6 +157,13 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
 	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Int64("user_id", int64(after.User.ID)).
+			Bool("before_pending", before.Pending).
+			Bool("after_pending", after.Pending).
+			Msg("Guild member update event")
+
 		if before.Pending && !after.Pending {
 			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
@@ -371,6 +387,20 @@ func HasInviteVariable(guildSettingsWelcomerText *database.GuildSettingsWelcomer
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
 func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeWelcomerStructure) (err error) {
+	if !event.IgnoreDedupe {
+		if ok := welcomer.DedupeProvider.Deduplicate(
+			eventCtx.Context,
+			fmt.Sprintf("%s:%s:%s", core.CustomEventInvokeWelcomer, event.Member.GuildID, event.Member.User.ID),
+			WelcomeDeduplicationTimeout); !ok {
+			return nil
+		}
+	}
+
+	welcomer.Logger.Info().
+		Int64("guild_id", int64(eventCtx.Guild.ID)).
+		Int64("user_id", int64(event.Member.User.ID)).
+		Msg("Invoke welcomer")
+
 	var dmerr error
 	var serr error
 

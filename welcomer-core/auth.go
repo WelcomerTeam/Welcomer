@@ -20,7 +20,7 @@ func init() {
 	elevatedUsersStr := os.Getenv("ELEVATED_USERS")
 
 	if elevatedUsersStr != "" {
-		err := json.Unmarshal([]byte(elevatedUsersStr), &elevatedUsers)
+		err := json.Unmarshal([]byte(elevatedUsersStr), &ElevatedUsers)
 		if err != nil {
 			panic(fmt.Errorf("failed to parse ELEVATED_USERS: %w", err))
 		}
@@ -66,7 +66,7 @@ func IsWelcomerProMembership(membershipType database.MembershipType) bool {
 
 func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember) bool {
 	if member.User != nil {
-		for _, elevatedUser := range elevatedUsers {
+		for _, elevatedUser := range ElevatedUsers {
 			if member.User.ID == elevatedUser {
 				return true
 			}

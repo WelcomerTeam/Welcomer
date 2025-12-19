@@ -45,11 +45,13 @@ const (
 	AuditTypeUsers
 	// AuditTypeWelcomerImages is a AuditType of type Welcomer_images.
 	AuditTypeWelcomerImages
+	// AuditTypeGuildFeatures is a AuditType of type Guild_features.
+	AuditTypeGuildFeatures
 )
 
 var ErrInvalidAuditType = errors.New("not a valid AuditType")
 
-const _AuditTypeName = "unknownborderwall_requestscustom_botsguild_settings_autorolesguild_settings_borderwallguild_settings_freerolesguild_settings_leaverguild_settings_rulesguild_settings_tempchannelsguild_settings_timerolesguild_settings_welcomerguild_settings_welcomer_dmsguild_settings_welcomer_imagesguild_settings_welcomer_textguildsuserswelcomer_images"
+const _AuditTypeName = "unknownborderwall_requestscustom_botsguild_settings_autorolesguild_settings_borderwallguild_settings_freerolesguild_settings_leaverguild_settings_rulesguild_settings_tempchannelsguild_settings_timerolesguild_settings_welcomerguild_settings_welcomer_dmsguild_settings_welcomer_imagesguild_settings_welcomer_textguildsuserswelcomer_imagesguild_features"
 
 var _AuditTypeMap = map[AuditType]string{
 	AuditTypeUnknown:                     _AuditTypeName[0:7],
@@ -69,6 +71,7 @@ var _AuditTypeMap = map[AuditType]string{
 	AuditTypeGuilds:                      _AuditTypeName[310:316],
 	AuditTypeUsers:                       _AuditTypeName[316:321],
 	AuditTypeWelcomerImages:              _AuditTypeName[321:336],
+	AuditTypeGuildFeatures:               _AuditTypeName[336:350],
 }
 
 // String implements the Stringer interface.
@@ -104,6 +107,7 @@ var _AuditTypeValue = map[string]AuditType{
 	_AuditTypeName[310:316]: AuditTypeGuilds,
 	_AuditTypeName[316:321]: AuditTypeUsers,
 	_AuditTypeName[321:336]: AuditTypeWelcomerImages,
+	_AuditTypeName[336:350]: AuditTypeGuildFeatures,
 }
 
 // ParseAuditType attempts to convert a string to a AuditType.

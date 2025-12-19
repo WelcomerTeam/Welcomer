@@ -2,7 +2,6 @@ package welcomer
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"os"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
 	"github.com/plutov/paypal/v4"
 )
 
@@ -33,7 +33,7 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 	println("HandlePaypalSale", paypalSale.ID, paypalSale.State, paypalSale.Amount.Total, paypalSale.Amount.Currency, paypalSale.BillingAgreementID)
 
 	memberships, err := Queries.GetUserMembershipsByTransactionID(ctx, paypalSale.BillingAgreementID)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		Logger.Error().Err(err).
 			Str("transaction_id", paypalSale.BillingAgreementID).
 			Msg("Failed to get user memberships")

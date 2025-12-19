@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS guilds (
     site_guild_visible boolean NOT NULL,
     site_allow_invites boolean NOT NULL,
     member_count integer NOT NULL,
-    number_locale integer
+    number_locale integer,
+    bucket_id smallint NOT NULL
 );

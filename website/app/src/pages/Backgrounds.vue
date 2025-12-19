@@ -32,6 +32,7 @@
                           : '',
                         'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
                       ]" />
+                      <span class="sr-only">Select background {{ image.name }}</span>
                   </button>
                 </div>
               </div>

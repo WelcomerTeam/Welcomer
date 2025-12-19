@@ -27,6 +27,12 @@ func CompareStructs[T comparable](oldStruct, newStruct T) (CompareStructResult, 
 
 	t := oldValue.Type()
 
+	if oldValue.Kind() != reflect.Struct || newValue.Kind() != reflect.Struct {
+		result["value"] = [2]any{oldStruct, newStruct}
+
+		return result, false
+	}
+
 	for fieldIndex := range t.NumField() {
 		field := t.Field(fieldIndex)
 

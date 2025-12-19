@@ -11,10 +11,10 @@ import (
 )
 
 const CreateGuild = `-- name: CreateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, trunc(random() * 10000)::int)
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
 `
 
 type CreateGuildParams struct {
@@ -49,6 +49,7 @@ func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guil
 		&i.SiteAllowInvites,
 		&i.MemberCount,
 		&i.NumberLocale,
+		&i.BucketID,
 	)
 	return &i, err
 }
@@ -65,7 +66,7 @@ ON CONFLICT(guild_id) DO UPDATE
         member_count = EXCLUDED.member_count,
         number_locale = EXCLUDED.number_locale
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
 `
 
 type CreateOrUpdateGuildParams struct {
@@ -100,13 +101,14 @@ func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGui
 		&i.SiteAllowInvites,
 		&i.MemberCount,
 		&i.NumberLocale,
+		&i.BucketID,
 	)
 	return &i, err
 }
 
 const GetGuild = `-- name: GetGuild :one
 SELECT
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
 FROM
     guilds
 WHERE
@@ -125,6 +127,7 @@ func (q *Queries) GetGuild(ctx context.Context, guildID int64) (*Guilds, error) 
 		&i.SiteAllowInvites,
 		&i.MemberCount,
 		&i.NumberLocale,
+		&i.BucketID,
 	)
 	return &i, err
 }
@@ -188,7 +191,7 @@ SET
 WHERE
     guild_id = $1
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
 `
 
 type UpdateGuildParams struct {
@@ -221,6 +224,7 @@ func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (*Guil
 		&i.SiteAllowInvites,
 		&i.MemberCount,
 		&i.NumberLocale,
+		&i.BucketID,
 	)
 	return &i, err
 }

@@ -68,6 +68,12 @@ type DiscordSubscriptions struct {
 	Consumed        bool          `json:"consumed"`
 }
 
+type GuildFeatures struct {
+	GuildID   int64     `json:"guild_id"`
+	CreatedAt time.Time `json:"created_at"`
+	Feature   string    `json:"feature"`
+}
+
 type GuildInvites struct {
 	InviteCode string    `json:"invite_code"`
 	GuildID    int64     `json:"guild_id"`
@@ -146,19 +152,21 @@ type GuildSettingsWelcomerDms struct {
 }
 
 type GuildSettingsWelcomerImages struct {
-	GuildID                int64  `json:"guild_id"`
-	ToggleEnabled          bool   `json:"toggle_enabled"`
-	ToggleImageBorder      bool   `json:"toggle_image_border"`
-	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
-	BackgroundName         string `json:"background_name"`
-	ColourText             string `json:"colour_text"`
-	ColourTextBorder       string `json:"colour_text_border"`
-	ColourImageBorder      string `json:"colour_image_border"`
-	ColourProfileBorder    string `json:"colour_profile_border"`
-	ImageAlignment         int32  `json:"image_alignment"`
-	ImageTheme             int32  `json:"image_theme"`
-	ImageMessage           string `json:"image_message"`
-	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	GuildID                int64        `json:"guild_id"`
+	ToggleEnabled          bool         `json:"toggle_enabled"`
+	ToggleImageBorder      bool         `json:"toggle_image_border"`
+	ToggleShowAvatar       bool         `json:"toggle_show_avatar"`
+	BackgroundName         string       `json:"background_name"`
+	ColourText             string       `json:"colour_text"`
+	ColourTextBorder       string       `json:"colour_text_border"`
+	ColourImageBorder      string       `json:"colour_image_border"`
+	ColourProfileBorder    string       `json:"colour_profile_border"`
+	ImageAlignment         int32        `json:"image_alignment"`
+	ImageTheme             int32        `json:"image_theme"`
+	ImageMessage           string       `json:"image_message"`
+	ImageProfileBorderType int32        `json:"image_profile_border_type"`
+	UseCustomBuilder       bool         `json:"use_custom_builder"`
+	CustomBuilderData      pgtype.JSONB `json:"custom_builder_data"`
 }
 
 type GuildSettingsWelcomerText struct {
@@ -177,6 +185,7 @@ type Guilds struct {
 	SiteAllowInvites bool          `json:"site_allow_invites"`
 	MemberCount      int32         `json:"member_count"`
 	NumberLocale     sql.NullInt32 `json:"number_locale"`
+	BucketID         int16         `json:"bucket_id"`
 }
 
 type InteractionCommands struct {
@@ -281,6 +290,16 @@ type Users struct {
 	Discriminator string    `json:"discriminator"`
 	AvatarHash    string    `json:"avatar_hash"`
 	Background    string    `json:"background"`
+}
+
+type WelcomerBuilderArtifacts struct {
+	ArtifactUuid uuid.UUID `json:"artifact_uuid"`
+	Reference    string    `json:"reference"`
+	GuildID      int64     `json:"guild_id"`
+	UserID       int64     `json:"user_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	ImageType    string    `json:"image_type"`
+	Data         []byte    `json:"data"`
 }
 
 type WelcomerImages struct {

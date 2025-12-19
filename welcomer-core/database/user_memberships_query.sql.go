@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	
 )
 
 const CreateNewMembership = `-- name: CreateNewMembership :one
@@ -370,7 +369,7 @@ func (q *Queries) GetUserMembershipsByTransactionID(ctx context.Context, transac
 
 const GetUserMembershipsByUserID = `-- name: GetUserMembershipsByUserID :many
 SELECT
-    membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, user_memberships.guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount, guilds.guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale
+    membership_uuid, user_memberships.created_at, user_memberships.updated_at, started_at, expires_at, status, membership_type, user_memberships.transaction_uuid, user_memberships.user_id, user_memberships.guild_id, user_transactions.transaction_uuid, user_transactions.created_at, user_transactions.updated_at, user_transactions.user_id, platform_type, transaction_id, transaction_status, currency_code, amount, guilds.guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
 FROM
     user_memberships
     LEFT JOIN user_transactions ON (user_memberships.transaction_uuid = user_transactions.transaction_uuid)
@@ -407,6 +406,7 @@ type GetUserMembershipsByUserIDRow struct {
 	SiteAllowInvites  sql.NullBool   `json:"site_allow_invites"`
 	MemberCount       sql.NullInt32  `json:"member_count"`
 	NumberLocale      sql.NullInt32  `json:"number_locale"`
+	BucketID          sql.NullInt16  `json:"bucket_id"`
 }
 
 func (q *Queries) GetUserMembershipsByUserID(ctx context.Context, userID int64) ([]*GetUserMembershipsByUserIDRow, error) {
@@ -446,6 +446,7 @@ func (q *Queries) GetUserMembershipsByUserID(ctx context.Context, userID int64) 
 			&i.SiteAllowInvites,
 			&i.MemberCount,
 			&i.NumberLocale,
+			&i.BucketID,
 		); err != nil {
 			return nil, err
 		}

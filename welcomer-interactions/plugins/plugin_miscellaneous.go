@@ -4,10 +4,13 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"sort"
 	"time"
 
@@ -15,6 +18,8 @@ import (
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
 )
 
 func NewMiscellaneousCog() *MiscellaneousCog {
@@ -888,7 +893,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).", welcomer.WebsiteURL+"/support"),
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).\n\nYour guild id is `%s`", welcomer.WebsiteURL+"/support", interaction.GuildID.String()),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},
@@ -979,6 +984,110 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
 				}, nil
 			})
+		},
+	})
+
+	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "optin",
+		Description: "Opt-in to new welcomer features.",
+
+		DMPermission:            &welcomer.False,
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+
+		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
+			features := welcomer.OptinGuildFeatures
+
+			choices := make([]discord.ApplicationCommandOptionChoice, 0, len(features))
+
+			guildFeatures, err := welcomer.Queries.GetGuildFeatures(ctx, int64(*interaction.GuildID))
+			if err != nil {
+				return nil, err
+			}
+
+			for featureKey, canOptIn := range features {
+				if !canOptIn {
+					continue
+				}
+
+				choices = append(choices, discord.ApplicationCommandOptionChoice{
+					Name:  featureKey.String() + welcomer.If(slices.Contains(guildFeatures, featureKey.String()), " (Opted-in)", ""),
+					Value: json.RawMessage(`"` + featureKey.String() + `"`),
+				})
+			}
+
+			return choices, nil
+		},
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Name:         "feature",
+				ArgumentType: subway.ArgumentTypeString,
+				Description:  "The feature to opt-in to",
+				Required:     true,
+				Autocomplete: &welcomer.True,
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			argumentFeature := subway.MustGetArgument(ctx, "feature").MustString()
+
+			if _, canOptIn := welcomer.OptinGuildFeatures[welcomer.GuildFeature(argumentFeature)]; !canOptIn {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("This feature cannot be opted-in to.", welcomer.EmbedColourError),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			}
+
+			hasFeature, err := welcomer.Queries.HasGuildFeature(ctx, database.HasGuildFeatureParams{
+				GuildID: int64(*interaction.GuildID),
+				Feature: argumentFeature,
+			})
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Error().Err(err).Msg("Failed to check if guild has feature")
+
+				return nil, err
+			}
+
+			if hasFeature > 0 {
+				err = welcomer.RemoveGuildFeatureWithAudit(ctx, database.RemoveGuildFeatureParams{
+					GuildID: int64(*interaction.GuildID),
+					Feature: argumentFeature,
+				}, interaction.GetUser().ID)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to remove guild feature")
+
+					return nil, err
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("You have opted-out of the "+argumentFeature+" feature.", welcomer.EmbedColourInfo),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			}
+
+			err = welcomer.AddGuildFeatureWithAudit(ctx, database.AddGuildFeatureParams{
+				GuildID: int64(*interaction.GuildID),
+				Feature: argumentFeature,
+			}, interaction.GetUser().ID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Msg("Failed to add guild feature")
+
+				return nil, err
+			}
+
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: welcomer.NewEmbed("You have opted-in to the "+argumentFeature+" feature.", welcomer.EmbedColourInfo),
+					Flags:  uint32(discord.MessageFlagEphemeral),
+				},
+			}, nil
 		},
 	})
 

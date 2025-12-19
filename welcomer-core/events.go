@@ -19,8 +19,9 @@ const (
 type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
 
 type CustomEventInvokeWelcomerStructure struct {
-	Interaction *discord.Interaction
-	Member      discord.GuildMember
+	Interaction  *discord.Interaction
+	Member       discord.GuildMember
+	IgnoreDedupe bool
 }
 
 type OnInvokeLeaverFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeLeaverStructure) error

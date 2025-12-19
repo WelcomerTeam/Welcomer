@@ -91,6 +91,10 @@ export function ordinal(number) {
 }
 
 export function formatNumber(number) {
+    if (!number) {
+        return "0";
+    }
+
     switch (store.getters.getCurrentSelectedGuild?.number_locale) {
         case "dots":
             return number.toLocaleString("de-DE");

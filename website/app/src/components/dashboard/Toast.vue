@@ -17,8 +17,8 @@
           <button type="button"
             class="-mx-1.5 bg-white dark:bg-secondary-light text-gray-500 dark:text-gray-50 dark:hover:text-gray-300 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 dark:focus:ring-secondary-light p-1.5 hover:bg-gray-100 dark:hover:bg-primary inline-flex h-8 w-8"
             data-dismiss-target="#toast-default" @click="hideToast(toast.id)" aria-label="Close">
-            <span class="sr-only">Close</span>
             <XIcon />
+            <span class="sr-only">Close</span>
           </button>
         </div>
       </div>

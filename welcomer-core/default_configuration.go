@@ -115,6 +115,11 @@ var DefaultWelcomerImages database.GuildSettingsWelcomerImages = database.GuildS
 	ImageTheme:             int32(ImageThemeDefault),
 	ImageMessage:           "Welcome {{User.Name}}\nto {{Guild.Name}}you are the {{Ordinal(Guild.Members)}} member!",
 	ImageProfileBorderType: int32(ImageProfileBorderTypeCircular),
+	UseCustomBuilder:       false,
+	CustomBuilderData: pgtype.JSONB{
+		Status: pgtype.Present,
+		Bytes:  []byte("{}"),
+	},
 }
 
 var DefaultWelcomerDms database.GuildSettingsWelcomerDms = database.GuildSettingsWelcomerDms{
