@@ -280,7 +280,7 @@ func CreateGuildWithAudit(ctx context.Context, params database.CreateGuildParams
 	return newRow, nil
 }
 
-func UpdateCustomBotWithAudit(ctx context.Context, params database.UpdateCustomBotParams, actor discord.Snowflake, guildID discord.Snowflake) (*database.CustomBots, error) {
+func UpdateCustomBotWithAudit(ctx context.Context, params database.UpdateCustomBotParams, actor, guildID discord.Snowflake) (*database.CustomBots, error) {
 	var old database.CustomBots
 	if existing, err := Queries.GetCustomBotById(ctx, database.GetCustomBotByIdParams{
 		CustomBotUuid: params.CustomBotUuid,

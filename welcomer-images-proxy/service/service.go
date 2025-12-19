@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"io"
 	"net/http"
 	"net/url"
@@ -104,40 +103,12 @@ func NewProxyService(options ProxyServiceOptions) (ps *ProxyService, err error) 
 	return ps, nil
 }
 
-//go:embed service/welcomer-ca.crt
-var caCrt []byte
-
-//go:embed service/welcomer-ca.key
-var caKey []byte
-
 func (ps *ProxyService) Open() {
 	ps.StartTime = time.Now()
 	welcomer.Logger.Info().Msgf("Starting image proxy service. Version %s", VERSION)
 
-	cert, err := tls.X509KeyPair(caCrt, caKey)
-	if err != nil {
-		welcomer.Logger.Panic().Err(err).Msg("Failed to load built-in goproxy CA")
-	}
-
-	goproxy.GoproxyCa = cert
-
 	ps.proxy = goproxy.NewProxyHttpServer()
 	ps.proxy.Verbose = ps.Options.Debug
-
-	ps.proxy.NonproxyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/ca.pem" {
-			w.Header().Set("Content-Disposition", "attachment; filename=\"welcomer-ca.pem\"")
-			w.Header().Set("Content-Type", "application/x-pem-file")
-
-			_ = pem.Encode(w, &pem.Block{Type: "CERTIFICATE", Bytes: goproxy.GoproxyCa.Certificate[0]})
-
-			welcomer.Logger.Info().Msgf("serving goproxy CA to %s", r.RemoteAddr)
-
-			return
-		}
-
-		http.Error(w, "This is a proxy server. Please configure your client to use it as a proxy.", http.StatusBadRequest)
-	})
 
 	ps.proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
 

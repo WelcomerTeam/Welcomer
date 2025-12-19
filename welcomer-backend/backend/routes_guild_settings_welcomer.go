@@ -591,7 +591,6 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
-
 			fileValue, err := ctx.FormFile("file")
 			if err != nil {
 				ctx.JSON(http.StatusBadRequest, BaseResponse{

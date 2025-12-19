@@ -31,7 +31,7 @@ func call() {
 		panic(err)
 	}
 
-	file, _ := os.OpenFile("out.png", os.O_CREATE|os.O_WRONLY, 0644)
+	file, _ := os.OpenFile("out.png", os.O_CREATE|os.O_WRONLY, 0o644)
 
 	defer file.Close()
 

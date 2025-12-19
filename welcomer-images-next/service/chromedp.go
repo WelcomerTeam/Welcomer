@@ -2,11 +2,10 @@ package service
 
 import (
 	"context"
-	"sync/atomic"
-	"time"
-
 	"net/url"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/chromedp/cdproto/cdp"

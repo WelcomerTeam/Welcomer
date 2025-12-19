@@ -50,7 +50,7 @@ func getCanvasStyle(customImage welcomer.CustomWelcomerImage) Styling {
 	return styling
 }
 
-func getObjectStyleBase(layer welcomer.CustomWelcomerImageLayer, layer_count int, index int) Styling {
+func getObjectStyleBase(layer welcomer.CustomWelcomerImageLayer, layer_count, index int) Styling {
 	styling := Styling{}
 
 	styling.Add("position", "absolute")
@@ -84,7 +84,7 @@ func getObjectStyleBase(layer welcomer.CustomWelcomerImageLayer, layer_count int
 	return styling
 }
 
-func getObjectStyle(layer welcomer.CustomWelcomerImageLayer, layer_count int, index int) Styling {
+func getObjectStyle(layer welcomer.CustomWelcomerImageLayer, layer_count, index int) Styling {
 	styling := getObjectStyleBase(layer, layer_count, index)
 
 	styling.Add("z-index", "0")
@@ -153,7 +153,7 @@ func getObjectStyle(layer welcomer.CustomWelcomerImageLayer, layer_count int, in
 	return styling
 }
 
-func getFillAsCSS(value string, defaultValue string) string {
+func getFillAsCSS(value, defaultValue string) string {
 	if len(value) == 0 {
 		return defaultValue
 	}
