@@ -182,7 +182,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -293,7 +293,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -400,7 +400,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -480,7 +480,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
