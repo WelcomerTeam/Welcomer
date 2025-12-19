@@ -3,15 +3,22 @@ package service
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/elazarl/goproxy"
 	"golang.org/x/sync/singleflight"
+
+	_ "embed"
 )
 
 // VERSION follows semantic versioning.
@@ -41,6 +48,7 @@ type ProxyService struct {
 type cacheEntry struct {
 	contentType string
 	body        []byte
+	statusCode  int
 	expiresAt   time.Time
 	permanent   bool
 }
@@ -53,6 +61,7 @@ type ProxyServiceOptions struct {
 type ProxyResponse struct {
 	contentType string
 	body        []byte
+	statusCode  int
 }
 
 func NewProxyService(options ProxyServiceOptions) (ps *ProxyService, err error) {
@@ -62,36 +71,91 @@ func NewProxyService(options ProxyServiceOptions) (ps *ProxyService, err error) 
 		cacheMu: sync.RWMutex{},
 		cache:   make(map[string]*cacheEntry),
 
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-		},
-
 		sf:     singleflight.Group{},
 		server: &http.Server{},
 	}
 
+	// Allow optional custom CA cert+key for goproxy (useful when distributing a fixed CA to clients)
+	if certPath := os.Getenv("PROXY_CA_CERT"); certPath != "" {
+		keyPath := os.Getenv("PROXY_CA_KEY")
+		if keyPath == "" {
+			welcomer.Logger.Warn().Msg("PROXY_CA_CERT set but PROXY_CA_KEY is not set; skipping custom CA load")
+		} else {
+			cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Msgf("failed to load PROXY_CA_CERT/PROXY_CA_KEY from %s/%s", certPath, keyPath)
+			} else {
+				if cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0]); err != nil {
+					welcomer.Logger.Warn().Err(err).Msg("failed to parse certificate leaf for loaded CA")
+				}
+				// Set goproxy's CA so generated MITM certs are signed by this CA
+				goproxy.GoproxyCa = cert
+
+				welcomer.Logger.Info().Msgf("Loaded goproxy CA from %s and %s", certPath, keyPath)
+			}
+		}
+	} else {
+		welcomer.Logger.Debug().Msg("No PROXY_CA_CERT provided, using built-in goproxy CA")
+	}
+
+	// Client transport: keep default unless PROXY_ROOT_CA is set (left intact for TLS-to-upstream trust)
+	ps.client = &http.Client{Timeout: 10 * time.Second}
+
 	return ps, nil
 }
+
+//go:embed service/welcomer-ca.crt
+var caCrt []byte
+
+//go:embed service/welcomer-ca.key
+var caKey []byte
 
 func (ps *ProxyService) Open() {
 	ps.StartTime = time.Now()
 	welcomer.Logger.Info().Msgf("Starting image proxy service. Version %s", VERSION)
 
+	cert, err := tls.X509KeyPair(caCrt, caKey)
+	if err != nil {
+		welcomer.Logger.Panic().Err(err).Msg("Failed to load built-in goproxy CA")
+	}
+
+	goproxy.GoproxyCa = cert
+
 	ps.proxy = goproxy.NewProxyHttpServer()
 	ps.proxy.Verbose = ps.Options.Debug
 
-	// MITM HTTPS so we can see the real request URL and serve from cache.
+	ps.proxy.NonproxyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/ca.pem" {
+			w.Header().Set("Content-Disposition", "attachment; filename=\"welcomer-ca.pem\"")
+			w.Header().Set("Content-Type", "application/x-pem-file")
+
+			_ = pem.Encode(w, &pem.Block{Type: "CERTIFICATE", Bytes: goproxy.GoproxyCa.Certificate[0]})
+
+			welcomer.Logger.Info().Msgf("serving goproxy CA to %s", r.RemoteAddr)
+
+			return
+		}
+
+		http.Error(w, "This is a proxy server. Please configure your client to use it as a proxy.", http.StatusBadRequest)
+	})
+
 	ps.proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
 
-	// Serve from cache or coalesce fetches per URL.
+	// Expose the goproxy CA so clients can download and trust it if needed.
 	ps.proxy.OnRequest().DoFunc(func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+		welcomer.Logger.Debug().Msgf("proxy request: %s", r.URL.String())
+
 		// Only cache GETs
 		if r.Method != http.MethodGet {
+			welcomer.Logger.Debug().Msgf("not a GET: %s", r.Method)
+
 			return r, nil
 		}
 
 		// Disallow local or IP connections
 		if !welcomer.IsValidHostname(r.Host) {
+			welcomer.Logger.Warn().Msgf("invalid hostname attempted: %s", r.Host)
+
 			return r, nil
 		}
 
@@ -99,6 +163,8 @@ func (ps *ProxyService) Open() {
 
 		// Try cache
 		if resp := ps.cachedResponse(r, key); resp != nil {
+			welcomer.Logger.Debug().Msgf("cache hit for %s", key)
+
 			return nil, resp
 		}
 
@@ -121,10 +187,10 @@ func (ps *ProxyService) Open() {
 			return r, nil
 		}
 
-		proxyResponse := res.(ProxyResponse)
+		proxyResponse, _ := res.(ProxyResponse)
 
 		return nil, &http.Response{
-			StatusCode: http.StatusOK,
+			StatusCode: proxyResponse.statusCode,
 			Header:     http.Header{"Content-Type": []string{proxyResponse.contentType}},
 			Body:       io.NopCloser(io.LimitReader(io.NewSectionReader(bytes.NewReader(proxyResponse.body), 0, int64(len(proxyResponse.body))), int64(len(proxyResponse.body)))),
 			Request:    r,
@@ -185,11 +251,12 @@ func (ps *ProxyService) cachedResponse(req *http.Request, key string) *http.Resp
 		ps.cacheMu.Lock()
 		delete(ps.cache, key)
 		ps.cacheMu.Unlock()
+
 		return nil
 	}
 
 	return &http.Response{
-		StatusCode: http.StatusOK,
+		StatusCode: entry.statusCode,
 		Header:     http.Header{"Content-Type": []string{entry.contentType}},
 		Body:       io.NopCloser(io.LimitReader(io.NewSectionReader(bytes.NewReader(entry.body), 0, int64(len(entry.body))), int64(len(entry.body)))),
 		Request:    req,
@@ -198,13 +265,29 @@ func (ps *ProxyService) cachedResponse(req *http.Request, key string) *http.Resp
 
 // fetch fetches the URL and returns a response.
 func (ps *ProxyService) fetch(ctx context.Context, orig *http.Request) (*http.Response, error) {
+	// Build request and forward common headers so origin can respond correctly
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, orig.URL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 
+	// Forward a few headers from the original request
+	if ua := orig.Header.Get("User-Agent"); ua != "" {
+		req.Header.Set("User-Agent", ua)
+	}
+	if accept := orig.Header.Get("Accept"); accept != "" {
+		req.Header.Set("Accept", accept)
+	}
+	if ae := orig.Header.Get("Accept-Encoding"); ae != "" {
+		req.Header.Set("Accept-Encoding", ae)
+	}
+	if ref := orig.Header.Get("Referer"); ref != "" {
+		req.Header.Set("Referer", ref)
+	}
+
 	res, err := ps.client.Do(req)
 	if err != nil {
+		welcomer.Logger.Warn().Err(err).Msgf("fetch failed for %s", orig.URL.String())
 		return nil, err
 	}
 
@@ -226,14 +309,25 @@ func (ps *ProxyService) fetchAndStore(ctx context.Context, orig *http.Request) (
 	}
 
 	ct := res.Header.Get("Content-Type")
+	status := res.StatusCode
+
+	// Only cache successful 2xx responses
+	if status < 200 || status >= 300 {
+		welcomer.Logger.Warn().Msgf("Not caching non-2xx response for %s: status=%d", orig.URL.String(), status)
+		return ProxyResponse{ct, body, status}, nil
+	}
 
 	entry := &cacheEntry{
 		contentType: ct,
 		body:        body,
+		statusCode:  status,
 		permanent:   isPermanentResource(orig.URL, ct),
 	}
 	if !entry.permanent {
 		entry.expiresAt = time.Now().Add(resourceTTL)
+		welcomer.Logger.Debug().Msgf("Caching temporary resource %s for %s", orig.URL.String(), resourceTTL)
+	} else {
+		welcomer.Logger.Info().Msgf("Caching permanent resource %s", orig.URL.String())
 	}
 
 	ps.cacheMu.Lock()
@@ -241,15 +335,20 @@ func (ps *ProxyService) fetchAndStore(ctx context.Context, orig *http.Request) (
 	ps.cacheMu.Unlock()
 
 	// Return a fresh response built from the cached entry
-	return ProxyResponse{entry.contentType, entry.body}, nil
+	return ProxyResponse{entry.contentType, entry.body, entry.statusCode}, nil
 }
 
-func isPermanentResource(url *url.URL, contentType string) bool {
-	println(url.Host)
+func isPermanentResource(u *url.URL, contentType string) bool {
+	host := strings.ToLower(u.Host)
+	if idx := strings.Index(host, ":"); idx != -1 {
+		host = host[:idx]
+	}
 
-	if url.Host == "fonts.googleapis.com" || url.Host == "fonts.gstatic.com" {
+	if host == "fonts.googleapis.com" || host == "fonts.gstatic.com" {
+		welcomer.Logger.Debug().Msgf("%s is permanent resource", host)
 		return true
 	}
 
+	welcomer.Logger.Debug().Msgf("%s is not permanent resource", host)
 	return false
 }

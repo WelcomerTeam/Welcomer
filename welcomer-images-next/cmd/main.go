@@ -3,19 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"net"
 	"os"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-images-next/service"
 )
 
-var pool = service.NewURLPool([]string{
-	"ws://localhost:15000",
-	"ws://localhost:15001",
-	"ws://localhost:15002",
-	"ws://localhost:15003",
-	"ws://localhost:15004",
-})
+var pool *service.URLPool
 
 func call() {
 	var customWelcomerImage welcomer.CustomWelcomerImage
@@ -43,6 +38,25 @@ func call() {
 	file.Write(resp)
 }
 
+func discoverChromedp(startPort, endPort int64) {
+	urls := []string{}
+	for port := startPort; port <= endPort; port++ {
+		println("Probing port", port)
+
+		conn, err := net.Dial("tcp", "127.0.0.1:"+welcomer.Itoa(port))
+		if err != nil {
+			continue
+		}
+
+		conn.Close()
+
+		urls = append(urls, "ws://127.0.0.1:"+welcomer.Itoa(port))
+	}
+
+	pool = service.NewURLPool(urls)
+}
+
 func main() {
+	discoverChromedp(15000, 15005)
 	call()
 }

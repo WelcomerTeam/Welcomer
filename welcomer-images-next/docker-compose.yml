@@ -1,6 +1,19 @@
 services:
   headless:
     image: chromedp/headless-shell:latest
+    environment:
+      - PROXY_PORT = ${PORT_WELCOMER_IMAGES_PROXY}
+    command:
+      [
+        "--remote-debugging-port=9222",
+        "--remote-debugging-address=0.0.0.0",
+        "--proxy-server=http://127.0.0.1:${PROXY_PORT}",
+        "--proxy-bypass-list=<-loopback>",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--headless=new",
+        "--ignore-certificate-errors"
+      ]
     ports:
       - "15000-15005:9222" # expose Chrome DevTools remote debugging
     deploy:
