@@ -12,6 +12,8 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
+const PermissionElevated = discord.PermissionAdministrator | discord.PermissionManageServer
+
 var elevatedUsers []discord.Snowflake
 
 func init() {
@@ -81,7 +83,7 @@ func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember
 
 	if member.Permissions != nil {
 		permissions := *member.Permissions
-		permissions &= discord.PermissionElevated
+		permissions &= PermissionElevated
 
 		if permissions != 0 {
 			return true
@@ -90,7 +92,7 @@ func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember
 
 	if discordGuild.Permissions != nil {
 		permissions := *discordGuild.Permissions
-		permissions &= discord.PermissionElevated
+		permissions &= PermissionElevated
 
 		if permissions != 0 {
 			return true
