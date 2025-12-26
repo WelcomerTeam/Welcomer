@@ -1,10 +1,17 @@
 FROM chromedp/headless-shell:latest
 
 RUN apt-get update && \
-    apt-get install -y ca-certificates && \
+    apt-get install -y ca-certificates \
+    fontconfig \
+    fonts-liberation \
+    fonts-dejavu \
+    fonts-noto \
+    fonts-noto-color-emoji && \
     update-ca-certificates
 
-COPY welcomer-images-proxy/service/welcomer-ca.crt /usr/local/share/ca-certificates/welcomer-ca.crt
+COPY welcomer-headless-shell/fonts/*.ttf /usr/share/fonts/truetype/custom/
+RUN fc-cache -f -v
+
 RUN update-ca-certificates
 
 CMD ["/headless-shell/run.sh"]
