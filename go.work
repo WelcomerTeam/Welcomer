@@ -7,6 +7,5 @@ use (
 	./welcomer-gateway
 	./welcomer-images
 	./welcomer-images-next
-	./welcomer-images-proxy
 	./welcomer-interactions
 )

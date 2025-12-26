@@ -1,4 +1,5 @@
-welcomer-images/output.png
-patreon-service/main
 .vscode
 *.pem
+patreon-service/main
+welcomer-headless-shell/fonts
+welcomer-images/output.png
