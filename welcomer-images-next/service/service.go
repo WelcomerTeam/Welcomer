@@ -1,9 +1,9 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -17,13 +17,13 @@ import (
 const VERSION = "0.0.1"
 
 type ImageService struct {
-	ctx context.Context
-
 	StartTime time.Time
 
 	Options ImageServiceOptions
 
 	Client http.Client
+
+	URLPool *URLPool
 }
 
 // ImageServiceOptions represents any options passable when creating
@@ -31,16 +31,28 @@ type ImageService struct {
 type ImageServiceOptions struct {
 	Debug             bool
 	Host              string
-	PostgresAddress   string
 	PrometheusAddress string
+	ProxyAddress      string
 }
 
 // NewImageService creates the service and initializes it.
-func NewImageService(ctx context.Context, options ImageServiceOptions) (is *ImageService, err error) {
-	is = &ImageService{
-		ctx:     ctx,
+func NewImageService(options ImageServiceOptions) (*ImageService, error) {
+	is := &ImageService{
 		Options: options,
-		Client:  http.Client{Timeout: 5 * time.Second},
+		Client: http.Client{
+			Timeout: 5 * time.Second,
+		},
+	}
+
+	if options.ProxyAddress != "" {
+		proxyURL, err := url.Parse(options.ProxyAddress)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse proxy url: %w", err)
+		}
+
+		is.Client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
 	}
 
 	return is, nil

@@ -6,7 +6,6 @@ go vet sandwich/sandwich.go &&
 go vet welcomer-backend/cmd/main.go &&
 go vet welcomer-gateway/cmd/main.go &&
 go vet welcomer-images-next/cmd/main.go &&
-go vet welcomer-images-proxy/cmd/main.go
 go vet welcomer-images/cmd/main.go &&
 go vet welcomer-interactions/cmd/main.go &&
 
@@ -17,7 +16,6 @@ dirs=(
     welcomer-gateway
     welcomer-images
     welcomer-images-next
-    welcomer-images-proxy
     welcomer-interactions
     sandwich
 )

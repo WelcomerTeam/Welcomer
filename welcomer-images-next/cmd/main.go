@@ -1,65 +1,116 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"net"
+	"flag"
+	"net/http"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-images-next/service"
+	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 )
 
-var pool *service.URLPool
+func main() {
+	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
-func call() {
-	var customWelcomerImage welcomer.CustomWelcomerImage
+	prometheusAddress := flag.String("prometheusAddress", os.Getenv("IMAGE_PROMETHEUS_ADDRESS"), "Prometheus address")
+	imageHost := flag.String("host", os.Getenv("IMAGE_HOST"), "Host to serve the image service interface from")
+	proxyAddress := flag.String("proxyAddress", os.Getenv("IMAGE_PROXY_ADDRESS"), "Proxy address for requests")
 
-	_ = json.Unmarshal([]byte(`{"fill": "rainbow", "layers": [{"fill": "ref:019b0a95-a5c0-767b-b7f8-9d928ca4a615", "type": 2, "value": "", "stroke": {"color": "#ffffff00", "width": 0}, "position": [222, 315], "rotation": 0, "dimensions": [759, 206], "inverted_x": false, "inverted_y": false, "border_radius": ["0", "0", "0", "0"]}, {"fill": "#ffffff", "type": 0, "value": "Hello {{User.Name}} ", "stroke": {"color": "#000000", "width": 6}, "position": [241, 20], "rotation": 0, "dimensions": [696, 225], "inverted_x": false, "inverted_y": false, "typography": {"font_size": 42, "font_family": "Balsamiq Sans", "font_weight": "regular", "line_height": 1.2, "letter_spacing": 0, "vertical_alignment": "center", "horizontal_alignment": "left"}, "border_radius": ["0", "0", "0", "0"]}, {"fill": "#ffffff", "type": 1, "value": "{{User.Avatar}}", "stroke": {"color": "#FFFFFF", "width": 16}, "position": [49, 55], "rotation": 0, "dimensions": [150, 150], "inverted_x": false, "inverted_y": false, "border_radius": ["100%", "100%", "100%", "100%"]}], "stroke": {"color": "#FFFFFF", "width": 16}, "dimensions": [1000, 300]}`), &customWelcomerImage)
+	chromedpStartPort := flag.Int64("chromedpStartPort", welcomer.TryParseInt(os.Getenv("CHROMEDP_START_PORT")), "Start port for chromedp instances")
+	chromedpEndPort := flag.Int64("chromedpEndPort", welcomer.TryParseInt(os.Getenv("CHROMEDP_END_PORT")), "End port for chromedp instances")
 
-	builder := service.GenerateCanvas(customWelcomerImage)
-	html := builder.String()
+	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
+	debug := flag.Bool("debug", false, "When enabled, images will be saved to a file.")
 
-	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, time.Second*5)
+	flag.Parse()
 
-	resp, err := service.ScreenshotFromHTML(ctx, pool, html)
+	gin.SetMode(*releaseMode)
+
+	welcomer.SetupLogger(*loggingLevel)
+
+	imageService, err := service.NewImageService(service.ImageServiceOptions{
+		Debug:             *debug,
+		Host:              *imageHost,
+		PrometheusAddress: *prometheusAddress,
+		ProxyAddress:      *proxyAddress,
+	})
 	if err != nil {
 		panic(err)
 	}
 
-	file, _ := os.OpenFile("out.png", os.O_CREATE|os.O_WRONLY, 0o644)
+	imageService.URLPool = discoverChromedp(*chromedpStartPort, *chromedpEndPort)
 
-	defer file.Close()
+	imageService.Open()
 
-	file.Write(resp)
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-signalCh
+
+	if err = imageService.Close(); err != nil {
+		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing image service")
+	}
 }
 
-func discoverChromedp(startPort, endPort int64) {
+func discoverChromedp(startPort, endPort int64) *service.URLPool {
 	urls := []string{}
 
-	println("Probing ports")
+	welcomer.Logger.Info().Int64("start", startPort).Int64("end", endPort).Msg("Probing chromedp ports")
 
 	for port := startPort; port <= endPort; port++ {
-		conn, err := net.Dial("tcp", "127.0.0.1:"+welcomer.Itoa(port))
-		if err != nil {
-			println("Cannot connect to", port)
+		ok, browser := validateChromedpInstance("127.0.0.1:" + welcomer.Itoa(port))
+		if !ok {
+			welcomer.Logger.Info().Int64("port", port).Msg("No chromedp instance found on port")
 
 			continue
 		}
 
-		conn.Close()
+		welcomer.Logger.Info().Int64("port", port).Str("browser", browser).Msg("Found chromedp instance")
 
 		urls = append(urls, "ws://127.0.0.1:"+welcomer.Itoa(port))
 	}
 
-	println("Done")
+	if len(urls) == 0 {
+		welcomer.Logger.Panic().Msg("No chromedp instances found")
+	}
 
-	pool = service.NewURLPool(urls)
+	welcomer.Logger.Info().Int("count", len(urls)).Msg("Discovered chromedp instances")
+
+	return service.NewURLPool(urls)
 }
 
-func main() {
-	discoverChromedp(15000, 15005)
-	call()
+func validateChromedpInstance(host string) (bool, string) {
+	req, err := http.NewRequest(http.MethodGet, "http://"+host+"/json/version", nil)
+	if err != nil {
+		return false, ""
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, ""
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, ""
+	}
+
+	var cv struct {
+		Browser string `json:"Browser"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&cv); err != nil {
+		return false, ""
+	}
+
+	if cv.Browser == "" {
+		return false, ""
+	}
+
+	return true, cv.Browser
 }
