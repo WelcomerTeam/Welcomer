@@ -184,6 +184,10 @@ library.add(
   falBadgeCheck,
 );
 
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual'
+}
+
 createApp(App)
   .component("font-awesome-icon", FontAwesomeIcon)
   .use(VueLazyload)
