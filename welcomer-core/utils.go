@@ -89,6 +89,10 @@ func Coalesce(values ...string) string {
 	return ""
 }
 
+func Ftoa(v float64) string {
+	return strconv.FormatFloat(v, 'f', -1, int64BitSize)
+}
+
 func Itoa(v int64) string {
 	return strconv.FormatInt(v, int64Base)
 }

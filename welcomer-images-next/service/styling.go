@@ -21,7 +21,7 @@ const SolidProfileLuminance = 0.7
 type ImageGenerationContext struct {
 	context.Context
 
-	GenerateRequest
+	welcomer.CustomWelcomerImageGenerateRequest
 }
 
 type Styling map[string]string
@@ -143,7 +143,7 @@ func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcom
 			styling.Add("font-size", welcomer.Itoa(int64(layer.Typography.FontSize))+"px")
 
 			if layer.Typography.LineHeight != 0 {
-				styling.Add("line-height", welcomer.Itoa(int64(layer.Typography.LineHeight))+"em")
+				styling.Add("line-height", welcomer.Ftoa(layer.Typography.LineHeight)+"em")
 			}
 
 			if layer.Typography.LetterSpacing != 0 {
