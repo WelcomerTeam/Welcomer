@@ -688,18 +688,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	var memberships []*database.GetUserMembershipsByGuildIDRow
-
-	// Check if the guild has welcomer pro.
-	memberships, err = welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Warn().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get welcomer memberships")
-
-		return err
-	}
-
 	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -711,7 +699,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+	hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(eventCtx.Context, eventCtx.Guild.ID)
 
 	guildVariables := core.GuildVariables{
 		Guild:         guild,
@@ -1065,17 +1053,7 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 		return nil
 	}
 
-	// Check if the guild has welcomer pro.
-	memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Warn().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get welcomer memberships")
-
-		return err
-	}
-
-	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+	hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(eventCtx.Context, eventCtx.Guild.ID)
 	if !hasWelcomerPro {
 		welcomer.Logger.Info().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

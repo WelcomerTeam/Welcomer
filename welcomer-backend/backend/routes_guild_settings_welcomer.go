@@ -212,7 +212,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			if welcomerImages.BackgroundName == welcomer.CustomBackgroundPrefix+"upload" {
 				if fileValue != nil {
-					hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, guildID)
+					hasWelcomerPro, hasCustomBackgrounds, _, _ := welcomer.CheckGuildMemberships(ctx, guildID)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 					}
@@ -505,18 +505,6 @@ func getGuildSettingsWelcomerBuilderPreview(ctx *gin.Context) {
 				return
 			}
 
-			// Check if the guild has welcomer pro.
-			memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).
-					Int64("guild_id", int64(guildID)).
-					Msg("Failed to get welcomer memberships")
-
-				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
-
-				return
-			}
-
 			guildSettings, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
@@ -528,7 +516,7 @@ func getGuildSettingsWelcomerBuilderPreview(ctx *gin.Context) {
 				}
 			}
 
-			hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+			hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(ctx, guildID)
 
 			user := tryGetUser(ctx)
 

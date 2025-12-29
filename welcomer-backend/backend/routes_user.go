@@ -59,7 +59,7 @@ func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (
 			welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer presence")
 		}
 
-		hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, discordGuild.ID)
+		hasWelcomerPro, hasCustomBackgrounds, _, err := welcomer.CheckGuildMemberships(ctx, discordGuild.ID)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 		}
@@ -256,7 +256,7 @@ func usersGuilds(ctx *gin.Context) {
 			mappedGuilds = user.Guilds
 
 			for _, guild := range mappedGuilds {
-				hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, guild.ID)
+				hasWelcomerPro, hasCustomBackgrounds, _, err := welcomer.CheckGuildMemberships(ctx, guild.ID)
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Int("guildID", int(guild.ID)).Msg("Exception getting welcomer membership")
 				}

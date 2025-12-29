@@ -3,7 +3,6 @@ package backend
 import (
 	"context"
 	"fmt"
-	"time"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
@@ -59,17 +58,4 @@ func fetchApplicationsForGuild(ctx context.Context, guildID discord.Snowflake) (
 	}
 
 	return applicationIdentifiers, nil
-}
-
-func getGuildMembership(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, err error) {
-	memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
-	if err != nil {
-		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer memberships")
-
-		return false, false, err
-	}
-
-	hasWelcomerPro, hasCustomBackgrounds = welcomer.CheckGuildMemberships(memberships)
-
-	return
 }
