@@ -8,6 +8,7 @@ const state = () => ({
 
   guildHasWelcomerPro: false,
   guildHasCustomBackgrounds: false,
+  guildFeatures: [],
 
   isLoadingGuild: false,
 
@@ -36,6 +37,10 @@ const getters = {
 
   guildHasCustomBackgrounds: (state) => {
     return state.guildHasCustomBackgrounds;
+  },
+
+  guildFeatures: (state) => {
+    return state.guildFeatures || [];
   },
 
   guildHasWelcomer: (state) => {
@@ -139,6 +144,7 @@ const mutations = {
     state.guild = guild?.guild;
     state.guildHasWelcomerPro = guild?.has_welcomer_pro;
     state.guildHasCustomBackgrounds = guild?.has_custom_backgrounds;
+    state.guildFeatures = guild?.features || [];
     state.guildChannels = guild?.guild?.channels || [];
     state.guildChannelsPacked = packGuildChannels(state.guildChannels);
     state.guildRoles = guild?.guild?.roles || [];

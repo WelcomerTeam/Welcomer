@@ -63,31 +63,31 @@
       <div class="builder-canvas">
         <div class="bg-secondary-dark border border-secondary-light absolute bottom-12 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-20 flex flex-row divide-x divide-secondary-light">
           <div class="p-2 gap-2 flex flex-row h-full">
-            <button :disabled="preview" @click="selectedAction = 0" :class="[preview ? '' : (selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Select" :disabled="preview" @click="selectedAction = 0" :class="[preview ? '' : (selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="mouse-pointer" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Select</span>
             </button>
           </div>
           <div class="p-2 gap-2 flex flex-row h-full">
-            <button :disabled="preview" @click="selectedAction = 1" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 1 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Text" :disabled="preview" @click="selectedAction = 1" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 1 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="text" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Text</span>
             </button>
-            <button :disabled="preview" @click="selectedAction = 2" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 2 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Image" :disabled="preview" @click="selectedAction = 2" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 2 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="image" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Image</span>
             </button>
-            <button :disabled="preview" @click="selectedAction = 3" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 3 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Square" :disabled="preview" @click="selectedAction = 3" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 3 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="square" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Square</span>
             </button>
-            <button :disabled="preview" @click="selectedAction = 4" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 4 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Circle" :disabled="preview" @click="selectedAction = 4" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 4 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="circle" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Circle</span>
             </button>
           </div>
           <div class="p-2 gap-2 flex flex-row h-full">
-            <button @click="togglePreview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']">
+            <button title="Preview" @click="togglePreview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']">
               <font-awesome-icon icon="eye" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Toggle Preview</span>
             </button>

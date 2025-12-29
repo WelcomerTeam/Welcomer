@@ -65,6 +65,35 @@
               until a user has completed borderwall or rule screening, if
               enabled.</form-value>
 
+            <div class="grid grid-cols-2 space-x-2 mt-4">
+              <button @click="config.images.use_custom_builder = false; onValueUpdate()" :class="[config.images.use_custom_builder ? 'border-gray-300 dark:border-secondary-light' : ' border-primary', 'p-8 border rounded-lg shadow-sm h-fit mb-4']">
+                <h2 class="font-bold text-lg">Use Standard Image Builder</h2>
+                <span>Basic configuration of styling options for your welcome image.</span>
+              </button>
+              <button :disabled="
+              !$store.getters.guildHasWelcomerPro &&
+              !$store.getters.guildHasCustomBackgrounds &&
+              !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" @click="config.images.use_custom_builder = true; onValueUpdate()" :class="[config.images.use_custom_builder ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4']">
+                <h2 class="font-bold text-lg">
+                  <span class="px-2 py-1 bg-primary text-primary-content rounded-md text-xs font-bold">NEW</span>
+                  Use Custom Image Builder
+                </h2>
+                <span>Advanced configuration for creating a custom welcome image.</span>
+                <a href="builder/" target="_blank" v-if="config.images.use_custom_builder" class="mt-4 cta-button bg-primary hover:bg-primary-dark w-full">
+                  Open custom builder
+                </a>
+              </button>
+            </div>
+            <div v-if="
+            !$store.getters.guildHasWelcomerPro &&
+            !$store.getters.guildHasCustomBackgrounds &&
+            !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
+              Custom image builder requires a Welcomer Pro subscription or Custom Backgrounds enabled.
+              <a href="/premium" class="underline">Learn more</a>
+            </div>
+          </div>
+
+          <div class="dashboard-inputs" v-if="!config.images.use_custom_builder">
             <form-value title="Image Theme" :type="FormTypeDropdown" :values="imageThemeTypes"
               v-model="config.images.image_theme" @update:modelValue="onValueUpdate" :validation="v$.images.image_theme"
               :inlineSlot="true" :disabled="!config.images.enabled">This is the theme that will be used for your welcome
@@ -77,9 +106,7 @@
               :files="files" :inlineSlot="true" :customImages="config.custom?.custom_ids"
               :disabled="!config.images.enabled">This is the background that will be used in your welcome
               image.</form-value>
-          </div>
 
-          <div class="dashboard-inputs">
             <form-value title="Welcomer Image Message" :type="FormTypeTextArea" v-model="config.images.message"
               @update:modelValue="onValueUpdate" :validation="v$.images.message" :inlineSlot="true"
               :disabled="!config.images.enabled">This is the custom message that will be included in the welcome
@@ -103,7 +130,7 @@
               image.</form-value>
           </div>
 
-          <div class="dashboard-inputs">
+          <div class="dashboard-inputs" v-if="!config.images.use_custom_builder">
             <form-value title="Show User Avatars" :type="FormTypeToggle" v-model="config.images.show_avatar"
               @update:modelValue="onValueUpdate" :validation="v$.images.show_avatar">When enabled, shows user avatars
               in Welcome images.</form-value>
@@ -121,7 +148,7 @@
               welcome image.</form-value>
           </div>
 
-          <div class="dashboard-inputs">
+          <div class="dashboard-inputs" v-if="!config.images.use_custom_builder">
             <form-value title="Enable Image Border" :type="FormTypeToggle" v-model="config.images.enable_border"
               @update:modelValue="onValueUpdate" :validation="v$.images.enable_border">This allows you to add a border
               around your welcome
@@ -205,6 +232,7 @@ import {
   navigateToErrors,
   isValidJson,
 } from "@/utilities";
+import { DocumentAddIcon } from "@heroicons/vue/solid";
 
 var imageAlignmentTypes = [
   { key: "Left", value: "left" },
