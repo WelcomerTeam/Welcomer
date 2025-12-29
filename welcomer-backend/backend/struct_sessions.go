@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
 const (
@@ -33,12 +34,13 @@ type SessionUser struct {
 
 // SessionGuild represents a guild passed through /api/users/guilds and is stored in the session.
 type SessionGuild struct {
-	Name                 string            `json:"name"`
-	Icon                 string            `json:"icon"`
-	ID                   discord.Snowflake `json:"id"`
-	HasWelcomer          bool              `json:"has_welcomer"`
-	HasWelcomerPro       bool              `json:"has_welcomer_pro"`
-	HasCustomBackgrounds bool              `json:"has_custom_backgrounds"`
-	HasElevation         bool              `json:"has_elevation"`
-	IsOwner              bool              `json:"is_owner"`
+	Name                 string                  `json:"name"`
+	Icon                 string                  `json:"icon"`
+	ID                   discord.Snowflake       `json:"id"`
+	HasWelcomer          bool                    `json:"has_welcomer"`
+	HasWelcomerPro       bool                    `json:"has_welcomer_pro"`
+	HasCustomBackgrounds bool                    `json:"has_custom_backgrounds"`
+	HasElevation         bool                    `json:"has_elevation"`
+	IsOwner              bool                    `json:"is_owner"`
+	Features             []welcomer.GuildFeature `json:"features"`
 }

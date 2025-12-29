@@ -3,6 +3,7 @@ package backend
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -114,7 +115,11 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 
 // Validates leaver settings.
 func doValidateLeaver(guildSettings *GuildSettingsLeaver) error {
-	// TODO: validate leaver
+	if guildSettings.MessageFormat != "" {
+		if err := welcomer.IsValidEmbed(guildSettings.MessageFormat); err != nil {
+			return fmt.Errorf("text message is invalid: %w", err)
+		}
+	}
 
 	return nil
 }

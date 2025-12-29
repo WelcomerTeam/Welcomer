@@ -212,15 +212,15 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			if welcomerImages.BackgroundName == welcomer.CustomBackgroundPrefix+"upload" {
 				if fileValue != nil {
-					hasWelcomerPro, hasCustomBackgrounds, _, _ := welcomer.CheckGuildMemberships(ctx, guildID)
+					hasWelcomerPro, hasCustomBackgrounds, _, err := welcomer.CheckGuildMemberships(ctx, guildID)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 					}
 
 					if !hasWelcomerPro && !hasCustomBackgrounds {
-						ctx.JSON(http.StatusBadRequest, BaseResponse{
+						ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 							Ok:    false,
-							Error: ErrCannotUseCustomBackgrounds.Error(),
+							Error: ErrMissingMembership.Error(),
 						})
 
 						return
@@ -623,6 +623,20 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, guildID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+			}
+
+			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
+					Ok:    false,
+					Error: ErrMissingMembership.Error(),
+				})
+
+				return
+			}
+
 			// get list of artifacts from JSON and remove unused ones and ignore files that do not contain references in the JSON.
 
 			existingRefs, err := welcomer.Queries.GetMinimalWelcomerBuilderArtifactByGuildId(ctx, int64(guildID))
@@ -698,6 +712,22 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			guildID := tryGetGuildID(ctx)
+
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, guildID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+			}
+
+			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
+					Ok:    false,
+					Error: ErrMissingMembership.Error(),
+				})
+
+				return
+			}
+
 			fileValue, err := ctx.FormFile("file")
 			if err != nil {
 				ctx.JSON(http.StatusBadRequest, BaseResponse{
@@ -958,14 +988,14 @@ func getBufferFromFileHeader(fileHeader *multipart.FileHeader) (*bytes.Buffer, m
 // Validates welcomer guild settings.
 func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
 	if guildSettings.Text.MessageFormat != "" {
-		if !welcomer.IsValidEmbed(guildSettings.Text.MessageFormat) {
-			return fmt.Errorf("text message is invalid: %w", ErrInvalidJSON)
+		if err := welcomer.IsValidEmbed(guildSettings.Text.MessageFormat); err != nil {
+			return fmt.Errorf("text message is invalid: %w", err)
 		}
 	}
 
 	if guildSettings.DMs.MessageFormat != "" {
-		if !welcomer.IsValidEmbed(guildSettings.DMs.MessageFormat) {
-			return fmt.Errorf("dms message is invalid: %w", ErrInvalidJSON)
+		if err := welcomer.IsValidEmbed(guildSettings.DMs.MessageFormat); err != nil {
+			return fmt.Errorf("dms message is invalid: %w", err)
 		}
 	}
 

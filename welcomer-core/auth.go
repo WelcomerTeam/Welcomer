@@ -47,7 +47,7 @@ func CheckChannelGuild(ctx context.Context, c sandwich_protobuf.SandwichClient, 
 	return false, nil
 }
 
-func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, features map[GuildFeature]bool, err error) {
+func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, features []GuildFeature, err error) {
 	guildFeatures, err := Queries.GetGuildFeatures(ctx, int64(guildID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		Logger.Warn().Err(err).
@@ -55,10 +55,10 @@ func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasW
 			Msg("Failed to get guild features")
 	}
 
-	features = make(map[GuildFeature]bool)
+	features = make([]GuildFeature, 0, len(guildFeatures))
 
-	for _, feature := range guildFeatures {
-		features[GuildFeature(feature)] = true
+	for _, guildFeature := range guildFeatures {
+		features = append(features, GuildFeature(guildFeature))
 	}
 
 	memberships, err := Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
