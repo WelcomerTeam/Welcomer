@@ -38,6 +38,10 @@ let EndpointGuildWelcomerBuilder = function(guildID) {
   return `${EndpointGuildWelcomer(guildID)}/builder`;
 }
 
+let EndpointGuildWelcomerBuilderPreview = function(guildID) {
+  return `${EndpointGuildWelcomerBuilder(guildID)}/preview`;
+}
+
 let EndpointGuildWelcomerBuilderArtifact = function(guildID) {
   return `${EndpointGuildWelcomer(guildID)}/artifact`;
 }
@@ -83,6 +87,7 @@ export default {
   EndpointGuildWelcomerBuilder,
   EndpointGuildWelcomerBuilderArtifact,
   EndpointGuildWelcomerViewBuilderArtifact,
+  EndpointGuildWelcomerBuilderPreview,
   EndpointGuildSettings,
   EndpointGuildSettingsUpdateMemberCount,
   EndpointGuildCustomBots,

@@ -1,5 +1,21 @@
 package welcomer
 
+import (
+	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+)
+
+type CustomWelcomerImageGenerateRequest struct {
+	CustomWelcomerImage CustomWelcomerImage `json:"custom_welcomer_image"`
+
+	MembersJoined int32                 `json:"members_joined"`
+	NumberLocale  database.NumberLocale `json:"number_locale"`
+
+	Guild  discord.Guild   `json:"guild"`
+	User   discord.User    `json:"user"`
+	Invite *discord.Invite `json:"invite,omitempty"`
+}
+
 type CustomWelcomerImage struct {
 	Fill   string                     `json:"fill"`
 	Stroke *CustomWelcomerImageStroke `json:"stroke,omitempty"`
