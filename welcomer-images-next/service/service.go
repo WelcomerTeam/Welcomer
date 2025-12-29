@@ -23,7 +23,7 @@ type ImageService struct {
 
 	Client http.Client
 
-	URLPool *URLPool
+	URLPool Pool
 }
 
 // ImageServiceOptions represents any options passable when creating

@@ -14,13 +14,36 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+type Pool interface {
+	Get() (string, error)
+	Return(string)
+}
+
+type HardcodedPool struct {
+	url string
+}
+
+func NewHardcodedPool(url string) Pool {
+	pool := &HardcodedPool{url}
+
+	return pool
+}
+
+func (h *HardcodedPool) Get() (string, error) {
+	return h.url, nil
+}
+
+func (h *HardcodedPool) Return(url string) {
+	return
+}
+
 type URLPool struct {
 	mu   *sync.Mutex
 	cond *sync.Cond
 	urls []string
 }
 
-func NewURLPool(urls []string) *URLPool {
+func NewURLPool(urls []string) Pool {
 	mu := sync.Mutex{}
 
 	pool := &URLPool{
@@ -113,6 +136,10 @@ func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString strin
 	var buf []byte
 
 	start := time.Now()
+
+	if is.Options.Debug {
+		println(htmlString)
+	}
 
 	err = chromedp.Run(ctx,
 		chromedp.Tasks{

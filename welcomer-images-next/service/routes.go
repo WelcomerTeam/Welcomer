@@ -3,26 +3,13 @@ package service
 import (
 	"net/http"
 
-	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 )
 
-type GenerateRequest struct {
-	CustomWelcomerImage welcomer.CustomWelcomerImage `json:"custom_welcomer_image"`
-
-	MembersJoined int32                 `json:"members_joined"`
-	NumberLocale  database.NumberLocale `json:"number_locale"`
-
-	Guild  discord.Guild   `json:"guild"`
-	User   discord.User    `json:"user"`
-	Invite *discord.Invite `json:"invite,omitempty"`
-}
-
 // Route POST /generate
 func (is *ImageService) generateHandler(ctx *gin.Context) {
-	var req GenerateRequest
+	var req welcomer.CustomWelcomerImageGenerateRequest
 
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.Data(http.StatusBadRequest, "text/plain", []byte("invalid request payload"))
@@ -31,8 +18,8 @@ func (is *ImageService) generateHandler(ctx *gin.Context) {
 	}
 
 	igctx := &ImageGenerationContext{
-		Context:         ctx.Request.Context(),
-		GenerateRequest: req,
+		Context:                            ctx.Request.Context(),
+		CustomWelcomerImageGenerateRequest: req,
 	}
 
 	builder := is.GenerateCanvas(igctx)
