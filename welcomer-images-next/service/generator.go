@@ -49,7 +49,7 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
 			builder.WriteString(`"><span>`)
 
-			builder.WriteString(html.EscapeString(markdownValue))
+			builder.WriteString(markdownValue)
 
 			builder.WriteString(`</span></div>`)
 		case welcomer.CustomWelcomerImageLayerTypeImage:

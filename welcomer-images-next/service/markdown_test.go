@@ -17,17 +17,17 @@ func TestMarkdownWithDiscordEmoji(t *testing.T) {
 		{
 			name:           "Single static emoji",
 			input:          "Hello <:smile:123456789012345678> world!",
-			expectedOutput: `Hello <img class="d-emoji" src="https://cdn.discordapp.com/emojis/123456789012345678.png"> world!`,
+			expectedOutput: `Hello <img class="emoji" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/123456789012345678.png"> world!`,
 		},
 		{
 			name:           "Single animated emoji",
 			input:          "Hello <a:dance:987654321098765432> world!",
-			expectedOutput: `Hello <img class="d-emoji d-emoji-animated" src="https://cdn.discordapp.com/emojis/987654321098765432.gif"> world!`,
+			expectedOutput: `Hello <img class="emoji emoji-animated" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/987654321098765432.gif"> world!`,
 		},
 		{
 			name:           "Multiple emojis",
 			input:          "Emojis: <:happy:111111111111111111> <a:party:222222222222222222>",
-			expectedOutput: `Emojis: <img class="d-emoji" src="https://cdn.discordapp.com/emojis/111111111111111111.png"> <img class="d-emoji d-emoji-animated" src="https://cdn.discordapp.com/emojis/222222222222222222.gif">`,
+			expectedOutput: `Emojis: <img class="emoji" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/111111111111111111.png"> <img class="emoji emoji-animated" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/222222222222222222.gif">`,
 		},
 		{
 			name:           "No emojis",
@@ -61,14 +61,14 @@ func TestRegularMarkdown(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			name:           "Bold and Italic",
-			input:          "**This is underlined** and *this is italic*.",
-			expectedOutput: "<u>This is underlined</u> and <em>this is italic</em>.",
+			name:           "Bold, Italic and Underline",
+			input:          "**This is Bold** and *this is italic* and __this is underlined__.",
+			expectedOutput: "<strong>This is Bold</strong> and <em>this is italic</em> and <u>this is underlined</u>.",
 		},
 		{
 			name:           "Mixed content",
 			input:          "Hello **world**! This is a test with *markdown* and <:emoji:123456789012345678>.",
-			expectedOutput: `Hello <u>world</u>! This is a test with <em>markdown</em> and <img class="d-emoji" src="https://cdn.discordapp.com/emojis/123456789012345678.png">.`,
+			expectedOutput: `Hello <strong>world</strong>! This is a test with <em>markdown</em> and <img class="emoji" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/123456789012345678.png">.`,
 		},
 	}
 

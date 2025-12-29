@@ -10,7 +10,6 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer"
-	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 )
@@ -90,13 +89,13 @@ func (r *DiscordEmojiRenderer) render(w util.BufWriter, source []byte, node ast.
 
 	ext := "png"
 
-	class := "d-emoji"
+	class := "emoji"
 	if n.Animated {
 		ext = "gif"
-		class += " d-emoji-animated"
+		class += " emoji-animated"
 	}
 
-	fmt.Fprintf(w, `<img class="%s" src="https://cdn.discordapp.com/emojis/%s.%s">`, class, n.ID, ext)
+	fmt.Fprintf(w, `<img class="%s" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/%s.%s">`, class, n.ID, ext)
 
 	return ast.WalkSkipChildren, nil
 }
@@ -104,8 +103,9 @@ func (r *DiscordEmojiRenderer) render(w util.BufWriter, source []byte, node ast.
 //
 // ------------------------------------------------------------
 // Emphasis renderer
-// - *text*  → <em>
-// - **text** → <u>   (SimpleMarkdown-style underline)
+// - *text*   → <em> (italic)
+// - **text** → <strong> (bold)
+// - __text__ → <u> (underline)
 // ------------------------------------------------------------
 //
 
@@ -118,18 +118,54 @@ func (r *EmphasisRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 func (r *EmphasisRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Emphasis)
 
+	// Detect delimiter type by checking the source bytes
+	// We need to look backwards from the first child node to find the delimiter
+	var isUnderscore bool
+
+	// Try to find the delimiter by examining the source around the node
+	if node.HasChildren() {
+		firstChild := node.FirstChild()
+		// Check if the first child is a Text node and has segments
+		if textNode, ok := firstChild.(*ast.Text); ok && textNode.Segment.Start > 0 {
+			// Look backwards in source to find the delimiter
+			pos := textNode.Segment.Start - 1
+			for pos >= 0 && pos > textNode.Segment.Start-3 {
+				if source[pos] == '_' {
+					isUnderscore = true
+					break
+				} else if source[pos] == '*' {
+					isUnderscore = false
+					break
+				}
+				pos--
+			}
+		}
+	}
+
 	switch n.Level {
 	case 1:
+		// Single delimiter: *text* or _text_ → italic
 		if entering {
 			w.WriteString("<em>")
 		} else {
 			w.WriteString("</em>")
 		}
 	case 2:
-		if entering {
-			w.WriteString("<u>")
+		// Double delimiter
+		if isUnderscore {
+			// __text__ → underline
+			if entering {
+				w.WriteString("<u>")
+			} else {
+				w.WriteString("</u>")
+			}
 		} else {
-			w.WriteString("</u>")
+			// **text** → bold
+			if entering {
+				w.WriteString("<strong>")
+			} else {
+				w.WriteString("</strong>")
+			}
 		}
 	}
 
@@ -153,7 +189,7 @@ func newMarkdown() goldmark.Markdown {
 			),
 		),
 		goldmark.WithRendererOptions(
-			html.WithUnsafe(),
+			// html.WithUnsafe(),
 			renderer.WithNodeRenderers(
 				util.Prioritized(&DiscordEmojiRenderer{}, 600),
 				util.Prioritized(&EmphasisRenderer{}, 500),
