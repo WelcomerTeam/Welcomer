@@ -1,7 +1,9 @@
-package service
+package service_test
 
 import (
 	"testing"
+
+	"github.com/WelcomerTeam/Welcomer/welcomer-images-next/service"
 )
 
 func TestMarkdownWithDiscordEmoji(t *testing.T) {
@@ -38,7 +40,7 @@ func TestMarkdownWithDiscordEmoji(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			output, err := Render(test.input)
+			output, err := service.Render(test.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -74,7 +76,7 @@ func TestRegularMarkdown(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			output, err := Render(test.input)
+			output, err := service.Render(test.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

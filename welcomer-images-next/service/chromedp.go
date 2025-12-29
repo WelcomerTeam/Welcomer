@@ -16,14 +16,14 @@ import (
 
 type Pool interface {
 	Get() (string, error)
-	Return(string)
+	Return(url string)
 }
 
 type HardcodedPool struct {
 	url string
 }
 
-func NewHardcodedPool(url string) Pool {
+func NewHardcodedPool(url string) *HardcodedPool {
 	pool := &HardcodedPool{url}
 
 	return pool
@@ -33,8 +33,7 @@ func (h *HardcodedPool) Get() (string, error) {
 	return h.url, nil
 }
 
-func (h *HardcodedPool) Return(url string) {
-	return
+func (h *HardcodedPool) Return(_ string) {
 }
 
 type URLPool struct {
@@ -43,7 +42,7 @@ type URLPool struct {
 	urls []string
 }
 
-func NewURLPool(urls []string) Pool {
+func NewURLPool(urls []string) *URLPool {
 	mu := sync.Mutex{}
 
 	pool := &URLPool{

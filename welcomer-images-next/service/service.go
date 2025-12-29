@@ -60,6 +60,7 @@ func NewImageService(options ImageServiceOptions) (*ImageService, error) {
 
 func (is *ImageService) Open() {
 	is.StartTime = time.Now()
+
 	welcomer.Logger.Info().Msgf("Starting image service. Version %s", VERSION)
 
 	// Setup HTTP

@@ -57,6 +57,7 @@ func (is *ImageService) getCanvasStyle(ctx *ImageGenerationContext, customImage 
 	}
 
 	styling.Add("background", is.getFillAsCSS(ctx, customImage.Fill, "transparent"))
+	styling.Add("background-origin", "border-box")
 	styling.Add("box-sizing", "border-box")
 	styling.Add("overflow", "hidden")
 	styling.Add("position", "relative")
@@ -188,7 +189,7 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 		return defaultValue
 	}
 
-	if value[:4] == "ref:" {
+	if len(value) >= 4 && value[:4] == "ref:" {
 		return "url(https://www.welcomer.gg/api/guild/" + ctx.Guild.ID.String() + "/welcomer/artifact/" + url.QueryEscape(value[4:]) + ")"
 	}
 

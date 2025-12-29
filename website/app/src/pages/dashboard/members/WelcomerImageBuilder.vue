@@ -1399,6 +1399,7 @@ you are the {{Ordinal(Guild.Members)}} member!`;
         width: (dimensions[0] || 0) + "px",
         height: (dimensions[1] || 0) + "px",
         background: this.getFillAsCSS(this.image_config.fill || '#ffffff'),
+        "background-origin": "border-box",
         overflow: this.preview ? "hidden" : "visible",
         border: (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
       };
