@@ -230,37 +230,37 @@ func IsValidEmbed(s string) error {
 		}
 
 		if embed.URL != "" {
-			_, err := url.ParseRequestURI(embed.URL)
-			if err != nil {
-				return fmt.Errorf("embed URL is invalid: %v", err)
+			_, ok := IsValidURLWithFormatting(embed.URL)
+			if !ok {
+				return fmt.Errorf("embed URL is invalid: %s", embed.URL)
 			}
 		}
 
 		if embed.Footer != nil && embed.Footer.IconURL != "" {
-			_, err := url.ParseRequestURI(embed.Footer.IconURL)
-			if err != nil {
-				return fmt.Errorf("embed footer icon URL is invalid: %v", err)
+			_, ok := IsValidURLWithFormatting(embed.Footer.IconURL)
+			if !ok {
+				return fmt.Errorf("embed footer icon URL is invalid: %s", embed.Footer.IconURL)
 			}
 		}
 
 		if embed.Image != nil && embed.Image.URL != "" {
-			_, err := url.ParseRequestURI(embed.Image.URL)
-			if err != nil {
-				return fmt.Errorf("embed image URL is invalid: %v", err)
+			_, ok := IsValidURLWithFormatting(embed.Image.URL)
+			if !ok {
+				return fmt.Errorf("embed image URL is invalid: %s", embed.Image.URL)
 			}
 		}
 
 		if embed.Thumbnail != nil && embed.Thumbnail.URL != "" {
-			_, err := url.ParseRequestURI(embed.Thumbnail.URL)
-			if err != nil {
-				return fmt.Errorf("embed thumbnail URL is invalid: %v", err)
+			_, ok := IsValidURLWithFormatting(embed.Thumbnail.URL)
+			if !ok {
+				return fmt.Errorf("embed thumbnail URL is invalid: %s", embed.Thumbnail.URL)
 			}
 		}
 
 		if embed.Author != nil && embed.Author.IconURL != "" {
-			_, err := url.ParseRequestURI(embed.Author.IconURL)
-			if err != nil {
-				return fmt.Errorf("embed author icon URL is invalid: %v", err)
+			_, ok := IsValidURLWithFormatting(embed.Author.IconURL)
+			if !ok {
+				return fmt.Errorf("embed author icon URL is invalid: %s", embed.Author.IconURL)
 			}
 		}
 	}
@@ -284,6 +284,16 @@ func IsValidImageProfileBorderType(value string) bool {
 	_, err := ParseImageProfileBorderType(value)
 
 	return err == nil
+}
+
+func IsValidURLWithFormatting(url string) (*url.URL, bool) {
+	if strings.Contains(url, "{{User.Avatar}}") || strings.Contains(url, "{{Guild.Icon}}") || strings.Contains(url, "{{Guild.Splash}}") || strings.Contains(url, "{{Guild.Banner}}") {
+		return nil, true
+	}
+
+	resultURL, ok := IsValidURL(url)
+
+	return resultURL, ok
 }
 
 // Validates a URL and prevents SSRF.
