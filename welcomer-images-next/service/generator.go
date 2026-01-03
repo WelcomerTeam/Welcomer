@@ -4,51 +4,72 @@ import (
 	"html"
 	"strings"
 
+	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
-func GenerateCanvas(customImage welcomer.CustomWelcomerImage) strings.Builder {
+func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Builder {
 	builder := strings.Builder{}
 
-	builder.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">`)
-
-	// load font stylesheets
-	FetchFonts(&builder, customImage)
-
-	builder.WriteString(`</head>`)
+	builder.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>`)
 
 	builder.WriteString(`<body><div id="canvas" style="`)
-	getCanvasStyle(customImage).Build(&builder)
+	is.getCanvasStyle(ctx, ctx.CustomWelcomerImage).Build(&builder)
 	builder.WriteString(`">`)
 
-	for index, layer := range customImage.Layers {
+	functions := welcomer.GatherFunctions(ctx.NumberLocale)
+	variables := welcomer.GatherVariables(nil, &discord.GuildMember{User: &ctx.User}, welcomer.GuildVariables{
+		Guild:         &ctx.Guild,
+		MembersJoined: ctx.MembersJoined,
+		NumberLocale:  ctx.NumberLocale,
+	}, ctx.Invite, nil)
+
+	for index, layer := range ctx.CustomWelcomerImage.Layers {
 		builder.WriteString(`<div style="`)
-		getObjectStyleBase(layer, len(customImage.Layers), 0).Build(&builder)
+		getObjectStyleBase(layer, len(ctx.CustomWelcomerImage.Layers), 0).Build(&builder)
 		builder.WriteString(`">`)
 
 		switch layer.Type {
 		case welcomer.CustomWelcomerImageLayerTypeText:
+			formattedValue, err := welcomer.FormatString(functions, variables, layer.Value)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to format string for custom welcomer image layer")
+
+				continue
+			}
+
+			markdownValue, err := Render(formattedValue)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to render markdown for custom welcomer image layer")
+
+				continue
+			}
+
 			builder.WriteString("<div style=\"")
-			getObjectStyle(layer, len(customImage.Layers), index).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
 			builder.WriteString(`"><span>`)
 
-			// TODO: this needs to output as markdown
-			// TODO: this needs to be formatted.
-			builder.WriteString(html.EscapeString(layer.Value))
+			builder.WriteString(markdownValue)
 
 			builder.WriteString(`</span></div>`)
 		case welcomer.CustomWelcomerImageLayerTypeImage:
+			formattedValue, err := welcomer.FormatString(functions, variables, layer.Value)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to format string for custom welcomer image layer")
+
+				continue
+			}
+
 			builder.WriteString("<img style=\"")
-			getObjectStyle(layer, len(customImage.Layers), index).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
 			builder.WriteString(`" src="`)
 
-			// TODO: this needs to be formatted.
-			builder.WriteString(html.EscapeString(layer.Value))
+			builder.WriteString(html.EscapeString(formattedValue))
 
 			builder.WriteString(`"><img>`)
 		case welcomer.CustomWelcomerImageLayerTypeShapeRectangle, welcomer.CustomWelcomerImageLayerTypeShapeCircle:
 			builder.WriteString("<div style=\"")
-			getObjectStyle(layer, len(customImage.Layers), index).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
 			builder.WriteString(`"></div>`)
 		}
 
@@ -60,10 +81,10 @@ func GenerateCanvas(customImage welcomer.CustomWelcomerImage) strings.Builder {
 	return builder
 }
 
-func FetchFonts(builder *strings.Builder, customImage welcomer.CustomWelcomerImage) {
+func FetchFonts(builder *strings.Builder, ctx *ImageGenerationContext) {
 	fontsLoaded := map[string]bool{}
 
-	for _, layer := range customImage.Layers {
+	for _, layer := range ctx.CustomWelcomerImage.Layers {
 		if layer.Type != welcomer.CustomWelcomerImageLayerTypeText {
 			continue
 		}

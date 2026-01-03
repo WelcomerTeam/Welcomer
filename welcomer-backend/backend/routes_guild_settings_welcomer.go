@@ -13,6 +13,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -211,15 +212,15 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			if welcomerImages.BackgroundName == welcomer.CustomBackgroundPrefix+"upload" {
 				if fileValue != nil {
-					hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, guildID)
+					hasWelcomerPro, hasCustomBackgrounds, _, err := welcomer.CheckGuildMemberships(ctx, guildID)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 					}
 
 					if !hasWelcomerPro && !hasCustomBackgrounds {
-						ctx.JSON(http.StatusBadRequest, BaseResponse{
+						ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 							Ok:    false,
-							Error: ErrCannotUseCustomBackgrounds.Error(),
+							Error: ErrMissingMembership.Error(),
 						})
 
 						return
@@ -475,6 +476,112 @@ func getGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 	})
 }
 
+// Route POST /api/guild/:guildID/welcomer/builder/preview
+func getGuildSettingsWelcomerBuilderPreview(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			customBuilderData := welcomer.CustomWelcomerImage{}
+
+			err := ctx.BindJSON(&customBuilderData)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, BaseResponse{
+					Ok:    false,
+					Error: err.Error(),
+				})
+
+				return
+			}
+
+			guildID := tryGetGuildID(ctx)
+
+			guild, err := welcomer.FetchGuild(ctx, guildID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to fetch guild from state cache")
+
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
+			guildSettings, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					guildSettings = &welcomer.DefaultGuild
+				} else {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild settings")
+				}
+			}
+
+			hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(ctx, guildID)
+
+			user := tryGetUser(ctx)
+
+			request := welcomer.CustomWelcomerImageGenerateRequest{
+				CustomWelcomerImage: customBuilderData,
+				MembersJoined:       welcomer.If(hasWelcomerPro, guildSettings.MemberCount, guild.MemberCount),
+				NumberLocale:        database.NumberLocale(guildSettings.NumberLocale.Int32),
+				Guild:               *guild,
+				User: discord.User{
+					GlobalName:    user.GlobalName,
+					Avatar:        user.Avatar,
+					Username:      user.Username,
+					Discriminator: user.Discriminator,
+					ID:            user.ID,
+				},
+				Invite: &discord.Invite{},
+			}
+
+			requestJSON, err := json.Marshal(request)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to marshal custom welcomer preview request")
+
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
+			resp, err := http.Post(os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(requestJSON))
+			if err != nil || resp == nil {
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				welcomer.Logger.Error().
+					Int64("guild_id", int64(guildID)).
+					Int("status_code", resp.StatusCode).
+					Msg("Image generation service returned non-200 status code")
+
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
+			imageBytes, err := io.ReadAll(resp.Body)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to read image generation response body")
+
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
+			ctx.Data(http.StatusOK, "image/png", imageBytes)
+		})
+	})
+}
+
 // Route POST /api/guild/:guildID/welcomer/builder.
 func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
@@ -515,6 +622,20 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			}
 
 			guildID := tryGetGuildID(ctx)
+
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, guildID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+			}
+
+			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
+					Ok:    false,
+					Error: ErrMissingMembership.Error(),
+				})
+
+				return
+			}
 
 			// get list of artifacts from JSON and remove unused ones and ignore files that do not contain references in the JSON.
 
@@ -591,6 +712,22 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			guildID := tryGetGuildID(ctx)
+
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, guildID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+			}
+
+			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
+					Ok:    false,
+					Error: ErrMissingMembership.Error(),
+				})
+
+				return
+			}
+
 			fileValue, err := ctx.FormFile("file")
 			if err != nil {
 				ctx.JSON(http.StatusBadRequest, BaseResponse{
@@ -851,14 +988,14 @@ func getBufferFromFileHeader(fileHeader *multipart.FileHeader) (*bytes.Buffer, m
 // Validates welcomer guild settings.
 func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
 	if guildSettings.Text.MessageFormat != "" {
-		if !welcomer.IsValidEmbed(guildSettings.Text.MessageFormat) {
-			return fmt.Errorf("text message is invalid: %w", ErrInvalidJSON)
+		if err := welcomer.IsValidEmbed(guildSettings.Text.MessageFormat); err != nil {
+			return fmt.Errorf("text message is invalid: %w", err)
 		}
 	}
 
 	if guildSettings.DMs.MessageFormat != "" {
-		if !welcomer.IsValidEmbed(guildSettings.DMs.MessageFormat) {
-			return fmt.Errorf("dms message is invalid: %w", ErrInvalidJSON)
+		if err := welcomer.IsValidEmbed(guildSettings.DMs.MessageFormat); err != nil {
+			return fmt.Errorf("dms message is invalid: %w", err)
 		}
 	}
 
@@ -973,6 +1110,7 @@ func registerGuildSettingsWelcomerRoutes(g *gin.Engine) {
 
 	g.GET("/api/guild/:guildID/welcomer/builder", getGuildSettingsWelcomerBuilder)
 	g.POST("/api/guild/:guildID/welcomer/builder", setGuildSettingsWelcomerBuilder)
+	g.POST("/api/guild/:guildID/welcomer/builder/preview", getGuildSettingsWelcomerBuilderPreview)
 
 	g.GET("/api/guild/:guildID/welcomer/artifact/:key", getGuildWelcomerArtifact)
 	g.POST("/api/guild/:guildID/welcomer/artifact", postGuildSettingsWelcomerBuilderArtifact)

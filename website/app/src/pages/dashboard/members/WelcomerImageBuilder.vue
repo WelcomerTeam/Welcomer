@@ -63,32 +63,35 @@
       <div class="builder-canvas">
         <div class="bg-secondary-dark border border-secondary-light absolute bottom-12 left-1/2 -translate-x-1/2 rounded-lg shadow-md z-20 flex flex-row divide-x divide-secondary-light">
           <div class="p-2 gap-2 flex flex-row h-full">
-            <button @click="selectedAction = 0" :class="[selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Select" :disabled="preview" @click="selectedAction = 0" :class="[preview ? '' : (selectedAction == 0 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="mouse-pointer" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Select</span>
             </button>
           </div>
           <div class="p-2 gap-2 flex flex-row h-full">
-            <button @click="selectedAction = 1" :class="[selectedAction == 1 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Text" :disabled="preview" @click="selectedAction = 1" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 1 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="text" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Text</span>
             </button>
-            <button @click="selectedAction = 2" :class="[selectedAction == 2 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Image" :disabled="preview" @click="selectedAction = 2" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 2 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="image" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Image</span>
             </button>
-            <button @click="selectedAction = 3" :class="[selectedAction == 3 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Square" :disabled="preview" @click="selectedAction = 3" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 3 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="square" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Square</span>
             </button>
-            <button @click="selectedAction = 4" :class="[selectedAction == 4 ? 'bg-primary' : 'hover:bg-secondary-light', 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
+            <button title="Circle" :disabled="preview" @click="selectedAction = 4" :class="[preview ? 'bg-secondary-dark' : (selectedAction == 4 ? 'bg-primary' : 'hover:bg-secondary-light'), 'h-12 w-12 rounded-md shadow-md flex justify-center items-center']">
               <font-awesome-icon icon="circle" class="w-6 h-6 text-white" aria-hidden="true" />
               <span class="sr-only">Circle</span>
             </button>
           </div>
-          <!-- <div class="p-2 gap-2 flex flex-row h-full">
-            <button @click="preview = !preview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']"></button>
-          </div> -->
+          <div class="p-2 gap-2 flex flex-row h-full">
+            <button title="Preview" @click="togglePreview" :class="[preview ? 'bg-primary' : 'bg-secondary hover:bg-primary', 'h-12 w-12 rounded-md shadow-md border border-secondary-light']">
+              <font-awesome-icon icon="eye" class="w-6 h-6 text-white" aria-hidden="true" />
+              <span class="sr-only">Toggle Preview</span>
+            </button>
+          </div>
         </div>
         
         <div class="m-4 flex gap-2 z-20 absolute">
@@ -113,7 +116,20 @@
 
         <!-- canvas -->
 
-        <div :class="[selectedAction == 0 ? '' : 'cursor-crosshair', 'canvas']" @mousedown="onCanvasMouseDown" :style="getCanvasStyle(x, y)">
+        <div v-if="preview" :style="getCanvasStyleBase(x , y)">
+          <LoadingIcon v-if="!isPreviewFetched && !isPreviewError" :isLight="true" />
+          <div v-else-if="isPreviewError" class="w-full h-full flex flex-col items-center justify-center">
+            <p class="mb-2">Failed to load preview</p>
+            <button @click="fetchPreview" class="px-3 py-1 bg-primary text-white rounded">
+              Retry
+            </button>
+          </div>
+          <img v-else-if="isPreviewFetched" :src="previewDataUrl" class="w-full h-full" />
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <LoadingIcon :isLight="true" />
+          </div>
+        </div>
+        <div v-else :class="[selectedAction == 0 ? '' : 'cursor-crosshair', 'canvas']" @mousedown="onCanvasMouseDown" :style="getCanvasStyle(x, y)">
           <div v-for="(obj, index) in image_config.layers" :key="index">
             <div @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
               :style="getObjectStyleBase(obj, index)">
@@ -541,6 +557,8 @@ import {
   formatText,
 } from "@/utilities";
 
+import { doRequest } from "@/api/routes";
+
 const fonts = {
   "Balsamiq Sans": {
     name: " Balsamiq Sans",
@@ -797,6 +815,10 @@ export default {
     let unsavedChanges = ref(false);
     let isChangeInProgress = ref(false);
 
+    let isPreviewFetched = ref(false);
+    let isPreviewError = ref(false);
+    let previewDataUrl = ref("");
+
     let config = ref({});
 
     let image_config = ref({});
@@ -829,6 +851,11 @@ export default {
 
       isDataFetched,
       isDataError,
+
+      isPreviewFetched,
+      isPreviewError,
+      previewDataUrl,
+
       unsavedChanges,
       isChangeInProgress,
 
@@ -1132,6 +1159,43 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       this.showHelpDialog = false;
     },
 
+    togglePreview() {
+      if (!this.preview) {
+        this.selectedAction = 0;
+        this.selectedObject = -1;
+        this.selectedGrab = -1;
+        this.fetchPreview();
+        this.preview = true;
+      } else {
+        this.preview = false;
+      }
+    },
+
+    fetchPreview() {
+      this.isPreviewFetched = false;
+      this.isPreviewError = false;
+
+      doRequest(
+        "POST",
+        endpoints.EndpointGuildWelcomerBuilderPreview(this.$store.getters.getSelectedGuildID),
+        this.image_config,
+        null,
+        (data) => {
+          data.blob().then((blob) => {
+            this.previewDataUrl = URL.createObjectURL(blob);
+            this.isPreviewFetched = true;
+            this.isPreviewError = false;
+          });
+        },
+        (error) => {
+          this.$store.dispatch("createToast", getErrorToast(error));
+
+          this.isPreviewFetched = true;
+          this.isPreviewError = true;
+        }
+      );
+    },
+
     createLayer(action, x, y, width, height) {
       let newLayer = {
         type: action,
@@ -1314,19 +1378,28 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       });
     },
 
-    getCanvasStyle(x, y) {
+    getCanvasStyleBase(x, y) {
       // this outputs as a style=""
-
-      let dimensions = this.image_config?.dimensions || [0, 0];
 
       return {
         left: "calc(" + x + "px)",
         top: "calc(50% + " + y + "px)",
         transform: "translateY(-50%) scale(" + this.zoom + ")",
         position: "absolute",
+      };
+    },
+
+    getCanvasStyle(x, y) {
+      // this outputs as a style=""
+
+      let dimensions = this.image_config?.dimensions || [0, 0];
+
+      return {
+        ...this.getCanvasStyleBase(x, y),
         width: (dimensions[0] || 0) + "px",
         height: (dimensions[1] || 0) + "px",
         background: this.getFillAsCSS(this.image_config.fill || '#ffffff'),
+        "background-origin": "border-box",
         overflow: this.preview ? "hidden" : "visible",
         border: (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
       };
@@ -1418,10 +1491,12 @@ you are the {{Ordinal(Guild.Members)}} member!`;
     },
 
     onLayerClick(index) {
+      if (this.preview) return;
       if (this.selectedObject != index) this.selectedObject = index;
     },
 
     onLayerMouseOver(index) {
+      if (this.preview) return;
       if (this.selectedAction != 0) return; // only hover in select mode
       this.hoveredObject = index;
     },

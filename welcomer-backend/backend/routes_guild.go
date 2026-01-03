@@ -89,7 +89,7 @@ func getGuild(ctx *gin.Context) {
 			discordGuild.Roles = roles
 			discordGuild.Emojis = emojis
 
-			hasWelcomerPro, hasCustomBackgrounds, err := getGuildMembership(ctx, discordGuild.ID)
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, discordGuild.ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
 			}
@@ -129,6 +129,7 @@ func getGuild(ctx *gin.Context) {
 				Guild:                partialGuild,
 				HasWelcomerPro:       hasWelcomerPro,
 				HasCustomBackgrounds: hasCustomBackgrounds,
+				Features:             features,
 				EmbedColour:          int(guildConfig.EmbedColour),
 				SplashURL:            guildConfig.SiteSplashUrl,
 				StaffVisible:         guildConfig.SiteStaffVisible,

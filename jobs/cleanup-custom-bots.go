@@ -40,7 +40,7 @@ func main() {
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Notify Expired Job",
+						Title:       "Cleanup Custom Bots Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
 						Timestamp:   welcomer.ToPointer(time.Now()),

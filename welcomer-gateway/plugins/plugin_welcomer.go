@@ -200,6 +200,21 @@ func (p *WelcomerCog) FetchWelcomerImage(options welcomer.GenerateImageOptionsRa
 	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
+func (p *WelcomerCog) FetchWelcomerImagesNew(request welcomer.CustomWelcomerImageGenerateRequest) (io.ReadCloser, string, error) {
+	requestJSON, _ := json.Marshal(request)
+
+	resp, err := p.Client.Post(os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(requestJSON))
+	if err != nil || resp == nil {
+		return nil, "", fmt.Errorf("fetch welcomer.images-next request failed: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		return nil, "", fmt.Errorf("failed to get welcomer.images-next with status %s", resp.Status)
+	}
+
+	return resp.Body, resp.Header.Get("Content-Type"), nil
+}
+
 func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (*discord.Invite, error) {
 	var potentialInvite *discord.Invite
 
@@ -485,10 +500,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		user = event.Member.User
 	}
 
-	var guilds *sandwich_protobuf.FetchGuildResponse
-
 	// Query state cache for guild.
-	guilds, err = welcomer.SandwichClient.FetchGuild(eventCtx, &sandwich_protobuf.FetchGuildRequest{
+	guilds, err := welcomer.SandwichClient.FetchGuild(eventCtx, &sandwich_protobuf.FetchGuildRequest{
 		GuildIds: []int64{int64(eventCtx.Guild.ID)},
 	})
 	if err != nil {
@@ -675,18 +688,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	var memberships []*database.GetUserMembershipsByGuildIDRow
-
-	// Check if the guild has welcomer pro.
-	memberships, err = welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Warn().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get welcomer memberships")
-
-		return err
-	}
-
 	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -698,14 +699,16 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		}
 	}
 
-	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+	hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(eventCtx.Context, eventCtx.Guild.ID)
 
-	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, core.GuildVariables{
+	guildVariables := core.GuildVariables{
 		Guild:         guild,
 		MembersJoined: welcomer.If(hasWelcomerPro, guildMembersJoinedCount, guild.MemberCount),
 		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
-	}, usedInvite, nil)
+	}
+
+	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
+	variables := welcomer.GatherVariables(eventCtx, &event.Member, guildVariables, usedInvite, nil)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
@@ -765,33 +768,60 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		var imageReaderCloser io.ReadCloser
 		var contentType string
 
-		// Fetch the welcomer.image.
-		imageReaderCloser, contentType, err = p.FetchWelcomerImage(welcomer.GenerateImageOptionsRaw{
-			ShowAvatar:         guildSettingsWelcomerImages.ToggleShowAvatar,
-			GuildID:            int64(eventCtx.Guild.ID),
-			UserID:             int64(event.Member.User.ID),
-			AllowAnimated:      hasWelcomerPro,
-			AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
-			Theme:              guildSettingsWelcomerImages.ImageTheme,
-			Background:         backgroundName,
-			Text:               messageFormat,
-			TextFont:           DefaultFont,
-			TextStroke:         true,
-			TextAlign:          guildSettingsWelcomerImages.ImageAlignment,
-			TextColor:          tryParseColourAsInt64(guildSettingsWelcomerImages.ColourText, white),
-			TextStrokeColor:    tryParseColourAsInt64(guildSettingsWelcomerImages.ColourTextBorder, black),
-			ImageBorderColor:   tryParseColourAsInt64(guildSettingsWelcomerImages.ColourImageBorder, white),
-			ImageBorderWidth:   borderWidth,
-			ProfileFloat:       int32(profileFloat),
-			ProfileBorderColor: tryParseColourAsInt64(guildSettingsWelcomerImages.ColourProfileBorder, white),
-			ProfileBorderWidth: DefaultProfileBorderWidth,
-			ProfileBorderCurve: guildSettingsWelcomerImages.ImageProfileBorderType,
-		})
-		if err != nil {
-			welcomer.Logger.Warn().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Int64("user_id", int64(event.Member.User.ID)).
-				Msg("Failed to get welcomer.image")
+		if guildSettingsWelcomerImages.UseCustomBuilder {
+			var cwi core.CustomWelcomerImage
+
+			err = json.Unmarshal(guildSettingsWelcomerImages.CustomBuilderData.Bytes, &cwi)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to unmarshal custom welcomer image data")
+			}
+
+			imageReaderCloser, contentType, err = p.FetchWelcomerImagesNew(welcomer.CustomWelcomerImageGenerateRequest{
+				CustomWelcomerImage: cwi,
+				MembersJoined:       guildVariables.MembersJoined,
+				NumberLocale:        guildVariables.NumberLocale,
+				Guild:               *guildVariables.Guild,
+				User:                *event.Member.User,
+				Invite:              usedInvite,
+			})
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to get welcomer images (next)")
+			}
+		} else {
+			// Fetch the welcomer.image.
+			imageReaderCloser, contentType, err = p.FetchWelcomerImage(welcomer.GenerateImageOptionsRaw{
+				ShowAvatar:         guildSettingsWelcomerImages.ToggleShowAvatar,
+				GuildID:            int64(eventCtx.Guild.ID),
+				UserID:             int64(event.Member.User.ID),
+				AllowAnimated:      hasWelcomerPro,
+				AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
+				Theme:              guildSettingsWelcomerImages.ImageTheme,
+				Background:         backgroundName,
+				Text:               messageFormat,
+				TextFont:           DefaultFont,
+				TextStroke:         true,
+				TextAlign:          guildSettingsWelcomerImages.ImageAlignment,
+				TextColor:          tryParseColourAsInt64(guildSettingsWelcomerImages.ColourText, white),
+				TextStrokeColor:    tryParseColourAsInt64(guildSettingsWelcomerImages.ColourTextBorder, black),
+				ImageBorderColor:   tryParseColourAsInt64(guildSettingsWelcomerImages.ColourImageBorder, white),
+				ImageBorderWidth:   borderWidth,
+				ProfileFloat:       int32(profileFloat),
+				ProfileBorderColor: tryParseColourAsInt64(guildSettingsWelcomerImages.ColourProfileBorder, white),
+				ProfileBorderWidth: DefaultProfileBorderWidth,
+				ProfileBorderCurve: guildSettingsWelcomerImages.ImageProfileBorderType,
+			})
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Msg("Failed to get welcomer image")
+			}
 		}
 
 		if imageReaderCloser != nil {
@@ -1023,17 +1053,7 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 		return nil
 	}
 
-	// Check if the guild has welcomer pro.
-	memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(eventCtx.Context, eventCtx.Guild.ID, time.Now())
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Warn().Err(err).
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Msg("Failed to get welcomer memberships")
-
-		return err
-	}
-
-	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+	hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(eventCtx.Context, eventCtx.Guild.ID)
 	if !hasWelcomerPro {
 		welcomer.Logger.Info().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).

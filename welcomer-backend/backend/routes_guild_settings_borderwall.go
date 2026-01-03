@@ -2,6 +2,7 @@ package backend
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
@@ -116,7 +117,17 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 
 // Validates borderwall settings.
 func doValidateBorderwall(guildSettings *GuildSettingsBorderwall) error {
-	// TODO: validate borderwall
+	if guildSettings.MessageVerify != "" {
+		if err := welcomer.IsValidEmbed(guildSettings.MessageVerify); err != nil {
+			return fmt.Errorf("text message is invalid: %w", err)
+		}
+	}
+
+	if guildSettings.MessageVerified != "" {
+		if err := welcomer.IsValidEmbed(guildSettings.MessageVerified); err != nil {
+			return fmt.Errorf("text message is invalid: %w", err)
+		}
+	}
 
 	return nil
 }

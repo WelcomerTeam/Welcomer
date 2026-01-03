@@ -9,16 +9,17 @@ import (
 )
 
 type Guild struct {
-	CreatedAt            time.Time     `json:"created_at"`
-	UpdatedAt            time.Time     `json:"updated_at"`
-	Guild                *PartialGuild `json:"guild,omitempty"`
-	SplashURL            string        `json:"splash_url"`
-	EmbedColour          int           `json:"embed_colour"`
-	HasWelcomerPro       bool          `json:"has_welcomer_pro"`
-	HasCustomBackgrounds bool          `json:"has_custom_backgrounds"`
-	StaffVisible         bool          `json:"staff_visible"`
-	GuildVisible         bool          `json:"guild_visible"`
-	AllowInvites         bool          `json:"allow_invites"`
+	CreatedAt            time.Time               `json:"created_at"`
+	UpdatedAt            time.Time               `json:"updated_at"`
+	Guild                *PartialGuild           `json:"guild,omitempty"`
+	SplashURL            string                  `json:"splash_url"`
+	EmbedColour          int                     `json:"embed_colour"`
+	HasWelcomerPro       bool                    `json:"has_welcomer_pro"`
+	HasCustomBackgrounds bool                    `json:"has_custom_backgrounds"`
+	Features             []welcomer.GuildFeature `json:"features"`
+	StaffVisible         bool                    `json:"staff_visible"`
+	GuildVisible         bool                    `json:"guild_visible"`
+	AllowInvites         bool                    `json:"allow_invites"`
 }
 
 type PartialGuild struct {

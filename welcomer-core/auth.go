@@ -3,18 +3,21 @@ package welcomer
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_protobuf "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
 )
 
 const PermissionElevated = discord.PermissionAdministrator | discord.PermissionManageServer
 
-var elevatedUsers []discord.Snowflake
+var ElevatedUsers []discord.Snowflake
 
 func init() {
 	elevatedUsersStr := os.Getenv("ELEVATED_USERS")
@@ -44,7 +47,27 @@ func CheckChannelGuild(ctx context.Context, c sandwich_protobuf.SandwichClient, 
 	return false, nil
 }
 
-func CheckGuildMemberships(memberships []*database.GetUserMembershipsByGuildIDRow) (hasWelcomerPro, hasCustomBackgrounds bool) {
+func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, features []GuildFeature, err error) {
+	guildFeatures, err := Queries.GetGuildFeatures(ctx, int64(guildID))
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		Logger.Warn().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get guild features")
+	}
+
+	features = make([]GuildFeature, 0, len(guildFeatures))
+
+	for _, guildFeature := range guildFeatures {
+		features = append(features, GuildFeature(guildFeature))
+	}
+
+	memberships, err := Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		Logger.Warn().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get welcomer memberships")
+	}
+
 	for _, membership := range memberships {
 		if IsCustomBackgroundsMembership(database.MembershipType(membership.MembershipType)) {
 			hasCustomBackgrounds = true

@@ -36,6 +36,7 @@ import {
   faDoorClosed as fasDoorClosed,
   faDoorOpen as fasDoorOpen,
   faDownLong as fasDownLong,
+  faEye as fasEye,
   faFaceLaugh as fasFaceLaugh,
   faFileImage as fasFileImage,
   faGripVertical as fasGripVertical,
@@ -121,6 +122,7 @@ library.add(
   fasDoorClosed,
   fasDoorOpen,
   fasDownLong,
+  fasEye,
   fasFaceLaugh,
   fasFileImage,
   fasGripVertical,
@@ -183,6 +185,10 @@ library.add(
 
   falBadgeCheck,
 );
+
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual'
+}
 
 createApp(App)
   .component("font-awesome-icon", FontAwesomeIcon)

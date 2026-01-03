@@ -357,6 +357,10 @@ func GetGuildMemberDisplayName(member *discord.GuildMember) string {
 }
 
 func GetUserDisplayName(user *discord.User) string {
+	if user == nil {
+		return ""
+	}
+
 	if user.GlobalName != "" {
 		return user.GlobalName
 	}

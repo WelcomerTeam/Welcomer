@@ -10,5 +10,7 @@ var (
 	ErrMissingUser            = errors.New("missing user")
 	ErrMissingApplicationUser = errors.New("missing application user")
 
+	ErrInvalidURL = errors.New("invalid url")
+
 	ErrInvalidTempChannel = errors.New("channel is not a temporary channel")
 )

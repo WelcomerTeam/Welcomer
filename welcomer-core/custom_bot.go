@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -19,15 +18,7 @@ func GetCustomBotKey(v uuid.UUID) string {
 }
 
 func GetGuildCustomBotLimit(ctx context.Context, guildID discord.Snowflake) int {
-	memberships, err := Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
-	if err != nil {
-		Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer memberships")
-
-		return 0
-	}
-
-	hasWelcomerPro, _ := CheckGuildMemberships(memberships)
-
+	hasWelcomerPro, _, _, _ := CheckGuildMemberships(ctx, guildID)
 	if hasWelcomerPro {
 		return 2
 	}

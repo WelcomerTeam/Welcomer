@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -136,19 +135,7 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 }
 
 func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflake, leaverMessageLifetime int32) (int, error) {
-	var memberships []*database.GetUserMembershipsByGuildIDRow
-
-	// Check if the guild has welcomer pro.
-	memberships, err := welcomer.Queries.GetValidUserMembershipsByGuildID(ctx, guildID, time.Now())
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Warn().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Msg("Failed to get welcomer memberships")
-
-		return 0, err
-	}
-
-	hasWelcomerPro, _ := welcomer.CheckGuildMemberships(memberships)
+	hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(ctx, guildID)
 
 	if !hasWelcomerPro {
 		// Guild does not have welcomer pro, skip.

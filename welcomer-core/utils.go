@@ -89,6 +89,10 @@ func Coalesce(values ...string) string {
 	return ""
 }
 
+func Ftoa(v float64) string {
+	return strconv.FormatFloat(v, 'f', -1, int64BitSize)
+}
+
 func Itoa(v int64) string {
 	return strconv.FormatInt(v, int64Base)
 }
@@ -212,12 +216,56 @@ func IsValidBackground(s string) bool {
 	return ok
 }
 
-func IsValidEmbed(s string) bool {
+func IsValidEmbed(s string) error {
 	var upe UserProvidedEmbed
 
 	err := json.Unmarshal(gotils_strconv.S2B(s), &upe)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal embed JSON: %v", err)
+	}
 
-	return err == nil
+	for _, embed := range upe.Embeds {
+		if embed.Color < 0 || embed.Color > 0xFFFFFF {
+			return fmt.Errorf("embed color %d is out of range", embed.Color)
+		}
+
+		if embed.URL != "" {
+			_, err := url.ParseRequestURI(embed.URL)
+			if err != nil {
+				return fmt.Errorf("embed URL is invalid: %v", err)
+			}
+		}
+
+		if embed.Footer != nil && embed.Footer.IconURL != "" {
+			_, err := url.ParseRequestURI(embed.Footer.IconURL)
+			if err != nil {
+				return fmt.Errorf("embed footer icon URL is invalid: %v", err)
+			}
+		}
+
+		if embed.Image != nil && embed.Image.URL != "" {
+			_, err := url.ParseRequestURI(embed.Image.URL)
+			if err != nil {
+				return fmt.Errorf("embed image URL is invalid: %v", err)
+			}
+		}
+
+		if embed.Thumbnail != nil && embed.Thumbnail.URL != "" {
+			_, err := url.ParseRequestURI(embed.Thumbnail.URL)
+			if err != nil {
+				return fmt.Errorf("embed thumbnail URL is invalid: %v", err)
+			}
+		}
+
+		if embed.Author != nil && embed.Author.IconURL != "" {
+			_, err := url.ParseRequestURI(embed.Author.IconURL)
+			if err != nil {
+				return fmt.Errorf("embed author icon URL is invalid: %v", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func IsValidImageAlignment(value string) bool {
@@ -259,12 +307,16 @@ func IsValidURL(url string) (*url.URL, bool) {
 func IsValidHostname(host string) bool {
 	ips, err := net.LookupIP(host)
 	if err != nil {
+		Logger.Warn().Msgf("net.LookupIP(%s): %v", host, err)
+
 		return false
 	}
 
 	// Check each IP to see if it is an internal IP
 	for _, ip := range ips {
 		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsInterfaceLocalMulticast() || ip.IsUnspecified() {
+			Logger.Warn().Msgf("Hostname %s resolved to internal IP %s", host, ip.String())
+
 			return false
 		}
 	}

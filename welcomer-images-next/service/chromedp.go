@@ -14,19 +14,47 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+type Pool interface {
+	Get() (string, error)
+	Return(url string)
+}
+
+type HardcodedPool struct {
+	url string
+}
+
+func NewHardcodedPool(url string) *HardcodedPool {
+	pool := &HardcodedPool{url}
+
+	return pool
+}
+
+func (h *HardcodedPool) Get() (string, error) {
+	return h.url, nil
+}
+
+func (h *HardcodedPool) Return(_ string) {
+}
+
 type URLPool struct {
-	mu   sync.Mutex
+	mu   *sync.Mutex
 	cond *sync.Cond
 	urls []string
 }
 
 func NewURLPool(urls []string) *URLPool {
-	pool := &URLPool{urls: urls}
-	pool.cond = sync.NewCond(&pool.mu)
+	mu := sync.Mutex{}
+
+	pool := &URLPool{
+		urls: urls,
+		mu:   &mu,
+		cond: sync.NewCond(&mu),
+	}
+
 	return pool
 }
 
-func (p *URLPool) Get(ctx context.Context) (string, error) {
+func (p *URLPool) Get() (string, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -93,13 +121,13 @@ func waitNetwork(timeout time.Duration) chromedp.ActionFunc {
 	})
 }
 
-func ScreenshotFromHTML(ctx context.Context, pool *URLPool, htmlString string) ([]byte, error) {
-	cdpurl, err := pool.Get(ctx)
+func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString string) ([]byte, time.Duration, error) {
+	cdpurl, err := is.URLPool.Get()
 	if err != nil {
-		return nil, err
+		return nil, time.Duration(0), err
 	}
 
-	defer pool.Return(cdpurl)
+	defer is.URLPool.Return(cdpurl)
 
 	ctx, _ = chromedp.NewRemoteAllocator(ctx, cdpurl)
 	ctx, _ = chromedp.NewContext(ctx)
@@ -107,6 +135,11 @@ func ScreenshotFromHTML(ctx context.Context, pool *URLPool, htmlString string) (
 	var buf []byte
 
 	start := time.Now()
+
+	if is.Options.Debug {
+		println(htmlString)
+	}
+
 	err = chromedp.Run(ctx,
 		chromedp.Tasks{
 			chromedp.ActionFunc(func(ctx context.Context) error {
@@ -125,7 +158,5 @@ func ScreenshotFromHTML(ctx context.Context, pool *URLPool, htmlString string) (
 		},
 	)
 
-	println("Screenshot took", time.Since(start).String(), cdpurl)
-
-	return buf, err
+	return buf, time.Since(start), err
 }
