@@ -201,7 +201,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		Mention:       "<@" + member.User.ID.String() + ">",
 		CreatedAt:     StubTime(member.User.ID.Time()),
 		JoinedAt:      StubTime(member.JoinedAt),
-		Avatar:        GetUserAvatar(member.User),
+		Avatar:        GetUserAvatar(member.User) + "?size=256",
 		Bot:           member.User.Bot,
 		Pending:       member.Pending,
 	}

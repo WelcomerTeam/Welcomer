@@ -122,8 +122,8 @@ export function formatText(text) {
         "{{User.GlobalName}}": store.getters.getCurrentUser?.global_name,
         "{{User.Mention}}": `<@${store.getters.getCurrentUser?.id}>`,
         "{{User.Avatar}}": store.getters.getCurrentUser?.avatar
-            ? `https://cdn.discordapp.com/avatars/${store.getters.getCurrentUser?.id}/${store.getters.getCurrentUser?.avatar}.png`
-            : `https://cdn.discordapp.com/embed/avatars/${(store.getters.getCurrentUser?.id >> 22) % 6}.png`,
+            ? `https://cdn.discordapp.com/avatars/${store.getters.getCurrentUser?.id}/${store.getters.getCurrentUser?.avatar}.png?size=256`
+            : `https://cdn.discordapp.com/embed/avatars/${(store.getters.getCurrentUser?.id >> 22) % 6}.png?size=256`,
         "{{User.Bot}}": "False",
         "{{User.Pending}}": "False",
         "{{Guild.ID}}": store.getters.getCurrentSelectedGuild?.id,
