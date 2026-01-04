@@ -46,7 +46,7 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 			}
 
 			builder.WriteString("<div style=\"")
-			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, markdownValue).Build(&builder)
 			builder.WriteString(`"><span>`)
 
 			builder.WriteString(markdownValue)
@@ -60,16 +60,12 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 				continue
 			}
 
-			builder.WriteString("<img style=\"")
-			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
-			builder.WriteString(`" src="`)
-
-			builder.WriteString(html.EscapeString(formattedValue))
-
-			builder.WriteString(`"><img>`)
+			builder.WriteString("<div style=\"")
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, formattedValue).Build(&builder)
+			builder.WriteString(`"><div>`)
 		case welcomer.CustomWelcomerImageLayerTypeShapeRectangle, welcomer.CustomWelcomerImageLayerTypeShapeCircle:
 			builder.WriteString("<div style=\"")
-			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, layer.Value).Build(&builder)
 			builder.WriteString(`"></div>`)
 		}
 
