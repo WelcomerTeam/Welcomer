@@ -548,6 +548,10 @@ func getGuildSettingsWelcomerBuilderPreview(ctx *gin.Context) {
 
 			resp, err := http.Post(os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(requestJSON))
 			if err != nil || resp == nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to contact image generation service")
+
 				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
 
 				return
