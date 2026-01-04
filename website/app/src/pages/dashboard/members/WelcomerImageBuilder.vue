@@ -309,28 +309,13 @@
           </div>
           <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
             <span class="font-semibold text-sm mb-2 block">Typography</span>
-            <Listbox as="div" :model="image_config.layers[selectedObject].typography.font_family"
-              @update:modelValue="updateTypographyFontFamily($event)">
-              <div class="relative">
-                <ListboxButton
-                  class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
-                  {{ fonts[image_config.layers[selectedObject].typography.font_family]?.name || 'Select Font' }}
-                </ListboxButton>
-                <ListboxOptions
-                  class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  <ListboxOption v-for="(font, fontKey) in fonts" :key="fontKey" :value="fontKey"
-                    v-slot="{ active, selected }">
-                    <li :class="[
-                      active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50',
-                      'cursor-default select-none relative py-2 pl-3 pr-9']">
-                      {{ font.name }}
-                    </li>
-                  </ListboxOption>
-                </ListboxOptions>
-              </div>
-            </Listbox>
+            <VirtualFontSelector
+              :model-value="image_config.layers[selectedObject].typography.font_family"
+              :options="fonts"
+              @update:modelValue="updateTypographyFontFamily($event)" />
+            
             <div class="grid grid-cols-2 gap-2 mt-2">
-              <Listbox as="div" v-model="image_config.layers[selectedObject].typography.font_weight">
+              <Listbox as="div" v-model="image_config.layers[selectedObject].typography.font_weight" @update:model-value="image_config.layers[selectedObject].typography.font_weight = $event; loadFont(image_config.layers[selectedObject].typography.font_family, $event)">
                 <div class="relative">
                   <ListboxButton
                     class="bg-secondary-dark relative w-full py-2 pl-3 pr-10 text-left border border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
@@ -338,7 +323,7 @@
                       fonts[image_config.layers[selectedObject].typography.font_family]?.weights[image_config.layers[selectedObject].typography.font_weight]
                         ? image_config.layers[selectedObject].typography.font_weight :
                         (fonts[image_config.layers[selectedObject].typography.font_family] ?
-                          fonts[image_config.layers[selectedObject].typography.font_family].default : 'normal') }}
+                          fonts[image_config.layers[selectedObject].typography.font_family].defaultWeight : 'normal') }}
                   </ListboxButton>
                   <ListboxOptions
                     class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -539,6 +524,7 @@ import endpoints from "@/api/endpoints";
 
 import Toast from "@/components/dashboard/Toast.vue";
 import Popup from "@/components/Popup.vue";
+import VirtualFontSelector from "@/components/dashboard/VirtualFontSelector.vue";
 
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
@@ -558,196 +544,7 @@ import {
 } from "@/utilities";
 
 import { doRequest } from "@/api/routes";
-
-const fonts = {
-  "Balsamiq Sans": {
-    name: " Balsamiq Sans",
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Fredoka": {
-    name: " Fredoka",
-    default: "regular",
-    weights: {
-      "300": "300",
-      "regular": "400",
-      "500": "500",
-      "600": "600",
-      "bold": "700",
-    },
-  },
-
-  "Inter": {
-    name: " Inter",
-    default: "regular",
-    weights: {
-      "100": "100",
-      "200": "200",
-      "300": "300",
-      "regular": "400",
-      "500": "500",
-      "600": "600",
-      "bold": "700",
-      "800": "800",
-      "900": "900",
-    },
-  },
-
-  "Luckiest Guy": {
-    name: "Luckiest Guy",
-    default: "regular",
-    weights: {
-      "regular": "400",
-    },
-  },
-
-  "Mada": {
-    name: "Mada",
-    default: "regular",
-    weights: {
-      "200": "200",
-      "300": "300",
-      "regular": "400",
-      "500": "500",
-      "600": "600",
-      "bold": "700",
-      "800": "800",
-      "900": "900",
-    },
-  },
-
-  "Nunito": {
-    name: "Nunito",
-    default: "regular",
-    weights: {
-      "200": "200",
-      "300": "300",
-      "regular": "400",
-      "600": "600",
-      "bold": "700",
-      "800": "800",
-      "900": "900",
-      "1000": "1000",
-    },
-  },
-
-  "Poppins": {
-    name: "Poppins",
-    default: "regular",
-    weights: {
-      "100": "100",
-      "200": "200",
-      "300": "300",
-      "regular": "400",
-      "500": "500",
-      "600": "600",
-      "bold": "700",
-      "800": "800",
-      "900": "900",
-    },
-  },
-
-  "Raleway": {
-    name: "Raleway",
-    default: "regular",
-    weights: {
-      "100": "100",
-      "200": "200",
-      "300": "300",
-      "regular": "400",
-      "500": "500",
-      "600": "600",
-      "bold": "700",
-      "800": "800",
-      "900": "900",
-    },
-  },
-
-  // web safe fonts
-  "Arial": {
-    name: "Arial",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Verdana": {
-    name: "Verdana",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Tahoma": {
-    name: "Tahoma",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Trebuchet MS": {
-    name: "Trebuchet MS",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Times New Roman": {
-    name: "Times New Roman",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Georgia": {
-    name: "Georgia",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Garamond": {
-    name: "Garamond",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-
-  "Courier New": {
-    name: "Courier New",
-    websafe: true,
-    default: "regular",
-    weights: {
-      "regular": "400",
-      "bold": "700",
-    },
-  },
-}
+import fonts from "@/fonts.json";
 
 const CustomWelcomerImageLayerTypeText = 0;
 const CustomWelcomerImageLayerTypeImage = 1;
@@ -764,6 +561,7 @@ export default {
     LoadingIcon,
     Toast,
     Popup,
+    VirtualFontSelector,
     Listbox,
     ListboxButton,
     ListboxOption,
@@ -893,7 +691,7 @@ export default {
 
     window.addEventListener('keydown', (e) => {
       // do nothing if anything is focused
-      if (document.activeElement && (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA")) return;
+      if (document.activeElement && document.activeElement.tagName !== "BODY") return;
 
       if (this.selectedObject == -1) {
         let incr = e.shiftKey ? 16 : 4;
@@ -1289,7 +1087,6 @@ you are the {{Ordinal(Guild.Members)}} member!`;
 
           this.setImageData(config.custom_builder_data);
 
-          console.log(this.image_config?.dimensions);
           this.showHelpDialog = this.image_config?.dimensions == undefined ||
             this.image_config?.dimensions[0] == 0 ||
             this.image_config?.dimensions[1] == 0 || this.image_config?.layers.length == 0;
@@ -1590,13 +1387,13 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       let obj = this.image_config.layers[this.selectedObject];
       if (!obj) return;
 
-      let font = this.fonts[obj.typography.font_family];
+      let font = this.fonts[value];
       if (!font) return;
 
       this.image_config.layers[this.selectedObject].typography.font_family = value;
-      this.image_config.layers[this.selectedObject].typography.font_weight = font.default;
+      this.image_config.layers[this.selectedObject].typography.font_weight = font.defaultWeight;
 
-      this.loadFont(value, font.default);
+      this.loadFont(value, font.defaultWeight);
     },
 
     preemptivelyLoadFonts() {
@@ -1616,7 +1413,7 @@ you are the {{Ordinal(Guild.Members)}} member!`;
 
       if (font.websafe) return; // no need to load web safe fonts
 
-      let weight = font.weights[fontWeight] || font.weights[font.default] || "400";
+      let weight = font.weights[fontWeight] || font.weights[font.defaultWeight] || "400";
 
       const linkId = `font-${fontFamily.replace(/\s+/g, '-')}-${weight}`;
       if (document.getElementById(linkId)) return; // already loaded
@@ -1626,6 +1423,8 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       link.rel = 'stylesheet';
       link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/\s+/g, '+')}:wght@${weight}&display=block`;
       document.head.appendChild(link);
+
+      console.debug("Loaded font:", fontFamily, weight);
     },
 
     fitCanvas() {
