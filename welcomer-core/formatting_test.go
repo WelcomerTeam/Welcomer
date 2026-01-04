@@ -43,7 +43,7 @@ func TestFormatString(t *testing.T) {
 		"{{User.Discriminator}}": "1234",
 		"{{User.GlobalName}}":    "John Doe",
 		"{{User.Mention}}":       "<@1234567890>",
-		"{{User.Avatar}}":        "https://cdn.discordapp.com/avatars/1234567890/1234567890.png",
+		"{{User.Avatar}}":        "https://cdn.discordapp.com/avatars/1234567890/1234567890.png?size=256",
 		"{{User.ID}}":            "1234567890",
 		"{{User.Bot}}":           "false",
 		"{{User.Pending}}":       "false",
