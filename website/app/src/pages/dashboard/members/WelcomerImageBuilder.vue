@@ -135,8 +135,8 @@
               :style="getObjectStyleBase(obj, index)">
               <div v-if="obj.type == CustomWelcomerImageLayerTypeText" :style="getObjectStyle(obj, index)"
                 class="pointer-events-none"><span v-html="marked(obj.value, true)"></span></div>
-              <img v-else-if="obj.type == CustomWelcomerImageLayerTypeImage" :style="getObjectStyle(obj, index)"
-                class="pointer-events-none" :src="formatText(obj.value)" />
+              <div v-else-if="obj.type == CustomWelcomerImageLayerTypeImage" :style="getObjectStyle(obj, index)"
+                class="pointer-events-none"/>
               <div
                 v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeRectangle || obj.type == CustomWelcomerImageLayerTypeShapeCircle"
                 :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
@@ -1235,7 +1235,14 @@ you are the {{Ordinal(Guild.Members)}} member!`;
         this.normalizeBorderRadius(obj.border_radius[2]) + " " +
         this.normalizeBorderRadius(obj.border_radius[3])
 
-      styles.background = (obj.type != CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "transparent")
+      if (obj.type == CustomWelcomerImageLayerTypeImage) {
+        let src = this.formatText(obj.value);
+        let size = (obj.value.includes("{{User.Avatar}}") || obj.value.includes("#xpad") ? '80%' : '100%');
+
+        styles.background = `${this.getFillAsCSS(obj.fill)} url(${src}) center / ${size} no-repeat`;
+      } else {
+        styles.background = (obj.type != CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "transparent")
+      }
       styles.color = (obj.type == CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "inherit")
 
 
