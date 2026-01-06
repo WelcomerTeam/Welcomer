@@ -148,6 +148,11 @@ func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString strin
 					Do(ctx)
 			}),
 
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				return emulation.SetDeviceMetricsOverride(0, 0, 3, false).
+					Do(ctx)
+			}),
+
 			chromedp.Navigate("data:text/html;charset=utf-8," + url.PathEscape(htmlString)),
 
 			waitNetwork(time.Second * 2),

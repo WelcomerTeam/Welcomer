@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"html"
 	"image"
 	"image/color"
 	"net/http"
@@ -101,7 +102,7 @@ func getObjectStyleBase(layer welcomer.CustomWelcomerImageLayer, layer_count, in
 	return styling
 }
 
-func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcomer.CustomWelcomerImageLayer, layer_count, index int) Styling {
+func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcomer.CustomWelcomerImageLayer, layer_count, index int, formattedValue string) Styling {
 	styling := getObjectStyleBase(layer, layer_count, index)
 
 	styling.Add("z-index", "0")
@@ -123,6 +124,12 @@ func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcom
 	if layer.Type == welcomer.CustomWelcomerImageLayerTypeText {
 		styling.Add("background", "transparent")
 		styling.Add("color", is.getFillAsCSS(ctx, layer.Fill, "inherit"))
+	} else if layer.Type == welcomer.CustomWelcomerImageLayerTypeImage {
+		size := welcomer.If(strings.Contains(layer.Value, "{{User.Avatar}}") || strings.Contains(layer.Value, "#xpad"), "80%", "100%")
+
+		styling.Add("background", "url("+html.EscapeString(formattedValue)+") center / "+size+" no-repeat, "+is.getFillAsCSS(ctx, layer.Fill, "transparent"))
+		styling.Add("background-clip", "padding-box")
+		styling.Add("color", "inherit")
 	} else {
 		styling.Add("background", is.getFillAsCSS(ctx, layer.Fill, "transparent"))
 		styling.Add("color", "inherit")
@@ -329,14 +336,14 @@ func generateTextShadow(width int, color string) string {
 	p := width * width
 	first := true
 
-	for dx := -width; dx <= width; dx++ {
-		for dy := -width; dy <= width; dy++ {
-			if dx*dx+dy*dy <= p {
+	for dx := -float64(width); dx <= float64(width); dx += 0.5 {
+		for dy := -float64(width); dy <= float64(width); dy += 0.5 {
+			if dx*dx+dy*dy <= float64(p) {
 				if !first {
 					builder.WriteString(", ")
 				}
 
-				builder.WriteString(welcomer.Itoa(int64(dx)) + "px " + welcomer.Itoa(int64(dy)) + "px 0 " + color)
+				builder.WriteString(welcomer.Ftoa(dx) + "px " + welcomer.Ftoa(dy) + "px 0 " + color)
 
 				first = false
 			}
