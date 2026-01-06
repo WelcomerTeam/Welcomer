@@ -134,26 +134,8 @@
                     ]">
                       <font-awesome-icon :icon="['fab', 'discord']" />
                       Discord
-                      <!-- <span
-                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
-                      Recurring
-                    </span> -->
                     </button>
                   </a>
-                  <button type="button" @click="selectDuration(durationPatreon)" :class="[
-                    'ml-0.5',
-                    durationSelected === durationPatreon
-                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                      : 'border-transparent text-gray-700',
-                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-black focus:z-10 lg:w-auto lg:px-8',
-                  ]">
-                    <font-awesome-icon :icon="['fab', 'patreon']" />
-                    Patreon
-                    <!-- <span
-                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
-                      Recurring
-                    </span> -->
-                  </button>
                 </div>
               </div>
               <Menu as="div" class="relative inline-block col-span-1 text-right align-middle">
@@ -211,7 +193,7 @@
                       this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
                   </p>
 
-                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial) || this.durationSelected == durationPatreon"
+                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial)"
                     class="text-sm font-medium leading-6"> 7 days free </p>
                   <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">
                     Billed as {{ formatCurrency(this.currency,
@@ -219,8 +201,7 @@
                   </p>
 
 
-                  <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())" :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">
-                    {{ durationSelected == durationPatreon ? 'Become a Patron' : 'Get Started' }}</button>
+                  <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())" :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">Get Started</button>
                 </div>
               </div>
             </div>
@@ -459,7 +440,6 @@ const faqs = [
   },
 ];
 
-const durationPatreon = 0;
 const durationMonthly = 1;
 const durationBiAnnually = 2;
 const durationAnnually = 3;
@@ -534,7 +514,6 @@ export default {
       durationMonthly,
       durationBiAnnually,
       durationAnnually,
-      durationPatreon,
       skuCustomBackgrounds,
       skuWelcomerPro,
       skuWelcomerProBiAnnual,
@@ -599,8 +578,6 @@ export default {
         return this.skuWelcomerProBiAnnual;
       } else if (this.durationSelected == durationAnnually) {
         return this.skuWelcomerProAnnual;
-      } else if (this.durationSelected == durationPatreon) {
-        return this.skuWelcomerPro;
       }
     },
 
@@ -643,15 +620,6 @@ export default {
     },
 
     selectSKU(skuName) {
-      const sku = this.getSKU(skuName);
-
-      if (this.durationSelected === durationPatreon) {
-        return window.open(
-          `https://www.patreon.com/join/Welcomer/checkout?rid=${sku.patreon_checkout_id}`,
-          "_blank"
-        );
-      }
-
       this.showGuildSelector = true;
       this.selectedSKU = skuName;
     },
