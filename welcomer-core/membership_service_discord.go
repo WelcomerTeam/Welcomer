@@ -26,12 +26,13 @@ func getSKUNameFromID(skuID discord.Snowflake) string {
 	}
 }
 
-func returnSnowflakeIfNotNull(i *discord.Snowflake) discord.Snowflake {
+func returnSnowflakeIfNotNull(i *discord.Snowflake) *discord.Snowflake {
 	if i == nil {
-		return discord.Snowflake(0)
+		s := discord.Snowflake(0)
+		return &s
 	}
 
-	return *i
+	return i
 }
 
 func FetchGuildName(ctx context.Context, guildID discord.Snowflake) string {
