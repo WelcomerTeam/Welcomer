@@ -249,7 +249,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).
-				Int64("user_id", int64(user.ID)).
+				Int64("user_id", int64(*entry.UserID)).
 				Msg("Failed to fetch user from state cache")
 
 			return err
