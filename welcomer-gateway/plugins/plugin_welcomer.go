@@ -94,7 +94,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		welcomer.Logger.Info().
+		welcomer.Logger.Trace().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(member.User.ID)).
 			Bool("is_pending", member.Pending).
@@ -157,7 +157,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
 	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
-		welcomer.Logger.Info().
+		welcomer.Logger.Trace().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(after.User.ID)).
 			Bool("before_pending", before.Pending).
@@ -421,7 +421,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	defer func() {
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Msg("Failed to execute welcomer event")
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to execute welcomer event")
 		}
 
 		// Send follow-up if present.
@@ -661,7 +664,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 		// If we have an invite, make sure the inviter is fetched from the database or Discord API if they are only an ID.
 		if usedInvite != nil && usedInvite.Inviter != nil && usedInvite.Inviter.Username == "" && !usedInvite.Inviter.ID.IsNil() {
-			usedInvite.Inviter, err = welcomer.FetchUser(eventCtx.Context, usedInvite.Inviter.ID)
+			inviter, err := welcomer.FetchUser(eventCtx.Context, usedInvite.Inviter.ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -684,6 +687,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 					usedInvite.Inviter = discordUser
 				}
+			} else {
+				usedInvite.Inviter = inviter
 			}
 		}
 	}
@@ -750,6 +755,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		user, err := welcomer.Queries.GetUser(eventCtx.Context, int64(event.Member.User.ID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			welcomer.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
 				Msg("Failed to get user from database")
 
