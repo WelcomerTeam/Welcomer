@@ -131,7 +131,7 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 
 	welcomer.Logger.Info().
 		Int("count_deleted", totalCountDeleted).
-		Msg("Completed cleanup of expired welcome messages")
+		Msg("Completed cleanup of expired leaver messages")
 }
 
 func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflake, leaverMessageLifetime int32) (int, error) {
