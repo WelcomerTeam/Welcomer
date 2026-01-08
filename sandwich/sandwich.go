@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -13,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "net/http/pprof"
+
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
@@ -21,7 +24,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
@@ -39,6 +41,8 @@ func main() {
 	redisHost := flag.String("redisHost", os.Getenv("REDIS_HOST"), "Redis host")
 	grpcHost := flag.String("grpcHost", os.Getenv("GRPC_HOST"), "GRPC host")
 	proxyHost := flag.String("proxyHost", os.Getenv("PROXY_HOST"), "Proxy host")
+
+	enablePprof := flag.Bool("enablePprof", welcomer.TryParseBool(os.Getenv("ENABLE_PPROF")), "Enable pprof debugging server")
 
 	flag.Parse()
 
@@ -73,6 +77,17 @@ func main() {
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	logger := slog.Default()
+
+	if *enablePprof {
+		go func() {
+			slog.Info("Starting pprof server on :6060", "service", "pprof")
+
+			err := http.ListenAndServe(":6060", nil)
+			if err != nil {
+				slog.Error("Failed to start pprof server", "error", err)
+			}
+		}()
+	}
 
 	registry := prometheus.NewPedanticRegistry()
 	registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))

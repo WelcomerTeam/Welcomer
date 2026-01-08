@@ -34,7 +34,7 @@ func (b *Backend) GetUserGuilds(ctx context.Context, session sessions.Session) (
 
 	httpInterface := discord.NewBaseInterface()
 
-	discordSession := discord.NewSession(token.TokenType+" "+token.AccessToken, httpInterface)
+	discordSession := discord.NewSession(token.TokenType+" "+token.AccessToken, &httpInterface)
 
 	discordGuilds, err := discord.GetCurrentUserGuilds(ctx, discordSession)
 	if err != nil {

@@ -442,7 +442,9 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					sort.Slice(guildMembers, func(i, j int) bool {
-						return discord.Snowflake(guildMembers[i].User.ID).Time().After(discord.Snowflake(guildMembers[j].User.ID).Time())
+						iSnowflake := discord.Snowflake(guildMembers[i].User.ID)
+						jSnowflake := discord.Snowflake(guildMembers[j].User.ID)
+						return iSnowflake.Time().After(jSnowflake.Time())
 					})
 
 					if len(guildMembers) > 20 {
@@ -454,11 +456,12 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					for position, guildMember := range guildMembers {
+						memberSnowflake := discord.Snowflake(guildMember.User.ID)
 						newCreationWithNumber := fmt.Sprintf(
 							"%d. %s – **<t:%d:R>**\n",
 							position+1,
 							"<@"+welcomer.Itoa(guildMember.User.ID)+">",
-							discord.Snowflake(guildMember.User.ID).Time().Unix(),
+							memberSnowflake.Time().Unix(),
 						)
 
 						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
