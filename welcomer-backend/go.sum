@@ -8,8 +8,8 @@ github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
-github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57 h1:FXkTHpkpwZGT071YNrKDVH6jmp82rqjwvuSh2VPLOVw=
-github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
+github.com/WelcomerTeam/Discord v0.0.0-20260107224235-e7fd80bdc88a h1:/pfJUvehJI0BS7o8aRV23fie3DP6I70nLcgV8HP/XLQ=
+github.com/WelcomerTeam/Discord v0.0.0-20260107224235-e7fd80bdc88a/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1 h1:oRQxRYf1MXY8RDRmc9deLNPxuX6pN/4FQDeML2Rlfpk=

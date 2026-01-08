@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-backend
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57
+	github.com/WelcomerTeam/Discord v0.0.0-20260107224235-e7fd80bdc88a
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20251213141933-2c925b93b2dd
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0

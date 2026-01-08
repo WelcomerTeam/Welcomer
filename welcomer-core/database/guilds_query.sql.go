@@ -11,10 +11,10 @@ import (
 )
 
 const CreateGuild = `-- name: CreateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, trunc(random() * 10000)::int)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, trunc(random() * 10000)::int, $9)
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio
 `
 
 type CreateGuildParams struct {
@@ -26,6 +26,7 @@ type CreateGuildParams struct {
 	SiteAllowInvites bool          `json:"site_allow_invites"`
 	MemberCount      int32         `json:"member_count"`
 	NumberLocale     sql.NullInt32 `json:"number_locale"`
+	Bio              string        `json:"bio"`
 }
 
 func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error) {
@@ -38,6 +39,7 @@ func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guil
 		arg.SiteAllowInvites,
 		arg.MemberCount,
 		arg.NumberLocale,
+		arg.Bio,
 	)
 	var i Guilds
 	err := row.Scan(
@@ -50,6 +52,7 @@ func (q *Queries) CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guil
 		&i.MemberCount,
 		&i.NumberLocale,
 		&i.BucketID,
+		&i.Bio,
 	)
 	return &i, err
 }
@@ -66,7 +69,7 @@ ON CONFLICT(guild_id) DO UPDATE
         member_count = EXCLUDED.member_count,
         number_locale = EXCLUDED.number_locale
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio
 `
 
 type CreateOrUpdateGuildParams struct {
@@ -102,13 +105,14 @@ func (q *Queries) CreateOrUpdateGuild(ctx context.Context, arg CreateOrUpdateGui
 		&i.MemberCount,
 		&i.NumberLocale,
 		&i.BucketID,
+		&i.Bio,
 	)
 	return &i, err
 }
 
 const GetGuild = `-- name: GetGuild :one
 SELECT
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio
 FROM
     guilds
 WHERE
@@ -128,6 +132,7 @@ func (q *Queries) GetGuild(ctx context.Context, guildID int64) (*Guilds, error) 
 		&i.MemberCount,
 		&i.NumberLocale,
 		&i.BucketID,
+		&i.Bio,
 	)
 	return &i, err
 }
@@ -191,7 +196,7 @@ SET
 WHERE
     guild_id = $1
 RETURNING
-    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio
 `
 
 type UpdateGuildParams struct {
@@ -225,6 +230,41 @@ func (q *Queries) UpdateGuild(ctx context.Context, arg UpdateGuildParams) (*Guil
 		&i.MemberCount,
 		&i.NumberLocale,
 		&i.BucketID,
+		&i.Bio,
+	)
+	return &i, err
+}
+
+const UpdateGuildBio = `-- name: UpdateGuildBio :one
+UPDATE
+    guilds
+SET
+    bio = $2
+WHERE
+    guild_id = $1
+RETURNING
+    guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio
+`
+
+type UpdateGuildBioParams struct {
+	GuildID int64  `json:"guild_id"`
+	Bio     string `json:"bio"`
+}
+
+func (q *Queries) UpdateGuildBio(ctx context.Context, arg UpdateGuildBioParams) (*Guilds, error) {
+	row := q.db.QueryRow(ctx, UpdateGuildBio, arg.GuildID, arg.Bio)
+	var i Guilds
+	err := row.Scan(
+		&i.GuildID,
+		&i.EmbedColour,
+		&i.SiteSplashUrl,
+		&i.SiteStaffVisible,
+		&i.SiteGuildVisible,
+		&i.SiteAllowInvites,
+		&i.MemberCount,
+		&i.NumberLocale,
+		&i.BucketID,
+		&i.Bio,
 	)
 	return &i, err
 }

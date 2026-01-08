@@ -8,13 +8,12 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.23.2
-	golang.org/x/net v0.48.0
 	google.golang.org/grpc v1.78.0
 )
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
-	github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57 // indirect
+	github.com/WelcomerTeam/Discord v0.0.0-20260107232017-eee2595b6c25 // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
 	github.com/WelcomerTeam/Sandwich v0.0.0-20251228155540-7f08246aad6d // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689 // indirect
@@ -51,6 +50,7 @@ require (
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
