@@ -157,7 +157,7 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 						return
 					}
 
-					if err := doValidateImageForCustomisation(avatarData, 512, 512); err != nil {
+					if err := doValidateImageForCustomisation(avatarData, 1024, 1024); err != nil {
 						ctx.JSON(http.StatusBadRequest, BaseResponse{
 							Ok:    false,
 							Error: err.Error(),
@@ -215,14 +215,16 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 				return
 			}
 
-			_, err = welcomer.Queries.UpdateGuildBio(ctx, database.UpdateGuildBioParams{
-				GuildID: int64(guildID),
-				Bio:     *partial.Bio,
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(guildID)).
-					Msg("Failed to update guild bio for guild customisation")
+			if partial.Bio != nil {
+				_, err = welcomer.Queries.UpdateGuildBio(ctx, database.UpdateGuildBioParams{
+					GuildID: int64(guildID),
+					Bio:     *partial.Bio,
+				})
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to update guild bio for guild customisation")
+				}
 			}
 
 			getGuildSettingsCustomisation(ctx)
@@ -231,6 +233,10 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 }
 
 func doValidateCustomisation(partial *GuildSettingsCustomisation) error {
+	if partial == nil {
+		return nil
+	}
+
 	if partial.Bio != nil {
 		if len(*partial.Bio) > 190 {
 			return fmt.Errorf("bio exceeds maximum length of 190 characters")
@@ -267,7 +273,7 @@ func doValidateImageForCustomisation(data []byte, maxWidth, maxHeight int) error
 
 	// Check dimensions
 	if width > maxWidth || height > maxHeight {
-		return ErrFileSizeTooLarge
+		return ErrResolutionTooHigh
 	}
 
 	return nil

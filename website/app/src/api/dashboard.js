@@ -186,7 +186,6 @@ export default {
               if (res.ok) {
                 callback({ config: res.data });
               } else {
-                console.log(errorCallback, res.error);
                 errorCallback(res.error);
               }
             })

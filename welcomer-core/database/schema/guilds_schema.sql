@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS guilds (
     member_count integer NOT NULL,
     number_locale integer,
     bucket_id smallint NOT NULL,
-    bio text NOT NULL
+    bio text NOT NULL DEFAULT ''
 );
