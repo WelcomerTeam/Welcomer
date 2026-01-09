@@ -186,6 +186,7 @@ export default {
               if (res.ok) {
                 callback({ config: res.data });
               } else {
+                console.log(errorCallback, res.error);
                 errorCallback(res.error);
               }
             })
@@ -243,18 +244,15 @@ export default {
               if (res.ok) {
                 callback(res.data);
               } else {
-                console.debug("Ok is false", res);
                 errorCallback(res.error);
               }
             })
             .catch((error) => {
-              console.debug("Caught error", error);
               errorCallback(error);
             });
         }
       },
       (error) => {
-        console.debug("doRequest error", error);
         errorCallback(error);
       }
     );

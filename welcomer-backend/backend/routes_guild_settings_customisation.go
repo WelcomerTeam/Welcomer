@@ -81,10 +81,11 @@ func getGuildSettingsCustomisation(ctx *gin.Context) {
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok: true,
 				Data: GuildSettingsCustomisation{
-					Nickname: member.Nick,
-					Avatar:   member.Avatar,
-					Banner:   member.Banner,
-					Bio:      guildSettings.Bio,
+					Nickname: &member.Nick,
+					Avatar:   &member.Avatar,
+					Banner:   &member.Banner,
+					Bio:      &guildSettings.Bio,
+					UserID:   botID,
 				},
 			})
 		})
@@ -140,58 +141,62 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 
 			var modifyCurrentMemberParams discord.ModifyCurrentMemberParams
 
-			if partial.Nickname != "" {
-				modifyCurrentMemberParams.Nick = &partial.Nickname
+			if partial.Nickname != nil {
+				modifyCurrentMemberParams.Nick = partial.Nickname
 			}
 
-			if partial.Avatar != "" {
-				avatarData, _, err := decodeBase64Image(partial.Avatar)
-				if err != nil {
-					ctx.JSON(http.StatusBadRequest, BaseResponse{
-						Ok:    false,
-						Error: "Invalid avatar image data",
-					})
+			if partial.Avatar != nil {
+				if *partial.Avatar != "" {
+					avatarData, _, err := decodeBase64Image(*partial.Avatar)
+					if err != nil {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: "Invalid avatar image data",
+						})
 
-					return
+						return
+					}
+
+					if err := doValidateImageForCustomisation(avatarData, 512, 512); err != nil {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: err.Error(),
+						})
+
+						return
+					}
 				}
 
-				if err := doValidateImageForCustomisation(avatarData, 512, 512); err != nil {
-					ctx.JSON(http.StatusBadRequest, BaseResponse{
-						Ok:    false,
-						Error: err.Error(),
-					})
-
-					return
-				}
-
-				modifyCurrentMemberParams.Avatar = &partial.Avatar
+				modifyCurrentMemberParams.Avatar = partial.Avatar
 			}
 
-			if partial.Banner != "" {
-				bannerData, _, err := decodeBase64Image(partial.Banner)
-				if err != nil {
-					ctx.JSON(http.StatusBadRequest, BaseResponse{
-						Ok:    false,
-						Error: "Invalid banner image data",
-					})
+			if partial.Banner != nil {
+				if *partial.Banner != "" {
+					bannerData, _, err := decodeBase64Image(*partial.Banner)
+					if err != nil {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: "Invalid banner image data",
+						})
 
-					return
+						return
+					}
+
+					if err := doValidateImageForCustomisation(bannerData, 1024, 256); err != nil {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: err.Error(),
+						})
+
+						return
+					}
 				}
 
-				if err := doValidateImageForCustomisation(bannerData, 1024, 256); err != nil {
-					ctx.JSON(http.StatusBadRequest, BaseResponse{
-						Ok:    false,
-						Error: err.Error(),
-					})
-
-					return
-				}
-
-				modifyCurrentMemberParams.Banner = &partial.Banner
+				modifyCurrentMemberParams.Banner = partial.Banner
 			}
 
-			if partial.Bio != "" {
-				modifyCurrentMemberParams.Bio = &partial.Bio
+			if partial.Bio != nil {
+				modifyCurrentMemberParams.Bio = partial.Bio
 			}
 
 			_, err = discord.ModifyCurrentMember(ctx,
@@ -212,7 +217,7 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 
 			_, err = welcomer.Queries.UpdateGuildBio(ctx, database.UpdateGuildBioParams{
 				GuildID: int64(guildID),
-				Bio:     partial.Bio,
+				Bio:     *partial.Bio,
 			})
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
@@ -220,22 +225,20 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 					Msg("Failed to update guild bio for guild customisation")
 			}
 
-			ctx.JSON(http.StatusOK, BaseResponse{
-				Ok: true,
-			})
+			getGuildSettingsCustomisation(ctx)
 		})
 	})
 }
 
 func doValidateCustomisation(partial *GuildSettingsCustomisation) error {
-	if partial.Bio != "" {
-		if len(partial.Bio) > 190 {
+	if partial.Bio != nil {
+		if len(*partial.Bio) > 190 {
 			return fmt.Errorf("bio exceeds maximum length of 190 characters")
 		}
 	}
 
-	if partial.Nickname != "" {
-		if len(partial.Nickname) > 32 {
+	if partial.Nickname != nil {
+		if len(*partial.Nickname) > 32 {
 			return fmt.Errorf("nickname exceeds maximum length of 32 characters")
 		}
 	}
