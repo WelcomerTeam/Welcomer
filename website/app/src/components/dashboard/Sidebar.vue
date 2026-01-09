@@ -82,6 +82,12 @@ const navigation = [
         linkname: "dashboard.guild.custombots",
         icon: "fa-robot",
         class: "text-primary",
+      },
+      {
+        name: "Bot Customisation",
+        linkname: "dashboard.guild.customisation",
+        icon: "fa-tag",
+        class: "text-primary",
       }
     ],
   },

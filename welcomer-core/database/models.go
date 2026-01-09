@@ -186,6 +186,7 @@ type Guilds struct {
 	MemberCount      int32         `json:"member_count"`
 	NumberLocale     sql.NullInt32 `json:"number_locale"`
 	BucketID         int16         `json:"bucket_id"`
+	Bio              string        `json:"bio"`
 }
 
 type InteractionCommands struct {

@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
-	github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57
+	github.com/WelcomerTeam/Discord v0.0.0-20260107232912-10e8fab839a8
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e
 	github.com/WelcomerTeam/Sandwich v0.0.0-20251228155540-7f08246aad6d
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20251213141933-2c925b93b2dd

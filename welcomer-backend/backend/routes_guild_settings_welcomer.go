@@ -229,7 +229,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					if fileValue.Size > MaxBackgroundSize {
 						ctx.JSON(http.StatusRequestEntityTooLarge, BaseResponse{
 							Ok:    false,
-							Error: ErrBackgroundTooLarge.Error(),
+							Error: ErrFileSizeTooLarge.Error(),
 						})
 
 						return
@@ -279,8 +279,8 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 								Msg("Failed to upload custom welcomer.background")
 
 							switch {
-							case errors.Is(err, ErrBackgroundTooLarge),
-								errors.Is(err, ErrFileSizeTooLarge),
+							case errors.Is(err, ErrFileSizeTooLarge),
+								errors.Is(err, ErrResolutionTooHigh),
 								errors.Is(err, ErrFileNotSupported),
 								errors.Is(err, ErrConversionFailed):
 								ctx.JSON(http.StatusBadRequest, BaseResponse{
@@ -784,7 +784,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 
 					ctx.JSON(http.StatusBadRequest, BaseResponse{
 						Ok:    false,
-						Error: ErrFileSizeTooLarge.Error(),
+						Error: ErrResolutionTooHigh.Error(),
 					})
 
 					return
@@ -949,7 +949,7 @@ func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.
 			Int("total", (imageSize.X*imageSize.Y)).Int("max", MaxFileResolution).
 			Msg("Rejected image due to resolution")
 
-		return nil, ErrFileSizeTooLarge
+		return nil, ErrResolutionTooHigh
 	}
 
 	buf := bytes.NewBuffer(nil)

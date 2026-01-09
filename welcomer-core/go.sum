@@ -10,8 +10,8 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Masterminds/sprig/v3 v3.3.0 h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=
 github.com/Masterminds/sprig/v3 v3.3.0/go.mod h1:Zy1iXRYNqNLUolqCpL4uhk6SHUMAOSCzdgBfDb35Lz0=
-github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57 h1:FXkTHpkpwZGT071YNrKDVH6jmp82rqjwvuSh2VPLOVw=
-github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
+github.com/WelcomerTeam/Discord v0.0.0-20260107232912-10e8fab839a8 h1:5njwkpbBMBBPe2RtHovSYw5eOmQTVJTDVNRCLCQ1t2Y=
+github.com/WelcomerTeam/Discord v0.0.0-20260107232912-10e8fab839a8/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20251228155540-7f08246aad6d h1:t8yrX2aHT3oZMa0Yd672Ae5ic+RJPqDMCKT8mgX9F6c=

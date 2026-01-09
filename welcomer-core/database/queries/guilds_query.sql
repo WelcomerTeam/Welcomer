@@ -1,6 +1,6 @@
 -- name: CreateGuild :one
-INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, trunc(random() * 10000)::int)
+INSERT INTO guilds (guild_id, embed_colour, site_splash_url, site_staff_visible, site_guild_visible, site_allow_invites, member_count, number_locale, bucket_id, bio)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, trunc(random() * 10000)::int, $9)
 RETURNING
     *;
 
@@ -58,3 +58,13 @@ SET
     member_count = $2
 WHERE
     guild_id = $1;
+
+-- name: UpdateGuildBio :one
+UPDATE
+    guilds
+SET
+    bio = $2
+WHERE
+    guild_id = $1
+RETURNING
+    *;

@@ -70,8 +70,8 @@ var (
 	ErrInvalidImageAlignment    = NewErrorWithCode(11006, "image alignment is not recognised")
 	ErrInvalidImageTheme        = NewErrorWithCode(11007, "image theme is not recognised")
 	ErrInvalidProfileBorderType = NewErrorWithCode(11008, "profile border type is not recognised")
-	ErrBackgroundTooLarge       = NewErrorWithCode(11009, "background size is too large")
-	ErrFileSizeTooLarge         = NewErrorWithCode(11010, "this file has an image resolution that is too high")
+	ErrFileSizeTooLarge         = NewErrorWithCode(11009, "the file size is too large")
+	ErrResolutionTooHigh        = NewErrorWithCode(11010, "this file has an image resolution that is too high")
 	ErrFileNotSupported         = NewErrorWithCode(11011, "this file format is not supported")
 	ErrConversionFailed         = NewErrorWithCode(11012, "failed to convert background")
 
