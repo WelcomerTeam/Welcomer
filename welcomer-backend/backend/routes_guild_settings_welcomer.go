@@ -229,7 +229,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					if fileValue.Size > MaxBackgroundSize {
 						ctx.JSON(http.StatusRequestEntityTooLarge, BaseResponse{
 							Ok:    false,
-							Error: ErrBackgroundTooLarge.Error(),
+							Error: ErrFileSizeTooLarge.Error(),
 						})
 
 						return
@@ -279,7 +279,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 								Msg("Failed to upload custom welcomer.background")
 
 							switch {
-							case errors.Is(err, ErrBackgroundTooLarge),
+							case errors.Is(err, ErrFileSizeTooLarge),
 								errors.Is(err, ErrResolutionTooHigh),
 								errors.Is(err, ErrFileNotSupported),
 								errors.Is(err, ErrConversionFailed):

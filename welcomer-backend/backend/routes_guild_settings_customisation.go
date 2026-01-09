@@ -147,11 +147,20 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 
 			if partial.Avatar != nil {
 				if *partial.Avatar != "" {
-					avatarData, _, err := decodeBase64Image(*partial.Avatar)
+					avatarData, err := decodeBase64Image(*partial.Avatar)
 					if err != nil {
 						ctx.JSON(http.StatusBadRequest, BaseResponse{
 							Ok:    false,
 							Error: "Invalid avatar image data",
+						})
+
+						return
+					}
+
+					if len(avatarData) > MaxAvatarSize {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: ErrFileSizeTooLarge.Error(),
 						})
 
 						return
@@ -172,11 +181,20 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 
 			if partial.Banner != nil {
 				if *partial.Banner != "" {
-					bannerData, _, err := decodeBase64Image(*partial.Banner)
+					bannerData, err := decodeBase64Image(*partial.Banner)
 					if err != nil {
 						ctx.JSON(http.StatusBadRequest, BaseResponse{
 							Ok:    false,
 							Error: "Invalid banner image data",
+						})
+
+						return
+					}
+
+					if len(bannerData) > MaxBannerSize {
+						ctx.JSON(http.StatusBadRequest, BaseResponse{
+							Ok:    false,
+							Error: ErrFileSizeTooLarge.Error(),
 						})
 
 						return
@@ -279,18 +297,18 @@ func doValidateImageForCustomisation(data []byte, maxWidth, maxHeight int) error
 	return nil
 }
 
-func decodeBase64Image(data string) ([]byte, string, error) {
+func decodeBase64Image(data string) ([]byte, error) {
 	commaIndex := strings.Index(data, ",")
 	if commaIndex == -1 {
-		return nil, "", fmt.Errorf("invalid base64 image data")
+		return nil, fmt.Errorf("invalid base64 image data")
 	}
 
 	decodedData, err := base64.StdEncoding.DecodeString(data[commaIndex+1:])
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to decode base64 image data: %w", err)
+		return nil, fmt.Errorf("failed to decode base64 image data: %w", err)
 	}
 
-	return decodedData, "", nil
+	return decodedData, nil
 }
 
 func registerGuildSettingsCustomisationRoutes(g *gin.Engine) {
