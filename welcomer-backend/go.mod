@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-backend
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260107224235-e7fd80bdc88a
+	github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20251213141933-2c925b93b2dd
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
@@ -23,6 +23,7 @@ require (
 	github.com/yi-jiayu/pgxstore v0.0.0-20210110145636-b8c8a7477d36
 	github.com/zsais/go-gin-prometheus v1.0.2
 	go.uber.org/atomic v1.11.0
+	golang.org/x/image v0.34.0
 	golang.org/x/oauth2 v0.34.0
 	google.golang.org/grpc v1.78.0
 )

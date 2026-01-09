@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-images
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260104185636-fb24f56ffb57
+	github.com/WelcomerTeam/Discord v0.0.0-20260107232912-10e8fab839a8
 	github.com/WelcomerTeam/RealRock v0.0.0-20220122233305-f97b8c8cbc15
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/disintegration/imaging v1.6.2
