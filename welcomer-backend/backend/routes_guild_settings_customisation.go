@@ -97,6 +97,7 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
+			userID := tryGetUser(ctx).ID
 
 			partial := &GuildSettingsCustomisation{}
 
@@ -233,11 +234,13 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 				return
 			}
 
+			welcomer.AuditChange(ctx, guildID, userID, nil, partial, database.AuditTypeBotCustomisation)
+
 			if partial.Bio != nil {
-				_, err = welcomer.Queries.UpdateGuildBio(ctx, database.UpdateGuildBioParams{
+				_, err = welcomer.UpdateBioWithAudit(ctx, database.UpdateGuildBioParams{
 					GuildID: int64(guildID),
 					Bio:     *partial.Bio,
-				})
+				}, userID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(guildID)).
