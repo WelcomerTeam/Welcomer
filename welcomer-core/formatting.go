@@ -180,7 +180,17 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 
 // EscapeStringForJSON escapes a string for JSON.
 func EscapeStringForJSON(value string) string {
-	return strings.ReplaceAll(value, `"`, `\"`)
+	replacer := strings.NewReplacer(
+		`"`, `\"`,
+		`\`, `\\`,
+		"\b", `\b`,
+		"\f", `\f`,
+		"\n", `\n`,
+		"\r", `\r`,
+		"\t", `\t`,
+	)
+
+	return replacer.Replace(value)
 }
 
 type GuildVariables struct {
