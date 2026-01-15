@@ -9,3 +9,8 @@ type GuildSettingsCustomisation struct {
 	Bio      *string           `json:"bio,omitempty"`
 	UserID   discord.Snowflake `json:"user_id"`
 }
+
+type GuildSettingsCustomisationAudit struct {
+	Nickname string `json:"nickname,omitempty"`
+	Bio      string `json:"bio,omitempty"`
+}

@@ -2,6 +2,7 @@ package backend
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"image"
@@ -25,68 +26,84 @@ const (
 	MaxBannerSize = 10_000_000 // 10MB file size.
 )
 
+func getBotID(ctx context.Context) (discord.Snowflake, error) {
+	managerName := welcomer.DefaultManagerName
+
+	// Fetch bot application
+	applications, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich.ApplicationIdentifier{
+		ApplicationIdentifier: managerName,
+	})
+	if err != nil || len(applications.GetApplications()) == 0 {
+		welcomer.Logger.Error().Err(err).
+			Str("manager_name", managerName).
+			Msg("Failed to fetch application for guild customisation")
+
+		return discord.Snowflake(0), err
+	}
+
+	botID := discord.Snowflake(applications.GetApplications()[managerName].GetUserId())
+	if botID.IsNil() {
+		welcomer.Logger.Error().
+			Str("manager_name", managerName).
+			Msg("Bot ID is nil for fetched application for guild customisation")
+
+		return discord.Snowflake(0), fmt.Errorf("bot ID is nil")
+	}
+
+	return botID, nil
+}
+
+func getPartial(ctx context.Context, botID, guildID discord.Snowflake) (GuildSettingsCustomisation, error) {
+	member, err := discord.GetGuildMember(ctx, backend.BotSession, guildID, botID)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get guild member for guild customisation")
+
+		return GuildSettingsCustomisation{}, err
+	}
+
+	guildSettings, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
+	if err != nil {
+		welcomer.Logger.Warn().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get guild settings for guild customisation")
+
+		return GuildSettingsCustomisation{}, err
+	}
+
+	return GuildSettingsCustomisation{
+		Nickname: &member.Nick,
+		Avatar:   &member.Avatar,
+		Banner:   &member.Banner,
+		Bio:      &guildSettings.Bio,
+		UserID:   botID,
+	}, nil
+}
+
 // Route GET /api/guild/:guildID/customisation
 func getGuildSettingsCustomisation(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			managerName := welcomer.DefaultManagerName
-
-			// Fetch bot application
-			applications, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich.ApplicationIdentifier{
-				ApplicationIdentifier: managerName,
-			})
-			if err != nil || len(applications.GetApplications()) == 0 {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(guildID)).
-					Str("manager_name", managerName).
-					Msg("Failed to fetch application for guild customisation")
-
-				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
-
-				return
-			}
-
-			botID := discord.Snowflake(applications.GetApplications()[managerName].GetUserId())
-			if botID.IsNil() {
-				welcomer.Logger.Error().
-					Int64("guild_id", int64(guildID)).
-					Str("manager_name", managerName).
-					Msg("Bot ID is nil for fetched application for guild customisation")
-
-				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
-
-				return
-			}
-
-			member, err := discord.GetGuildMember(ctx, backend.BotSession, guildID, botID)
+			botID, err := getBotID(ctx)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(guildID)).
-					Msg("Failed to get guild member for guild customisation")
-
 				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
 
 				return
 			}
 
-			guildSettings, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
+			partial, err := getPartial(ctx, botID, guildID)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).
-					Int64("guild_id", int64(guildID)).
-					Msg("Failed to get guild settings for guild customisation")
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
 			}
 
 			ctx.JSON(http.StatusOK, BaseResponse{
-				Ok: true,
-				Data: GuildSettingsCustomisation{
-					Nickname: &member.Nick,
-					Avatar:   &member.Avatar,
-					Banner:   &member.Banner,
-					Bio:      &guildSettings.Bio,
-					UserID:   botID,
-				},
+				Ok:   true,
+				Data: partial,
 			})
 		})
 	})
@@ -97,6 +114,7 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
+			userID := tryGetUser(ctx).ID
 
 			partial := &GuildSettingsCustomisation{}
 
@@ -217,6 +235,20 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 				modifyCurrentMemberParams.Bio = partial.Bio
 			}
 
+			botID, err := getBotID(ctx)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
+			oldPartial, err := getPartial(ctx, botID, guildID)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, NewGenericErrorWithLineNumber())
+
+				return
+			}
+
 			_, err = discord.ModifyCurrentMember(ctx,
 				backend.BotSession,
 				guildID,
@@ -233,11 +265,19 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 				return
 			}
 
+			welcomer.AuditChange(ctx, guildID, userID, GuildSettingsCustomisationAudit{
+				Nickname: welcomer.IfElseFunc(oldPartial.Nickname == nil, "", func() string { return *oldPartial.Nickname }),
+				Bio:      welcomer.IfElseFunc(oldPartial.Bio == nil, "", func() string { return *oldPartial.Bio }),
+			}, GuildSettingsCustomisationAudit{
+				Nickname: welcomer.IfElseFunc(partial.Nickname == nil, "", func() string { return *partial.Nickname }),
+				Bio:      welcomer.IfElseFunc(partial.Bio == nil, "", func() string { return *partial.Bio }),
+			}, database.AuditTypeBotCustomisation)
+
 			if partial.Bio != nil {
-				_, err = welcomer.Queries.UpdateGuildBio(ctx, database.UpdateGuildBioParams{
+				_, err = welcomer.UpdateBioWithAudit(ctx, database.UpdateGuildBioParams{
 					GuildID: int64(guildID),
 					Bio:     *partial.Bio,
-				})
+				}, userID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(guildID)).

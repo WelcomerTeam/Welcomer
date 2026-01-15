@@ -729,6 +729,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
+				Str("message_format", messageFormat).
 				Msg("Failed to format welcomer text payload")
 
 			return err
@@ -864,6 +865,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
+						Str("message_format", messageFormat).
 						Msg("Failed to format welcomer DMs payload")
 
 					return err
@@ -875,6 +877,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
+						Str("message_format", messageFormat).
 						Msg("Failed to unmarshal welcomer messageFormat")
 
 					return err
@@ -903,6 +906,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
+						Str("message_format", messageFormat).
 						Msg("Failed to format welcomer DMs payload")
 
 					return err
@@ -914,6 +918,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
+						Str("message_format", messageFormat).
 						Msg("Failed to unmarshal welcomer messageFormat")
 
 					return err
@@ -928,6 +933,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
+						Str("message_format", messageFormat).
 						Msg("Failed to format welcomer DMs payload")
 
 					return err
@@ -939,6 +945,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
+						Str("message_format", messageFormat).
 						Msg("Failed to unmarshal welcomer dms messageFormat")
 
 					return err

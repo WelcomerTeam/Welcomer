@@ -367,3 +367,19 @@ func RemoveGuildFeatureWithAudit(ctx context.Context, params database.RemoveGuil
 
 	return nil
 }
+
+func UpdateBioWithAudit(ctx context.Context, params database.UpdateGuildBioParams, actor discord.Snowflake) (*database.Guilds, error) {
+	var old string
+	if existing, err := Queries.GetGuild(ctx, params.GuildID); err == nil {
+		old = existing.Bio
+	}
+
+	newRow, err := Queries.UpdateGuildBio(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, params.Bio, database.AuditTypeBio)
+
+	return newRow, nil
+}

@@ -181,6 +181,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
+			Str("message_format", messageFormat).
 			Msg("Failed to format leaver text payload")
 
 		return err
@@ -194,6 +195,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
+			Str("message_format", messageFormat).
 			Msg("Failed to unmarshal leaver messageFormat")
 
 		return err
