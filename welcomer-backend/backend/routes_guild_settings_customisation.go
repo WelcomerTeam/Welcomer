@@ -266,17 +266,17 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 			}
 
 			welcomer.AuditChange(ctx, guildID, userID, GuildSettingsCustomisationAudit{
-				Nickname: welcomer.IfFuncB(oldPartial.Nickname == nil, "", func() string { return *oldPartial.Nickname }),
-				Bio:      welcomer.IfFuncB(oldPartial.Bio == nil, "", func() string { return *oldPartial.Bio }),
+				Nickname: welcomer.IfElseFunc(oldPartial.Nickname == nil, "", func() string { return *oldPartial.Nickname }),
+				Bio:      welcomer.IfElseFunc(oldPartial.Bio == nil, "", func() string { return *oldPartial.Bio }),
 			}, GuildSettingsCustomisationAudit{
-				Nickname: welcomer.IfFuncB(partial.Nickname == nil, "", func() string { return *partial.Nickname }),
-				Bio:      welcomer.IfFuncB(partial.Bio == nil, "", func() string { return *partial.Bio }),
+				Nickname: welcomer.IfElseFunc(partial.Nickname == nil, "", func() string { return *partial.Nickname }),
+				Bio:      welcomer.IfElseFunc(partial.Bio == nil, "", func() string { return *partial.Bio }),
 			}, database.AuditTypeBotCustomisation)
 
 			if partial.Bio != nil {
 				_, err = welcomer.UpdateBioWithAudit(ctx, database.UpdateGuildBioParams{
 					GuildID: int64(guildID),
-					Bio:     welcomer.IfFuncB(partial.Bio == nil, "", func() string { return *partial.Bio }),
+					Bio:     *partial.Bio,
 				}, userID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).

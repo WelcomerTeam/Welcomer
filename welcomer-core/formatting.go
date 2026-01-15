@@ -181,8 +181,8 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 // EscapeStringForJSON escapes a string for JSON.
 func EscapeStringForJSON(value string) string {
 	replacer := strings.NewReplacer(
-		`"`, `\"`,
 		`\`, `\\`,
+		`"`, `\"`,
 		"\b", `\b`,
 		"\f", `\f`,
 		"\n", `\n`,

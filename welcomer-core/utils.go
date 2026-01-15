@@ -580,7 +580,7 @@ func IfFunc[T any](condition bool, trueFunc, falseFunc func() T) T {
 	return falseFunc()
 }
 
-func IfFuncB[T any](condition bool, trueFunc T, falseValue func() T) T {
+func IfElseFunc[T any](condition bool, trueFunc T, falseValue func() T) T {
 	if condition {
 		return trueFunc
 	}
