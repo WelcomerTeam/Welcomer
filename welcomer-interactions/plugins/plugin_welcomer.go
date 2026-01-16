@@ -297,9 +297,6 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
-				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
-
 				switch module {
 				case WelcomerModuleAll:
 					guildSettingsWelcomerText.ToggleEnabled = true
@@ -322,6 +319,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				// Update database.
+
+				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
+				guildSettingsWelcomerImages.CustomBuilderData = welcomer.SetupJSONB(guildSettingsWelcomerImages.CustomBuilderData)
+				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
 
 				err = welcomer.RetryWithFallback(
 					func() error {
@@ -547,6 +548,10 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 				// Update database.
 
+				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
+				guildSettingsWelcomerImages.CustomBuilderData = welcomer.SetupJSONB(guildSettingsWelcomerImages.CustomBuilderData)
+				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
+
 				err = welcomer.RetryWithFallback(
 					func() error {
 						_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx, database.CreateOrUpdateWelcomerTextGuildSettingsParams{
@@ -684,15 +689,14 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						return nil, err
 					}
 				}
-				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
-					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
-				}
 
 				if !channel.ID.IsNil() {
 					guildSettingsWelcomerText.Channel = int64(channel.ID)
 				} else {
 					guildSettingsWelcomerText.Channel = 0
 				}
+
+				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
 
 				err = welcomer.RetryWithFallback(
 					func() error {
