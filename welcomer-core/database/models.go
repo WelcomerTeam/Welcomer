@@ -88,6 +88,7 @@ type GuildMessageCountsHour struct {
 	ChannelID    int64     `json:"channel_id"`
 	UserID       int64     `json:"user_id"`
 	MessageCount int32     `json:"message_count"`
+	MinTs        time.Time `json:"min_ts"`
 }
 
 type GuildSettingsAutoroles struct {
@@ -208,6 +209,7 @@ type Guilds struct {
 }
 
 type IngestMessageEvents struct {
+	EventID    int64     `json:"event_id"`
 	MessageID  int64     `json:"message_id"`
 	GuildID    int64     `json:"guild_id"`
 	ChannelID  int64     `json:"channel_id"`
