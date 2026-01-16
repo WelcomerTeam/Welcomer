@@ -48,7 +48,7 @@ func (p *OnboardingCog) GetEventHandlers() *sandwich.Handlers {
 func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register
 	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			0,
@@ -138,7 +138,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnGuildLeaveEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			0,
@@ -263,7 +263,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 				Msg("Failed to send DM to user")
 		}
 
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			guild.ID,
 			user.ID,
@@ -311,7 +311,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 		}
 
 		if eligibleChannel == nil {
-			welcomer.PushGuildScience.Push(
+			welcomer.PusherGuildScience.Push(
 				eventCtx.Context,
 				guild.ID,
 				0,
@@ -332,7 +332,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 			return nil
 		}
 
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			guild.ID,
 			0,

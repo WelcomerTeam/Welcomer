@@ -167,7 +167,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 		}
 
 		for _, role := range roles {
-			welcomer.PushGuildScience.Push(
+			welcomer.PusherGuildScience.Push(
 				eventCtx.Context,
 				eventCtx.Guild.ID,
 				member.User.ID,

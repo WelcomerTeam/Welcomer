@@ -350,7 +350,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		}
 	}
 
-	welcomer.PushGuildScience.Push(
+	welcomer.PusherGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.Member.User.ID,
@@ -658,7 +658,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		}
 	}
 
-	welcomer.PushGuildScience.Push(
+	welcomer.PusherGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.Member.User.ID,

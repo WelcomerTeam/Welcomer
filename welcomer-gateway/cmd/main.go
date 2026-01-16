@@ -19,6 +19,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const (
+	IngestFlushInterval = 30 * time.Second
+	IngestBufferSize    = 1024
+)
+
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 	sandwichGRPCHost := flag.String("grpcAddress", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
@@ -81,8 +86,14 @@ func main() {
 		panic(fmt.Errorf("jetstreamClient.Consume(): %w", err))
 	}
 
-	runPushGuildScience := welcomer.SetupPushGuildScience(1024)
-	runPushGuildScience(ctx, time.Second*30)
+	pusherGuildScience := welcomer.SetupPusherGuildScience(IngestBufferSize)
+	pusherGuildScience(ctx, IngestFlushInterval)
+
+	pusherIngestMessageEvents := welcomer.SetupPusherIngestMessageEvents(IngestBufferSize)
+	pusherIngestMessageEvents(ctx, IngestFlushInterval)
+
+	pusherIngestVoiceChannelEvents := welcomer.SetupPusherIngestVoiceChannelEvents(IngestBufferSize)
+	pusherIngestVoiceChannelEvents(ctx, IngestFlushInterval)
 
 	// Setup sandwich.
 
@@ -110,7 +121,9 @@ func main() {
 		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
 	}
 
-	welcomer.PushGuildScience.Flush(ctx)
+	welcomer.PusherGuildScience.Flush(ctx)
+	welcomer.PusherIngestMessageEvents.Flush(ctx)
+	welcomer.PusherIngestVoiceChannelEvents.Flush(ctx)
 
 	cancel()
 }

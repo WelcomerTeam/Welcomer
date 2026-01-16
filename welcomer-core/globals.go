@@ -56,12 +56,28 @@ func SetupDatabase(ctx context.Context, connectionString string) {
 	Queries = database.New(Pool)
 }
 
-var PushGuildScience *PushGuildScienceHandler
+var PusherGuildScience *PushGuildScienceHandler
 
-func SetupPushGuildScience(limit int) func(ctx context.Context, interval time.Duration) {
-	PushGuildScience = NewPushGuildScienceHandler(limit)
+func SetupPusherGuildScience(limit int) func(ctx context.Context, interval time.Duration) {
+	PusherGuildScience = NewPushGuildScienceHandler(limit)
 
-	return PushGuildScience.Run
+	return PusherGuildScience.Run
+}
+
+var PusherIngestMessageEvents *PushIngestMessageEventsHandler
+
+func SetupPusherIngestMessageEvents(limit int) func(ctx context.Context, interval time.Duration) {
+	PusherIngestMessageEvents = NewPushIngestMessageEventsHandler(limit)
+
+	return PusherIngestMessageEvents.Run
+}
+
+var PusherIngestVoiceChannelEvents *PushIngestVoiceChannelEventsHandler
+
+func SetupPusherIngestVoiceChannelEvents(limit int) func(ctx context.Context, interval time.Duration) {
+	PusherIngestVoiceChannelEvents = NewPushIngestVoiceChannelEventsHandler(limit)
+
+	return PusherIngestVoiceChannelEvents.Run
 }
 
 var DedupeProvider *RedisDedupeProvider

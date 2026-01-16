@@ -14,6 +14,6 @@ type CreateManyIngestVoiceChannelEventsParams struct {
 	GuildID    int64         `json:"guild_id"`
 	UserID     int64         `json:"user_id"`
 	ChannelID  sql.NullInt64 `json:"channel_id"`
-	EventType  string        `json:"event_type"`
+	EventType  int16         `json:"event_type"`
 	OccurredAt time.Time     `json:"occurred_at"`
 }
