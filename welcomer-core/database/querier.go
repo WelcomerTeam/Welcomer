@@ -24,6 +24,8 @@ type Querier interface {
 	CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error)
 	CreateGuildInvites(ctx context.Context, arg CreateGuildInvitesParams) (*GuildInvites, error)
 	CreateLeaverGuildSettings(ctx context.Context, arg CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error)
+	CreateManyIngestMessageEvents(ctx context.Context, arg []CreateManyIngestMessageEventsParams) (int64, error)
+	CreateManyIngestVoiceChannelEvents(ctx context.Context, arg []CreateManyIngestVoiceChannelEventsParams) (int64, error)
 	CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error)
 	CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error)
 	CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error)
@@ -86,6 +88,7 @@ type Querier interface {
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
 	GetInteractionCommand(ctx context.Context, arg GetInteractionCommandParams) (*InteractionCommands, error)
+	GetJobCheckpointByName(ctx context.Context, jobName string) (*JobCheckpoints, error)
 	GetLeaverGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsLeaver, error)
 	GetMinimalWelcomerBuilderArtifactByGuildId(ctx context.Context, guildID int64) ([]*GetMinimalWelcomerBuilderArtifactByGuildIdRow, error)
 	GetPatreonUser(ctx context.Context, patreonUserID int64) (*PatreonUsers, error)
@@ -142,6 +145,7 @@ type Querier interface {
 	UpdateWelcomerGuildSettings(ctx context.Context, arg UpdateWelcomerGuildSettingsParams) (int64, error)
 	UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error)
 	UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error)
+	UpsertJobCheckpoint(ctx context.Context, arg UpsertJobCheckpointParams) error
 }
 
 var _ Querier = (*Queries)(nil)

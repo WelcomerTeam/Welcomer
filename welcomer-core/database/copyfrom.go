@@ -9,6 +9,79 @@ import (
 	"context"
 )
 
+// iteratorForCreateManyIngestMessageEvents implements pgx.CopyFromSource.
+type iteratorForCreateManyIngestMessageEvents struct {
+	rows                 []CreateManyIngestMessageEventsParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForCreateManyIngestMessageEvents) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForCreateManyIngestMessageEvents) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].MessageID,
+		r.rows[0].GuildID,
+		r.rows[0].ChannelID,
+		r.rows[0].UserID,
+		r.rows[0].EventType,
+		r.rows[0].OccurredAt,
+	}, nil
+}
+
+func (r iteratorForCreateManyIngestMessageEvents) Err() error {
+	return nil
+}
+
+func (q *Queries) CreateManyIngestMessageEvents(ctx context.Context, arg []CreateManyIngestMessageEventsParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"ingest_message_events"}, []string{"message_id", "guild_id", "channel_id", "user_id", "event_type", "occurred_at"}, &iteratorForCreateManyIngestMessageEvents{rows: arg})
+}
+
+// iteratorForCreateManyIngestVoiceChannelEvents implements pgx.CopyFromSource.
+type iteratorForCreateManyIngestVoiceChannelEvents struct {
+	rows                 []CreateManyIngestVoiceChannelEventsParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForCreateManyIngestVoiceChannelEvents) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForCreateManyIngestVoiceChannelEvents) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].GuildID,
+		r.rows[0].UserID,
+		r.rows[0].ChannelID,
+		r.rows[0].EventType,
+		r.rows[0].OccurredAt,
+	}, nil
+}
+
+func (r iteratorForCreateManyIngestVoiceChannelEvents) Err() error {
+	return nil
+}
+
+func (q *Queries) CreateManyIngestVoiceChannelEvents(ctx context.Context, arg []CreateManyIngestVoiceChannelEventsParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"ingest_voice_channel_events"}, []string{"guild_id", "user_id", "channel_id", "event_type", "occurred_at"}, &iteratorForCreateManyIngestVoiceChannelEvents{rows: arg})
+}
+
 // iteratorForCreateManyInteractionCommands implements pgx.CopyFromSource.
 type iteratorForCreateManyInteractionCommands struct {
 	rows                 []CreateManyInteractionCommandsParams
