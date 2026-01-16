@@ -43,6 +43,11 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 			return nil
 		}
 
+		// Ignore non-default message types (e.g., system messages).
+		if message.Type != discord.MessageTypeDefault {
+			return nil
+		}
+
 		welcomer.PusherIngestMessageEvents.Push(eventCtx.Context,
 			message.ID, *message.GuildID, message.ChannelID, message.Author.ID,
 			welcomer.IngestMessageEventTypeCreate, message.Timestamp)
