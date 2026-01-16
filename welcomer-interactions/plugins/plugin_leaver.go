@@ -178,7 +178,6 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = true
 
 				err = welcomer.RetryWithFallback(
@@ -244,7 +243,6 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.ToggleEnabled = false
 
 				err = welcomer.RetryWithFallback(
@@ -347,7 +345,6 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsLeaver.MessageFormat = welcomer.SetupJSONB(guildSettingsLeaver.MessageFormat)
 				guildSettingsLeaver.Channel = welcomer.If(!channel.ID.IsNil(), int64(channel.ID), 0)
 
 				err = welcomer.RetryWithFallback(

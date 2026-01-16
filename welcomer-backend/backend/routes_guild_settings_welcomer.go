@@ -368,8 +368,6 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerText).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerText settings")
 
-			databaseWelcomerTextGuildSettings.MessageFormat = welcomer.SetupJSONB(databaseWelcomerTextGuildSettings.MessageFormat)
-
 			err = welcomer.RetryWithFallback(
 				func() error {
 					_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx, databaseWelcomerTextGuildSettings, user.ID)
