@@ -3,17 +3,18 @@ module github.com/WelcomerTeam/Welcomer/welcomer-ingest
 go 1.25.3
 
 require (
+	github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20260115233606-5cedb266ce6e
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
+	google.golang.org/grpc v1.78.0
 )
 
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
-	github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5 // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Sandwich v0.0.0-20251228155540-7f08246aad6d // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117001302-c9b5dafa0892 // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260117001749-b1ab904ea529 // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -49,6 +50,5 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260114163908-3f89685c29c3 // indirect
-	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

@@ -15,19 +15,22 @@ SELECT
     user_id,
     channel_id,
     start_ts,
-    last_seen_ts
+    last_seen_ts,
+    closed_at
 FROM guild_voice_channel_open_sessions
 WHERE guild_id = $1 AND user_id = $2;
 
 -- name: UpsertOpenVoiceChannelSession :exec
-INSERT INTO guild_voice_channel_open_sessions (guild_id, user_id, channel_id, start_ts, last_seen_ts)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO guild_voice_channel_open_sessions (guild_id, user_id, channel_id, start_ts, last_seen_ts, closed_at)
+VALUES ($1, $2, $3, $4, $5, NULL)
 ON CONFLICT (guild_id, user_id) DO UPDATE SET
     channel_id = EXCLUDED.channel_id,
-    last_seen_ts = EXCLUDED.last_seen_ts;
+    last_seen_ts = EXCLUDED.last_seen_ts,
+    closed_at = NULL;
 
--- name: DeleteOpenVoiceChannelSession :exec
-DELETE FROM guild_voice_channel_open_sessions
+-- name: CloseOpenVoiceChannelSession :exec
+UPDATE guild_voice_channel_open_sessions
+SET closed_at = $3
 WHERE guild_id = $1 AND user_id = $2;
 
 -- name: CreateVoiceChannelStat :exec
@@ -40,5 +43,6 @@ SELECT
     user_id,
     channel_id,
     start_ts,
-    last_seen_ts
+    last_seen_ts,
+    closed_at
 FROM guild_voice_channel_open_sessions;

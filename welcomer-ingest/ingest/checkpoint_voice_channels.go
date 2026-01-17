@@ -43,6 +43,7 @@ func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, int
 				}
 			case <-ctx.Done():
 				ticker.Stop()
+
 				return
 			}
 		}
@@ -60,7 +61,7 @@ func checkpointVoiceChannels(ctx context.Context) (err error) {
 	now := time.Now()
 
 	for _, vs := range voiceStates.VoiceStates {
-		if vs.Member != nil && vs.Member.User != nil && vs.Member.User.Bot {
+		if vs.GetMember() != nil && vs.GetMember().GetUser() != nil && vs.GetMember().GetUser().GetBot() {
 			continue
 		}
 

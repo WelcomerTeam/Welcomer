@@ -2,6 +2,7 @@ package ingest
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
@@ -36,6 +37,7 @@ func AggregateVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, inte
 			case <-ticker.C:
 				if !hasReset {
 					ticker.Reset(interval)
+
 					hasReset = true
 				}
 
@@ -68,11 +70,11 @@ type voiceChannelEvent struct {
 }
 
 type userSession struct {
-	guildID    int64
-	userID     int64
-	channelID  int64
-	startTs    time.Time
-	lastSeenTs time.Time
+	guildID           int64
+	userID            int64
+	channelID         int64
+	startTimestamp    time.Time
+	lastSeenTimestamp time.Time
 }
 
 func aggregateVoiceChannels(ctx context.Context) (err error) {
@@ -124,6 +126,7 @@ func aggregateVoiceChannels(ctx context.Context) (err error) {
 
 	// Convert to our working type
 	voiceEvents := make([]voiceChannelEvent, len(events))
+
 	var maxProcessed time.Time
 
 	for i, event := range events {
@@ -139,6 +142,7 @@ func aggregateVoiceChannels(ctx context.Context) (err error) {
 			maxProcessed = event.OccurredAt
 		}
 	}
+
 	if err != nil {
 		return fmt.Errorf("error processing voice channel events: %w", err)
 	}
@@ -209,14 +213,19 @@ func processUserVoiceEvents(ctx context.Context, queries *database.Queries, even
 	})
 
 	if err == nil {
-		currentSession = &userSession{
-			guildID:    sessionRow.GuildID,
-			userID:     sessionRow.UserID,
-			channelID:  sessionRow.ChannelID,
-			startTs:    sessionRow.StartTs,
-			lastSeenTs: sessionRow.LastSeenTs,
+		// Skip processing if session is already closed
+		if sessionRow.ClosedAt.Valid {
+			return nil
 		}
-	} else if err != pgx.ErrNoRows {
+
+		currentSession = &userSession{
+			guildID:           sessionRow.GuildID,
+			userID:            sessionRow.UserID,
+			channelID:         sessionRow.ChannelID,
+			startTimestamp:    sessionRow.StartTs,
+			lastSeenTimestamp: sessionRow.LastSeenTs,
+		}
+	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return err
 	}
 
@@ -234,11 +243,11 @@ func processUserVoiceEvents(ctx context.Context, queries *database.Queries, even
 
 			// Start new session or update existing
 			currentSession = &userSession{
-				guildID:    guildID,
-				userID:     userID,
-				channelID:  event.channelID,
-				startTs:    event.occurredAt,
-				lastSeenTs: event.occurredAt,
+				guildID:           guildID,
+				userID:            userID,
+				channelID:         event.channelID,
+				startTimestamp:    event.occurredAt,
+				lastSeenTimestamp: event.occurredAt,
 			}
 
 			err := queries.UpsertOpenVoiceChannelSession(ctx, database.UpsertOpenVoiceChannelSessionParams{
@@ -249,7 +258,7 @@ func processUserVoiceEvents(ctx context.Context, queries *database.Queries, even
 				LastSeenTs: event.occurredAt,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("error upserting open voice channel session: %w", err)
 			}
 
 		case welcomer.IngestVoiceChannelEventTypeLeave:
@@ -257,34 +266,39 @@ func processUserVoiceEvents(ctx context.Context, queries *database.Queries, even
 			if currentSession != nil {
 				err := closeSession(ctx, queries, currentSession, event.occurredAt)
 				if err != nil {
-					return err
+					return fmt.Errorf("error closing voice channel session: %w", err)
 				}
+
 				currentSession = nil
 			}
 
-			// Delete the session record
-			err := queries.DeleteOpenVoiceChannelSession(ctx, database.DeleteOpenVoiceChannelSessionParams{
+			// Mark the session record as closed
+			err := queries.CloseOpenVoiceChannelSession(ctx, database.CloseOpenVoiceChannelSessionParams{
 				GuildID: guildID,
 				UserID:  userID,
+				ClosedAt: sql.NullTime{
+					Time:  event.occurredAt,
+					Valid: true,
+				},
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("error marking voice channel session as closed: %w", err)
 			}
 
 		case welcomer.IngestVoiceChannelEventTypeCheckpoint:
 			// Update last seen time
 			if currentSession != nil {
-				currentSession.lastSeenTs = event.occurredAt
+				currentSession.lastSeenTimestamp = event.occurredAt
 
 				err := queries.UpsertOpenVoiceChannelSession(ctx, database.UpsertOpenVoiceChannelSessionParams{
 					GuildID:    guildID,
 					UserID:     userID,
 					ChannelID:  currentSession.channelID,
-					StartTs:    currentSession.startTs,
+					StartTs:    currentSession.startTimestamp,
 					LastSeenTs: event.occurredAt,
 				})
 				if err != nil {
-					return err
+					return fmt.Errorf("error updating last seen timestamp in open voice channel session: %w", err)
 				}
 			}
 		}
@@ -295,7 +309,7 @@ func processUserVoiceEvents(ctx context.Context, queries *database.Queries, even
 
 // closeSession closes a user's voice channel session and creates a stat entry
 func closeSession(ctx context.Context, queries *database.Queries, session *userSession, endTime time.Time) error {
-	totalTime := endTime.Sub(session.startTs)
+	totalTime := endTime.Sub(session.startTimestamp)
 	totalTimeMs := totalTime.Milliseconds()
 
 	if totalTime < minimumTimeInVoiceChannel {
@@ -313,12 +327,15 @@ func closeSession(ctx context.Context, queries *database.Queries, session *userS
 		GuildID:     session.guildID,
 		ChannelID:   session.channelID,
 		UserID:      session.userID,
-		StartTs:     session.startTs,
+		StartTs:     session.startTimestamp,
 		EndTs:       endTime,
 		TotalTimeMs: totalTimeMs,
 	})
+	if err != nil {
+		return fmt.Errorf("error creating voice channel stat: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 // cleanupStaleSessions handles sessions where the last seen time is too old
@@ -326,10 +343,15 @@ func closeSession(ctx context.Context, queries *database.Queries, session *userS
 func cleanupStaleSessions(ctx context.Context, queries *database.Queries, now time.Time) error {
 	sessions, err := queries.GetAllOpenVoiceChannelSessions(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching open voice channel sessions: %w", err)
 	}
 
 	for _, session := range sessions {
+		// Skip already closed sessions
+		if session.ClosedAt.Valid {
+			continue
+		}
+
 		timeSinceLastSeen := now.Sub(session.LastSeenTs)
 
 		// If session hasn't been seen in more than maxSessionGap, close it
@@ -339,6 +361,18 @@ func cleanupStaleSessions(ctx context.Context, queries *database.Queries, now ti
 				Int64("user_id", session.UserID).
 				Dur("time_since_last_seen", timeSinceLastSeen).
 				Msg("closing stale voice channel session")
+
+			err = queries.CloseOpenVoiceChannelSession(ctx, database.CloseOpenVoiceChannelSessionParams{
+				GuildID: session.GuildID,
+				UserID:  session.UserID,
+				ClosedAt: sql.NullTime{
+					Time:  session.LastSeenTs,
+					Valid: true,
+				},
+			})
+			if err != nil {
+				return fmt.Errorf("error marking stale voice channel session as closed: %w", err)
+			}
 
 			totalTime := session.LastSeenTs.Sub(session.StartTs)
 
@@ -350,7 +384,7 @@ func cleanupStaleSessions(ctx context.Context, queries *database.Queries, now ti
 					Dur("total_time", totalTime).
 					Msg("skipping voice channel stat creation due to short duration")
 
-				return nil
+				continue
 			}
 
 			err := queries.CreateVoiceChannelStat(ctx, database.CreateVoiceChannelStatParams{
@@ -362,15 +396,7 @@ func cleanupStaleSessions(ctx context.Context, queries *database.Queries, now ti
 				TotalTimeMs: totalTime.Milliseconds(),
 			})
 			if err != nil {
-				return err
-			}
-
-			err = queries.DeleteOpenVoiceChannelSession(ctx, database.DeleteOpenVoiceChannelSessionParams{
-				GuildID: session.GuildID,
-				UserID:  session.UserID,
-			})
-			if err != nil {
-				return err
+				return fmt.Errorf("error creating voice channel stat: %w", err)
 			}
 		}
 	}

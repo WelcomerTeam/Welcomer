@@ -186,11 +186,12 @@ type GuildSettingsWelcomerText struct {
 }
 
 type GuildVoiceChannelOpenSessions struct {
-	GuildID    int64     `json:"guild_id"`
-	UserID     int64     `json:"user_id"`
-	ChannelID  int64     `json:"channel_id"`
-	StartTs    time.Time `json:"start_ts"`
-	LastSeenTs time.Time `json:"last_seen_ts"`
+	GuildID    int64        `json:"guild_id"`
+	UserID     int64        `json:"user_id"`
+	ChannelID  int64        `json:"channel_id"`
+	StartTs    time.Time    `json:"start_ts"`
+	LastSeenTs time.Time    `json:"last_seen_ts"`
+	ClosedAt   sql.NullTime `json:"closed_at"`
 }
 
 type GuildVoiceChannelStats struct {

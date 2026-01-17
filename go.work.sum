@@ -872,6 +872,7 @@ github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250521213853-0b19d4d5057b/go.mo
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250524094448-0c8b69fa8c09/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250526181236-2da744537022/go.mod h1:tcl/Dv9yDhodULt+bHk90Y0qtelaAyHcWKz/Y9FZDDU=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20250703105228-b78fd6d6c544/go.mod h1:+agTD7vWiNKpjM43j+vjJv0tyQp8pRTC0zLwbtWT+yc=
+github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117001302-c9b5dafa0892/go.mod h1:rYkm/sO6w7BeZZUdMDjDNakcbglt2CWqeNoYDvi3lps=
 github.com/WelcomerTeam/Subway v0.0.0-20250315103958-d4fdff66e557/go.mod h1:Z6sE3DbiRjP8YSdh7+jDVArc0t9ONh8nrah+Au0b5vs=
 github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20250504110344-27c2b94e980f/go.mod h1:d/zrx2ZjN/2HEehJvw3IBBCuOuqknV809zU8aLJq0pc=
 github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b/go.mod h1:1KcenG0jGWcpt8ov532z81sp/kMMUG485J2InIOyADM=
@@ -1256,8 +1257,6 @@ github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/jackc/chunkreader v1.0.0 h1:4s39bBR8ByfqH+DKm8rQA3E1LHZWB9XWcrz8fqaZbe0=
-github.com/jackc/pgproto3 v1.1.0 h1:FYYE4yRw+AgI8wXIinMlNjBbp/UitDJwfj5LqqewP1A=
 github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/jellevandenhooff/dkim v0.0.0-20150330215556-f50fe3d243e1/go.mod h1:E0B/fFc00Y+Rasa88328GlI/XbtyysCtTHZS8h7IrBU=

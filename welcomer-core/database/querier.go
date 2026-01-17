@@ -14,6 +14,7 @@ import (
 type Querier interface {
 	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
+	CloseOpenVoiceChannelSession(ctx context.Context, arg CloseOpenVoiceChannelSessionParams) error
 	CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
 	CreateBorderwallRequest(ctx context.Context, arg CreateBorderwallRequestParams) (*BorderwallRequests, error)
@@ -65,7 +66,6 @@ type Querier interface {
 	CreateWelcomerTextGuildSettings(ctx context.Context, arg CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error)
 	DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) (int64, error)
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
-	DeleteOpenVoiceChannelSession(ctx context.Context, arg DeleteOpenVoiceChannelSessionParams) error
 	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)
 	DeleteUserMembership(ctx context.Context, membershipUuid uuid.UUID) (int64, error)
 	DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error)

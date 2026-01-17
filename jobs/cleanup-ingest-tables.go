@@ -101,4 +101,16 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 	welcomer.Logger.Info().
 		Int64("deleted_voice_channel_events_count", rows.CommandTag().RowsAffected()).
 		Msg("Ingest voice channel events cleaned up successfully")
+
+	rows, err = welcomer.Pool.Query(ctx, "DELETE FROM guild_voice_channel_open_sessions WHERE last_seen_ts < $1", expirationDate)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to clean up guild voice channel open sessions")
+		return
+	}
+
+	rows.Close()
+
+	welcomer.Logger.Info().
+		Int64("deleted_guild_voice_channel_open_sessions_count", rows.CommandTag().RowsAffected()).
+		Msg("Guild voice channel open sessions cleaned up successfully")
 }
