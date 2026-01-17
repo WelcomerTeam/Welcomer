@@ -43,10 +43,10 @@ func main() {
 	ingest.AggregateMessageCounts(ctx, waitGroup, time.Minute*1)
 	ingest.AggregateVoiceChannels(ctx, waitGroup, time.Minute*1)
 
+	ingest.CheckpointVoiceChannels(ctx, waitGroup, time.Minute*1)
+
 	pusherIngestVoicechannelEvents := welcomer.SetupPusherIngestVoiceChannelEvents(IngestBufferSize)
 	pusherIngestVoicechannelEvents(ctx, time.Minute*1)
-
-	ingest.CheckpointVoiceChannels(ctx, waitGroup, time.Minute*1)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)

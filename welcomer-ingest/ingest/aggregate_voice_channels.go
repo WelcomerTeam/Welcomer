@@ -15,8 +15,8 @@ import (
 
 const (
 	jobNameVoiceChannels = "guild_voice_channel_stats"
-	backfillWindowVC     = time.Minute * 5  // allow late events
-	maxSessionGap        = time.Minute * 10 // maximum gap before assuming session ended
+	backfillWindowVC     = time.Minute * 3 // allow late events
+	maxSessionGap        = time.Minute * 2 // maximum gap before assuming session ended
 
 	minimumTimeInVoiceChannel = time.Second * 5
 )
