@@ -5,5 +5,5 @@ package welcomer
 // ENUM(create, edit)
 type IngestMessageEventType int16
 
-// ENUM(join, leave)
+// ENUM(join, leave, checkpoint)
 type IngestVoiceChannelEventType int16

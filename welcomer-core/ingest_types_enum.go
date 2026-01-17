@@ -83,15 +83,18 @@ const (
 	IngestVoiceChannelEventTypeJoin IngestVoiceChannelEventType = iota
 	// IngestVoiceChannelEventTypeLeave is a IngestVoiceChannelEventType of type Leave.
 	IngestVoiceChannelEventTypeLeave
+	// IngestVoiceChannelEventTypeCheckpoint is a IngestVoiceChannelEventType of type Checkpoint.
+	IngestVoiceChannelEventTypeCheckpoint
 )
 
 var ErrInvalidIngestVoiceChannelEventType = errors.New("not a valid IngestVoiceChannelEventType")
 
-const _IngestVoiceChannelEventTypeName = "joinleave"
+const _IngestVoiceChannelEventTypeName = "joinleavecheckpoint"
 
 var _IngestVoiceChannelEventTypeMap = map[IngestVoiceChannelEventType]string{
-	IngestVoiceChannelEventTypeJoin:  _IngestVoiceChannelEventTypeName[0:4],
-	IngestVoiceChannelEventTypeLeave: _IngestVoiceChannelEventTypeName[4:9],
+	IngestVoiceChannelEventTypeJoin:       _IngestVoiceChannelEventTypeName[0:4],
+	IngestVoiceChannelEventTypeLeave:      _IngestVoiceChannelEventTypeName[4:9],
+	IngestVoiceChannelEventTypeCheckpoint: _IngestVoiceChannelEventTypeName[9:19],
 }
 
 // String implements the Stringer interface.
@@ -110,8 +113,9 @@ func (x IngestVoiceChannelEventType) IsValid() bool {
 }
 
 var _IngestVoiceChannelEventTypeValue = map[string]IngestVoiceChannelEventType{
-	_IngestVoiceChannelEventTypeName[0:4]: IngestVoiceChannelEventTypeJoin,
-	_IngestVoiceChannelEventTypeName[4:9]: IngestVoiceChannelEventTypeLeave,
+	_IngestVoiceChannelEventTypeName[0:4]:  IngestVoiceChannelEventTypeJoin,
+	_IngestVoiceChannelEventTypeName[4:9]:  IngestVoiceChannelEventTypeLeave,
+	_IngestVoiceChannelEventTypeName[9:19]: IngestVoiceChannelEventTypeCheckpoint,
 }
 
 // ParseIngestVoiceChannelEventType attempts to convert a string to a IngestVoiceChannelEventType.
