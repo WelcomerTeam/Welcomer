@@ -16,6 +16,8 @@ const (
 	jobNameVoiceChannels = "guild_voice_channel_stats"
 	backfillWindowVC     = time.Minute * 5  // allow late events
 	maxSessionGap        = time.Minute * 10 // maximum gap before assuming session ended
+
+	minimumTimeInVoiceChannel = time.Second * 5
 )
 
 // AggregateVoiceChannels runs on an interval and processes ingest_voice_channel_events
@@ -50,6 +52,7 @@ func AggregateVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, inte
 				}
 			case <-ctx.Done():
 				ticker.Stop()
+
 				return
 			}
 		}
@@ -295,8 +298,15 @@ func closeSession(ctx context.Context, queries *database.Queries, session *userS
 	totalTime := endTime.Sub(session.startTs)
 	totalTimeMs := totalTime.Milliseconds()
 
-	if totalTimeMs < 0 {
-		totalTimeMs = 0
+	if totalTime < minimumTimeInVoiceChannel {
+		welcomer.Logger.Debug().
+			Int64("guild_id", session.guildID).
+			Int64("user_id", session.userID).
+			Int64("channel_id", session.channelID).
+			Dur("total_time", totalTime).
+			Msg("skipping voice channel stat creation due to short duration")
+
+		return nil
 	}
 
 	err := queries.CreateVoiceChannelStat(ctx, database.CreateVoiceChannelStatParams{
@@ -330,13 +340,26 @@ func cleanupStaleSessions(ctx context.Context, queries *database.Queries, now ti
 				Dur("time_since_last_seen", timeSinceLastSeen).
 				Msg("closing stale voice channel session")
 
+			totalTime := session.LastSeenTs.Sub(session.StartTs)
+
+			if totalTime < minimumTimeInVoiceChannel {
+				welcomer.Logger.Debug().
+					Int64("guild_id", session.GuildID).
+					Int64("user_id", session.UserID).
+					Int64("channel_id", session.ChannelID).
+					Dur("total_time", totalTime).
+					Msg("skipping voice channel stat creation due to short duration")
+
+				return nil
+			}
+
 			err := queries.CreateVoiceChannelStat(ctx, database.CreateVoiceChannelStatParams{
 				GuildID:     session.GuildID,
 				ChannelID:   session.ChannelID,
 				UserID:      session.UserID,
 				StartTs:     session.StartTs,
 				EndTs:       session.LastSeenTs, // Use last seen as end
-				TotalTimeMs: session.LastSeenTs.Sub(session.StartTs).Milliseconds(),
+				TotalTimeMs: totalTime.Milliseconds(),
 			})
 			if err != nil {
 				return err
