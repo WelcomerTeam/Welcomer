@@ -72,14 +72,6 @@ func SetupPusherIngestMessageEvents(limit int) func(ctx context.Context, interva
 	return PusherIngestMessageEvents.Run
 }
 
-var PusherIngestVoiceChannelEvents *PushIngestVoiceChannelEventsHandler
-
-func SetupPusherIngestVoiceChannelEvents(limit int) func(ctx context.Context, interval time.Duration) {
-	PusherIngestVoiceChannelEvents = NewPushIngestVoiceChannelEventsHandler(limit)
-
-	return PusherIngestVoiceChannelEvents.Run
-}
-
 var DedupeProvider *RedisDedupeProvider
 
 func SetupDedupeProvider(provider RedisDedupeProvider) {

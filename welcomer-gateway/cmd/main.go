@@ -92,9 +92,6 @@ func main() {
 	pusherIngestMessageEvents := welcomer.SetupPusherIngestMessageEvents(IngestBufferSize)
 	pusherIngestMessageEvents(ctx, IngestFlushInterval)
 
-	pusherIngestVoiceChannelEvents := welcomer.SetupPusherIngestVoiceChannelEvents(IngestBufferSize)
-	pusherIngestVoiceChannelEvents(ctx, IngestFlushInterval)
-
 	// Setup sandwich.
 
 	sandwichClient := sandwich.NewSandwich(welcomer.GRPCConnection, restInterface, os.Stdout)
@@ -123,7 +120,6 @@ func main() {
 
 	welcomer.PusherGuildScience.Flush(ctx)
 	welcomer.PusherIngestMessageEvents.Flush(ctx)
-	welcomer.PusherIngestVoiceChannelEvents.Flush(ctx)
 
 	cancel()
 }

@@ -1,11 +1,16 @@
 package plugins
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
 )
 
 type IngestCog struct {
@@ -72,11 +77,6 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 	c.EventHandler.RegisterOnVoiceStateUpdateEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
 		var guildID discord.Snowflake
 
-		// Ignore bots.
-		if member.User != nil && member.User.Bot {
-			return nil
-		}
-
 		if after.GuildID != nil {
 			guildID = *after.GuildID
 		} else if before.GuildID != nil {
@@ -85,26 +85,29 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 			return nil
 		}
 
-		if before.ChannelID != after.ChannelID {
-			if before.ChannelID.IsNil() && !after.ChannelID.IsNil() {
-				// Joined a voice channel.
-				welcomer.PusherIngestVoiceChannelEvents.Push(eventCtx.Context,
-					guildID, after.ChannelID, member.User.ID,
-					welcomer.IngestVoiceChannelEventTypeJoin, time.Now())
-			} else if !before.ChannelID.IsNil() && after.ChannelID.IsNil() {
-				// Left a voice channel.
-				welcomer.PusherIngestVoiceChannelEvents.Push(eventCtx.Context,
-					guildID, before.ChannelID, member.User.ID,
-					welcomer.IngestVoiceChannelEventTypeLeave, time.Now())
-			} else if !before.ChannelID.IsNil() && !after.ChannelID.IsNil() {
-				// Moved voice channels.
-				welcomer.PusherIngestVoiceChannelEvents.Push(eventCtx.Context,
-					guildID, before.ChannelID, member.User.ID,
-					welcomer.IngestVoiceChannelEventTypeLeave, time.Now())
+		if before.ChannelID == after.ChannelID {
+			return nil
+		}
 
-				welcomer.PusherIngestVoiceChannelEvents.Push(eventCtx.Context,
-					guildID, after.ChannelID, member.User.ID,
-					welcomer.IngestVoiceChannelEventTypeJoin, time.Now())
+		if !before.ChannelID.IsNil() && after.ChannelID.IsNil() ||
+			!before.ChannelID.IsNil() && !after.ChannelID.IsNil() {
+			// Left or moved voice channel.
+			err := closeSession(eventCtx.Context, guildID, before.ChannelID, member.User.ID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Msg("Failed to close voice channel session")
+
+				return err
+			}
+		}
+
+		if before.ChannelID.IsNil() && !after.ChannelID.IsNil() ||
+			!before.ChannelID.IsNil() && !after.ChannelID.IsNil() {
+			// Joined or moved voice channel.
+			err := createSession(eventCtx.Context, guildID, after.ChannelID, member.User.ID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Msg("Failed to create voice channel session")
+
+				return err
 			}
 		}
 
@@ -113,3 +116,66 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 
 	return nil
 }
+
+func createSession(ctx context.Context, guildID, channelID, userID discord.Snowflake) error {
+	err := welcomer.Queries.CreateGuildVoiceChannelOpenSession(ctx, database.CreateGuildVoiceChannelOpenSessionParams{
+		GuildID:    int64(guildID),
+		UserID:     int64(userID),
+		ChannelID:  int64(channelID),
+		StartTs:    time.Now(),
+		LastSeenTs: time.Now(),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to create voice channel open session")
+
+		return fmt.Errorf("failed to create voice channel open session: %w", err)
+	}
+
+	return nil
+}
+
+func closeSession(ctx context.Context, guildID, channelID, userID discord.Snowflake) error {
+	session, err := welcomer.Queries.DeleteAndGetGuildVoiceChannelOpenSession(ctx, database.DeleteAndGetGuildVoiceChannelOpenSessionParams{
+		GuildID: int64(guildID),
+		UserID:  int64(userID),
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Error().Err(err).Msg("Failed to get voice channel open session")
+
+		return fmt.Errorf("failed to get voice channel open session: %w", err)
+	}
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Warn().
+			Int64("guild_id", int64(guildID)).
+			Int64("user_id", int64(userID)).
+			Msg("No open voice channel session found on voice channel leave")
+
+		return nil
+	}
+
+	totalTime := time.Since(session.StartTs)
+
+	err = welcomer.Queries.CreateVoiceChannelStat(ctx, database.CreateVoiceChannelStatParams{
+		GuildID:     int64(guildID),
+		ChannelID:   int64(channelID),
+		UserID:      int64(userID),
+		StartTs:     session.StartTs,
+		EndTs:       time.Now(),
+		TotalTimeMs: totalTime.Milliseconds(),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(guildID)).
+			Int64("channel_id", int64(channelID)).
+			Int64("user_id", int64(userID)).
+			Dur("duration", totalTime).
+			Msg("Failed to create voice channel stat")
+
+		return fmt.Errorf("failed to create voice channel stat: %w", err)
+	}
+
+	return nil
+}
+
+// TODO: handle lingering open sessions

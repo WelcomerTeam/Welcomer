@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, interval time.Duration) {
@@ -50,7 +50,7 @@ func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, int
 	}()
 }
 
-func checkpointVoiceChannels(ctx context.Context) (err error) {
+func checkpointVoiceChannels(ctx context.Context) error {
 	welcomer.Logger.Info().Msg("starting checkpoint voice channels job")
 
 	voiceStates, err := welcomer.SandwichClient.FetchVoiceStates(ctx, &sandwich.FetchVoiceStatesRequest{})
@@ -61,21 +61,25 @@ func checkpointVoiceChannels(ctx context.Context) (err error) {
 	now := time.Now()
 
 	for _, vs := range voiceStates.VoiceStates {
-		if vs.GetMember() != nil && vs.GetMember().GetUser() != nil && vs.GetMember().GetUser().GetBot() {
+		if vs.GetGuildID() == 0 || vs.GetUserID() == 0 || vs.GetChannelID() == 0 {
 			continue
 		}
 
-		welcomer.PusherIngestVoiceChannelEvents.Push(
-			ctx,
-			discord.Snowflake(vs.GuildID),
-			discord.Snowflake(vs.ChannelID),
-			discord.Snowflake(vs.UserID),
-			welcomer.IngestVoiceChannelEventTypeCheckpoint,
-			now,
-		)
-	}
+		err := welcomer.Queries.UpdateGuildVoiceChannelOpenSessionLastSeen(ctx, database.UpdateGuildVoiceChannelOpenSessionLastSeenParams{
+			GuildID:    vs.GetGuildID(),
+			UserID:     vs.GetUserID(),
+			LastSeenTs: now,
+		})
+		if err != nil {
+			welcomer.Logger.Error().
+				Err(err).
+				Int64("guild_id", vs.GetGuildID()).
+				Int64("user_id", vs.GetUserID()).
+				Msg("failed to update last seen for open voice channel session")
 
-	welcomer.PusherIngestVoiceChannelEvents.Flush(ctx)
+			continue
+		}
+	}
 
 	return nil
 }
