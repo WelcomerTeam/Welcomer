@@ -60,6 +60,10 @@ func checkpointVoiceChannels(ctx context.Context) (err error) {
 	now := time.Now()
 
 	for _, vs := range voiceStates.VoiceStates {
+		if vs.Member != nil && vs.Member.User != nil && vs.Member.User.Bot {
+			continue
+		}
+
 		welcomer.PusherIngestVoiceChannelEvents.Push(
 			ctx,
 			discord.Snowflake(vs.GuildID),

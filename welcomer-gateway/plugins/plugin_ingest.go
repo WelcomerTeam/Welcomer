@@ -72,6 +72,11 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 	c.EventHandler.RegisterOnVoiceStateUpdateEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
 		var guildID discord.Snowflake
 
+		// Ignore bots.
+		if member.User != nil && member.User.Bot {
+			return nil
+		}
+
 		if after.GuildID != nil {
 			guildID = *after.GuildID
 		} else if before.GuildID != nil {
