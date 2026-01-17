@@ -10,6 +10,7 @@ import (
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	_ "github.com/joho/godotenv/autoload"
 )
 
@@ -52,6 +53,13 @@ func main() {
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	entrypoint(ctx, *webhookUrl)
+
+	if err := welcomer.Queries.UpsertJobCheckpoint(ctx, database.UpsertJobCheckpointParams{
+		JobName:         "cleanup-expired-borderwall-requests",
+		LastProcessedTs: time.Now().UTC(),
+	}); err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to upsert job checkpoint")
+	}
 
 	cancel()
 }
