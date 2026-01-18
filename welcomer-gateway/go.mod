@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5
-	github.com/WelcomerTeam/Sandwich v0.0.0-20260117200649-069e8d8d3437
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible

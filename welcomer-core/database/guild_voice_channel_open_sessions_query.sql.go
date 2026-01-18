@@ -58,6 +58,38 @@ func (q *Queries) DeleteAndGetGuildVoiceChannelOpenSession(ctx context.Context, 
 	return &i, err
 }
 
+const DeleteAndGetGuildVoiceChannelOpenSessionsBefore = `-- name: DeleteAndGetGuildVoiceChannelOpenSessionsBefore :many
+DELETE FROM guild_voice_channel_open_sessions
+WHERE last_seen_ts < $1
+RETURNING guild_id, user_id, channel_id, start_ts, last_seen_ts
+`
+
+func (q *Queries) DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx context.Context, lastSeenTs time.Time) ([]*GuildVoiceChannelOpenSessions, error) {
+	rows, err := q.db.Query(ctx, DeleteAndGetGuildVoiceChannelOpenSessionsBefore, lastSeenTs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GuildVoiceChannelOpenSessions{}
+	for rows.Next() {
+		var i GuildVoiceChannelOpenSessions
+		if err := rows.Scan(
+			&i.GuildID,
+			&i.UserID,
+			&i.ChannelID,
+			&i.StartTs,
+			&i.LastSeenTs,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const UpdateGuildVoiceChannelOpenSessionLastSeen = `-- name: UpdateGuildVoiceChannelOpenSessionLastSeen :exec
 UPDATE guild_voice_channel_open_sessions
 SET last_seen_ts = $3

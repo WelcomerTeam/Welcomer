@@ -11,8 +11,8 @@ import (
 )
 
 const CreateVoiceChannelStat = `-- name: CreateVoiceChannelStat :exec
-INSERT INTO guild_voice_channel_stats (guild_id, channel_id, user_id, start_ts, end_ts, total_time_ms)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guild_voice_channel_stats (guild_id, channel_id, user_id, start_ts, end_ts, total_time_ms, inferred)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type CreateVoiceChannelStatParams struct {
@@ -22,6 +22,7 @@ type CreateVoiceChannelStatParams struct {
 	StartTs     time.Time `json:"start_ts"`
 	EndTs       time.Time `json:"end_ts"`
 	TotalTimeMs int64     `json:"total_time_ms"`
+	Inferred    bool      `json:"inferred"`
 }
 
 func (q *Queries) CreateVoiceChannelStat(ctx context.Context, arg CreateVoiceChannelStatParams) error {
@@ -32,6 +33,7 @@ func (q *Queries) CreateVoiceChannelStat(ctx context.Context, arg CreateVoiceCha
 		arg.StartTs,
 		arg.EndTs,
 		arg.TotalTimeMs,
+		arg.Inferred,
 	)
 	return err
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 )
@@ -74,6 +75,14 @@ func SetupPusherIngestMessageEvents(limit int) func(ctx context.Context, interva
 
 var DedupeProvider *RedisDedupeProvider
 
-func SetupDedupeProvider(provider RedisDedupeProvider) {
-	DedupeProvider = &provider
+func SetupDedupeProvider(provider *RedisDedupeProvider) {
+	DedupeProvider = provider
+}
+
+var RedisClient *redis.Client
+
+func SetupRedisClient(addr string) {
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr: addr,
+	})
 }

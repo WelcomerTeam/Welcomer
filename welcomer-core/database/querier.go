@@ -6,6 +6,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
@@ -26,7 +27,6 @@ type Querier interface {
 	CreateGuildVoiceChannelOpenSession(ctx context.Context, arg CreateGuildVoiceChannelOpenSessionParams) error
 	CreateLeaverGuildSettings(ctx context.Context, arg CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error)
 	CreateManyIngestMessageEvents(ctx context.Context, arg []CreateManyIngestMessageEventsParams) (int64, error)
-	CreateManyIngestVoiceChannelEvents(ctx context.Context, arg []CreateManyIngestVoiceChannelEventsParams) (int64, error)
 	CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error)
 	CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error)
 	CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error)
@@ -65,6 +65,7 @@ type Querier interface {
 	CreateWelcomerImagesGuildSettings(ctx context.Context, arg CreateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error)
 	CreateWelcomerTextGuildSettings(ctx context.Context, arg CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error)
 	DeleteAndGetGuildVoiceChannelOpenSession(ctx context.Context, arg DeleteAndGetGuildVoiceChannelOpenSessionParams) (*GuildVoiceChannelOpenSessions, error)
+	DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx context.Context, lastSeenTs time.Time) ([]*GuildVoiceChannelOpenSessions, error)
 	DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) (int64, error)
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
 	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)

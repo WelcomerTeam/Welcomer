@@ -402,10 +402,14 @@ func HasInviteVariable(guildSettingsWelcomerText *database.GuildSettingsWelcomer
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
 func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeWelcomerStructure) (err error) {
+	if event.Member.GuildID == nil {
+		return nil
+	}
+
 	if !event.IgnoreDedupe {
 		if ok := welcomer.DedupeProvider.Deduplicate(
 			eventCtx.Context,
-			fmt.Sprintf("%s:%s:%s", core.CustomEventInvokeWelcomer, event.Member.GuildID, event.Member.User.ID),
+			buildDedupeKey2(core.CustomEventInvokeWelcomer, *event.Member.GuildID, event.Member.User.ID),
 			WelcomeDeduplicationTimeout); !ok {
 			return nil
 		}

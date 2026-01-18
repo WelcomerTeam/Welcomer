@@ -201,6 +201,7 @@ type GuildVoiceChannelStats struct {
 	StartTs     time.Time `json:"start_ts"`
 	EndTs       time.Time `json:"end_ts"`
 	TotalTimeMs int64     `json:"total_time_ms"`
+	Inferred    bool      `json:"inferred"`
 }
 
 type Guilds struct {
@@ -224,15 +225,6 @@ type IngestMessageEvents struct {
 	UserID     int64     `json:"user_id"`
 	EventType  int16     `json:"event_type"`
 	OccurredAt time.Time `json:"occurred_at"`
-}
-
-type IngestVoiceChannelEvents struct {
-	EventID    int64         `json:"event_id"`
-	GuildID    int64         `json:"guild_id"`
-	UserID     int64         `json:"user_id"`
-	ChannelID  sql.NullInt64 `json:"channel_id"`
-	EventType  int16         `json:"event_type"`
-	OccurredAt time.Time     `json:"occurred_at"`
 }
 
 type InteractionCommands struct {

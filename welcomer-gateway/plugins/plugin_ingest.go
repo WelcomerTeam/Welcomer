@@ -163,6 +163,7 @@ func closeSession(ctx context.Context, guildID, channelID, userID discord.Snowfl
 		StartTs:     session.StartTs,
 		EndTs:       time.Now(),
 		TotalTimeMs: totalTime.Milliseconds(),
+		Inferred:    false,
 	})
 	if err != nil {
 		welcomer.Logger.Error().Err(err).

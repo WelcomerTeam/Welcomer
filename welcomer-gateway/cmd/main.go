@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 	"time"
 
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	jetstream_client "github.com/WelcomerTeam/Welcomer/welcomer-core/jetstream"
 	gateway "github.com/WelcomerTeam/Welcomer/welcomer-gateway"
-	"github.com/go-redis/redis/v8"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/nats-io/nats.go/jetstream"
 	"google.golang.org/grpc"
@@ -20,8 +20,11 @@ import (
 )
 
 const (
-	IngestFlushInterval = 30 * time.Second
-	IngestBufferSize    = 1024
+	ScienceIngestFlushInterval = 30 * time.Second
+	ScienceIngestBufferSize    = 1024
+
+	MessageIngestFlushInterval = 10 * time.Second
+	MessageIngestBufferSize    = 4096
 )
 
 func main() {
@@ -57,12 +60,8 @@ func main() {
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: *redisHost,
-	})
-	dedupeProvider := welcomer.NewRedisDedupeProvider(redisClient, slog.Default())
-
-	welcomer.SetupDedupeProvider(*dedupeProvider)
+	welcomer.SetupRedisClient(*redisHost)
+	welcomer.SetupDedupeProvider(welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()))
 
 	jetstreamClient, err := jetstream_client.SetupJetstreamConsumer(
 		ctx,
@@ -86,11 +85,11 @@ func main() {
 		panic(fmt.Errorf("jetstreamClient.Consume(): %w", err))
 	}
 
-	pusherGuildScience := welcomer.SetupPusherGuildScience(IngestBufferSize)
-	pusherGuildScience(ctx, IngestFlushInterval)
+	pusherGuildScience := welcomer.SetupPusherGuildScience(ScienceIngestBufferSize)
+	pusherGuildScience(ctx, ScienceIngestFlushInterval)
 
-	pusherIngestMessageEvents := welcomer.SetupPusherIngestMessageEvents(IngestBufferSize)
-	pusherIngestMessageEvents(ctx, IngestFlushInterval)
+	pusherIngestMessageEvents := welcomer.SetupPusherIngestMessageEvents(MessageIngestBufferSize)
+	pusherIngestMessageEvents(ctx, MessageIngestFlushInterval)
 
 	// Setup sandwich.
 
@@ -105,6 +104,40 @@ func main() {
 	if *dryRun {
 		return
 	}
+
+	// Debug: Print worker queue sizes every second
+	go func() {
+		for {
+			time.Sleep(time.Second * 1)
+			sizes := [][2]int{}
+			sum := 0
+
+			bot.Bot.Handlers.WorkerPoolMu.Lock()
+			for i, ch := range bot.Bot.Handlers.WorkerPool {
+				sizes = append(sizes, [2]int{int(i), ch.Len()})
+				sum += sizes[len(sizes)-1][1]
+			}
+
+			// sort sizes
+			slices.SortFunc(sizes, func(a, b [2]int) int {
+				return a[1] - b[1]
+			})
+
+			totalSize := len(bot.Bot.Handlers.WorkerPool)
+			bot.Bot.Handlers.WorkerPoolMu.Unlock()
+
+			println("==================")
+			println(fmt.Sprintf("Worker queue sizes: %d", totalSize))
+			for _, size := range sizes {
+				if size[1] == 0 {
+					continue
+				}
+				println(fmt.Sprintf("Worker %d: %d messages", size[0], size[1]))
+			}
+			println(fmt.Sprintf("Total queued messages: %d", sum))
+			println("==================")
+		}
+	}()
 
 	// Register message channels
 

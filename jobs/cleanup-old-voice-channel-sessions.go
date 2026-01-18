@@ -8,16 +8,12 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/jackc/pgx/v4"
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-)
-
-const (
-	MaxRowRetention = time.Hour * 24 * 3 // 3 days
+	"github.com/jackc/pgx/v4"
 )
 
 func main() {
@@ -42,7 +38,7 @@ func main() {
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Cleanup Ingest Tables Job",
+						Title:       "Cleanup Old Voice Channel Sessions Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
 						Timestamp:   welcomer.ToPointer(time.Now()),
@@ -66,7 +62,7 @@ func main() {
 	entrypoint(ctx, db)
 
 	if err := welcomer.Queries.UpsertJobCheckpoint(ctx, database.UpsertJobCheckpointParams{
-		JobName:         "cleanup-ingest-tables",
+		JobName:         "cleanup-old-voice-channel-sessions",
 		LastProcessedTs: time.Now().UTC(),
 	}); err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to upsert job checkpoint")
@@ -76,17 +72,43 @@ func main() {
 }
 
 func entrypoint(ctx context.Context, db *pgx.Conn) {
-	expirationDate := time.Now().Add(-MaxRowRetention)
+	expirationDate := time.Now().Add(-time.Minute * 5)
 
-	rows, err := welcomer.Pool.Query(ctx, "DELETE FROM ingest_message_events WHERE occurred_at < $1", expirationDate)
+	rows, err := welcomer.Queries.DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx, expirationDate)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Msg("Failed to clean up ingest welcome messages")
+		welcomer.Logger.Error().Err(err).Msg("Failed to get old voice channel sessions")
 		return
 	}
 
-	rows.Close()
+	for _, row := range rows {
+		totalTime := row.LastSeenTs.Sub(row.StartTs).Milliseconds()
+
+		if totalTime == 0 {
+			continue
+		}
+
+		err := welcomer.Queries.CreateVoiceChannelStat(ctx, database.CreateVoiceChannelStatParams{
+			GuildID:     row.GuildID,
+			ChannelID:   row.ChannelID,
+			UserID:      row.UserID,
+			StartTs:     row.StartTs,
+			EndTs:       row.LastSeenTs,
+			TotalTimeMs: totalTime,
+			Inferred:    true,
+		})
+		if err != nil {
+			welcomer.Logger.Error().
+				Err(err).
+				Int64("guild_id", row.GuildID).
+				Int64("channel_id", row.ChannelID).
+				Int64("user_id", row.UserID).
+				Time("start_ts", row.StartTs).
+				Time("last_seen_ts", row.LastSeenTs).
+				Msg("Failed to create voice channel stat from old open session")
+		}
+	}
 
 	welcomer.Logger.Info().
-		Int64("deleted_welcome_messages_count", rows.CommandTag().RowsAffected()).
-		Msg("Ingest welcome messages cleaned up successfully")
+		Int("deleted_voice_channel_sessions_count", len(rows)).
+		Msg("Cleaned up old voice channel sessions")
 }

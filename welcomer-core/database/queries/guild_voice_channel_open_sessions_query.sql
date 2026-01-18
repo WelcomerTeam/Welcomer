@@ -11,3 +11,8 @@ RETURNING guild_id, user_id, channel_id, start_ts, last_seen_ts;
 UPDATE guild_voice_channel_open_sessions
 SET last_seen_ts = $3
 WHERE guild_id = $1 AND user_id = $2;
+
+-- name: DeleteAndGetGuildVoiceChannelOpenSessionsBefore :many
+DELETE FROM guild_voice_channel_open_sessions
+WHERE last_seen_ts < $1
+RETURNING guild_id, user_id, channel_id, start_ts, last_seen_ts;

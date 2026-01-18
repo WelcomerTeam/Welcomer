@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -40,6 +41,18 @@ func (p *TimeRolesCog) GetEventHandlers() *sandwich.Handlers {
 	return p.EventHandler
 }
 
+// buildDedupeKey2 efficiently constructs deduplication keys for two IDs
+func buildDedupeKey2(eventType string, id1, id2 discord.Snowflake) string {
+	// Pre-calculate: len(eventType) + 2 colons + 2*20 digits for snowflakes
+	buf := make([]byte, 0, len(eventType)+42)
+	buf = append(buf, eventType...)
+	buf = append(buf, ':')
+	buf = strconv.AppendUint(buf, uint64(id1), 10)
+	buf = append(buf, ':')
+	buf = strconv.AppendUint(buf, uint64(id2), 10)
+	return string(buf)
+}
+
 func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Trigger OnInvokeTimeRoles when ON_MESSAGE_CREATE event is received.
 	p.EventHandler.RegisterOnMessageCreateEvent(func(eventCtx *sandwich.EventContext, message discord.Message) error {
@@ -47,15 +60,22 @@ func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
 			return nil
 		}
 
-		return p.OnInvokeTimeRoles(eventCtx, *message.GuildID, &message.Author.ID)
+		return p.OnInvokeTimeRoles(eventCtx, *message.GuildID, message.Author.ID)
 	})
 
 	return nil
 }
 
-func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildID discord.Snowflake, memberID *discord.Snowflake) (err error) {
-	// Fetch guild settings.
+func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildID discord.Snowflake, userID discord.Snowflake) (err error) {
+	if ok := welcomer.DedupeProvider.Deduplicate(
+		eventCtx,
+		buildDedupeKey2("INVOKE_TIMEROLE", guildID, userID),
+		time.Minute,
+	); !ok {
+		return nil
+	}
 
+	// Fetch guild settings.
 	guildSettingsTimeRoles, timeRoles, err := p.FetchGuildInformation(eventCtx, guildID)
 	if err != nil {
 		return err
@@ -77,7 +97,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 	guildMembers, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
 		GuildId: int64(guildID),
-		UserIds: welcomer.If(memberID != nil, []int64{int64(*memberID)}, nil),
+		UserIds: []int64{int64(userID)},
 	})
 	if err != nil || guildMembers == nil {
 		welcomer.Logger.Error().Err(err).
