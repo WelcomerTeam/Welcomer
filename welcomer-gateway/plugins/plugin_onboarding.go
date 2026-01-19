@@ -48,6 +48,9 @@ func (p *OnboardingCog) GetEventHandlers() *sandwich.Handlers {
 func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register
 	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildJoin")
+
 		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
@@ -138,6 +141,9 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnGuildLeaveEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildLeave")
+
 		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
@@ -232,6 +238,9 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnAuditGuildAuditLogEntryCreateEvent(func(eventCtx *sandwich.EventContext, guildID discord.Snowflake, entry discord.AuditLogEntry) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnAuditGuildAuditLogEntryCreate")
+
 		if entry.ActionType != discord.AuditLogActionBotAdd || *entry.TargetID != discord.Snowflake(eventCtx.Identifier.UserId) {
 			return nil
 		}
@@ -275,6 +284,9 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildJoin")
+
 		guildPointer, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).

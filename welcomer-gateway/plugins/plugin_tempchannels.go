@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -91,6 +92,9 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger OnInvokeVoiceStateUpdate when VoiceStateUpdate event is triggered.
 	p.EventHandler.RegisterOnVoiceStateUpdateEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "TempChannelsCog.OnInvokeVoiceStateUpdate")
+
 		if before.ChannelID != after.ChannelID {
 			return p.OnInvokeVoiceStateUpdate(eventCtx, member, before, after)
 		}

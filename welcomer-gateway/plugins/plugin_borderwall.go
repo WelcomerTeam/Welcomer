@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -72,6 +73,9 @@ func (p *BorderwallCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger OnInvokeBorderwallEvent when ON_GUILD_MEMBER_ADD event is triggered.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "BorderwallCog.OnInvokeBorderwallEvent")
+
 		return p.OnInvokeBorderwallEvent(eventCtx, core.CustomEventInvokeBorderwallStructure{
 			Member: member,
 		})

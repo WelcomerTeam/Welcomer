@@ -44,6 +44,9 @@ func (c *IngestCog) GetEventHandlers() *sandwich.Handlers {
 func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register event for message create.
 	c.EventHandler.RegisterOnMessageCreateEvent(func(eventCtx *sandwich.EventContext, message discord.Message) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "IngestCog.OnMessageCreate")
+
 		if message.GuildID == nil {
 			return nil
 		}
@@ -62,6 +65,9 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register event for message update.
 	c.EventHandler.RegisterOnMessageUpdateEvent(func(eventCtx *sandwich.EventContext, _, newMessage discord.Message) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "IngestCog.OnMessageUpdate")
+
 		if newMessage.GuildID == nil {
 			return nil
 		}
@@ -75,6 +81,9 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register event for voice state update.
 	c.EventHandler.RegisterOnVoiceStateUpdateEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "IngestCog.OnVoiceStateUpdate")
+
 		var guildID discord.Snowflake
 
 		if after.GuildID != nil {

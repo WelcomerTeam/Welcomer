@@ -632,7 +632,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 			}
 
-			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+			if !hasWelcomerPro && !hasCustomBackgrounds && !welcomer.GuildHasFeature(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
 				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 					Ok:    false,
 					Error: ErrMissingMembership.Error(),
@@ -723,7 +723,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 			}
 
-			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+			if !hasWelcomerPro && !hasCustomBackgrounds && !welcomer.GuildHasFeature(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
 				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 					Ok:    false,
 					Error: ErrMissingMembership.Error(),

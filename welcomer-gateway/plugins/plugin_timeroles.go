@@ -41,6 +41,16 @@ func (p *TimeRolesCog) GetEventHandlers() *sandwich.Handlers {
 	return p.EventHandler
 }
 
+// buildDedupeKey efficiently constructs deduplication keys
+func buildDedupeKey(eventType string, id discord.Snowflake) string {
+	// Pre-calculate: len(eventType) + 1 colon + 20 digits for snowflake
+	buf := make([]byte, 0, len(eventType)+21)
+	buf = append(buf, eventType...)
+	buf = append(buf, ':')
+	buf = strconv.AppendUint(buf, uint64(id), 10)
+	return string(buf)
+}
+
 // buildDedupeKey2 efficiently constructs deduplication keys for two IDs
 func buildDedupeKey2(eventType string, id1, id2 discord.Snowflake) string {
 	// Pre-calculate: len(eventType) + 2 colons + 2*20 digits for snowflakes
@@ -56,20 +66,35 @@ func buildDedupeKey2(eventType string, id1, id2 discord.Snowflake) string {
 func (p *TimeRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Trigger OnInvokeTimeRoles when ON_MESSAGE_CREATE event is received.
 	p.EventHandler.RegisterOnMessageCreateEvent(func(eventCtx *sandwich.EventContext, message discord.Message) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "TimeRolesCog.OnInvokeTimeRoles")
+
 		if message.Author.Bot || message.GuildID == nil {
 			return nil
 		}
 
-		return p.OnInvokeTimeRoles(eventCtx, *message.GuildID, message.Author.ID)
+		go p.OnInvokeTimeRoles(eventCtx, *message.GuildID)
+
+		return nil
 	})
 
 	return nil
 }
 
-func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildID discord.Snowflake, userID discord.Snowflake) (err error) {
+func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (err error) {
+	startTime := time.Now()
+	defer func() {
+		dur := time.Since(startTime)
+
+		if dur > time.Millisecond*1 {
+			welcomer.Logger.Warn().Dur("duration", dur).
+				Msg("Invoke timeroles took a long time to process")
+		}
+	}()
+
 	if ok := welcomer.DedupeProvider.Deduplicate(
 		eventCtx,
-		buildDedupeKey2("INVOKE_TIMEROLE", guildID, userID),
+		buildDedupeKey("INVOKE_TIMEROLE", guildID),
 		time.Minute,
 	); !ok {
 		return nil
@@ -97,7 +122,6 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 	guildMembers, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
 		GuildId: int64(guildID),
-		UserIds: []int64{int64(userID)},
 	})
 	if err != nil || guildMembers == nil {
 		welcomer.Logger.Error().Err(err).
@@ -108,10 +132,9 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	}
 
 	allRolesToAssign := make(map[discord.Snowflake][]discord.Snowflake)
-	rolesToAssign := make([]discord.Snowflake, 0, len(timeRoles))
 
 	for _, guildMember := range guildMembers.GuildMembers {
-		clear(rolesToAssign)
+		rolesToAssign := []discord.Snowflake{}
 
 		joinedAtTime, err := time.Parse(time.RFC3339, guildMember.JoinedAt)
 		if err != nil {
@@ -124,7 +147,16 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		secondsSinceJoining := int(time.Since(joinedAtTime).Seconds())
 
-		for _, timeRole := range timeRoles {
+		assignableTimeRoles, err := welcomer.FilterAssignableTimeRoles(eventCtx.Context, welcomer.SandwichClient, int64(guildID), int64(guildMember.User.ID), timeRoles)
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(guildID)).
+				Msg("Failed to filter assignable timeroles")
+
+			return nil
+		}
+
+		for _, timeRole := range assignableTimeRoles {
 			if timeRole.Seconds <= secondsSinceJoining {
 				hasRole := false
 
@@ -136,7 +168,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 					}
 				}
 
-				if !hasRole {
+				if !hasRole && timeRole.Role != 0 {
 					rolesToAssign = append(rolesToAssign, timeRole.Role)
 				}
 			}
@@ -201,7 +233,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 	return nil
 }
 
-func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, assignableTimeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
+func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (guildSettingsTimeRoles *database.GuildSettingsTimeroles, timeRoles []welcomer.GuildSettingsTimeRolesRole, err error) {
 	// TODO: Add caching
 
 	guildSettingsTimeRoles, err = welcomer.Queries.GetTimeRolesGuildSettings(eventCtx.Context, int64(guildID))
@@ -221,19 +253,10 @@ func (p *TimeRolesCog) FetchGuildInformation(eventCtx *sandwich.EventContext, gu
 		}
 	}
 
-	timeRoles := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
+	timeRoles = welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
 	if len(timeRoles) == 0 {
 		return guildSettingsTimeRoles, nil, nil
 	}
 
-	assignableTimeRoles, err = welcomer.FilterAssignableTimeRoles(eventCtx.Context, welcomer.SandwichClient, int64(guildID), int64(eventCtx.Identifier.UserId), timeRoles)
-	if err != nil {
-		welcomer.Logger.Error().Err(err).
-			Int64("guild_id", int64(guildID)).
-			Msg("Failed to filter assignable timeroles")
-
-		return nil, nil, err
-	}
-
-	return guildSettingsTimeRoles, assignableTimeRoles, nil
+	return guildSettingsTimeRoles, timeRoles, nil
 }

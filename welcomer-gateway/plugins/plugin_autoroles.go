@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"errors"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
@@ -41,6 +42,9 @@ func (p *AutoRolesCog) GetEventHandlers() *sandwich.Handlers {
 func (p *AutoRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Trigger OnInvokeAutoRoles when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "AutoRolesCog.OnInvokeAutoRoles")
+
 		return p.OnInvokeAutoRoles(eventCtx, member)
 	})
 
