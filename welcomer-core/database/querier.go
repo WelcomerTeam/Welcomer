@@ -6,6 +6,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
@@ -23,7 +24,9 @@ type Querier interface {
 	CreateFreeRolesGuildSettings(ctx context.Context, arg CreateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error)
 	CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error)
 	CreateGuildInvites(ctx context.Context, arg CreateGuildInvitesParams) (*GuildInvites, error)
+	CreateGuildVoiceChannelOpenSession(ctx context.Context, arg CreateGuildVoiceChannelOpenSessionParams) error
 	CreateLeaverGuildSettings(ctx context.Context, arg CreateLeaverGuildSettingsParams) (*GuildSettingsLeaver, error)
+	CreateManyIngestMessageEvents(ctx context.Context, arg []CreateManyIngestMessageEventsParams) (int64, error)
 	CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error)
 	CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error)
 	CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error)
@@ -54,12 +57,15 @@ type Querier interface {
 	CreateTimeRolesGuildSettings(ctx context.Context, arg CreateTimeRolesGuildSettingsParams) (*GuildSettingsTimeroles, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (*Users, error)
 	CreateUserTransaction(ctx context.Context, arg CreateUserTransactionParams) (*UserTransactions, error)
+	CreateVoiceChannelStat(ctx context.Context, arg CreateVoiceChannelStatParams) error
 	CreateWelcomerBuilderArtifacts(ctx context.Context, arg CreateWelcomerBuilderArtifactsParams) (*WelcomerBuilderArtifacts, error)
 	CreateWelcomerDMsGuildSettings(ctx context.Context, arg CreateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error)
 	CreateWelcomerGuildSettings(ctx context.Context, arg CreateWelcomerGuildSettingsParams) (*GuildSettingsWelcomer, error)
 	CreateWelcomerImages(ctx context.Context, arg CreateWelcomerImagesParams) (*WelcomerImages, error)
 	CreateWelcomerImagesGuildSettings(ctx context.Context, arg CreateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error)
 	CreateWelcomerTextGuildSettings(ctx context.Context, arg CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error)
+	DeleteAndGetGuildVoiceChannelOpenSession(ctx context.Context, arg DeleteAndGetGuildVoiceChannelOpenSessionParams) (*GuildVoiceChannelOpenSessions, error)
+	DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx context.Context, lastSeenTs time.Time) ([]*GuildVoiceChannelOpenSessions, error)
 	DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) (int64, error)
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
 	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)
@@ -86,6 +92,7 @@ type Querier interface {
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
 	GetInteractionCommand(ctx context.Context, arg GetInteractionCommandParams) (*InteractionCommands, error)
+	GetJobCheckpointByName(ctx context.Context, jobName string) (*JobCheckpoints, error)
 	GetLeaverGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsLeaver, error)
 	GetMinimalWelcomerBuilderArtifactByGuildId(ctx context.Context, guildID int64) ([]*GetMinimalWelcomerBuilderArtifactByGuildIdRow, error)
 	GetPatreonUser(ctx context.Context, patreonUserID int64) (*PatreonUsers, error)
@@ -130,6 +137,7 @@ type Querier interface {
 	UpdateFreeRolesGuildSettings(ctx context.Context, arg UpdateFreeRolesGuildSettingsParams) (int64, error)
 	UpdateGuild(ctx context.Context, arg UpdateGuildParams) (*Guilds, error)
 	UpdateGuildBio(ctx context.Context, arg UpdateGuildBioParams) (*Guilds, error)
+	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
 	UpdateRuleGuildSettings(ctx context.Context, arg UpdateRuleGuildSettingsParams) (int64, error)
@@ -142,6 +150,7 @@ type Querier interface {
 	UpdateWelcomerGuildSettings(ctx context.Context, arg UpdateWelcomerGuildSettingsParams) (int64, error)
 	UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error)
 	UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error)
+	UpsertJobCheckpoint(ctx context.Context, arg UpsertJobCheckpointParams) error
 }
 
 var _ Querier = (*Queries)(nil)

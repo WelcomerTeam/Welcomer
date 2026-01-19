@@ -82,6 +82,15 @@ type GuildInvites struct {
 	Uses       int64     `json:"uses"`
 }
 
+type GuildMessageCountsHour struct {
+	HourTs       time.Time `json:"hour_ts"`
+	GuildID      int64     `json:"guild_id"`
+	ChannelID    int64     `json:"channel_id"`
+	UserID       int64     `json:"user_id"`
+	MessageCount int32     `json:"message_count"`
+	MinTs        time.Time `json:"min_ts"`
+}
+
 type GuildSettingsAutoroles struct {
 	GuildID       int64   `json:"guild_id"`
 	ToggleEnabled bool    `json:"toggle_enabled"`
@@ -176,6 +185,25 @@ type GuildSettingsWelcomerText struct {
 	MessageFormat pgtype.JSONB `json:"message_format"`
 }
 
+type GuildVoiceChannelOpenSessions struct {
+	GuildID    int64     `json:"guild_id"`
+	UserID     int64     `json:"user_id"`
+	ChannelID  int64     `json:"channel_id"`
+	StartTs    time.Time `json:"start_ts"`
+	LastSeenTs time.Time `json:"last_seen_ts"`
+}
+
+type GuildVoiceChannelStats struct {
+	StatID      int64     `json:"stat_id"`
+	GuildID     int64     `json:"guild_id"`
+	ChannelID   int64     `json:"channel_id"`
+	UserID      int64     `json:"user_id"`
+	StartTs     time.Time `json:"start_ts"`
+	EndTs       time.Time `json:"end_ts"`
+	TotalTimeMs int64     `json:"total_time_ms"`
+	Inferred    bool      `json:"inferred"`
+}
+
 type Guilds struct {
 	GuildID          int64         `json:"guild_id"`
 	EmbedColour      int32         `json:"embed_colour"`
@@ -189,11 +217,27 @@ type Guilds struct {
 	Bio              string        `json:"bio"`
 }
 
+type IngestMessageEvents struct {
+	EventID    int64     `json:"event_id"`
+	MessageID  int64     `json:"message_id"`
+	GuildID    int64     `json:"guild_id"`
+	ChannelID  int64     `json:"channel_id"`
+	UserID     int64     `json:"user_id"`
+	EventType  int16     `json:"event_type"`
+	OccurredAt time.Time `json:"occurred_at"`
+}
+
 type InteractionCommands struct {
 	ApplicationID int64     `json:"application_id"`
 	Command       string    `json:"command"`
 	InteractionID int64     `json:"interaction_id"`
 	CreatedAt     time.Time `json:"created_at"`
+}
+
+type JobCheckpoints struct {
+	JobName         string    `json:"job_name"`
+	LastProcessedTs time.Time `json:"last_processed_ts"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 type PatreonUsers struct {

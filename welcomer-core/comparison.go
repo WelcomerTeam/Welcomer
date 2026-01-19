@@ -16,7 +16,6 @@ func CompareStructsAsJSON[T comparable](oldStruct, newStruct T) ([]byte, bool, e
 		return nil, false, fmt.Errorf("failed to marshal compareStructs: %w", err)
 	}
 
-
 	return jsonData, hasChanges, nil
 }
 

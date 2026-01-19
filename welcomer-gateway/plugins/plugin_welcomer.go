@@ -127,7 +127,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 			}
 		}
 
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			member.User.ID,
@@ -402,10 +402,14 @@ func HasInviteVariable(guildSettingsWelcomerText *database.GuildSettingsWelcomer
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
 func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeWelcomerStructure) (err error) {
+	if event.Member.GuildID == nil {
+		return nil
+	}
+
 	if !event.IgnoreDedupe {
 		if ok := welcomer.DedupeProvider.Deduplicate(
 			eventCtx.Context,
-			fmt.Sprintf("%s:%s:%s", core.CustomEventInvokeWelcomer, event.Member.GuildID, event.Member.User.ID),
+			buildDedupeKey2(core.CustomEventInvokeWelcomer, *event.Member.GuildID, event.Member.User.ID),
 			WelcomeDeduplicationTimeout); !ok {
 			return nil
 		}
@@ -535,8 +539,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	var joinEvent *welcomer.GuildScienceUserJoined
 
 	// Look through the buffer for the event before checking the database.
-	welcomer.PushGuildScience.RLock()
-	for _, scienceEvent := range welcomer.PushGuildScience.Buffer {
+	welcomer.PusherGuildScience.RLock()
+	for _, scienceEvent := range welcomer.PusherGuildScience.Buffer {
 		if discord.Snowflake(scienceEvent.GuildID) == eventCtx.Guild.ID && discord.Snowflake(scienceEvent.UserID.Int64) == event.Member.User.ID {
 			if scienceEvent.EventType == int32(database.ScienceGuildEventTypeUserJoin) {
 				joinEvent = &welcomer.GuildScienceUserJoined{false, false, "", 0, false}
@@ -553,7 +557,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			}
 		}
 	}
-	welcomer.PushGuildScience.RUnlock()
+	welcomer.PusherGuildScience.RUnlock()
 
 	// Override the member count if we have a join event.
 	if joinEvent != nil && joinEvent.MemberCount > 0 {
@@ -1020,7 +1024,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		err = dmerr
 	}
 
-	welcomer.PushGuildScience.Push(
+	welcomer.PusherGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.Member.User.ID,
@@ -1135,7 +1139,7 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 			Msg("Deleted welcome message")
 
 		// Push WelcomeMessageRemoved event to the buffer.
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			member.ID,

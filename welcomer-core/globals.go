@@ -8,6 +8,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 )
@@ -56,16 +57,32 @@ func SetupDatabase(ctx context.Context, connectionString string) {
 	Queries = database.New(Pool)
 }
 
-var PushGuildScience *PushGuildScienceHandler
+var PusherGuildScience *PushGuildScienceHandler
 
-func SetupPushGuildScience(limit int) func(ctx context.Context, interval time.Duration) {
-	PushGuildScience = NewPushGuildScienceHandler(limit)
+func SetupPusherGuildScience(limit int) func(ctx context.Context, interval time.Duration) {
+	PusherGuildScience = NewPushGuildScienceHandler(limit)
 
-	return PushGuildScience.Run
+	return PusherGuildScience.Run
+}
+
+var PusherIngestMessageEvents *PushIngestMessageEventsHandler
+
+func SetupPusherIngestMessageEvents(limit int) func(ctx context.Context, interval time.Duration) {
+	PusherIngestMessageEvents = NewPushIngestMessageEventsHandler(limit)
+
+	return PusherIngestMessageEvents.Run
 }
 
 var DedupeProvider *RedisDedupeProvider
 
-func SetupDedupeProvider(provider RedisDedupeProvider) {
-	DedupeProvider = &provider
+func SetupDedupeProvider(provider *RedisDedupeProvider) {
+	DedupeProvider = provider
+}
+
+var RedisClient *redis.Client
+
+func SetupRedisClient(addr string) {
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr: addr,
+	})
 }

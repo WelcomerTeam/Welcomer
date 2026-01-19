@@ -72,7 +72,12 @@ func CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx context.Context, params 
 	var old database.GuildSettingsBorderwall
 	if existing, err := Queries.GetBorderwallGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
+		old.MessageVerify = SetupJSONB(old.MessageVerify)
+		old.MessageVerified = SetupJSONB(old.MessageVerified)
 	}
+
+	params.MessageVerify = SetupJSONB(params.MessageVerify)
+	params.MessageVerified = SetupJSONB(params.MessageVerified)
 
 	newRow, err := Queries.CreateOrUpdateBorderwallGuildSettings(ctx, params)
 	if err != nil {
@@ -104,7 +109,10 @@ func CreateOrUpdateLeaverGuildSettingsWithAudit(ctx context.Context, params data
 	var old database.GuildSettingsLeaver
 	if existing, err := Queries.GetLeaverGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
+		old.MessageFormat = SetupJSONB(old.MessageFormat)
 	}
+
+	params.MessageFormat = SetupJSONB(params.MessageFormat)
 
 	newRow, err := Queries.CreateOrUpdateLeaverGuildSettings(ctx, params)
 	if err != nil {
@@ -168,7 +176,10 @@ func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx context.Context, param
 	var old database.GuildSettingsWelcomerText
 	if existing, err := Queries.GetWelcomerTextGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
+		old.MessageFormat = SetupJSONB(old.MessageFormat)
 	}
+
+	params.MessageFormat = SetupJSONB(params.MessageFormat)
 
 	newRow, err := Queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, params)
 	if err != nil {
@@ -184,7 +195,10 @@ func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx context.Context, par
 	var old database.GuildSettingsWelcomerImages
 	if existing, err := Queries.GetWelcomerImagesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
+		old.CustomBuilderData = SetupJSONB(old.CustomBuilderData)
 	}
+
+	params.CustomBuilderData = SetupJSONB(params.CustomBuilderData)
 
 	newRow, err := Queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, params)
 	if err != nil {
@@ -201,7 +215,10 @@ func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx context.Context, params
 
 	if existing, err := Queries.GetWelcomerDMsGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
+		old.MessageFormat = SetupJSONB(old.MessageFormat)
 	}
+
+	params.MessageFormat = SetupJSONB(params.MessageFormat)
 
 	newRow, err := Queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, params)
 	if err != nil {

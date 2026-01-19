@@ -81,7 +81,6 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = true
 
 				err = welcomer.RetryWithFallback(
@@ -144,7 +143,6 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 						return nil, err
 					}
 				}
-				guildSettingsTimeRoles.Timeroles = welcomer.SetupJSONB(guildSettingsTimeRoles.Timeroles)
 				guildSettingsTimeRoles.ToggleEnabled = false
 
 				err = welcomer.RetryWithFallback(

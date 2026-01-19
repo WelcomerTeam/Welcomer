@@ -70,7 +70,7 @@ func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeLeaver when ON_GUILD_MEMBER_REMOVE event is received.
 	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, user discord.User) error {
-		welcomer.PushGuildScience.Push(
+		welcomer.PusherGuildScience.Push(
 			eventCtx.Context,
 			eventCtx.Guild.ID,
 			user.ID,
@@ -239,7 +239,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		}
 	}
 
-	welcomer.PushGuildScience.Push(
+	welcomer.PusherGuildScience.Push(
 		eventCtx.Context,
 		eventCtx.Guild.ID,
 		event.User.ID,

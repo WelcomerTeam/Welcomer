@@ -149,9 +149,6 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
-				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
-
 				// If no modules are enabled, let the user know.
 				if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
 					return &discord.InteractionResponse{
@@ -296,9 +293,6 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 						return nil, err
 					}
 				}
-
-				guildSettingsWelcomerText.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerText.MessageFormat)
-				guildSettingsWelcomerDMs.MessageFormat = welcomer.SetupJSONB(guildSettingsWelcomerDMs.MessageFormat)
 
 				switch module {
 				case WelcomerModuleAll:
@@ -683,9 +677,6 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 						return nil, err
 					}
-				}
-				if guildSettingsWelcomerText.MessageFormat.Status == pgtype.Undefined {
-					guildSettingsWelcomerText.MessageFormat.Status = pgtype.Null
 				}
 
 				if !channel.ID.IsNil() {

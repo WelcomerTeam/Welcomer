@@ -12,6 +12,7 @@ import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -62,6 +63,13 @@ func main() {
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	entrypoint(ctx, *webhookUrl)
+
+	if err := welcomer.Queries.UpsertJobCheckpoint(ctx, database.UpsertJobCheckpointParams{
+		JobName:         "cleanup-custom-bots",
+		LastProcessedTs: time.Now().UTC(),
+	}); err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to upsert job checkpoint")
+	}
 
 	cancel()
 }

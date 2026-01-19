@@ -8,10 +8,16 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
-	_ "github.com/joho/godotenv/autoload"
+)
+
+const (
+	MaxRowRetention = time.Hour * 24 * 3 // 3 days
 )
 
 func main() {
@@ -21,7 +27,7 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_BORDERWALL_REQUESTS_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"), "Webhook URL for logging")
 
 	flag.Parse()
 
@@ -36,7 +42,7 @@ func main() {
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Cleanup Expired Borderwall Requests Job",
+						Title:       "Cleanup Ingest Tables Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
 						Timestamp:   welcomer.ToPointer(time.Now()),
@@ -52,10 +58,15 @@ func main() {
 	welcomer.SetupLogger(*loggingLevel)
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	entrypoint(ctx, *webhookUrl)
+	db, err := pgx.Connect(ctx, *postgresURL)
+	if err != nil {
+		panic(fmt.Sprintf(`pgx.Connect(%s): %v`, *postgresURL, err.Error()))
+	}
+
+	entrypoint(ctx, db)
 
 	if err := welcomer.Queries.UpsertJobCheckpoint(ctx, database.UpsertJobCheckpointParams{
-		JobName:         "cleanup-expired-borderwall-requests",
+		JobName:         "cleanup-ingest-tables",
 		LastProcessedTs: time.Now().UTC(),
 	}); err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to upsert job checkpoint")
@@ -64,18 +75,18 @@ func main() {
 	cancel()
 }
 
-func entrypoint(ctx context.Context, webhookUrl string) {
-	rows, err := welcomer.Pool.Query(ctx, "DELETE FROM borderwall_requests WHERE is_verified = false AND updated_at < $1", time.Now().Add(time.Hour*(-1*24*90)).UTC())
-	if err != nil {
-		welcomer.Logger.Error().Err(err).
-			Msg("Failed to delete expired borderwall requests")
+func entrypoint(ctx context.Context, db *pgx.Conn) {
+	expirationDate := time.Now().Add(-MaxRowRetention)
 
-		panic(err)
+	rows, err := welcomer.Pool.Query(ctx, "DELETE FROM ingest_message_events WHERE occurred_at < $1", expirationDate)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to clean up ingest welcome messages")
+		return
 	}
 
 	rows.Close()
 
 	welcomer.Logger.Info().
-		Int64("deleted_count", rows.CommandTag().RowsAffected()).
-		Msg("Expired borderwall requests deleted successfully")
+		Int64("deleted_welcome_messages_count", rows.CommandTag().RowsAffected()).
+		Msg("Ingest welcome messages cleaned up successfully")
 }

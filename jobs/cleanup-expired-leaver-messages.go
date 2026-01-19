@@ -75,12 +75,19 @@ func main() {
 		panic(fmt.Sprintf(`pgx.Connect(%s): %v`, *postgresURL, err.Error()))
 	}
 
-	runPushGuildScience := welcomer.SetupPushGuildScience(1024)
-	runPushGuildScience(ctx, time.Second*30)
+	runPusherGuildScience := welcomer.SetupPusherGuildScience(1024)
+	runPusherGuildScience(ctx, time.Second*30)
 
 	entrypoint(ctx, db)
 
-	welcomer.PushGuildScience.Flush(ctx)
+	welcomer.PusherGuildScience.Flush(ctx)
+
+	if err := welcomer.Queries.UpsertJobCheckpoint(ctx, database.UpsertJobCheckpointParams{
+		JobName:         "cleanup-expired-leaver-messages",
+		LastProcessedTs: time.Now().UTC(),
+	}); err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to upsert job checkpoint")
+	}
 
 	cancel()
 }
@@ -260,7 +267,7 @@ func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflak
 
 		for i, messageID := range messageIDs {
 			// Push WelcomeMessageRemoved event to the buffer.
-			welcomer.PushGuildScience.Push(
+			welcomer.PusherGuildScience.Push(
 				ctx,
 				guildID,
 				discord.Snowflake(messages[i].UserID.Int64),
