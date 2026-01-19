@@ -178,5 +178,3 @@ func closeSession(ctx context.Context, guildID, channelID, userID discord.Snowfl
 
 	return nil
 }
-
-// TODO: handle lingering open sessions
