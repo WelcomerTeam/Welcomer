@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"slices"
 	"time"
 
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
@@ -104,40 +103,6 @@ func main() {
 	if *dryRun {
 		return
 	}
-
-	// Debug: Print worker queue sizes every second
-	go func() {
-		for {
-			time.Sleep(time.Second * 1)
-			sizes := [][2]int{}
-			sum := 0
-
-			bot.Bot.Handlers.WorkerPoolMu.Lock()
-			for i, ch := range bot.Bot.Handlers.WorkerPool {
-				sizes = append(sizes, [2]int{int(i), ch.Len()})
-				sum += sizes[len(sizes)-1][1]
-			}
-
-			// sort sizes
-			slices.SortFunc(sizes, func(a, b [2]int) int {
-				return a[1] - b[1]
-			})
-
-			totalSize := len(bot.Bot.Handlers.WorkerPool)
-			bot.Bot.Handlers.WorkerPoolMu.Unlock()
-
-			println("==================")
-			println(fmt.Sprintf("Worker queue sizes: %d", totalSize))
-			for _, size := range sizes {
-				if size[1] == 0 {
-					continue
-				}
-				println(fmt.Sprintf("Worker %d: %d messages", size[0], size[1]))
-			}
-			println(fmt.Sprintf("Total queued messages: %d", sum))
-			println("==================")
-		}
-	}()
 
 	// Register message channels
 
