@@ -32,7 +32,7 @@
             ]"
             :disabled="$props.disabled"
           >
-            <div class="">
+            <div>
               <font-awesome-icon
                 icon="pen-to-square"
                 class="w-5 h-5 text-gray-400"
