@@ -54,7 +54,7 @@
           </span>
         </Switch>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -151,7 +151,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -254,7 +254,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -353,7 +353,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -421,7 +421,7 @@
                   <div class="w-full p-2">
                     <AutocompleteInput type="text"
                       class="w-full border-gray-300 dark:border-secondary-light bg-white dark:bg-secondary-dark rounded-md sm:text-sm"
-                      placeholder="Start typing a name or user id..." v-model="query" @input="onQueryChange()" />
+                      :placeholder="$props.placeholder || 'Start typing a name or user id...'" v-model="query" @input="onQueryChange()" />
                   </div>
                   <div class="overflow-auto max-h-60">
                     <ListboxOption as="template" :key="this.query" :value="this.query" v-slot="{ active, selected }"
@@ -478,7 +478,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -518,7 +518,7 @@
                 <div class="w-full p-2">
                   <AutocompleteInput type="text"
                     class="w-full border-gray-300 dark:border-secondary-light bg-white dark:bg-secondary-dark rounded-md sm:text-sm"
-                    placeholder="Start typing a name or emoji id..." />
+                    :placeholder="$props.placeholder || 'Start typing a name or emoji id...'" />
                 </div>
                 <div class="overflow-auto max-h-60">
                   <ListboxOption as="template" :value="null" v-slot="{ active, selected }" v-if="nullable">
@@ -575,7 +575,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -669,7 +669,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -718,10 +718,10 @@
             ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
-        ]" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
+        ]" :disabled="$props.disabled" :placeholder="$props.placeholder || 'Enter text here...'" :value="modelValue"
           :maxlength="$props.maxLength" @input="updateValue($event)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -736,7 +736,7 @@
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
         ]" :disabled="$props.disabled" :value="modelValue" @input="updateValue($event.target.value)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -749,10 +749,10 @@
             ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500'
             : 'bg-white dark:bg-secondary-dark',
           'flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm',
-        ]" rows="4" :disabled="$props.disabled" placeholder="Enter text here..." :value="modelValue"
+        ]" rows="4" :disabled="$props.disabled" :placeholder="$props.placeholder || 'Enter text here...'" :value="modelValue"
           @input="updateValue($event)" @blur="blur" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -834,7 +834,7 @@
           </div>
         </Listbox>
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -842,7 +842,7 @@
         <embed-builder :id="componentId" :modelValue="modelValue" @update:modelValue="updateValue($event)" @blur="blur"
           :disabled="$props.disabled" :invalid="$props.validation?.$invalid" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -851,7 +851,7 @@
           @update:files="updateFiles($event)" @blur="blur" :files="$props.files" :disabled="$props.disabled"
           :invalid="$props.validation?.$invalid" :customImages="$props.customImages" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
@@ -876,14 +876,14 @@
         </div>
 
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
 
       <div v-else-if="type == FormTypeDuration">
         <DurationSelector :disabled="$props.disabled" :modelValue="modelValue" @update:modelValue="updateValue($event)" blankDisplay="Never" :showYears="false" :showDays="false" :showSeconds="false" />
         <div v-if="$props.validation?.$invalid" class="errors">
-          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
         </div>
       </div>
     </div>
@@ -894,7 +894,7 @@
 
     <div v-if="type == FormTypeBlank">
       <div v-if="$props.validation?.$invalid" class="errors">
-        <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}</span>
+        <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
       </div>
     </div>
 
@@ -1005,6 +1005,10 @@ export default {
           FormTypeDuration,
         ].includes(value);
       },
+    },
+    placeholder: {
+      type: String,
+      required: false,
     },
     disabled: {
       type: Boolean,
