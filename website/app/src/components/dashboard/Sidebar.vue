@@ -142,6 +142,11 @@ const navigation = [
         icon: "fa-list-check",
       },
       {
+        name: "Reaction Roles",
+        linkname: "dashboard.guild.reactionroles",
+        icon: "fa-face-smile-plus",
+      },
+      {
         name: "TimeRoles",
         linkname: "dashboard.guild.timeroles",
         icon: "fa-user-clock",

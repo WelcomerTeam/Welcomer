@@ -18,6 +18,10 @@ let EndpointGuildLeaver = function(guildID) {
   return `${EndpointGuild(guildID)}/leaver`;
 }
 
+let EndpointGuildReactionRoles = function(guildID) {
+  return `${EndpointGuild(guildID)}/reactionroles`;
+}
+
 let EndpointGuildRules = function(guildID) {
   return `${EndpointGuild(guildID)}/rules`;
 }
@@ -78,12 +82,17 @@ let EndpointStopGuildCustomBot = function(guildID, botID) {
   return `${EndpointGuildCustomBot(guildID, botID)}/stop`;
 }
 
+let EndpointCheckMessage = function(guildID, channelID, messageID) {
+  return `${EndpointGuild(guildID)}/checkmessage/${channelID}/${messageID}`;
+}
+
 export default {
   EndpointGuild,
   EndpointGuildAutorole,
   EndpointGuildBorderwall,
   EndpointGuildFreeroles,
   EndpointGuildLeaver,
+  EndpointGuildReactionRoles,
   EndpointGuildRules,
   EndpointGuildTempchannels,
   EndpointGuildTimeroles,
@@ -98,5 +107,6 @@ export default {
   EndpointGuildCustomBots,
   EndpointGuildCustomBot,
   EndpointStartGuildCustomBot,
-  EndpointStopGuildCustomBot
+  EndpointStopGuildCustomBot,
+  EndpointCheckMessage,
 };

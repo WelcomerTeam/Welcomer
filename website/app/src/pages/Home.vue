@@ -268,7 +268,10 @@ const features = [
   // LevelRoles
   // Lockdown
   // Polls
-  // ReactionRoles
+  {
+    name: "Reaction Roles",
+    description: "Let users assign roles to themselves by interacting with a message with emojis or buttons.",
+  },
   {
     name: "Rules",
     description: "Provide a list of rules for users to see, and send them when a user joins your server.",

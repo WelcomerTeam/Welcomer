@@ -147,6 +147,11 @@ const routes = [
             component: () => import("@/pages/dashboard/roles/Freeroles.vue"),
           },
           {
+            name: "dashboard.guild.reactionroles",
+            path: "reactionroles",
+            component: () => import("@/pages/dashboard/roles/ReactionRoles.vue"),
+          },
+          {
             name: "dashboard.guild.timeroles",
             path: "timeroles",
             component: () => import("@/pages/dashboard/roles/Timeroles.vue"),
