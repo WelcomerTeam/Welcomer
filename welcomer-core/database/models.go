@@ -123,6 +123,12 @@ type GuildSettingsLeaver struct {
 	LeaverMessageLifetime    int32        `json:"leaver_message_lifetime"`
 }
 
+type GuildSettingsReactionRoles struct {
+	GuildID       int64        `json:"guild_id"`
+	ToggleEnabled bool         `json:"toggle_enabled"`
+	ReactionRoles pgtype.JSONB `json:"reaction_roles"`
+}
+
 type GuildSettingsRules struct {
 	GuildID          int64    `json:"guild_id"`
 	ToggleEnabled    bool     `json:"toggle_enabled"`

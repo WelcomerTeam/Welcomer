@@ -400,3 +400,19 @@ func UpdateBioWithAudit(ctx context.Context, params database.UpdateGuildBioParam
 
 	return newRow, nil
 }
+
+func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateReactionRolesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsReactionRoles, error) {
+	var old database.GuildSettingsReactionRoles
+	if existing, err := Queries.GetReactionRolesGuildSettings(ctx, params.GuildID); err == nil {
+		old = *existing
+	}
+
+	newRow, err := Queries.CreateOrUpdateReactionRolesGuildSettings(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsReactionroles)
+
+	return newRow, nil
+}

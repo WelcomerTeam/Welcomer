@@ -51,11 +51,13 @@ const (
 	AuditTypeBio
 	// AuditTypeBotCustomisation is a AuditType of type Bot_customisation.
 	AuditTypeBotCustomisation
+	// AuditTypeGuildSettingsReactionroles is a AuditType of type Guild_settings_reactionroles.
+	AuditTypeGuildSettingsReactionroles
 )
 
 var ErrInvalidAuditType = errors.New("not a valid AuditType")
 
-const _AuditTypeName = "unknownborderwall_requestscustom_botsguild_settings_autorolesguild_settings_borderwallguild_settings_freerolesguild_settings_leaverguild_settings_rulesguild_settings_tempchannelsguild_settings_timerolesguild_settings_welcomerguild_settings_welcomer_dmsguild_settings_welcomer_imagesguild_settings_welcomer_textguildsuserswelcomer_imagesguild_featuresbiobot_customisation"
+const _AuditTypeName = "unknownborderwall_requestscustom_botsguild_settings_autorolesguild_settings_borderwallguild_settings_freerolesguild_settings_leaverguild_settings_rulesguild_settings_tempchannelsguild_settings_timerolesguild_settings_welcomerguild_settings_welcomer_dmsguild_settings_welcomer_imagesguild_settings_welcomer_textguildsuserswelcomer_imagesguild_featuresbiobot_customisationguild_settings_reactionroles"
 
 var _AuditTypeMap = map[AuditType]string{
 	AuditTypeUnknown:                     _AuditTypeName[0:7],
@@ -78,6 +80,7 @@ var _AuditTypeMap = map[AuditType]string{
 	AuditTypeGuildFeatures:               _AuditTypeName[336:350],
 	AuditTypeBio:                         _AuditTypeName[350:353],
 	AuditTypeBotCustomisation:            _AuditTypeName[353:370],
+	AuditTypeGuildSettingsReactionroles:  _AuditTypeName[370:398],
 }
 
 // String implements the Stringer interface.
@@ -116,6 +119,7 @@ var _AuditTypeValue = map[string]AuditType{
 	_AuditTypeName[336:350]: AuditTypeGuildFeatures,
 	_AuditTypeName[350:353]: AuditTypeBio,
 	_AuditTypeName[353:370]: AuditTypeBotCustomisation,
+	_AuditTypeName[370:398]: AuditTypeGuildSettingsReactionroles,
 }
 
 // ParseAuditType attempts to convert a string to a AuditType.

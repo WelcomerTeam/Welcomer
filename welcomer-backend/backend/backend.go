@@ -231,6 +231,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildSettingsTimeRolesRoutes(router)
 	registerGuildSettingsWelcomerRoutes(router)
 	registerGuildCustomBotRoutes(router)
+	registerGuildSettingsReactionRolesRoutes(router)
 
 	return router
 }
