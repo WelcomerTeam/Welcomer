@@ -18,7 +18,7 @@
               : 'bg-white dark:bg-secondary',
             'relative py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm',
           ]" :disabled="$props.disabled">
-            <div class="">
+            <div>
               <font-awesome-icon icon="pen-to-square" class="w-5 h-5 text-gray-400" aria-hidden="true" />
             </div>
             <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
@@ -510,10 +510,6 @@ export default {
         embed["url"] = this.url;
       }
 
-      if (this.color !== undefined && this.use_color) {
-        embed["color"] = this.color;
-      }
-
       // TODO: Validate footer icon_url
       if (this.footer_text !== "" || this.footer_icon !== "") {
         let footer = {};
@@ -564,6 +560,12 @@ export default {
         }
 
         embed["author"] = author;
+      }
+
+      let keyCount = Object.keys(embed).length;
+
+      if (this.color !== undefined && this.use_color && keyCount > 0) {
+        embed["color"] = this.color;
       }
 
       let fields = [];

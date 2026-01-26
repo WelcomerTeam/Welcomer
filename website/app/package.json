@@ -41,6 +41,7 @@
     "sass": "^1.66.1",
     "simple-markdown": "^0.7.3",
     "thumbhash": "^0.1.1",
+    "unicode-emoji-json": "^0.4.0",
     "volar-service-vetur": "^0.0.30",
     "vue": "^3.3.4",
     "vue-color-kit": "^1.0.6",
