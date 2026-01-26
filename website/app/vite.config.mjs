@@ -11,12 +11,12 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:1000/api",
+        target: "http://localhost:15011/api",
         rewrite: (path) => path.replace(/^\/api/, ""),
         changeOrigin: true,
       },
-      "/(login|logout|callback)": {
-        target: "http://localhost:1000",
+      "^/(login|logout|callback|patreon_link|patreon_callback)": {
+        target: "http://localhost:15011",
         changeOrigin: true,
       },
     },
