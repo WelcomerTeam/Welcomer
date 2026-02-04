@@ -1164,7 +1164,11 @@ export default {
       if (isNumbers) {
         return `https://cdn.discordapp.com/emojis/${emoji}.png`;
       } else {
-        return `https://twemoji.maxcdn.com/v/latest/72x72/${emoji.codePointAt(0).toString(16)}.png`;
+        let twemojiCode = Array.from(emoji)
+          .map((part) => part.codePointAt(0))
+          .map((code) => code.toString(16))
+          .join("-");
+        return `https://twemoji.maxcdn.com/v/latest/72x72/${twemojiCode}.png`;
       }
     },
   },
