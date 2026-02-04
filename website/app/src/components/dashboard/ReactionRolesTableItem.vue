@@ -42,7 +42,14 @@
       </div>
       <div v-if="onboardingStep >= 2">
         <h2 class="text-2xl font-bold mb-8 mt-8 text-center">Select Roles</h2>
-        
+
+        <role-table-reaction-roles
+          :roles="$store.getters.getAssignableGuildRoles"
+          :selectedRoles="$props.reactionRole.roles"
+          :type="$props.reactionRole.type"
+          @removeRole="onRemoveReactionRole"
+          @selectRole="onSelectReactionRole"
+        ></role-table-reaction-roles>
       </div>
 
       <div v-if="onboardingStep == 0" class="flex justify-end">
@@ -71,6 +78,8 @@ import LoadingIcon from "@/components/LoadingIcon.vue";
 
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
 
+import DiscordEmojiPicker from "@/components/DiscordEmojiPicker.vue";
+
 import {
   FormTypeChannelListCategories,
   FormTypeEmbed,
@@ -87,12 +96,23 @@ import {
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
 import store from "@/store";
+import { Popover, PopoverButton, PopoverPanel } from "@headlessui/vue";
+
+import { ChevronDownIcon } from "@heroicons/vue/solid";
+
+import RoleTableReactionRoles from "@/components/dashboard/RoleTableReactionRoles.vue";
 
 export default {
   components: {
+    ChevronDownIcon,
+    DiscordEmojiPicker,
     EmbedBuilder,
     FormValue,
     LoadingIcon,
+    Popover,
+    PopoverButton,
+    PopoverPanel,
+    RoleTableReactionRoles,
   },
   props: {
     isSetup: {
@@ -104,6 +124,7 @@ export default {
       required: true,
     },
   },
+  emits: ["save"],
 
   setup(props) {
     let onboardingStep = ref(props.reactionRole.is_system_message == undefined ? 0 : 2);
@@ -122,7 +143,6 @@ export default {
             
             const messageLinkParts = value.split("/");
             const guildID = messageLinkParts[messageLinkParts.length - 3];
-            console.log(guildID, store.getters.getSelectedGuildID);
             return guildID == store.getters.getSelectedGuildID;
           }),
         },
@@ -192,8 +212,17 @@ export default {
         this.onboardingStep = 1;
       }
     },
+
     validateOnboardingStepOne() {
       this.onboardingStep = 2;
+    },
+
+    onSelectReactionRole(reaction_role) {
+      this.$props.reactionRole.roles.push(reaction_role);
+    },
+
+    onRemoveReactionRole(roleID) {
+      this.$props.reactionRole.roles = this.$props.reactionRole.roles.filter((role) => role.role_id != roleID);
     },
   }
 };

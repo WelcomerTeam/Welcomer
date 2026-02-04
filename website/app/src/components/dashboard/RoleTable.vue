@@ -15,7 +15,7 @@
           </div>
           {{ $store.getters.getGuildRoleById(role_id)?.name }}
         </td>
-        <td class="whitespace-nowrap py-4 text-sm text-center dark:text-gray-50 space-x-2">
+        <td class="whitespace-nowrap py-4 px-2 text-right text-sm dark:text-gray-50 space-x-2">
           <a @click="this.onRemoveRole(role_id)" class="text-primary hover:text-primary-dark cursor-pointer">
             <font-awesome-icon icon="close" />
           </a>
@@ -35,7 +35,7 @@
                 </span>
               </ListboxButton>
 
-              <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+              <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
                 leave-to-class="opacity-0">
                 <ListboxOptions
                   class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
