@@ -23,7 +23,7 @@
         </span>
       </PopoverButton>
     </div>
-    <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+    <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
       leave-to-class="opacity-0">
       <PopoverPanel
         class="block w-full overflow-auto text-base bg-white dark:bg-secondary rounded-md shadow-sm sm:text-sm rounded-t-none border-t-0">

@@ -18,7 +18,7 @@
               @update:modelValue="onValueUpdate" :validation="v$.enabled">Freeroles allow users to give themselves roles,
               via the <kbd class="bg-secondary-dark px-2 py-1 rounded-md">/freeroles give</kbd> command.</form-value>
 
-            <form-value title="Roles" :type="FormTypeBlank" :hideBorder="true" :validation="v$.roles">
+            <form-value title="Roles" :type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
               <role-table :roles="$store.getters.getAssignableGuildRoles" :selectedRoles="config.roles"
                 @removeRole="onRemoveRole" @selectRole="onSelectRole"></role-table>
             </form-value>

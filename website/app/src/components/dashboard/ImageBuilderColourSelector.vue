@@ -166,7 +166,7 @@
                   </span>
                 </ListboxButton>
 
-                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
                   leave-to-class="opacity-0">
                   <ListboxOptions class="absolute z-10 mt-1">
                     <ColorPicker theme="dark" :color="parseCSSValue(trimPrefix(modelValue))"

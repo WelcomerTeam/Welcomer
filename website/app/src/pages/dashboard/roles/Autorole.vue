@@ -19,7 +19,7 @@
               your
               server.</form-value>
 
-            <form-value title="Roles" :type="FormTypeBlank" :hideBorder="true" :validation="v$.roles">
+            <form-value title="Roles" :type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
               <role-table :roles="$store.getters.getAssignableGuildRoles" :selectedRoles="config.roles"
                 @removeRole="onRemoveRole" @selectRole="onSelectRole"></role-table>
             </form-value>

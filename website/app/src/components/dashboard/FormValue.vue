@@ -1,13 +1,13 @@
 <template>
   <div :class="[
-    'sm:grid sm:grid-cols-3 sm:gap-4 dark:text-gray-50 border-gray-300 dark:border-secondary-light py-4 sm:py-6 items-start',
-    $props.hideBorder ? '' : 'border-b',
+    'sm:grid sm:grid-cols-3 sm:gap-4 dark:text-gray-50 border-gray-300 dark:border-secondary-light items-start',
+    $props.hideBorder ? '' : 'border-b py-4 sm:py-6 ',
   ]">
     <label class="block font-medium text-gray-700 dark:text-gray-50" :for="componentId" v-if="!$props.inlineFormValue">
       {{ title }}
       <div v-if="$props.inlineSlot">
-        <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0">
-          <slot></slot>
+        <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0" v-if="!$props.hideSlot">
+          <slot class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0"></slot>
         </div>
       </div>
     </label>
@@ -87,7 +87,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -184,7 +184,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -287,7 +287,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -318,7 +318,7 @@
                     </li>
                   </ListboxOption>
                   <ListboxOption as="template" v-for="role in $store.getters.getGuildRoles" :key="role.id"
-                    :value="role.id" v-slot="{ active, selected }" :disabled="!role.is_assignable">
+                    :value="role.id" v-slot="{ active, selected }" :disabled="!role.is_assignable" @click="onSelectRole(role)">
                     <li :class="[
                       role.is_assignable
                         ? ''
@@ -388,7 +388,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm ring-1 ring-primary ring-opacity-5 focus:outline-none sm:text-sm">
@@ -511,7 +511,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm ring-1 ring-primary ring-opacity-5 focus:outline-none sm:text-sm">
@@ -605,7 +605,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions
                 class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -698,7 +698,7 @@
               </span>
             </ListboxButton>
 
-            <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <ListboxOptions class="absolute z-10 mt-1">
                 <ColorPicker theme="dark" :color="parseCSSValue(modelValue)" @changeColor="onColorChange"
@@ -888,7 +888,7 @@
       </div>
     </div>
 
-    <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0" v-if="!$props.inlineSlot">
+    <div class="text-gray-600 dark:text-gray-400 text-sm col-span-3 mt-2 sm:mt-0" v-if="!$props.inlineSlot && !$props.hideSlot">
       <slot></slot>
     </div>
 
@@ -1059,6 +1059,10 @@ export default {
       type: Boolean,
       required: false,
     },
+    hideSlot: {
+      type: Boolean,
+      required: false,
+    },
     customImages: {
       type: Array,
       required: false,
@@ -1070,6 +1074,11 @@ export default {
     allowAlpha: {
       type: Boolean,
       required: false,
+    },
+    showRolePopup: {
+      type: Boolean,
+      required: false,
+      default: true,
     }
   },
 
@@ -1222,6 +1231,35 @@ export default {
     fetchGuildMemberByQuery: (self) => {
       // TODO: Move into component.
       self.$store.dispatch("fetchGuildMembersByQuery", self.query);
+    },
+
+    onSelectRole(role) {
+      if (!this.$props.showRolePopup) {
+        return;
+      }
+
+      if (!role.is_assignable) {
+        this.$store.dispatch("createPopup", {
+          title: 'This role is not assignable',
+          description: 'Welcomer cannot assign users this role as it does not have permission to manage roles or Welcomer\'s highest role is below this role\'s position. Please rearrange your roles in the server settings to move Welcomer\'s role above this role.',
+          showCloseButton: true,
+          hideContinueButton: true,
+          hideCancelButton: true,
+        });
+      } else if (role.is_elevated) {
+        var permissionListAsString = getRolePermissionListAsString(role.permissions);
+
+        this.$store.dispatch("createPopup", {
+          title: 'This role has elevated permissions',
+          description: "Are you sure you would like to use this role? This may give users permissions they should not have.\n\nPermissions:\n" + permissionListAsString,
+          showCloseButton: false,
+          closeLabel: 'Use role',
+          continueLabel: 'Remove role',
+          continueFunction: () => {
+            this.onRemoveRole(role.role_id);
+          },
+        });
+      }
     },
   },
 };

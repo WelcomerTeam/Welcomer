@@ -145,7 +145,7 @@
                   <ChevronDownIcon class="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
                 </MenuButton>
 
-                <transition enter-active-class="transition ease-out duration-100"
+                <transition :show="open" enter-active-class="transition ease-out duration-100"
                   enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
                   leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100"
                   leave-to-class="transform opacity-0 scale-95">
@@ -289,13 +289,13 @@
 
         <TransitionRoot as="template" :show="showGuildSelector">
           <Dialog class="relative z-10" :open="showGuildSelector">
-            <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
+            <TransitionChild :show="showGuildSelector" as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
               <div class="fixed inset-0 bg-black/50 transition-opacity" />
             </TransitionChild>
 
             <div class="fixed inset-0 z-10 w-screen overflow-y-visible">
               <div class="flex min-h-full justify-center p-4 text-center items-center">
-                <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                <TransitionChild :show="showGuildSelector" as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
                   <DialogPanel class="bg-white text-secondary dark:bg-secondary dark:text-gray-50 relative transform overflow-y-visible rounded-md text-left shadow-xl transition-all my-8 w-full max-w-[512px]">
                     <div class="flex gap-4 align-top p-6 dark:bg-secondary-dark border-b dark:border-secondary-light bg-gray-100 border-gray-200 shadow-inner rounded-tl-md rounded-tr-md">
                         <div class="flex-1">Server Selection</div>

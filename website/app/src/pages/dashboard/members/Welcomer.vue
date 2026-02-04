@@ -17,19 +17,19 @@
             <div class="dashboard-heading">Auto Deletion</div>
             <form-value title="Auto Delete Welcomer Messages" :type="FormTypeToggle"
               v-model="config.config.auto_delete_welcome_messages" @update:modelValue="onValueUpdate"
-              :validation="v$.config.auto_delete_welcome_messages" :hideBorder="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
+              :validation="v$.config.auto_delete_welcome_messages" :hide-border="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
             
             <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
 
               <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.config.welcome_message_lifetime"
                 @update:modelValue="onValueUpdate" :validation="v$.config.welcome_message_lifetime"
-                :hideBorder="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a welcomer message
+                :hide-border="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a welcomer message
                 is automatically deleted.</form-value>
 
               <form-value title="Auto Delete Welcomer Messages On Leave" :type="FormTypeToggle"
                 v-model="config.config.auto_delete_welcome_messages_on_leave" @update:modelValue="onValueUpdate"
                 :validation="v$.config.auto_delete_welcome_messages_on_leave"
-                :hideBorder="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">When enabled, if a user leaves the server
+                :hide-border="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">When enabled, if a user leaves the server
                 their welcomer message will be deleted immediately.</form-value>
               <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
                 Auto deletion of welcome messages requires a Welcomer Pro subscription.
@@ -184,7 +184,7 @@
 
             <form-value title="Welcome DM Message" :type="FormTypeEmbed" :disabled="config.dms.reuse_message"
               v-model="config.dms.message_json" @update:modelValue="onValueUpdate" :validation="v$.dms.message_json"
-              :inlineSlot="true" :hideBorder="true">This is the message users will receive in direct messages when
+              :inlineSlot="true" :hide-border="true">This is the message users will receive in direct messages when
               joining.
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.

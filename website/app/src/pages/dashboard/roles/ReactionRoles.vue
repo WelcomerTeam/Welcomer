@@ -21,7 +21,7 @@
             @update:modelValue="onValueUpdate" :validation="v$.enabled">Reaction Roles allow users to assign themselves roles by reacting to messages.</form-value>
             
             
-            <form-value title="Configurations" type="FormTypeBlank" :hideBorder="true" :validation="v$.roles">
+            <form-value title="Configurations" type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
               <reaction-roles-table :modelValue="config"
               @update:modelValue="onConfigUpdate"></reaction-roles-table>
             </form-value>

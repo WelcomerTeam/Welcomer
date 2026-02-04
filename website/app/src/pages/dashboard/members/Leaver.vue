@@ -17,12 +17,12 @@
             <div class="dashboard-heading">Auto Deletion</div>
             <form-value title="Auto Delete Leaver Messages" :type="FormTypeToggle"
               v-model="config.auto_delete_leaver_messages" @update:modelValue="onValueUpdate"
-              :validation="v$.auto_delete_leaver_messages" :hideBorder="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
+              :validation="v$.auto_delete_leaver_messages" :hide-border="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
             
             <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
               <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.leaver_message_lifetime"
                 @update:modelValue="onValueUpdate" :validation="v$.leaver_message_lifetime"
-                :hideBorder="true" :disabled="!config.auto_delete_leaver_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a leaver message
+                :hide-border="true" :disabled="!config.auto_delete_leaver_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a leaver message
                 is automatically deleted.</form-value>
               <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
                 Auto deletion of leaver messages requires a Welcomer Pro subscription.
