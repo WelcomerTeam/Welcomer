@@ -88,7 +88,12 @@ const getters = {
   },
 
   getGuildRoleById: (state) => (roleID) => {
-    return state.guildRoles.find((role) => role.id == roleID);
+    let role = state.guildRoles.find((role) => role.id == roleID);
+    if (role) {
+      return role;
+    } else {
+      return { id: roleID, name: `Unknown Role ${roleID}` };
+    }
   },
 
   getGuildEmojiById: (state) => (emojiID) => {
