@@ -12,14 +12,14 @@
 			Loading emoji library...
 		</div>
 
-		<div v-else class="mt-3 h-96 space-y-4 overflow-y-auto pr-1">
+		<div v-else class="p-2 h-auto max-h-96 space-y-4 overflow-y-auto pr-1">
 			<div v-if="!displayedGroups.length" class="rounded-md border border-dashed border-gray-300 px-3 py-4 text-center text-sm text-gray-500 dark:border-secondary-light dark:text-gray-300">
 				No emojis found.
 			</div>
 
 			<div v-for="group in displayedGroups" :key="group.key" class="space-y-2">
 				<div class="flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ group.label }}</div>
-				<div class="flex flex-wrap gap-2" role="list">
+				<div class="flex flex-wrap gap-2 justify-center" role="list">
 					<button v-for="emoji in group.items" :key="emoji.key" type="button" @click="selectEmoji(emoji)" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-secondary-light">
 						<img :src="emoji.url" :alt="emoji.name" :title="emoji.name" loading="lazy" class="max-h-7 w-7" @error="handleImageError" />
 						<span class="sr-only">{{ emoji.name }}</span>
@@ -72,7 +72,6 @@ export default {
 
 		const toTwemojiCode = (emojiChar) => Array.from(emojiChar)
 		.map((part) => part.codePointAt(0))
-		// .filter((code) => code !== 0xfe0e && code !== 0xfe0f) // Remove variation selectors
 		.map((code) => code.toString(16))
 		.join("-");
 
@@ -100,7 +99,14 @@ export default {
 			keys: ["name", "group", "subgroup"],
 			threshold: 0.32,
 		});
+
 		loading.value = false;
+
+		let isReducedMotion = false;
+		if (window.matchMedia) {
+			const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+			isReducedMotion = mediaQuery.matches;
+		}
 
 		const customEmojiItems = computed(() =>
 			props.customEmojis
@@ -110,7 +116,7 @@ export default {
 						key: `custom-${emoji.id}-${index}`,
 						name: emoji.name,
 						id: emoji.id,
-						url: `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "webp"}?size=128`,
+						url: `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated && !isReducedMotion ? "gif" : "webp"}?size=64`,
 						isCustom: true,
 						searchText: emoji.name.toLowerCase(),
 					};
@@ -165,7 +171,7 @@ export default {
 				? {
 					type: "custom",
 					name: emoji.name,
-					value: emoji.value,
+					value: emoji.id,
 					url: emoji.url,
 				}
 				: {
