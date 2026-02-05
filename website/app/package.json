@@ -29,6 +29,7 @@
     "@vuelidate/validators": "^2.0.4",
     "babel-runtime": "^6.26.0",
     "discord-markdown": "^2.5.0",
+    "eslint-define-config": "^2.1.0",
     "fuse.js": "^6.4.6",
     "highlight.js": "^11.8.0",
     "hljs": "^6.2.3",
@@ -52,16 +53,23 @@
     "yarn": "^1.22.19"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.28.6",
     "@types/lodash.uniqueid": "^4.0.9",
+    "@typescript-eslint/parser": "^8.54.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/compiler-sfc": "^3.3.4",
     "autoprefixer": "^10.4.15",
     "baseline-browser-mapping": "^2.9.19",
+    "eslint": "^9.39.2",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-vue": "^10.7.0",
     "postcss": "^8.4.29",
     "purify-css": "^1.1.9",
     "rollup-plugin-analyzer": "^4.0.0",
     "tailwindcss": "^3.3.3",
     "vite": "^7.1.11",
+    "vue-eslint-parser": "^10.2.0",
     "webpack-bundle-analyzer": "^4.9.1"
   }
 }
