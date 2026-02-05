@@ -1,37 +1,38 @@
 <template>
-	<div class="w-full">
-		<div class="flex items-center gap-2 bg-gray-100 px-3 py-2 dark:bg-secondary-dark">
-			<svg class="h-4 w-4 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-				<circle cx="11" cy="11" r="7"></circle>
-				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-			</svg>
-			<input v-model="searchTerm" type="text" :placeholder="searchPlaceholder" class="w-full bg-transparent text-sm outline-none placeholder-gray-400 dark:placeholder-gray-500 border-transparent" />
-		</div>
+  <div class="w-full">
+    <div class="flex items-center gap-2 bg-gray-100 px-3 py-2 dark:bg-secondary-dark">
+      <svg class="h-4 w-4 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input v-model="searchTerm" type="text" :placeholder="searchPlaceholder" class="w-full bg-transparent text-sm outline-none placeholder-gray-400 dark:placeholder-gray-500 border-transparent" />
+    </div>
 
-		<div v-if="loading" class="py-6 text-center text-sm text-gray-500 dark:text-gray-300">
-			Loading emoji library...
-		</div>
+    <div v-if="loading" class="py-6 text-center text-sm text-gray-500 dark:text-gray-300">
+      Loading emoji library...
+    </div>
 
-		<div v-else class="p-2 h-auto max-h-96 space-y-4 overflow-y-auto pr-1">
-			<div v-if="!displayedGroups.length" class="rounded-md border border-dashed border-gray-300 px-3 py-4 text-center text-sm text-gray-500 dark:border-secondary-light dark:text-gray-300">
-				No emojis found.
-			</div>
+    <div v-else class="p-2 h-auto max-h-96 space-y-4 overflow-y-auto pr-1">
+      <div v-if="!displayedGroups.length" class="rounded-md border border-dashed border-gray-300 px-3 py-4 text-center text-sm text-gray-500 dark:border-secondary-light dark:text-gray-300">
+        No emojis found.
+      </div>
 
-			<div v-for="group in displayedGroups" :key="group.key" class="space-y-2">
-				<div class="flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ group.label }}</div>
-				<div class="flex flex-wrap gap-2 justify-center" role="list">
-					<button v-for="emoji in group.items" :key="emoji.key" type="button" @click="selectEmoji(emoji)" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-secondary-light">
-						<img :src="emoji.url" :alt="emoji.name" :title="emoji.name" loading="lazy" class="max-h-7 w-7" @error="handleImageError" />
-						<span class="sr-only">{{ emoji.name }}</span>
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
+      <div v-for="group in displayedGroups" :key="group.key" class="space-y-2">
+        <div class="flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ group.label }}</div>
+        <div class="flex flex-wrap gap-2 justify-center" role="list">
+          <button v-for="emoji in group.items" :key="emoji.key" type="button" @click="selectEmoji(emoji)" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-secondary-light">
+            <img :src="emoji.url" :alt="emoji.name" :title="emoji.name" loading="lazy" class="max-h-7 w-7" @error="handleImageError" />
+            <span class="sr-only">{{ emoji.name }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import { computed, ref } from "vue";
+
 import Fuse from "fuse.js";
 import emojiDataByGroup from "unicode-emoji-json/data-by-group.json";
 

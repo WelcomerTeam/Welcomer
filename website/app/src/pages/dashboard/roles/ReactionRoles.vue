@@ -15,16 +15,16 @@
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
             <form-value title="Enable Reaction Roles" :type="FormTypeToggle" v-model="config.enabled"
-            @update:modelValue="onValueUpdate" :validation="v$.enabled">Reaction Roles allow users to assign themselves roles by reacting to messages.</form-value>
+                        @update:modelValue="onValueUpdate" :validation="v$.enabled">Reaction Roles allow users to assign themselves roles by reacting to messages.</form-value>
             
             
             <form-value title="Configurations" type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
               <reaction-roles-table :modelValue="config"
-              @update:modelValue="onConfigUpdate"></reaction-roles-table>
+                                    @update:modelValue="onConfigUpdate"></reaction-roles-table>
             </form-value>
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-          @save="saveConfig"></unsaved-changes>
+                           @save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -36,26 +36,21 @@ import { computed, ref } from "vue";
 
 import useVuelidate from "@vuelidate/core";
 
-import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
-import RoleTable from "@/components/dashboard/RoleTable.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
-import DiscordEmojiPicker from "@/components/DiscordEmojiPicker.vue";
-
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
-
-import {
-  getErrorToast,
-} from "@/utilities";
-
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeBlank,
   FormTypeToggle,
 } from "@/components/dashboard/FormValueEnum";
-
 import ReactionRolesTable from "@/components/dashboard/ReactionRolesTable.vue";
+import RoleTable from "@/components/dashboard/RoleTable.vue";
+import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import {
+  getErrorToast,
+} from "@/utilities";
 
 export default {
   components: {

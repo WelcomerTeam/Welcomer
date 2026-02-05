@@ -35,8 +35,8 @@
             </PopoverButton>
 
             <transition :show="open" enter-active-class="transition duration-200 ease-out" enter-from-class="translate-y-1 opacity-0"
-              enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-150 ease-in"
-              leave-from-class="translate-y-0 opacity-100" leave-to-class="translate-y-1 opacity-0">
+                        enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-150 ease-in"
+                        leave-from-class="translate-y-0 opacity-100" leave-to-class="translate-y-1 opacity-0">
               <PopoverPanel
                 class="absolute bg-secondary-dark max-w-md mt-3 px-2 rounded-md sm:px-0 transform w-screen z-10 left-full -translate-x-full">
                 <div class="popover-container">
@@ -45,10 +45,10 @@
                     class="gap-6 px-5 py-6 relative rounded-lg sm:gap-8 sm:p-6 group bg-primary text-white rounded-b-none grid grid-cols-4">
                     <!-- class="gap-6 px-5 py-6 relative rounded-lg sm:gap-8 sm:p-6 group bg-primary hover:bg-primary-dark text-white rounded-b-none grid grid-cols-4"> -->
                     <img class="object-cover col-span-1 aspect-square w-16 h-16" :src="`https://cdn.discordapp.com/avatars/${$store.getters.getCurrentUser.id
-                      }/${$store.getters.getCurrentUser.avatar}.${$store.getters.getCurrentUser.avatar.startsWith('a_')
-                        ? 'gif'
-                        : 'webp'
-                      }?size=128`" />
+                    }/${$store.getters.getCurrentUser.avatar}.${$store.getters.getCurrentUser.avatar.startsWith('a_')
+                      ? 'gif'
+                      : 'webp'
+                    }?size=128`" />
                     <div class="col-span-3 flex items-center">
                       <div>
                         <h2 class="font-bold text-xl">
@@ -59,8 +59,8 @@
                         </h2>
                         <div class="space-x-2 space-y-2">
                           <font-awesome-icon :title="badge.name" v-for="badge in $store.getters.getCurrentUser
-                            .badges" v-bind:key="badge.name" :icon="badge.icon"
-                            :class="['p-2 bg-white rounded-md', badge.colour]" />
+                                               .badges" v-bind:key="badge.name" :icon="badge.icon"
+                                             :class="['p-2 bg-white rounded-md', badge.colour]" />
                         </div>
                       </div>
                     </div>
@@ -105,6 +105,7 @@ import {
   PopoverPanel,
 } from "@headlessui/vue";
 import { ChevronDownIcon } from "@heroicons/vue/solid";
+
 import LoadingIcon from "./LoadingIcon.vue";
 import ThemeToggle from "./ThemeToggle.vue";
 

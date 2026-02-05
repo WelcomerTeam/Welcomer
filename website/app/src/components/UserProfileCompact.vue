@@ -14,10 +14,10 @@
         class="gap-6 px-5 py-6 relative rounded-lg sm:gap-8 sm:p-6 group bg-primary text-white grid grid-cols-4">
         <!-- class="gap-6 px-5 py-6 relative rounded-lg sm:gap-8 sm:p-6 group bg-primary hover:bg-primary-dark text-white grid grid-cols-4"> -->
         <img class="object-cover col-span-1 aspect-square" :src="`https://cdn.discordapp.com/avatars/${$store.getters.getCurrentUser.id
-          }/${$store.getters.getCurrentUser.avatar}.${$store.getters.getCurrentUser.avatar.startsWith('a_')
-            ? 'gif'
-            : 'webp'
-          }?size=128`" />
+        }/${$store.getters.getCurrentUser.avatar}.${$store.getters.getCurrentUser.avatar.startsWith('a_')
+          ? 'gif'
+          : 'webp'
+        }?size=128`" />
         <div class="col-span-3 flex items-center">
           <div>
             <h2 class="font-bold text-xl">
@@ -28,7 +28,7 @@
             </h2>
             <div class="space-x-2 space-y-2">
               <font-awesome-icon :title="badge.name" v-for="badge in $store.getters.getCurrentUser.badges"
-                v-bind:key="badge.name" :icon="badge.icon" :class="['p-2 bg-white rounded-md', badge.colour]" />
+                                 v-bind:key="badge.name" :icon="badge.icon" :class="['p-2 bg-white rounded-md', badge.colour]" />
             </div>
           </div>
         </div>

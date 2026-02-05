@@ -3,7 +3,7 @@
     <Header>
       <div class="lg:hidden">
         <button v-if="$route.name != 'dashboard.guilds'"
-          class="text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset" @click="sidebarOpen = true">
+                class="text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset" @click="sidebarOpen = true">
           <span class="sr-only">Open sidebar</span>
           <MenuAlt1Icon class="w-6 h-6" aria-hidden="true" />
         </button>
@@ -17,15 +17,17 @@
 </template>
 
 <script>
-import Header from "@/components/dashboard/Header.vue";
+import { ref } from "vue";
+
 import { MenuAlt1Icon } from "@heroicons/vue/outline";
 import { useRoute } from "vue-router";
-import store from "@/store/index";
-import { ref } from "vue";
-import HoistHeading from "@/components/hoist/HoistHeading.vue";
 
-import Popups from "@/components/Popups.vue";
+import Header from "@/components/dashboard/Header.vue";
 import Toast from "@/components/dashboard/Toast.vue";
+import HoistHeading from "@/components/hoist/HoistHeading.vue";
+import Popups from "@/components/Popups.vue";
+import store from "@/store/index";
+
 
 export default {
   components: {

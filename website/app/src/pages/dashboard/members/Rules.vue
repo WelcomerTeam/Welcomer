@@ -15,12 +15,12 @@
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
             <form-value title="Enable Rules" :type="FormTypeToggle" v-model="config.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.enabled">Send rules to users when they join your
+                        @update:modelValue="onValueUpdate" :validation="v$.enabled">Send rules to users when they join your
               server.
               This also allows
               users to view the rules by doing <code>/rules</code>.</form-value>
             <form-value title="Enable DMs" :type="FormTypeToggle" v-model="config.dms_enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.dms_enabled">When enabled, users will
+                        @update:modelValue="onValueUpdate" :validation="v$.dms_enabled">When enabled, users will
               also receive the rules in their direct
               messages.</form-value>
 
@@ -51,29 +51,29 @@
                     </td>
                     <td class="pr-3 text-sm dark:text-gray-50 w-auto">
                       <AutocompleteInput v-if="rule.selected" type="text"
-                        class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-3 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
-                        :value="rule.newValue" @update:modelValue="rule.newValue = $event" :maxlength="this.maxRuleLength"
-                        @keypress="this.onEditRuleKeyPress($event, index)" />
+                                         class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-3 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
+                                         :value="rule.newValue" @update:modelValue="rule.newValue = $event" :maxlength="this.maxRuleLength"
+                                         @keypress="this.onEditRuleKeyPress($event, index)" />
                       <div class="break-all" v-else v-html="marked(rule.value, true)" />
                     </td>
                     <td class="whitespace-nowrap py-4 text-sm dark:text-gray-50 space-x-2">
                       <a v-if="rule.selected" @click="this.onSaveRule(index)"
-                        class="text-primary hover:text-primary-dark cursor-pointer">Confirm</a>
+                         class="text-primary hover:text-primary-dark cursor-pointer">Confirm</a>
                       <a v-else @click="this.onSelectRule(index)"
-                        class="text-primary hover:text-primary-dark cursor-pointer">Edit</a>
+                         class="text-primary hover:text-primary-dark cursor-pointer">Edit</a>
                       <a v-if="rule.selected" @click="this.onCancelRule(index)"
-                        class="text-primary hover:text-primary-dark cursor-pointer">Cancel</a>
+                         class="text-primary hover:text-primary-dark cursor-pointer">Cancel</a>
                       <a v-else @click="this.onDeleteRule(index)"
-                        class="text-primary hover:text-primary-dark cursor-pointer">Delete</a>
+                         class="text-primary hover:text-primary-dark cursor-pointer">Delete</a>
                     </td>
                   </tr>
                   <tr>
                     <td :class="this.rules.length === 0 ? 'hidden' : ''" />
                     <td>
                       <AutocompleteInput v-if="this.rules.length < this.maxRuleCount" type="text"
-                        class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-10 mt-2 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
-                        placeholder="Add rule" :maxlength="this.maxRuleLength" @blur="this.onRuleBlur()"
-                        @keypress="this.onRuleKeyPress($event)" :value="rule" @update:modelValue="rule = $event" />
+                                         class="bg-white dark:bg-secondary-dark relative w-full pl-3 pr-10 mt-2 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
+                                         placeholder="Add rule" :maxlength="this.maxRuleLength" @blur="this.onRuleBlur()"
+                                         @keypress="this.onRuleKeyPress($event)" :value="rule" @update:modelValue="rule = $event" />
                     </td>
                   </tr>
                 </tbody>
@@ -82,7 +82,7 @@
           </div>
 
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-            @save="saveConfig"></unsaved-changes>
+                           @save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -95,19 +95,16 @@ import { computed, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import AutocompleteInput from "@/components/AutocompleteInput.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeBlank,
   FormTypeToggle,
 } from "@/components/dashboard/FormValueEnum";
-
-import FormValue from "@/components/dashboard/FormValue.vue";
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-import AutocompleteInput from "@/components/AutocompleteInput.vue";
-
-import endpoints from "@/api/endpoints";
-import dashboardAPI from "@/api/dashboard";
-
 import {
   getErrorToast,
   getSuccessToast,

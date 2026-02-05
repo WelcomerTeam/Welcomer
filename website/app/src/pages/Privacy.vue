@@ -48,10 +48,10 @@
         <p><strong>SUMMARY OF KEY POINTS</strong></p>
         <p>
           <strong><em>This summary provides key points from our privacy notice,
-              but you can find out more details about any of these
-              topics by clicking the link following each key point or by
-              using our table of contents below to find the section you
-              are looking for. You can also click</em></strong>
+            but you can find out more details about any of these
+            topics by clicking the link following each key point or by
+            using our table of contents below to find the section you
+            are looking for. You can also click</em></strong>
           <a href="#toc"><strong><em>here</em></strong></a>
           <strong><em>to go directly to our table of contents.</em></strong>
         </p>
@@ -294,7 +294,7 @@
         </p>
         <p>
           <em><strong>If you are located in the EU or UK, this section applies
-              to you.</strong></em>
+            to you.</strong></em>
         </p>
         <p>
           The General Data Protection Regulation (GDPR) and UK GDPR
@@ -337,7 +337,7 @@
         </ul>
         <p>
           <strong><em>If you are located in Canada, this section applies to
-              you.</em></strong>
+            you.</em></strong>
         </p>
         <p>
           We may process your information if you have given us specific
@@ -1033,8 +1033,8 @@ table * {
 </style>
 
 <script>
-import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
 
 export default {
   components: {

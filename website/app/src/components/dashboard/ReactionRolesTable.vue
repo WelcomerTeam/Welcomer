@@ -16,9 +16,9 @@
         <tr v-for="(reactionRole, index) in this.$props.modelValue.reaction_roles" :key="index">
           <td class="py-3">
             <Switch v-model="reactionRole.enabled" :class="[
-                reactionRole.enabled ? 'bg-green-500 focus:ring-green-500' : 'bg-gray-400 focus:ring-gray-400',
-                'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
-              ]">
+              reactionRole.enabled ? 'bg-green-500 focus:ring-green-500' : 'bg-gray-400 focus:ring-gray-400',
+              'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+            ]">
               <span :class="[
                 reactionRole.enabled ? 'translate-x-5' : 'translate-x-0',
                 'pointer-events-none relative inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200',
@@ -31,7 +31,7 @@
                 ]" aria-hidden="true">
                   <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 12 12">
                     <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
+                          stroke-linejoin="round" />
                   </svg>
                 </span>
                 <span :class="[
@@ -73,9 +73,10 @@ import { ref } from "vue";
 
 import { Switch } from "@headlessui/vue";
 
+import DiscordEmbed from "@/components/DiscordEmbed.vue";
+
 import Popup from "../Popup.vue";
 
-import DiscordEmbed from "@/components/DiscordEmbed.vue";
 
 import ReactionRolesTableItem from "./ReactionRolesTableItem.vue";
 

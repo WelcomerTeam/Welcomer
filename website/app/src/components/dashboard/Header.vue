@@ -32,15 +32,15 @@
                 </PopoverButton>
 
                 <transition :show="open" enter-active-class="transition duration-200 ease-out"
-                  enter-from-class="translate-y-1 opacity-0" enter-to-class="translate-y-0 opacity-100"
-                  leave-active-class="transition duration-150 ease-in" leave-from-class="translate-y-0 opacity-100"
-                  leave-to-class="translate-y-1 opacity-0">
+                            enter-from-class="translate-y-1 opacity-0" enter-to-class="translate-y-0 opacity-100"
+                            leave-active-class="transition duration-150 ease-in" leave-from-class="translate-y-0 opacity-100"
+                            leave-to-class="translate-y-1 opacity-0">
                   <PopoverPanel
                     class="absolute bg-secondary-dark lg:max-w-lg max-w-md mt-3 px-2 rounded-md sm:px-0 transform w-screen z-10 left-1/2 -translate-x-1/2">
                     <div class="popover-container">
                       <div class="gap-6 grid px-5 py-6 relative rounded-lg sm:gap-8 sm:p-8 bg-secondary-dark">
                         <router-link v-for="item in NavigationFeatures" :key="item.name" :to="item.href"
-                          class="group -m-3 flex hover:bg-secondary items-start p-2 rounded-lg">
+                                     class="group -m-3 flex hover:bg-secondary items-start p-2 rounded-lg">
                           <div class="flex-shrink-0">
                             <div class="popover-panel-icon">
                               <font-awesome-icon :icon="item.icon" class="w-6 h-6" aria-hidden="true" />
@@ -76,15 +76,15 @@
                 </PopoverButton>
 
                 <transition :show="open" enter-active-class="transition duration-200 ease-out"
-                  enter-from-class="translate-y-1 opacity-0" enter-to-class="translate-y-0 opacity-100"
-                  leave-active-class="transition duration-150 ease-in" leave-from-class="translate-y-0 opacity-100"
-                  leave-to-class="translate-y-1 opacity-0">
+                            enter-from-class="translate-y-1 opacity-0" enter-to-class="translate-y-0 opacity-100"
+                            leave-active-class="transition duration-150 ease-in" leave-from-class="translate-y-0 opacity-100"
+                            leave-to-class="translate-y-1 opacity-0">
                   <PopoverPanel
                     class="absolute bg-secondary-dark lg:max-w-lg max-w-md mt-3 px-2 rounded-md sm:px-0 transform w-screen z-10 left-1/2 -translate-x-1/2">
                     <div class="popover-container">
                       <div class="gap-6 grid px-5 py-6 relative rounded-lg sm:gap-8 sm:p-8 bg-secondary-dark">
                         <router-link v-for="item in NavigationResources" :key="item.name" :to="item.href"
-                          class="group -m-3 flex hover:bg-secondary items-start p-2 rounded-lg">
+                                     class="group -m-3 flex hover:bg-secondary items-start p-2 rounded-lg">
                           <div class="flex-shrink-0">
                             <div class="popover-panel-icon">
                               <font-awesome-icon :icon="item.icon" :path="item.icon" class="w-6 h-6" aria-hidden="true" />
@@ -111,8 +111,8 @@
       </div>
 
       <transition :show="open" enter-active-class="duration-200 ease-out" enter-from-class="scale-95 opacity-0"
-        enter-to-class="scale-100 opacity-100" leave-active-class="duration-100 ease-in"
-        leave-from-class="scale-100 opacity-100" leave-to-class="scale-95 opacity-0">
+                  enter-to-class="scale-100 opacity-100" leave-active-class="duration-100 ease-in"
+                  leave-from-class="scale-100 opacity-100" leave-to-class="scale-95 opacity-0">
         <PopoverPanel focus class="navbar-mobile-panel">
           <div class="navbar-mobile-menu">
             <div class="px-5 pt-5 pb-6">
@@ -179,7 +179,7 @@
               <span class="pl-3 font-bold uppercase text-gray-200">Help</span>
               <nav class="grid grid-cols-2">
                 <router-link v-for="item in NavigationResources" :key="item.name" :to="item.href"
-                  class="navbar-mobile-menu-item">
+                             class="navbar-mobile-menu-item">
                   <div class="popover-panel-icon">
                     <font-awesome-icon :icon="item.icon" class="navbar-mobile-menu-item-icon" aria-hidden="true" />
                   </div>
@@ -208,7 +208,6 @@ import { ChevronDownIcon } from "@heroicons/vue/solid";
 
 import UserProfile from "@/components/UserProfile.vue";
 import UserProfileCompact from "@/components/UserProfileCompact.vue";
-
 import {
   NavigationFeatures,
   NavigationResources,

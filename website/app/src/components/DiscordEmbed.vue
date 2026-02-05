@@ -1,6 +1,6 @@
 <template>
   <div class="message-2qnXI6 cozyMessage-3V1Y8y groupStart-23k01U wrapper-2a6GCs cozy-3raOZG zalgo-jN1Ica"
-    role="listitem">
+       role="listitem">
     <div class="contents-2mQqc9" role="document">
       <img :src="avatar" aria-hidden="true" class="avatar-1BDn8e" alt="Message author icon" v-if="$props.showAuthor" />
       <h2 class="header-23xsNx" v-if="$props.showAuthor">
@@ -10,15 +10,15 @@
             : ('text-secondary ' + ($props.respectDarkMode ? 'dark:text-gray-50' : '')),
           'username-1A8OIy desaturateUserColors-1gar-1',
         ]" aria-expanded="false" tabindex="0" :style="authorColour ? { color: `#${rgbIntToRGB(authorColour)}` } : {}
-          ">
-            {{ formatText(author) }}</span><span v-if="isBot"
-            class="botTagCozy-1fFsZk botTag-1un5a6 botTagRegular-2HEhHi botTag-2WPJ74 rem-2m9HGf"><svg
-              aria-label="Verified Bot" class="botTagVerified-1klIIt" aria-hidden="false" width="16" height="16"
-              viewBox="0 0 16 15.2">
-              <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="currentColor"></path>
-            </svg><span class="botText-1526X_">BOT</span></span></span><span
+        ">
+          {{ formatText(author) }}</span><span v-if="isBot"
+                                             class="botTagCozy-1fFsZk botTag-1un5a6 botTagRegular-2HEhHi botTag-2WPJ74 rem-2m9HGf"><svg
+                                               aria-label="Verified Bot" class="botTagVerified-1klIIt" aria-hidden="false" width="16" height="16"
+                                               viewBox="0 0 16 15.2">
+                                               <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="currentColor"></path>
+                                             </svg><span class="botText-1526X_">BOT</span></span></span><span
           class="timestamp-3ZCmNB timestampInline-yHQ6fX" v-if="showTimestamp"><time :aria-label="timestamp"
-            :datetime="now"><i class="separator-2nZzUB" aria-hidden="true"> — </i>{{ formatText(timestamp) }}</time></span>
+                                                                                   :datetime="now"><i class="separator-2nZzUB" aria-hidden="true"> — </i>{{ formatText(timestamp) }}</time></span>
       </h2>
       <div :class="[
         $props.isDark ? 'text-gray-50' : 'text-secondary dark:text-gray-50',
@@ -27,31 +27,31 @@
     </div>
     <div class="container-1ov-mD" v-for="embed in embeds" v-bind:key="embed">
       <div class="embedWrapper-lXpS3L embedFull-2tM8-- embed-IeVjo6 markup-2BOw-j" aria-hidden="false"
-        :style="{ 'border-color': `${rgbIntToRGB(embed?.color, 5000532)}` }">
+           :style="{ 'border-color': `${rgbIntToRGB(embed?.color, 5000532)}` }">
         <div :class="[
           'grid-1nZz7S',
           embed?.thumbnail?.url ? 'hasThumbnail-3FJf1w' : '',
         ]">
           <div class="embedAuthor-3l5luH embedMargin-UO5XwE" v-if="embed?.author">
             <img aria-hidden="true" alt="Embed author icon" class="embedAuthorIcon--1zR3L"
-              :src="formatText(embed?.author?.icon_url)" v-if="embed?.author?.icon_url" /><a v-if="embed?.author?.url"
-              class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB embedAuthorNameLink-1gVryT embedLink-1G1K1D embedAuthorName-3mnTWj"
-              tabindex="0" href="#" rel="noreferrer noopener">{{ formatText(embed?.author?.name) }}</a>
+                 :src="formatText(embed?.author?.icon_url)" v-if="embed?.author?.icon_url" /><a v-if="embed?.author?.url"
+                                                                                                class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB embedAuthorNameLink-1gVryT embedLink-1G1K1D embedAuthorName-3mnTWj"
+                                                                                                tabindex="0" href="#" rel="noreferrer noopener">{{ formatText(embed?.author?.name) }}</a>
             <span v-else class="embedAuthorName-3mnTWj">
               {{ formatText(embed?.author?.name) }}
             </span>
           </div>
           <div class="embedTitle-3OXDkz embedMargin-UO5XwE" v-if="embed?.title">
             <a class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB embedTitleLink-1Zla9e embedLink-1G1K1D embedTitle-3OXDkz"
-              tabindex="0" :href="enableURLs ? embed?.url : '#'" rel="noreferrer noopener"
-              :role="embed?.url ? 'button' : ''" v-html="marked(embed?.title, true)" />
+               tabindex="0" :href="enableURLs ? embed?.url : '#'" rel="noreferrer noopener"
+               :role="embed?.url ? 'button' : ''" v-html="marked(embed?.title, true)" />
           </div>
           <div class="embedDescription-1Cuq9a embedMargin-UO5XwE" v-html="marked(embed?.description, true)"
-            v-if="embed?.description" />
+               v-if="embed?.description" />
           <div class="embedFields-2IPs5Z">
             <div class="embedField-1v-Pnh" :style="'grid-column: ' +
               (field.inline ? (field.odd ? '7 / 13' : '1 / 7') : '1 / 13')
-              " v-for="field in embed?.fields" v-bind:key="field">
+            " v-for="field in embed?.fields" v-bind:key="field">
               <div class="embedFieldName-NFrena">
                 <span class="emojiContainer-3X8SvE" tabindex="0" v-html="marked(field.name, true)" />
               </div>
@@ -61,16 +61,16 @@
             </div>
           </div>
           <div class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY clickable-3Ya1ho embedWrapper-lXpS3L embedMedia-1guQoW embedImage-2W1cML"
-            tabindex="0" href="#" rel="noreferrer noopener" v-if="embed?.image?.url"><img
-              aria-hidden="true" alt="Embed image" :src="formatText(embed?.image?.url)" /></div>
+               tabindex="0" href="#" rel="noreferrer noopener" v-if="embed?.image?.url"><img
+                 aria-hidden="true" alt="Embed image" :src="formatText(embed?.image?.url)" /></div>
           <div class="anchor-3Z-8Bb anchorUnderlineOnHover-2ESHQB imageWrapper-2p5ogY clickable-3Ya1ho embedThumbnail-2Y84-K"
-            tabindex="0" href="#" rel="noreferrer noopener" style="width: 80px; height: 80px"
-            v-if="embed?.thumbnail?.url"><img aria-hidden="true" alt="Embed thumbnail" :src="formatText(embed?.thumbnail?.url)"
-              style="width: 80px; height: 80px" /></div>
+               tabindex="0" href="#" rel="noreferrer noopener" style="width: 80px; height: 80px"
+               v-if="embed?.thumbnail?.url"><img aria-hidden="true" alt="Embed thumbnail" :src="formatText(embed?.thumbnail?.url)"
+                                                 style="width: 80px; height: 80px" /></div>
           <div class="embedFooter-3yVop- embedMargin-UO5XwE">
             <img class="embedFooterIcon-3klTIQ" :src="formatText(embed?.footer?.icon_url)" v-if="embed?.footer?.icon_url" />
             <span class="embedFooterText-28V_Wb">{{ formatText(embed?.footer?.text) }}<span class="embedFooterSeparator-3klTIQ" v-if="embed?.footer?.text && showTimestamp">•</span><span
-                v-if="showTimestamp">{{ formatText(timestamp) }}</span></span>
+              v-if="showTimestamp">{{ formatText(timestamp) }}</span></span>
           </div>
         </div>
       </div>
@@ -91,9 +91,9 @@
           'background-color': (
             button?.style === 1 ? '#5865F2' :
             (button?.style === 3 ? '#43B581' :
-            (button?.style === 4 ? '#F04747' : 
-            (button?.style === 5 ? '#34373C' : 
-            (button?.style === 6 ? '#333333' : '#4F545C'))))),
+              (button?.style === 4 ? '#F04747' : 
+                (button?.style === 5 ? '#34373C' : 
+                  (button?.style === 6 ? '#333333' : '#4F545C'))))),
         }">
           <span class="flex items-center gap-2">
             <img v-if="button.emoji" class="w-4 h-4" :src="getEmojiURL(button.emoji)" alt="button emoji" />

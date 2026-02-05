@@ -16,20 +16,20 @@
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Auto Deletion</div>
             <form-value title="Auto Delete Welcomer Messages" :type="FormTypeToggle"
-              v-model="config.config.auto_delete_welcome_messages" @update:modelValue="onValueUpdate"
-              :validation="v$.config.auto_delete_welcome_messages" :hide-border="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
+                        v-model="config.config.auto_delete_welcome_messages" @update:modelValue="onValueUpdate"
+                        :validation="v$.config.auto_delete_welcome_messages" :hide-border="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
             
             <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
 
               <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.config.welcome_message_lifetime"
-                @update:modelValue="onValueUpdate" :validation="v$.config.welcome_message_lifetime"
-                :hide-border="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a welcomer message
+                          @update:modelValue="onValueUpdate" :validation="v$.config.welcome_message_lifetime"
+                          :hide-border="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a welcomer message
                 is automatically deleted.</form-value>
 
               <form-value title="Auto Delete Welcomer Messages On Leave" :type="FormTypeToggle"
-                v-model="config.config.auto_delete_welcome_messages_on_leave" @update:modelValue="onValueUpdate"
-                :validation="v$.config.auto_delete_welcome_messages_on_leave"
-                :hide-border="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">When enabled, if a user leaves the server
+                          v-model="config.config.auto_delete_welcome_messages_on_leave" @update:modelValue="onValueUpdate"
+                          :validation="v$.config.auto_delete_welcome_messages_on_leave"
+                          :hide-border="true" :disabled="!config.config.auto_delete_welcome_messages || !$store.getters.guildHasWelcomerPro">When enabled, if a user leaves the server
                 their welcomer message will be deleted immediately.</form-value>
               <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
                 Auto deletion of welcome messages requires a Welcomer Pro subscription.
@@ -40,19 +40,19 @@
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer Text</div>
             <form-value title="Enable Welcomer Text" :type="FormTypeToggle" v-model="config.text.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.text.enabled">Welcome users when they join with a
+                        @update:modelValue="onValueUpdate" :validation="v$.text.enabled">Welcome users when they join with a
               custom
               message. This will
               wait until a user has completed borderwall or rule screening, if
               enabled.</form-value>
 
             <form-value title="Welcome Channel" :type="FormTypeChannelListCategories" v-model="config.text.channel"
-              @update:modelValue="onValueUpdate" :validation="v$.text.channel" :inlineSlot="true" :nullable="true"
-              :disabled="!config.text.enabled">This is the channel we will send welcome messages to.</form-value>
+                        @update:modelValue="onValueUpdate" :validation="v$.text.channel" :inlineSlot="true" :nullable="true"
+                        :disabled="!config.text.enabled">This is the channel we will send welcome messages to.</form-value>
 
             <form-value title="Welcome Text Message" :type="FormTypeEmbed" v-model="config.text.message_json"
-              @update:modelValue="onValueUpdate" :validation="v$.text.message_json" :inlineSlot="true"
-              :disabled="!config.text.enabled">This is the message users will receive when joining.
+                        @update:modelValue="onValueUpdate" :validation="v$.text.message_json" :inlineSlot="true"
+                        :disabled="!config.text.enabled">This is the message users will receive when joining.
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.
             </form-value>
@@ -60,7 +60,7 @@
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer Images</div>
             <form-value title="Enable Welcomer Images" :type="FormTypeToggle" v-model="config.images.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.images.enabled">Welcome users when they join with a
+                        @update:modelValue="onValueUpdate" :validation="v$.images.enabled">Welcome users when they join with a
               custom image. This will wait
               until a user has completed borderwall or rule screening, if
               enabled.</form-value>
@@ -71,9 +71,9 @@
                 <span>Basic configuration of styling options for your welcome image.</span>
               </button>
               <button :disabled="
-              !$store.getters.guildHasWelcomerPro &&
-              !$store.getters.guildHasCustomBackgrounds &&
-              !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" @click="config.images.use_custom_builder = true; onValueUpdate()" :class="[config.images.use_custom_builder ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4']">
+                !$store.getters.guildHasWelcomerPro &&
+                  !$store.getters.guildHasCustomBackgrounds &&
+                  !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" @click="config.images.use_custom_builder = true; onValueUpdate()" :class="[config.images.use_custom_builder ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4']">
                 <h2 class="font-bold text-lg">
                   <span class="px-2 py-1 bg-primary text-primary-content rounded-md text-xs font-bold">NEW</span>
                   Use Custom Image Builder
@@ -85,9 +85,9 @@
               </button>
             </div>
             <div v-if="
-            !$store.getters.guildHasWelcomerPro &&
-            !$store.getters.guildHasCustomBackgrounds &&
-            !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
+              !$store.getters.guildHasWelcomerPro &&
+                !$store.getters.guildHasCustomBackgrounds &&
+                !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
               Custom image builder requires a Welcomer Pro subscription or Custom Backgrounds enabled.
               <a href="/premium" class="underline">Learn more</a>
             </div>
@@ -95,68 +95,68 @@
 
           <div class="dashboard-inputs" v-if="!config.images.use_custom_builder">
             <form-value title="Image Theme" :type="FormTypeDropdown" :values="imageThemeTypes"
-              v-model="config.images.image_theme" @update:modelValue="onValueUpdate" :validation="v$.images.image_theme"
-              :inlineSlot="true" :disabled="!config.images.enabled">This is the theme that will be used for your welcome
+                        v-model="config.images.image_theme" @update:modelValue="onValueUpdate" :validation="v$.images.image_theme"
+                        :inlineSlot="true" :disabled="!config.images.enabled">This is the theme that will be used for your welcome
               image.
               <a target="_blank" href="/backgrounds" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the themes you can use.</form-value>
 
             <form-value title="Welcomer Image Background" :type="FormTypeBackground" v-model="config.images.background"
-              @update:modelValue="onValueUpdate" @update:files="onFilesUpdate" :validation="v$.images.background"
-              :files="files" :inlineSlot="true" :customImages="config.custom?.custom_ids"
-              :disabled="!config.images.enabled">This is the background that will be used in your welcome
+                        @update:modelValue="onValueUpdate" @update:files="onFilesUpdate" :validation="v$.images.background"
+                        :files="files" :inlineSlot="true" :customImages="config.custom?.custom_ids"
+                        :disabled="!config.images.enabled">This is the background that will be used in your welcome
               image.</form-value>
 
             <form-value title="Welcomer Image Message" :type="FormTypeTextArea" v-model="config.images.message"
-              @update:modelValue="onValueUpdate" :validation="v$.images.message" :inlineSlot="true"
-              :disabled="!config.images.enabled">This is the custom message that will be included in the welcome
+                        @update:modelValue="onValueUpdate" :validation="v$.images.message" :inlineSlot="true"
+                        :disabled="!config.images.enabled">This is the custom message that will be included in the welcome
               image.
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom
               text.</form-value>
 
             <form-value title="Image Text Alignment" :type="FormTypeDropdown" :values="imageAlignmentTypes"
-              v-model="config.images.image_alignment" @update:modelValue="onValueUpdate"
-              :validation="v$.images.image_alignment" :inlineSlot="true" :disabled="!config.images.enabled">This is the
+                        v-model="config.images.image_alignment" @update:modelValue="onValueUpdate"
+                        :validation="v$.images.image_alignment" :inlineSlot="true" :disabled="!config.images.enabled">This is the
               alignment of text in your welcome image.</form-value>
 
             <form-value title="Image Text Colour" :type="FormTypeColour" v-model="config.images.text_colour"
-              @update:modelValue="onValueUpdate" :validation="v$.images.text_colour" :inlineSlot="true"
-              :disabled="!config.images.enabled">This is the colour of the text in your welcome image.</form-value>
+                        @update:modelValue="onValueUpdate" :validation="v$.images.text_colour" :inlineSlot="true"
+                        :disabled="!config.images.enabled">This is the colour of the text in your welcome image.</form-value>
             <form-value title="Image Text Border Colour" :type="FormTypeColour"
-              v-model="config.images.text_colour_border" @update:modelValue="onValueUpdate"
-              :validation="v$.images.text_colour_border" :inlineSlot="true" :disabled="!config.images.enabled">This is
+                        v-model="config.images.text_colour_border" @update:modelValue="onValueUpdate"
+                        :validation="v$.images.text_colour_border" :inlineSlot="true" :disabled="!config.images.enabled">This is
               the colour of the text border in your welcome
               image.</form-value>
           </div>
 
           <div class="dashboard-inputs" v-if="!config.images.use_custom_builder">
             <form-value title="Show User Avatars" :type="FormTypeToggle" v-model="config.images.show_avatar"
-              @update:modelValue="onValueUpdate" :validation="v$.images.show_avatar">When enabled, shows user avatars
+                        @update:modelValue="onValueUpdate" :validation="v$.images.show_avatar">When enabled, shows user avatars
               in Welcome images.</form-value>
 
             <form-value title="Image Profile Border Type" :type="FormTypeDropdown" :values="profileBorderTypes"
-              v-model="config.images.profile_border_type" @update:modelValue="onValueUpdate"
-              :validation="v$.images.profile_border_type" :inlineSlot="true">This is the way the profile border shows on
+                        v-model="config.images.profile_border_type" @update:modelValue="onValueUpdate"
+                        :validation="v$.images.profile_border_type" :inlineSlot="true">This is the way the profile border shows on
               your welcome
               image.</form-value>
 
             <form-value title="Image Profile Border Colour" :type="FormTypeColour"
-              v-model="config.images.profile_border_colour" @update:modelValue="onValueUpdate"
-              :validation="v$.images.profile_border_colour" :inlineSlot="true">This is the colour of the border around
+                        v-model="config.images.profile_border_colour" @update:modelValue="onValueUpdate"
+                        :validation="v$.images.profile_border_colour" :inlineSlot="true">This is the colour of the border around
               profile borders in your
               welcome image.</form-value>
           </div>
 
           <div class="dashboard-inputs" v-if="!config.images.use_custom_builder">
             <form-value title="Enable Image Border" :type="FormTypeToggle" v-model="config.images.enable_border"
-              @update:modelValue="onValueUpdate" :validation="v$.images.enable_border">This allows you to add a border
+                        @update:modelValue="onValueUpdate" :validation="v$.images.enable_border">This allows you to add a border
               around your welcome
               images.</form-value>
 
             <form-value title="Image Border Colour" :type="FormTypeColour" v-model="config.images.border_colour"
-              :disabled="!config.images.enable_border" @update:modelValue="onValueUpdate"
-              :validation="v$.images.border_colour" :inlineSlot="true">This is the colour of the border around your
+                        :disabled="!config.images.enable_border" @update:modelValue="onValueUpdate"
+                        :validation="v$.images.border_colour" :inlineSlot="true">This is the colour of the border around your
               welcome images, if
               enabled.</form-value>
           </div>
@@ -164,7 +164,7 @@
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer DMs</div>
             <form-value title="Enable Welcome DMs" :type="FormTypeToggle" v-model="config.dms.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.dms.enabled">Welcome users when they join with a custom
+                        @update:modelValue="onValueUpdate" :validation="v$.dms.enabled">Welcome users when they join with a custom
               message, in their
               direct messages. This will wait until a user has completed
               borderwall or rule screening, if enabled.</form-value>
@@ -177,14 +177,14 @@
             -->
 
             <form-value title="Use Same Message As Welcome Text" v-model="config.dms.reuse_message"
-              :type="FormTypeToggle" @update:modelValue="onValueUpdate" :validation="v$.dms.reuse_message"
-              :inlineSlot="true">This will copy the
+                        :type="FormTypeToggle" @update:modelValue="onValueUpdate" :validation="v$.dms.reuse_message"
+                        :inlineSlot="true">This will copy the
               same message as your welcomer text message,
               instead of using a separate message.</form-value>
 
             <form-value title="Welcome DM Message" :type="FormTypeEmbed" :disabled="config.dms.reuse_message"
-              v-model="config.dms.message_json" @update:modelValue="onValueUpdate" :validation="v$.dms.message_json"
-              :inlineSlot="true" :hide-border="true">This is the message users will receive in direct messages when
+                        v-model="config.dms.message_json" @update:modelValue="onValueUpdate" :validation="v$.dms.message_json"
+                        :inlineSlot="true" :hide-border="true">This is the message users will receive in direct messages when
               joining.
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.
@@ -192,7 +192,7 @@
           </div>
 
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-            v-on:save="saveConfig"></unsaved-changes>
+                           v-on:save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -205,6 +205,10 @@ import { computed, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeToggle,
   FormTypeChannelListCategories,
@@ -216,15 +220,8 @@ import {
   FormTypeBackground,
   FormTypeDuration,
 } from "@/components/dashboard/FormValueEnum";
-
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import dashboardAPI from "@/api/dashboard";
-import endpoints from "@/api/endpoints";
-
 import {
   getErrorToast,
   getSuccessToast,
@@ -232,7 +229,6 @@ import {
   navigateToErrors,
   isValidJson,
 } from "@/utilities";
-import { DocumentAddIcon } from "@heroicons/vue/solid";
 
 var imageAlignmentTypes = [
   { key: "Left", value: "left" },

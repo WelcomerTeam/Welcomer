@@ -8,7 +8,7 @@
       'border p-4 rounded-md flex shadow-sm text-left',
     ]">
       <discord-embed class="flex-1" :embeds="parseDict(modelValue).embeds" :content="parseDict(modelValue).content"
-        :isLight="true" :isBot="true" />
+                     :isLight="true" :isBot="true" />
 
       <div class="flex items-end">
         <div class="relative">
@@ -32,7 +32,7 @@
       </div>
     </div>
     <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-      leave-to-class="opacity-0">
+                leave-to-class="opacity-0">
       <PopoverPanel
         class="block w-full overflow-auto text-base bg-white dark:bg-secondary rounded-md shadow-sm sm:text-sm rounded-t-none border-t-0">
         <div class="border-gray-300 dark:border-secondary-light rounded-md border shadow-sm rounded-t-none border-t-0">
@@ -62,8 +62,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text" :isTextarea="true"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Message Content" rows="4" :value="content" @update:modelValue="content = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Message Content" rows="4" :value="content" @update:modelValue="content = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -76,21 +76,21 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Title" :value="title" @update:modelValue="title = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Embed Title" :value="title" @update:modelValue="title = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
                 <!-- URL -->
                 <div v-if="this.isExpanded"
-                  class="sm:grid sm:grid-cols-10 sm:gap-2 sm:items-start sm:border-gray-300 mb-4 sm:mb-0">
+                     class="sm:grid sm:grid-cols-10 sm:gap-2 sm:items-start sm:border-gray-300 mb-4 sm:mb-0">
                   <div class="block font-semibold text-gray-700 sm:col-span-3 sm:text-right leading-none">
                     <span class="embed-builder-title">Embed Title URL</span>
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Title URL" :value="url" @update:modelValue="url = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Embed Title URL" :value="url" @update:modelValue="url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -101,8 +101,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text" :isTextarea="true"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Description" :value="description" @update:modelValue="description = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Embed Description" :value="description" @update:modelValue="description = $event" @input="updateEmbed()" />
                   </div>
                 </div>
                 <!-- Colour -->
@@ -112,9 +112,9 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7 flex items-center">
                     <input id="useColour" aria-describedby="Use custom embed colour" name="Use Custom Embed Colour"
-                      type="checkbox" :true-value="true" :false-value="false"
-                      class="focus:ring-primary h-4 w-4 text-primary border-gray-300 dark:bg-secondary-dark dark:border-secondary-light rounded mr-2"
-                      v-model="use_color" @change="updateEmbed()" />
+                           type="checkbox" :true-value="true" :false-value="false"
+                           class="focus:ring-primary h-4 w-4 text-primary border-gray-300 dark:bg-secondary-dark dark:border-secondary-light rounded mr-2"
+                           v-model="use_color" @change="updateEmbed()" />
                     <Listbox as="div" class="flex-1">
                       <div class="relative">
                         <ListboxButton
@@ -133,10 +133,10 @@
                         </ListboxButton>
 
                         <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                          leave-to-class="opacity-0">
+                                    leave-to-class="opacity-0">
                           <ListboxOptions class="absolute z-10 mt-1">
                             <ColorPicker theme="dark" :color="RGBIntToRGB(color, 2450411)"
-                              @changeColor="SetColorRGBIntToRGB" :sucker-hide="true" />
+                                         @changeColor="SetColorRGBIntToRGB" :sucker-hide="true" />
                           </ListboxOptions>
                         </transition>
                       </div>
@@ -154,24 +154,24 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7 space-y-2">
                     <div class="p-3 border rounded-md border-gray-300 dark:border-secondary-light shadow-sm space-y-2"
-                      :key="index" v-for="(field, index) in fields">
+                         :key="index" v-for="(field, index) in fields">
                       <AutocompleteInput type="text"
-                        class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                        placeholder="Field Name" :value="field.name" @update:modelValue="field.name = $event" @input="updateEmbed()" />
+                                         class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                         placeholder="Field Name" :value="field.name" @update:modelValue="field.name = $event" @input="updateEmbed()" />
                       <AutocompleteInput type="text"
-                        class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                        placeholder="Field Value" :value="field.value" @update:modelValue="field.value = $event" @input="updateEmbed()" />
+                                         class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                         placeholder="Field Value" :value="field.value" @update:modelValue="field.value = $event" @input="updateEmbed()" />
                       <div class="flex items-center">
                         <div class="flex-1">
                           <input id="useInline" aria-describedby="Show embed field inline" name="Use Inline"
-                            type="checkbox" :true-value="true" :false-value="false"
-                            class="focus:ring-primary h-4 w-4 text-primary border-gray-300 dark:bg-secondary-dark dark:border-secondary-light rounded"
-                            v-model="field.inline" @change="updateEmbed()" />
+                                 type="checkbox" :true-value="true" :false-value="false"
+                                 class="focus:ring-primary h-4 w-4 text-primary border-gray-300 dark:bg-secondary-dark dark:border-secondary-light rounded"
+                                 v-model="field.inline" @change="updateEmbed()" />
                           <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-50 shadow-sm">Inline</span>
                         </div>
                         <button type="button"
-                          class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                          @click="removeField(index)">
+                                class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                @click="removeField(index)">
                           <font-awesome-icon icon="close" />
                           <span class="sr-only">Remove field {{ field.name }}</span>
                         </button>
@@ -192,8 +192,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Embed Image URL" :value="image_url" @update:modelValue="image_url = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Embed Image URL" :value="image_url" @update:modelValue="image_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -204,8 +204,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Thumbnail Image URL" :value="thumbnail_url" @update:modelValue="thumbnail_url = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Thumbnail Image URL" :value="thumbnail_url" @update:modelValue="thumbnail_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -218,8 +218,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Footer Text" :value="footer_text" @update:modelValue="footer_text = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Footer Text" :value="footer_text" @update:modelValue="footer_text = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -230,8 +230,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Footer Icon URL" :value="footer_icon" @update:modelValue="footer_icon = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Footer Icon URL" :value="footer_icon" @update:modelValue="footer_icon = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -244,8 +244,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Author Name" :value="author_name" @update:modelValue="author_name = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Author Name" :value="author_name" @update:modelValue="author_name = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -256,8 +256,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Author URL" :value="author_url" @update:modelValue="author_url = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Author URL" :value="author_url" @update:modelValue="author_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
 
@@ -268,8 +268,8 @@
                   </div>
                   <div class="mt-1 sm:mt-0 sm:col-span-7">
                     <AutocompleteInput type="text"
-                      class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Author Icon URL" :value="author_icon_url" @update:modelValue="author_icon_url = $event" @input="updateEmbed()" />
+                                       class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                       placeholder="Author Icon URL" :value="author_icon_url" @update:modelValue="author_icon_url = $event" @input="updateEmbed()" />
                   </div>
                 </div>
               </div>
@@ -291,7 +291,7 @@
             <div class="px-4 lg:px-8" v-if="this.page == 2">
               <!-- Embed Code -->
               <CodeEditor :modelValue="modelValue" @update:modelValue="updateValue($event)"
-                :languages="[['json', 'JSON']]" :wrap_code="true" width="100%" />
+                          :languages="[['json', 'JSON']]" :wrap_code="true" width="100%" />
             </div>
           </div>
         </div>
@@ -307,9 +307,6 @@
 </style>
 
 <script>
-import LoadingIcon from "@/components/LoadingIcon.vue";
-import CodeEditor from "@/components/simple-code-editor/CodeEditor.vue";
-
 import {
   Listbox,
   ListboxButton,
@@ -323,12 +320,17 @@ import {
   PopoverButton,
   PopoverPanel,
 } from "@headlessui/vue";
-import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { XIcon } from "@heroicons/vue/outline";
-
+import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { ColorPicker } from "vue-color-kit";
+
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import CodeEditor from "@/components/simple-code-editor/CodeEditor.vue";
+
+
 import "vue-color-kit/dist/vue-color-kit.css";
 import { ref } from "vue";
+
 import DiscordEmbed from "@/components/DiscordEmbed.vue";
 import AutocompleteInput from "@/components/AutocompleteInput.vue";
 

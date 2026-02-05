@@ -15,28 +15,28 @@
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
             <form-value title="Enable TempChannels" :type="FormTypeToggle" v-model="config.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.enabled">Allow users to create their own temporary voice
+                        @update:modelValue="onValueUpdate" :validation="v$.enabled">Allow users to create their own temporary voice
               channels in a category of your choice.</form-value>
 
             <form-value title="TempChannels Category" :type="FormTypeChannelList" v-model="config.channel_category"
-              @update:modelValue="onValueUpdate" :validation="v$.channel_category" :inlineSlot="true" :nullable="true"
-              :channelFilter="4">This is the category temporary channels will be created
+                        @update:modelValue="onValueUpdate" :validation="v$.channel_category" :inlineSlot="true" :nullable="true"
+                        :channelFilter="4">This is the category temporary channels will be created
               in.</form-value>
 
             <form-value title="Enable AutoPurge" :type="FormTypeToggle" v-model="config.autopurge"
-              @update:modelValue="onValueUpdate" :validation="v$.autopurge">When enabled, empty temporary channels will be
+                        @update:modelValue="onValueUpdate" :validation="v$.autopurge">When enabled, empty temporary channels will be
               automatically removed. When disabled, empty temporary channels will be repurposed for the next user instead
               of creating a new channel.</form-value>
 
             <form-value title="Lobby Channel" :type="FormTypeChannelList" v-model="config.channel_lobby"
-              @update:modelValue="onValueUpdate" :validation="v$.channel_lobby" :inlineSlot="true" :nullable="true"
-              :channelFilter="2">If a lobby channel is set, users will be able to join the
+                        @update:modelValue="onValueUpdate" :validation="v$.channel_lobby" :inlineSlot="true" :nullable="true"
+                        :channelFilter="2">If a lobby channel is set, users will be able to join the
               lobby channel and get automatically moved to a temporary channel without having to run a
               command.</form-value>
 
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-            @save="saveConfig"></unsaved-changes>
+                           @save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -49,20 +49,17 @@ import { computed, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeBlank,
   FormTypeToggle,
   FormTypeChannelList,
 } from "@/components/dashboard/FormValueEnum";
-
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import dashboardAPI from "@/api/dashboard";
-import endpoints from "@/api/endpoints";
-
 import {
   getErrorToast,
   getSuccessToast,

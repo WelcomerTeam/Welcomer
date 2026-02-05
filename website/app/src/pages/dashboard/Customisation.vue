@@ -14,118 +14,120 @@
         </div>
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
-              <!-- Premium Lock Message -->
-              <div v-if="!$store.getters.guildHasWelcomerPro" class="mb-4">
-                <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit">
-                  <h3 class="text-2xl font-bold sm:text-3xl">
-                    You've found a premium feature!
-                  </h3>
-                  <p class="mt-4 text-sm leading-6">Upgrade to Welcomer Pro to customize your bot's appearance on this server.</p>
+            <!-- Premium Lock Message -->
+            <div v-if="!$store.getters.guildHasWelcomerPro" class="mb-4">
+              <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit">
+                <h3 class="text-2xl font-bold sm:text-3xl">
+                  You've found a premium feature!
+                </h3>
+                <p class="mt-4 text-sm leading-6">Upgrade to Welcomer Pro to customize your bot's appearance on this server.</p>
 
-                  <a href="/premium" target="_blank" type="button" class="bg-white hover:bg-gray-200 flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full">
-                    Learn More
-                  </a>
-                </div>
+                <a href="/premium" target="_blank" type="button" class="bg-white hover:bg-gray-200 flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full">
+                  Learn More
+                </a>
               </div>
-
-              <!-- Avatar Section -->
-              <div class="mb-8">
-                <div class="dashboard-heading">Avatar</div>
-                <div class="flex items-center space-x-4 mb-4">
-                  <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-secondary-light flex items-center justify-center">
-                    <img v-if="config.avatarPreview" :src="config.avatarPreview" alt="Avatar preview" class="w-full h-full object-cover" />
-                    <span v-else class="text-gray-500">No avatar</span>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">The recommended size is 512x512 pixels, max 5MB</p>
-                    <input
-                      ref="avatarInput"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      @change="onAvatarSelect"
-                      class="hidden" />
-                    <button
-                      @click="$refs.avatarInput.click()"
-                      :disabled="!$store.getters.guildHasWelcomerPro"
-                      class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                      Upload Avatar
-                    </button>
-                    <button
-                      v-if="config.avatar || config.avatarPreview"
-                      @click="clearAvatar"
-                      :disabled="!$store.getters.guildHasWelcomerPro"
-                      class="ml-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Banner Section -->
-              <div class="mb-8">
-                <div class="dashboard-heading">Banner</div>
-                <div class="flex flex-col space-y-4 mb-4">
-                  <div class="w-full max-w-7xl rounded-lg overflow-hidden bg-gray-200 dark:bg-secondary-light flex items-center justify-center">
-                    <div v-if="config.bannerPreview" class="w-full aspect-[17/6]">
-                      <img :src="config.bannerPreview" alt="Banner preview" class="w-full h-full object-cover" />
-                    </div>
-                    <span v-else class="text-gray-500">No banner</span>
-                  </div>
-                  <div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">The recommended size is 1024x256 pixels, max 10MB</p>
-                    <input
-                      ref="bannerInput"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      @change="onBannerSelect"
-                      class="hidden" />
-                    <button
-                      @click="$refs.bannerInput.click()"
-                      :disabled="!$store.getters.guildHasWelcomerPro"
-                      class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                      Upload Banner
-                    </button>
-                    <button
-                      v-if="config.banner || config.bannerPreview"
-                      @click="clearBanner"
-                      :disabled="!$store.getters.guildHasWelcomerPro"
-                      class="ml-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Nickname Section -->
-              <form-value title="Bot Nickname" :type="FormTypeText" v-model="config.nickname"
-                @update:modelValue="onValueUpdate" :validation="v$.nickname" :disabled="!$store.getters.guildHasWelcomerPro">Set a custom nickname for your bot.</form-value>
-
-              <!-- Bio Section -->
-              <form-value title="Bot Bio" :type="FormTypeTextArea" v-model="config.bio"
-                @update:modelValue="onValueUpdate" :validation="v$.bio" :disabled="!$store.getters.guildHasWelcomerPro">Set a custom bio for your bot.</form-value>
-
-              <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-                v-on:save="saveConfig"></unsaved-changes>
             </div>
+
+            <!-- Avatar Section -->
+            <div class="mb-8">
+              <div class="dashboard-heading">Avatar</div>
+              <div class="flex items-center space-x-4 mb-4">
+                <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-secondary-light flex items-center justify-center">
+                  <img v-if="config.avatarPreview" :src="config.avatarPreview" alt="Avatar preview" class="w-full h-full object-cover" />
+                  <span v-else class="text-gray-500">No avatar</span>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">The recommended size is 512x512 pixels, max 5MB</p>
+                  <input
+                    ref="avatarInput"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    @change="onAvatarSelect"
+                    class="hidden" />
+                  <button
+                    @click="$refs.avatarInput.click()"
+                    :disabled="!$store.getters.guildHasWelcomerPro"
+                    class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Upload Avatar
+                  </button>
+                  <button
+                    v-if="config.avatar || config.avatarPreview"
+                    @click="clearAvatar"
+                    :disabled="!$store.getters.guildHasWelcomerPro"
+                    class="ml-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Banner Section -->
+            <div class="mb-8">
+              <div class="dashboard-heading">Banner</div>
+              <div class="flex flex-col space-y-4 mb-4">
+                <div class="w-full max-w-7xl rounded-lg overflow-hidden bg-gray-200 dark:bg-secondary-light flex items-center justify-center">
+                  <div v-if="config.bannerPreview" class="w-full aspect-[17/6]">
+                    <img :src="config.bannerPreview" alt="Banner preview" class="w-full h-full object-cover" />
+                  </div>
+                  <span v-else class="text-gray-500">No banner</span>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">The recommended size is 1024x256 pixels, max 10MB</p>
+                  <input
+                    ref="bannerInput"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    @change="onBannerSelect"
+                    class="hidden" />
+                  <button
+                    @click="$refs.bannerInput.click()"
+                    :disabled="!$store.getters.guildHasWelcomerPro"
+                    class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Upload Banner
+                  </button>
+                  <button
+                    v-if="config.banner || config.bannerPreview"
+                    @click="clearBanner"
+                    :disabled="!$store.getters.guildHasWelcomerPro"
+                    class="ml-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nickname Section -->
+            <form-value title="Bot Nickname" :type="FormTypeText" v-model="config.nickname"
+                        @update:modelValue="onValueUpdate" :validation="v$.nickname" :disabled="!$store.getters.guildHasWelcomerPro">Set a custom nickname for your bot.</form-value>
+
+            <!-- Bio Section -->
+            <form-value title="Bot Bio" :type="FormTypeTextArea" v-model="config.bio"
+                        @update:modelValue="onValueUpdate" :validation="v$.bio" :disabled="!$store.getters.guildHasWelcomerPro">Set a custom bio for your bot.</form-value>
+
+            <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
+                             v-on:save="saveConfig"></unsaved-changes>
           </div>
         </div>
       </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { computed, ref } from "vue";
+
 import useVuelidate from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
-import { computed, ref } from "vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
+
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
 import FormValue from "@/components/dashboard/FormValue.vue";
-import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import {
   FormTypeText,
   FormTypeTextArea,
 } from "@/components/dashboard/FormValueEnum";
-import dashboardAPI from "@/api/dashboard";
-import endpoints from "@/api/endpoints";
+import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
 import { getErrorToast, getSuccessToast, getValidationToast, navigateToErrors } from "@/utilities";
 
 export default {

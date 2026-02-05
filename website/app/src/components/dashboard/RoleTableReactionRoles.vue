@@ -14,7 +14,7 @@
             } : {}" />
             <div v-if="
               ($store.getters.getGuildRoleById(reaction_role.role_id)?.is_elevated && $store.getters.getGuildRoleById(reaction_role.role_id)?.is_assignable) ||
-              !$store.getters.getGuildRoleById(reaction_role.role_id)?.is_assignable" class="inline" title="This role is elevated or not assignable">
+                !$store.getters.getGuildRoleById(reaction_role.role_id)?.is_assignable" class="inline" title="This role is elevated or not assignable">
               <font-awesome-icon icon="exclamation-triangle" class="text-red-500 w-4 h-4 mr-1" />
             </div>
             {{ $store.getters.getGuildRoleById(reaction_role.role_id)?.name }}
@@ -71,6 +71,8 @@
 </template>
 
 <script>
+import { ref, computed } from "vue";
+
 import {
   Listbox,
   ListboxButton,
@@ -80,23 +82,20 @@ import {
   PopoverButton,
   PopoverPanel,
 } from "@headlessui/vue";
-
-import DiscordEmojiPicker from "@/components/DiscordEmojiPicker.vue";
-
-import { ref, computed } from "vue";
-
+import { XIcon } from "@heroicons/vue/outline";
+import { CheckIcon, ChevronDownIcon, SelectorIcon } from "@heroicons/vue/solid";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required, requiredIf } from "@vuelidate/validators";
 
-import { CheckIcon, ChevronDownIcon, SelectorIcon } from "@heroicons/vue/solid";
-import { XIcon } from "@heroicons/vue/outline";
+import DiscordEmojiPicker from "@/components/DiscordEmojiPicker.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import { getHexColor, getValidationToast, navigateToErrors } from "@/utilities";
+
 import EmbedBuilder from "./EmbedBuilder.vue";
 import FormValue from "./FormValue.vue";
 import { FormTypeBlank, FormTypeRoleList, FormTypeText } from "./FormValueEnum";
 import UnsavedChanges from "./UnsavedChanges.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
 
-import { getHexColor, getRolePermissionListAsString, getValidationToast, navigateToErrors } from "@/utilities";
 
 export default {
   props: {

@@ -15,17 +15,17 @@
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
             <form-value title="Enable AutoRole" :type="FormTypeToggle" v-model="config.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.enabled">Automatically give users roles when they join
+                        @update:modelValue="onValueUpdate" :validation="v$.enabled">Automatically give users roles when they join
               your
               server.</form-value>
 
             <form-value title="Roles" :type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
               <role-table :roles="$store.getters.getAssignableGuildRoles" :selectedRoles="config.roles"
-                @removeRole="onRemoveRole" @selectRole="onSelectRole"></role-table>
+                          @removeRole="onRemoveRole" @selectRole="onSelectRole"></role-table>
             </form-value>
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-            @save="saveConfig"></unsaved-changes>
+                           @save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -38,20 +38,17 @@ import { computed, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeBlank,
   FormTypeToggle,
 } from "@/components/dashboard/FormValueEnum";
-
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
 import RoleTable from "@/components/dashboard/RoleTable.vue";
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import endpoints from "@/api/endpoints";
-import dashboardAPI from "@/api/dashboard";
-
 import {
   getErrorToast,
   getSuccessToast,

@@ -64,14 +64,12 @@
 <script>
 import { ref } from "vue";
 
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
-import Toast from "@/components/dashboard/Toast.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import { getErrorToast } from "@/utilities";
-
 import dashboardAPI from "@/api/dashboard";
+import Toast from "@/components/dashboard/Toast.vue";
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import { getErrorToast } from "@/utilities";
 
 export default {
   components: {
@@ -111,7 +109,7 @@ export default {
           if (!document.hasFocus()) {
             return
           }
-        } catch (e) {
+        } catch {
           return
         }
       }

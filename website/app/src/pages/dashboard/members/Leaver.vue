@@ -16,13 +16,13 @@
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Auto Deletion</div>
             <form-value title="Auto Delete Leaver Messages" :type="FormTypeToggle"
-              v-model="config.auto_delete_leaver_messages" @update:modelValue="onValueUpdate"
-              :validation="v$.auto_delete_leaver_messages" :hide-border="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
+                        v-model="config.auto_delete_leaver_messages" @update:modelValue="onValueUpdate"
+                        :validation="v$.auto_delete_leaver_messages" :hide-border="true" :disabled="!$store.getters.guildHasWelcomerPro"></form-value>
             
             <div class="pl-8 border-b border-gray-300 dark:border-secondary-light">
               <form-value title="Message Lifetime" :type="FormTypeDuration" v-model="config.leaver_message_lifetime"
-                @update:modelValue="onValueUpdate" :validation="v$.leaver_message_lifetime"
-                :hide-border="true" :disabled="!config.auto_delete_leaver_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a leaver message
+                          @update:modelValue="onValueUpdate" :validation="v$.leaver_message_lifetime"
+                          :hide-border="true" :disabled="!config.auto_delete_leaver_messages || !$store.getters.guildHasWelcomerPro">This is the duration before a leaver message
                 is automatically deleted.</form-value>
               <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50 mb-4">
                 Auto deletion of leaver messages requires a Welcomer Pro subscription.
@@ -32,22 +32,22 @@
           </div>
           <div class="dashboard-inputs">
             <form-value title="Enable Leaver" :type="FormTypeToggle" v-model="config.enabled"
-              @update:modelValue="onValueUpdate" :validation="v$.enabled">Send messages in a channel when users leave your
+                        @update:modelValue="onValueUpdate" :validation="v$.enabled">Send messages in a channel when users leave your
               server.</form-value>
 
             <form-value title="Leaver Channel" :type="FormTypeChannelListCategories" v-model="config.channel"
-              @update:modelValue="onValueUpdate" :validation="v$.channel" :inlineSlot="true" :nullable="true">This is the
+                        @update:modelValue="onValueUpdate" :validation="v$.channel" :inlineSlot="true" :nullable="true">This is the
               channel we will send leaver messages to.</form-value>
 
             <form-value title="Leaver Message" :type="FormTypeEmbed" v-model="config.message_json"
-              @update:modelValue="onValueUpdate" :validation="v$.message_json" :inlineSlot="true">This is the message that
+                        @update:modelValue="onValueUpdate" :validation="v$.message_json" :inlineSlot="true">This is the message that
               will be sent when users leave.
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.
             </form-value>
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-            @save="saveConfig"></unsaved-changes>
+                           @save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -60,6 +60,10 @@ import { computed, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeBlank,
   FormTypeToggle,
@@ -67,15 +71,8 @@ import {
   FormTypeEmbed,
   FormTypeDuration,
 } from "@/components/dashboard/FormValueEnum";
-
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import dashboardAPI from "@/api/dashboard";
-import endpoints from "@/api/endpoints";
-
 import {
   getErrorToast,
   getSuccessToast,

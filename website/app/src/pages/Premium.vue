@@ -45,24 +45,24 @@
                 <p class="relative">
                   <span class="flex flex-col text-center" v-if="isDataFetched">
                     <span class="text-5xl font-bold text-white">from {{ formatCurrency(this.currency,
-                      this.getFromPrice()) }}</span>
+                                                                                       this.getFromPrice()) }}</span>
                     <span class="mt-2 text-base font-medium text-gray-100">per month</span>
                   </span>
                 </p>
               </div>
               <ul class="grid gap-0.5 rounded sm:grid-cols-2">
                 <li v-for="item in checklist" :key="item"
-                  class="flex items-center px-4 py-4 space-x-3 text-base text-white bg-opacity-50">
+                    class="flex items-center px-4 py-4 space-x-3 text-base text-white bg-opacity-50">
                   <CheckIcon class="w-6 h-6 text-white" aria-hidden="true" />
                   <span>{{ item }}</span>
                 </li>
               </ul>
               <a href="#plans"
-                class="flex items-center justify-center w-full px-8 py-4 text-lg font-medium leading-6 bg-white border border-transparent rounded-md text-primary hover:text-primary-dark hover:bg-gray-200 md:px-10">
+                 class="flex items-center justify-center w-full px-8 py-4 text-lg font-medium leading-6 bg-white border border-transparent rounded-md text-primary hover:text-primary-dark hover:bg-gray-200 md:px-10">
                 Get Welcomer Pro
               </a>
               <a href="#custom-backgrounds"
-                class="block text-base font-medium text-center text-white hover:text-gray-300">
+                 class="block text-base font-medium text-center text-white hover:text-gray-300">
                 Get Custom Backgrounds Only
               </a>
             </div>
@@ -93,7 +93,7 @@
                   ]">
                     Monthly
                     <span v-if="isMonthlyRecurring"
-                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                          class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
                       Recurring
                     </span>
                   </button>
@@ -126,7 +126,7 @@
                 </div>
                 <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
                   <a href="https://discord.com/discovery/applications/330416853971107840/store/1192217547316142130"
-                    target="_blank">
+                     target="_blank">
                     <button type="button" :class="[
                       'ml-0.5',
                       'border-transparent text-white bg-[#5865f2]',
@@ -146,17 +146,17 @@
                 </MenuButton>
 
                 <transition :show="open" enter-active-class="transition ease-out duration-100"
-                  enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
-                  leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100"
-                  leave-to-class="transform opacity-0 scale-95">
+                            enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
+                            leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100"
+                            leave-to-class="transform opacity-0 scale-95">
                   <MenuItems
                     class="absolute right-0 z-10 mt-2 w-24 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div class="py-1">
                       <MenuItem v-for="currency in currencies" :key="currency" as="template" v-slot="{ active }">
-                      <div @click="selectCurrency(currency)"
-                        :class="[(active || this.currency === currency) ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm cursor-pointer']">
-                        {{ getCurrencySymbol(currency) + ' – ' + currency }}
-                      </div>
+                        <div @click="selectCurrency(currency)"
+                             :class="[(active || this.currency === currency) ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm cursor-pointer']">
+                          {{ getCurrencySymbol(currency) + ' – ' + currency }}
+                        </div>
                       </MenuItem>
                     </div>
                   </MenuItems>
@@ -175,8 +175,8 @@
                 </p>
 
                 <router-link :to="{ name: 'invite' }"><button type="button"
-                    class="border-gray-300 hover:bg-gray-300 text-gray-900 border flex items-center justify-center px-5 py-3 mt-8 text-base font-medium rounded-md cursor-pointer w-full">Invite
-                    Welcomer</button></router-link>
+                                                              class="border-gray-300 hover:bg-gray-300 text-gray-900 border flex items-center justify-center px-5 py-3 mt-8 text-base font-medium rounded-md cursor-pointer w-full">Invite
+                  Welcomer</button></router-link>
               </div>
               <div class="-order-1">
                 <div class="border-primary bg-primary text-white border p-6 lg:p-12 rounded-lg shadow-sm h-fit">
@@ -187,17 +187,17 @@
                     well-established communities.</p>
                   <p class="mt-4 flex items-baseline gap-x-1" v-if="isDataFetched">
                     <span class="text-xl font-bold tracking-tight">{{ formatCurrency(this.currency,
-                      (this.getSKU(this.getRelativeSKU())?.costs[this.currency] /
-                        this.getSKU(this.getRelativeSKU())?.month_count)) }}</span>
+                                                                                     (this.getSKU(this.getRelativeSKU())?.costs[this.currency] /
+                                                                                       this.getSKU(this.getRelativeSKU())?.month_count)) }}</span>
                     <span class="text-sm font-semibold leading-6">{{
                       this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
                   </p>
 
                   <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial)"
-                    class="text-sm font-medium leading-6"> 7 days free </p>
+                     class="text-sm font-medium leading-6"> 7 days free </p>
                   <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">
                     Billed as {{ formatCurrency(this.currency,
-                      this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}
+                                                this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}
                   </p>
 
 
@@ -240,7 +240,7 @@
                     </span>
                   </div>
                   <button type="button" @click.prevent="selectSKU(skuCustomBackgrounds)"
-                    class="flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-white border border-transparent rounded-md cursor-pointer bg-secondary-light hover:bg-secondary-dark w-full">
+                          class="flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-white border border-transparent rounded-md cursor-pointer bg-secondary-light hover:bg-secondary-dark w-full">
                     Get Started
                   </button>
                 </div>
@@ -298,10 +298,10 @@
                 <TransitionChild :show="showGuildSelector" as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
                   <DialogPanel class="bg-white text-secondary dark:bg-secondary dark:text-gray-50 relative transform overflow-y-visible rounded-md text-left shadow-xl transition-all my-8 w-full max-w-[512px]">
                     <div class="flex gap-4 align-top p-6 dark:bg-secondary-dark border-b dark:border-secondary-light bg-gray-100 border-gray-200 shadow-inner rounded-tl-md rounded-tr-md">
-                        <div class="flex-1">Server Selection</div>
-                        <button @click="showGuildSelector = false">
-                            <font-awesome-icon icon="times" />
-                        </button>
+                      <div class="flex-1">Server Selection</div>
+                      <button @click="showGuildSelector = false">
+                        <font-awesome-icon icon="times" />
+                      </button>
                     </div>
 
                     <div class="p-6">
@@ -351,20 +351,6 @@
 import { ref } from "vue";
 
 import {
-  FormTypeGuildList,
-} from "@/components/dashboard/FormValueEnum";
-
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
-import Toast from "@/components/dashboard/Toast.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import billingAPI from "@/api/billing";
-
-import { getErrorToast } from "@/utilities";
-
-import {
   Dialog,
   DialogPanel,
   Disclosure,
@@ -381,11 +367,22 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-
-import { CheckIcon } from "@heroicons/vue/solid";
 import { ChevronDownIcon } from "@heroicons/vue/outline";
+import { CheckIcon } from "@heroicons/vue/solid";
 
+import billingAPI from "@/api/billing";
+import FormValue from "@/components/dashboard/FormValue.vue";
+import {
+  FormTypeGuildList,
+} from "@/components/dashboard/FormValueEnum";
+import Toast from "@/components/dashboard/Toast.vue";
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
 import store from "@/store/index";
+import { getErrorToast } from "@/utilities";
+
+
 
 const features = [
   {

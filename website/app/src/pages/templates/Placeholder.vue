@@ -70,10 +70,9 @@
 </template>
 
 <script>
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
 
 import { ref } from "vue";
+
 import {
   Disclosure,
   DisclosureButton,
@@ -83,9 +82,11 @@ import {
   RadioGroupLabel,
   RadioGroupOption,
 } from "@headlessui/vue";
-
-import { CheckIcon } from "@heroicons/vue/solid";
 import { ChevronDownIcon } from "@heroicons/vue/outline";
+import { CheckIcon } from "@heroicons/vue/solid";
+
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
 
 const features = [
   {
