@@ -13,9 +13,6 @@
           <div class="dashboard-title">Reaction Roles</div>
         </div>
         <div class="dashboard-contents">
-          <!-- <discord-emoji-picker
-            customGroupLabel="Server Emojis"
-            :customEmojis="$store.getters.getCurrentSelectedGuild.emojis" /> -->
           <div class="dashboard-inputs">
             <form-value title="Enable Reaction Roles" :type="FormTypeToggle" v-model="config.enabled"
             @update:modelValue="onValueUpdate" :validation="v$.enabled">Reaction Roles allow users to assign themselves roles by reacting to messages.</form-value>
@@ -25,7 +22,6 @@
               <reaction-roles-table :modelValue="config"
               @update:modelValue="onConfigUpdate"></reaction-roles-table>
             </form-value>
-            {{  config  }}
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
           @save="saveConfig"></unsaved-changes>
@@ -39,7 +35,6 @@
 import { computed, ref } from "vue";
 
 import useVuelidate from "@vuelidate/core";
-import { helpers, requiredIf } from "@vuelidate/validators";
 
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
@@ -53,9 +48,6 @@ import endpoints from "@/api/endpoints";
 
 import {
   getErrorToast,
-  getSuccessToast,
-  getValidationToast,
-  navigateToErrors,
 } from "@/utilities";
 
 import {
@@ -68,7 +60,6 @@ import ReactionRolesTable from "@/components/dashboard/ReactionRolesTable.vue";
 export default {
   components: {
     EmbedBuilder,
-    DiscordEmojiPicker,
     FormValue,
     LoadingIcon,
     ReactionRolesTable,

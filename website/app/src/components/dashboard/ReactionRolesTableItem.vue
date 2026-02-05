@@ -63,6 +63,11 @@
           Next
         </button>
       </div>
+      <div v-else class="flex justify-end">
+        <button :disabled="!$props.reactionRole.roles.length" @click="$emit('save')" class="px-4 py-2 bg-green-600 text-white rounded w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+          Save
+        </button>
+      </div>
     </div>
 </template>
 

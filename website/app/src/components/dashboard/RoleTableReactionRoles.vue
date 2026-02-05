@@ -57,7 +57,7 @@
             <span v-bind:key="index" v-for="(message, index) in v$.emoji.$errors">{{ message.$message }}&nbsp;</span>
           </div>
         </div>
-        <form-value :type="FormTypeRoleList" :show-role-popup="false" v-model="reactionRole.role_id" :inline-form-value="true" :hide-border="true" :hide-slot="true" title="Role" :options="selectableRoles" :validation="v$.role_id" />
+        <form-value :type="FormTypeRoleList" :show-role-popup="true" v-model="reactionRole.role_id" :inline-form-value="true" :hide-border="true" :hide-slot="true" title="Role" :options="selectableRoles" :validation="v$.role_id" />
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
         <form-value :type="FormTypeText" :inline-form-value="true" :hide-border="true" :hide-slot="true" v-if="$props.type != 'emoji'" v-model="reactionRole.name" placeholder="Name" :validation="v$.name" />
@@ -151,8 +151,6 @@ export default {
     }); 
 
     const validation_rules = computed(() => {
-      console.log(props.type);
-
       const validation_rules = {
         emoji: {
           required: helpers.withMessage("No emoji has been selected", requiredIf(props.type == 'emoji')),
@@ -180,8 +178,6 @@ export default {
     }); 
 
     const v$ = useVuelidate(validation_rules, reactionRole, { $rewardEarly: true });
-
-    console.log(reactionRole);
 
     return {
       FormTypeBlank,

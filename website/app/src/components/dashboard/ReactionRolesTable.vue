@@ -49,7 +49,7 @@
             </Switch>
           </td>
           <td class="py-3">
-            <discord-embed class="flex-1" v-if="reactionRole.message" :embeds="reactionRole.is_system_message ? [reactionRole.message] : null" :buttons="getReactionRoleButtons(reactionRole.type, reactionRole.roles)" :isLight="true" :showAuthor="false" />
+            <discord-embed class="flex-1" :embeds="reactionRole.is_system_message ? parseDict(reactionRole.embed)?.embeds : []" :content="reactionRole.is_system_message ? parseDict(reactionRole.embed)?.content : ''" :buttons="getReactionRoleButtons(reactionRole.type, reactionRole.roles)" :isLight="true" :showAuthor="false" />
           </td>
           <td class="py-3 text-right">
             <button class="relative py-2 px-2 border border-gray-300 dark:border-secondary-light rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm" @click="reactionRole.showPopup = true">
@@ -57,13 +57,13 @@
             </button>
           </td>
           <popup :open="reactionRole.showPopup" @close="reactionRole.showPopup = false">
-            <reaction-roles-table-item :isSetup="false" :reactionRole="reactionRole" />
+            <reaction-roles-table-item :isSetup="false" :reactionRole="reactionRole" @save="saveReactionRole(reactionRole, false)" />
           </popup>
         </tr>
       </tbody>
     </table>
     <popup :open="showCreatePopup" @close="showCreatePopup = false">
-      <reaction-roles-table-item :isSetup="true" :reactionRole="createPopupData" />
+      <reaction-roles-table-item :isSetup="true" :reactionRole="createPopupData" @save="saveReactionRole(createPopupData, true)" />
     </popup>
   </div>
 </template>
@@ -106,19 +106,38 @@ export default {
   emits: ["update:modelValue"],
 
   methods: {
+    parseDict(data) {
+      try {
+        return JSON.parse(data);
+      } catch {
+        return {};
+      }
+    },
+
     openCreatePopup() {
       this.resetCreatePopup();
       this.showCreatePopup = true;
     },
+
     resetCreatePopup() {
       this.createPopupData = {
+        enabled: true,
         is_system_message: undefined,
         embed: "{\"embeds\":[{\"description\":\"React below to get roles!\"}]}",
+        roles: [],
       }
     },
 
-    updateValue(value) {
-      this.$emit("update:modelValue", value);
+    saveReactionRole(reactionRole, isSetup) {
+      if (isSetup) {
+        this.modelValue.reaction_roles.push(reactionRole);
+        this.showCreatePopup = false;
+        this.resetCreatePopup();
+      } else {
+        reactionRole.showPopup = false;
+      }
+      
+      this.$emit("update:modelValue", this.modelValue);
     },
 
     getReactionRoleButtons(reactionRoleType, roles) {
