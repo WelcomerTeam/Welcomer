@@ -55,6 +55,8 @@ func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasW
 			Msg("Failed to get guild features")
 	}
 
+	guildFeatures = append(guildFeatures, GuildFeatureCustomWelcomerImageBuilder.String())
+
 	features = make([]GuildFeature, 0, len(guildFeatures))
 
 	for _, guildFeature := range guildFeatures {
