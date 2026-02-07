@@ -39,78 +39,6 @@ func getGuildSettingsReactionRoles(ctx *gin.Context) {
 
 			partial := GuildSettingsReactionRolesSettingsToPartial(reactionroles)
 
-			partial.ReactionRoles = append(partial.ReactionRoles, welcomer.GuildSettingsReactionRole{
-				Enabled:         false,
-				ChannelID:       1,
-				MessageID:       2,
-				IsSystemMessage: true,
-				MessageEmbed: &discord.Embed{
-					Title: "Select a role",
-				},
-				Type: welcomer.ReactionRoleTypeEmoji,
-				Roles: []welcomer.ReactionRoleOption{
-					{
-						RoleID: 3,
-						Emoji:  "😀",
-						Name:   "Example Role",
-					},
-					{
-						RoleID: 4,
-						Emoji:  "🔥",
-						Name:   "Example Role 2",
-					},
-				},
-			})
-			partial.ReactionRoles = append(partial.ReactionRoles, welcomer.GuildSettingsReactionRole{
-				Enabled:         true,
-				ChannelID:       1,
-				MessageID:       2,
-				IsSystemMessage: false,
-				MessageEmbed:    &discord.Embed{},
-				Type:            welcomer.ReactionRoleTypeDropdown,
-				Roles: []welcomer.ReactionRoleOption{
-					{
-						RoleID:      3,
-						Emoji:       "😀",
-						Name:        "Example Role",
-						Description: "This is an example role description.",
-					},
-					{
-						RoleID: 4,
-						Emoji:  "🔥",
-						Name:   "Example Role 2",
-					},
-				},
-			})
-			partial.ReactionRoles = append(partial.ReactionRoles, welcomer.GuildSettingsReactionRole{
-				Enabled:         true,
-				ChannelID:       1,
-				MessageID:       2,
-				IsSystemMessage: false,
-				MessageEmbed:    &discord.Embed{},
-				Type:            welcomer.ReactionRoleTypeButtons,
-				Roles: []welcomer.ReactionRoleOption{
-					{
-						Style:       discord.InteractionComponentStylePrimary,
-						RoleID:      3,
-						Emoji:       "😀",
-						Name:        "Example Role",
-						Description: "This is an example role description.",
-					},
-					{
-						Style:  discord.InteractionComponentStyleSuccess,
-						RoleID: 4,
-						Emoji:  "🔥",
-						Name:   "Example Role 2",
-					},
-					{
-						RoleID: 5,
-						Emoji:  "🚀",
-						Name:   "Example Role 3",
-					},
-				},
-			})
-
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok:   true,
 				Data: partial,
@@ -176,6 +104,8 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 
 				return
 			}
+
+			// TODO: process settings
 
 			getGuildSettingsReactionRoles(ctx)
 		})
