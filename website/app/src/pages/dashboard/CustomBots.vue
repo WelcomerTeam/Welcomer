@@ -11,6 +11,9 @@
           Got a Discord token? Turn it into your very own Welcomer bot that greets, manages, and shows off your server's
           style.
         </p>
+        <p class="mt-8 bg-yellow-50 text-yellow-900 p-4 rounded-md border-2 border-dashed border-yellow-900">
+          Custom Bots are being deprecated. If you have an existing custom bot, it will stop working soon. Please use the <b>Bot Customisation</b> feature instead.
+        </p>
       </div>
 
       <div class="dashboard-components">
