@@ -7,7 +7,7 @@
           <th></th>
           <th class="text-right">
             <button type="button" class="cta-button bg-primary hover:bg-primary-dark" @click="openCreatePopup()">
-              Create Configuration
+              Create Reaction Role
             </button>
           </th>
         </tr>
@@ -15,7 +15,7 @@
       <tbody class="divide-y divide-gray-200 dark:divide-secondary-light">
         <tr v-for="(reactionRole, index) in this.$props.modelValue.reaction_roles" :key="index">
           <td class="py-3">
-            <Switch v-model="reactionRole.enabled" :class="[
+            <Switch v-model="reactionRole.enabled" @click="onValueUpdate" :class="[
               reactionRole.enabled ? 'bg-green-500 focus:ring-green-500' : 'bg-gray-400 focus:ring-gray-400',
               'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
             ]">
@@ -56,13 +56,13 @@
               <font-awesome-icon icon="pen-to-square" class="w-5 h-5 text-gray-400" aria-hidden="true" />
             </button>
           </td>
-          <popup :open="reactionRole.showPopup" @close="reactionRole.showPopup = false">
-            <reaction-roles-table-item :isSetup="false" :reactionRole="reactionRole" @save="saveReactionRole(reactionRole, false)" />
+          <popup :open="reactionRole.showPopup" @close="reactionRole.showPopup = false; onValueUpdate();">
+            <reaction-roles-table-item :isSetup="false" :reactionRole="reactionRole" @save="saveReactionRole(reactionRole, false)" @delete="removeReactionRole(index)" />
           </popup>
         </tr>
       </tbody>
     </table>
-    <popup :open="showCreatePopup" @close="showCreatePopup = false">
+    <popup :open="showCreatePopup" @close="showCreatePopup = false;">
       <reaction-roles-table-item :isSetup="true" :reactionRole="createPopupData" @save="saveReactionRole(createPopupData, true)" />
     </popup>
   </div>
@@ -129,6 +129,10 @@ export default {
       }
     },
 
+    onValueUpdate() {
+      this.$emit("update:modelValue", this.modelValue);
+    },
+
     saveReactionRole(reactionRole, isSetup) {
       if (isSetup) {
         this.modelValue.reaction_roles.push(reactionRole);
@@ -138,7 +142,12 @@ export default {
         reactionRole.showPopup = false;
       }
       
-      this.$emit("update:modelValue", this.modelValue);
+      this.onValueUpdate();
+    },
+    
+    removeReactionRole(index) {
+      this.modelValue.reaction_roles.splice(index, 1);
+      this.onValueUpdate();
     },
 
     getReactionRoleButtons(reactionRoleType, roles) {

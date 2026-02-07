@@ -18,9 +18,9 @@
                         @update:modelValue="onValueUpdate" :validation="v$.enabled">Reaction Roles allow users to assign themselves roles by reacting to messages.</form-value>
             
             
-            <form-value title="Configurations" type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
+            <form-value title="Reaction Roles" type="FormTypeBlank" :validation="v$.roles">
               <reaction-roles-table :modelValue="config"
-                                    @update:modelValue="onConfigUpdate"></reaction-roles-table>
+                                    @update:modelValue="onValueUpdate"></reaction-roles-table>
             </form-value>
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
@@ -50,6 +50,7 @@ import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 import {
   getErrorToast,
+  getSuccessToast,
 } from "@/utilities";
 
 export default {
@@ -116,6 +117,32 @@ export default {
       }
       );
     },
+
+    saveConfig() {
+      this.isChangeInProgress = true;
+
+      dashboardAPI.doPost(
+        endpoints.EndpointGuildReactionRoles(this.$store.getters.getSelectedGuildID),
+        this.config,
+        null,
+        ({ config }) => {
+          this.$store.dispatch("createToast", getSuccessToast())
+
+          this.config = config;
+          this.isChangeInProgress = false;
+          this.unsavedChanges = false;
+        },
+        (error) => {
+          this.$store.dispatch("createToast", getErrorToast(error));
+
+          this.isChangeInProgress = false;
+        }
+      );
+    },
+
+    onValueUpdate() {
+      this.unsavedChanges = true;
+    }
   },
 };
 </script>
