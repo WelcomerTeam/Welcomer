@@ -77,9 +77,9 @@
     </div>
     <div v-if="$props.buttons" :class="[button?.style === 5 ? 'gap-1' : 'gap-3', 'flex flex-row flex-wrap mt-2 rounded-md']">
       <div v-for="(button, button_index) in $props.buttons" :key="button_index">
-        <div v-if="button.style == 6" class="rounded-md text-white bg-secondary-light flex flex-col divide-y divide-secondary">
+        <div v-if="button.style == 6" class="rounded-md text-white bg-secondary-light flex flex-col divide-y divide-secondary min-w-48">
           <div v-for="(option, option_index) in button.options" :key="option_index" class="px-3 py-1 flex flex-row items-center gap-2 min-h-12">
-            <img v-if="option.emoji" class="w-4 h-4" :src="getEmojiURL(option.emoji)" alt="button emoji" />
+            <img v-if="option.emoji" class="w-4 max-h-4" :src="getEmojiURL(option.emoji)" alt="button emoji" />
             <div v-else class="w-4 h-4"></div>
             <div class="flex flex-col">
               <span class="font-semibold">{{ option.label }}</span>
@@ -96,7 +96,7 @@
                   (button?.style === 6 ? '#333333' : '#4F545C'))))),
         }">
           <span class="flex items-center gap-2">
-            <img v-if="button.emoji" class="w-4 h-4" :src="getEmojiURL(button.emoji)" alt="button emoji" />
+            <img v-if="button.emoji" class="w-4 max-h-4" :src="getEmojiURL(button.emoji)" alt="button emoji" />
             <span>{{ button?.style === 5 ? '0' : button?.label }}</span>
           </span>
         </div>
