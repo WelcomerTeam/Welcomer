@@ -159,6 +159,9 @@ export default {
         },
         role_id: {
           required: helpers.withMessage("No role has been selected", required),
+          already_used: helpers.withMessage("This role has already been used", (value) => {
+            return !props.selectedRoles.some((role) => role.role_id === value);
+          }),
         },
         name: {
           required: helpers.withMessage("No name has been provided", requiredIf(props.type != 'emoji')),
