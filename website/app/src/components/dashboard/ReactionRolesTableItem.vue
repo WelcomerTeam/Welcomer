@@ -15,7 +15,7 @@
 
       <div v-if="$props.reactionRole.is_system_message === false" class="mb-4">
         <form-value :type="FormTypeText" title="Message Link" v-model="$props.reactionRole.message_link" placeholder="https://discord.com/channels/123456789012345678/123456789012345678/123456789012345678" :validation="v$.message_link">
-          Enter the link to the message you want to use for reaction roles. You can get this by selecting a message and clicking on <b>Copy Message Link</b> on Discord.
+          Enter the link to the message you want to use for reaction roles. You can get this by selecting a message and clicking <b>Copy Message Link</b> on Discord.
         </form-value>
       </div>
       <div v-if="$props.reactionRole.is_system_message === true" class="mb-4">
@@ -63,9 +63,12 @@
         Next
       </button>
     </div>
-    <div v-else class="flex justify-end">
-      <button :disabled="!$props.reactionRole.roles.length" @click="$emit('save')" class="px-4 py-2 bg-green-600 text-white rounded w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
-        Save
+    <div v-else class="flex justify-end gap-2">
+      <button v-if="!$props.isSetup" :disabled="!$props.reactionRole.roles.length" @click="$emit('delete')" class="px-4 py-2 cta-button bg-red-500 hover:bg-red-600 text-white rounded w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+        Delete
+      </button>
+      <button :disabled="!$props.reactionRole.roles.length" @click="$emit('save')" class="px-4 py-2 cta-button bg-green-500 hover:bg-green-600 text-white rounded w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ $props.isSetup ? 'Create' : 'Save' }}
       </button>
     </div>
   </div>
