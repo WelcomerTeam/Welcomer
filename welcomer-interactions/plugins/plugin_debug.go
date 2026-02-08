@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 
@@ -43,6 +44,84 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		"debug",
 		"Debugging commands",
 	)
+
+	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "json",
+		Description: "Returns JSON payload for message",
+
+		Type: subway.InteractionCommandableTypeSubcommand,
+
+		DMPermission: &welcomer.True,
+
+		ArgumentParameter: []subway.ArgumentParameter{
+			{
+				Name:         "message_id",
+				Description:  "The ID of the message to fetch",
+				ArgumentType: subway.ArgumentTypeString,
+				Required:     true,
+			},
+		},
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			messageID := subway.MustGetArgument(ctx, "message_id").MustString()
+
+			messageIDInt, err := welcomer.Atoi(messageID)
+			if err != nil {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Content: "Invalid message ID",
+					},
+				}, nil
+			}
+
+			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+			if err != nil {
+				return nil, err
+			}
+
+			message, err := discord.GetChannelMessage(ctx, session, *interaction.ChannelID, discord.Snowflake(messageIDInt))
+			if err != nil {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Content: "Failed to fetch message",
+					},
+				}, nil
+			}
+
+			messageJSON, err := json.MarshalIndent(message, "", "  ")
+			if err != nil {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Content: "Failed to marshal message",
+					},
+				}, nil
+			}
+
+			err = interaction.SendResponse(ctx, session, discord.InteractionCallbackTypeChannelMessageSource, &discord.InteractionCallbackData{
+				Files: []discord.File{
+					{
+						Name:        "message.json",
+						ContentType: "application/json",
+						Reader:      bytes.NewBuffer(messageJSON),
+					},
+				},
+				Flags: uint32(discord.MessageFlagEphemeral),
+			})
+			if err != nil {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Content: "Failed to send response",
+					},
+				}, nil
+			}
+
+			return nil, nil
+		},
+	})
 
 	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "testinvite",
