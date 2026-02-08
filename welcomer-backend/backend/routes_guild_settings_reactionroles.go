@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,9 +39,7 @@ func getGuildSettingsReactionRoles(ctx *gin.Context) {
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild reaction roles settings")
 
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 					return
 				}
@@ -80,34 +79,56 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 				}
 			}
 
-			errGroup := doValidateReactionRoles(partial)
+			guildID := tryGetGuildID(ctx)
+
+			errGroup := doValidateReactionRoles(ctx, guildID, partial)
 			if errGroup != nil && !errGroup.Empty() {
 				ctx.JSON(http.StatusBadRequest, BaseResponse{
 					Ok:    false,
-					Error: errGroup.Error("\n"),
+					Error: errGroup.ErrorWithDelimiter("\n"),
 				})
 
 				return
 			}
-
-			guildID := tryGetGuildID(ctx)
-
-			reactionroles := PartialToGuildSettingsReactionRolesSettings(int64(guildID), partial)
 
 			oldReactionRoleSettings, err := welcomer.Queries.GetReactionRolesGuildSettings(ctx, int64(guildID))
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get existing guild reaction roles settings for update")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
 
+			user := tryGetUser(ctx)
+
+			if partial.ToggleEnabled {
+				eg, messageIDs := processReactionRolesSettingsChange(ctx, GuildSettingsReactionRolesSettingsToPartial(oldReactionRoleSettings), partial)
+
+				// Update message IDs
+				for id, messageID := range messageIDs {
+					for i, k := range partial.ReactionRoles {
+						if k.ID == id {
+							partial.ReactionRoles[i].MessageID = messageID
+						}
+					}
+				}
+
+				if eg != nil && !eg.Empty() {
+					welcomer.Logger.Warn().Err(eg).Int64("guild_id", int64(guildID)).Int64("user_id", int64(user.ID)).Msg("Failed to process reaction roles settings change")
+
+					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+						Ok:    false,
+						Error: eg.ErrorWithDelimiter("\n"),
+					})
+
+					return
+				}
+			}
+
+			reactionroles := PartialToGuildSettingsReactionRolesSettings(int64(guildID), partial)
 			databaseReactionRolesGuildSettings := database.CreateOrUpdateReactionRolesGuildSettingsParams(*reactionroles)
 
-			user := tryGetUser(ctx)
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *reactionroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating reaction roles guild settings")
 
 			err = welcomer.RetryWithFallback(
@@ -124,25 +145,9 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Int64("user_id", int64(user.ID)).Msg("Failed to create or update guild reaction roles settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
-			}
-
-			if partial.ToggleEnabled {
-				eg := processReactionRolesSettingsChange(ctx, GuildSettingsReactionRolesSettingsToPartial(oldReactionRoleSettings), partial)
-				if eg != nil && !eg.Empty() {
-					welcomer.Logger.Warn().Err(fmt.Errorf("one or more errors occurred while processing reaction roles settings change: %v", eg.Error("\n"))).Int64("guild_id", int64(guildID)).Int64("user_id", int64(user.ID)).Msg("Failed to process reaction roles settings change")
-
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok:    false,
-						Error: eg.Error("\n"),
-					})
-
-					return
-				}
 			}
 
 			getGuildSettingsReactionRoles(ctx)
@@ -161,7 +166,7 @@ type reactionRoleConfigurations struct {
 	NewIndex int
 }
 
-func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
+func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSettingsReactionRoles) (*welcomer.ErrorGroup, map[string]discord.Snowflake) {
 	eg := welcomer.NewErrorGroup()
 
 	configurationChanges := make(map[reactionRoleConfigurationsKey]reactionRoleConfigurations)
@@ -191,18 +196,21 @@ func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSetting
 		configurationChanges[key] = configuration
 	}
 
+	messageIDs := make(map[string]discord.Snowflake)
+
 	for _, config := range configurationChanges {
-		if config.Old.IsSystemMessage || config.New.IsSystemMessage {
-			processReactionRolesSettingsChangeSystemMessage(ctx, eg, config.Old, config.New)
+		if (config.Old != nil && config.Old.IsSystemMessage) || (config.New != nil && config.New.IsSystemMessage) {
+			messageID := processReactionRolesSettingsChangeSystemMessage(ctx, eg, config.Old, config.New)
+			messageIDs[config.New.ID] = messageID
 		} else {
 			processReactionRolesSettingsChangeNonSystemMessage(ctx, eg, config.Old, config.New)
 		}
 	}
 
-	return eg
+	return eg, messageIDs
 }
 
-func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
+func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) discord.Snowflake {
 	if old != nil && new == nil {
 		err := disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
 		if err != nil {
@@ -212,50 +220,66 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 
 	if !hasConfigurationChanged(old, new) {
 		println("No configuration change detected for system message reaction role, skipping processing")
-		return
+		return new.MessageID
 	}
 
 	var message *discord.Message
 	var err error
 
-	if hasConfigurationChangedMessage(old, new) && old.ChannelID != new.ChannelID {
+	if hasConfigurationChangedMessage(old, new) && ((old == nil || new == nil) || old.ChannelID != new.ChannelID) {
 		// If channel has changed, send new message.
 
-		message, err = createReactionRoleMessage(ctx, eg, new)
-		if err != nil {
-			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
-		}
-
-		// Disable old message.
-		err = disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
-		if err != nil {
-			eg.Add(fmt.Errorf("failed to disable message for removed system message reaction role configuration: %v", err))
-		}
-
-	} else if hasConfigurationChangedRoles(old, new) || old.Message != new.Message {
-		// If roles or message has changed, update existing message.
-
-		message, err = discord.GetChannelMessage(ctx, backend.BotSession, new.ChannelID, new.MessageID)
-		if err != nil {
-			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(new.MessageID)).Msg("Failed to get message for updated system message reaction role configuration")
-
-			eg.Add(fmt.Errorf("failed to get message for updated system message reaction role configuration, attempting to create new message: %v", err))
-
+		if new != nil {
 			message, err = createReactionRoleMessage(ctx, eg, new)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
+			} else {
+				if new != nil {
+					new.MessageID = message.ID
+				}
+			}
+		}
+
+		if old != nil {
+			// Disable old message.
+			err = disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
+			if err != nil {
+				eg.Add(fmt.Errorf("failed to disable message for removed system message reaction role configuration: %v", err))
+			}
+		}
+	} else if hasConfigurationChangedRoles(old, new) || old.Message != new.Message || old.Enabled != new.Enabled {
+		// If roles, message or enabled has changed, update existing message.
+
+		if !new.Enabled {
+			err = disableReactionRoleMessage(ctx, new.ChannelID, new.MessageID)
+			if err != nil {
+				eg.Add(fmt.Errorf("failed to disable message for disabled system message reaction role configuration: %v", err))
+
+				return new.MessageID
+			}
+		}
+
+		if message == nil {
+			message, err = discord.GetChannelMessage(ctx, backend.BotSession, new.ChannelID, new.MessageID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(new.MessageID)).Msg("Failed to get message for updated system message reaction role configuration")
+
+				message, err = createReactionRoleMessage(ctx, eg, new)
+				if err != nil {
+					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
+				}
+
+				return new.MessageID
 			}
 		}
 
 		// If message cannot be retrieved or created, there is not much we can do to update the configuration, so just return and log the error.
 		if message == nil {
-			return
+			return new.MessageID
 		}
 
 		// Message has changed or button/dropdown configuration has changed.
-		if old.Message != new.Message ||
-			(hasConfigurationChangedRoles(old, new) &&
-				(new.Type == welcomer.ReactionRoleTypeButtons || new.Type == welcomer.ReactionRoleTypeDropdown)) {
+		if old.Message != new.Message || hasConfigurationChangedRoles(old, new) || (old.Type != new.Type) || (!old.Enabled && new.Enabled) {
 			if messageParams := setupMessageParamsForReactionRoleConfiguration(new); messageParams != nil {
 				_, err = message.Edit(ctx, backend.BotSession, *messageParams)
 				if err != nil {
@@ -263,7 +287,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 
 					eg.Add(fmt.Errorf("failed to edit message for updated system message reaction role configuration: %v", err))
 
-					return
+					return new.MessageID
 				}
 			}
 		}
@@ -285,7 +309,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 					var emoji string
 
 					if reaction.Emoji.ID != 0 {
-						emoji = reaction.Emoji.ID.String()
+						emoji = "_:" + reaction.Emoji.ID.String()
 					} else {
 						emoji = reaction.Emoji.Name
 					}
@@ -301,7 +325,15 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 
 			for _, option := range new.Roles {
 				if option.Emoji != "" {
-					err = message.AddReaction(ctx, backend.BotSession, option.Emoji)
+					var emoji string
+
+					if _, err := welcomer.Atoi(option.Emoji); err == nil {
+						emoji = "_:" + option.Emoji
+					} else {
+						emoji = option.Emoji
+					}
+
+					err = message.AddReaction(ctx, backend.BotSession, emoji)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", option.Emoji).Msg("Failed to add reaction to message for updated system message reaction role configuration")
 
@@ -311,14 +343,18 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			}
 		}
 	}
+
+	return new.MessageID
 }
 
 func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
+	return
 }
 
 func createReactionRoleMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, new *welcomer.GuildSettingsReactionRole) (message *discord.Message, err error) {
 	if messageParams := setupMessageParamsForReactionRoleConfiguration(new); messageParams != nil {
 		channel := discord.Channel{ID: new.ChannelID}
+
 		message, err = channel.Send(ctx, backend.BotSession, *messageParams)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to send message for updated system message reaction role configuration")
@@ -328,12 +364,22 @@ func createReactionRoleMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, new *w
 			return nil, err
 		}
 
+		new.MessageID = message.ID
+
 		// TODO: update database with new message ID if they have changed
 
 		if new.Type == welcomer.ReactionRoleTypeEmoji {
 			for _, option := range new.Roles {
 				if option.Emoji != "" {
-					err = message.AddReaction(ctx, backend.BotSession, option.Emoji)
+					var emoji string
+
+					if _, err := welcomer.Atoi(option.Emoji); err == nil {
+						emoji = "_:" + option.Emoji
+					} else {
+						emoji = option.Emoji
+					}
+
+					err = message.AddReaction(ctx, backend.BotSession, emoji)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", option.Emoji).Msg("Failed to add reaction to message for updated system message reaction role configuration")
 
@@ -344,10 +390,14 @@ func createReactionRoleMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, new *w
 		}
 	}
 
-	return
+	return message, nil
 }
 
 func disableReactionRoleMessage(ctx *gin.Context, channelID, messageID discord.Snowflake) error {
+	if messageID == 0 {
+		return nil
+	}
+
 	message, err := discord.GetChannelMessage(ctx, backend.BotSession, channelID, messageID)
 	if err != nil {
 		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(channelID)).Int64("message_id", int64(messageID)).Msg("Failed to get message for removed system message reaction role configuration")
@@ -361,8 +411,11 @@ func disableReactionRoleMessage(ctx *gin.Context, channelID, messageID discord.S
 				Type: discord.InteractionComponentTypeActionRow,
 				Components: []discord.InteractionComponent{
 					{
-						Type:  discord.InteractionComponentTypeButton,
-						Label: "This reaction role is no longer available",
+						Type:     discord.InteractionComponentTypeButton,
+						CustomID: "disabled",
+						Disabled: true,
+						Label:    "This reaction role is no longer available",
+						Style:    discord.InteractionComponentStyleSecondary,
 					},
 				},
 			},
@@ -387,9 +440,13 @@ func setupMessageParamsForReactionRoleConfiguration(config *welcomer.GuildSettin
 		return nil
 	}
 
-	if config.Type == welcomer.ReactionRoleTypeButtons {
+	if config.Type == welcomer.ReactionRoleTypeButtons || config.Type == welcomer.ReactionRoleTypeDropdown {
 		messageParams.Components = createMessageComponentsForReactionRole(config)
+	} else {
+		messageParams.Components = []discord.InteractionComponent{}
 	}
+
+	messageParams.StickerIDs = nil
 
 	return &messageParams
 }
@@ -406,10 +463,27 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 				})
 			}
 
+			var emoji *discord.Emoji
+
+			if option.Emoji != "" {
+				if v, err := welcomer.Atoi(option.Emoji); err == nil {
+					emoji = &discord.Emoji{
+						ID:   discord.Snowflake(v),
+						Name: "_",
+					}
+				} else {
+					emoji = &discord.Emoji{
+						Name: option.Emoji,
+					}
+				}
+			}
+
 			component := discord.InteractionComponent{
-				Type:     discord.InteractionComponentTypeButton,
 				CustomID: fmt.Sprintf("reaction_role|%d|%d|%d", config.ChannelID, config.MessageID, option.RoleID),
+				Emoji:    emoji,
 				Label:    option.Name,
+				Style:    discord.InteractionComponentStylePrimary,
+				Type:     discord.InteractionComponentTypeButton,
 			}
 
 			components[len(components)-1].Components = append(components[len(components)-1].Components, component)
@@ -420,13 +494,27 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 		var options []discord.ApplicationSelectOption
 
 		for _, option := range config.Roles {
-			selectOption := discord.ApplicationSelectOption{
-				Label: option.Name,
-				Value: fmt.Sprintf("%d", option.RoleID),
+
+			var emoji *discord.Emoji
+
+			if option.Emoji != "" {
+				if v, err := welcomer.Atoi(option.Emoji); err == nil {
+					emoji = &discord.Emoji{
+						ID:   discord.Snowflake(v),
+						Name: "_",
+					}
+				} else {
+					emoji = &discord.Emoji{
+						Name: option.Emoji,
+					}
+				}
 			}
 
-			if option.Description != "" {
-				selectOption.Description = option.Description
+			selectOption := discord.ApplicationSelectOption{
+				Description: option.Description,
+				Emoji:       emoji,
+				Label:       option.Name,
+				Value:       fmt.Sprintf("%d", option.RoleID),
 			}
 
 			options = append(options, selectOption)
@@ -450,6 +538,10 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 }
 
 func hasConfigurationChangedMessage(old, new *welcomer.GuildSettingsReactionRole) bool {
+	if old == nil || new == nil {
+		return true
+	}
+
 	if old.ChannelID != new.ChannelID {
 		return true
 	}
@@ -593,7 +685,7 @@ func checkGuildSettingsReactionRolesMessage(ctx *gin.Context) {
 }
 
 // Validate reaction role settings.
-func doValidateReactionRoles(partial *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
+func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, partial *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
 	if !partial.ToggleEnabled {
 		return nil
 	}
@@ -603,6 +695,25 @@ func doValidateReactionRoles(partial *GuildSettingsReactionRoles) *welcomer.Erro
 	for i, rr := range partial.ReactionRoles {
 		if !rr.Enabled {
 			continue
+		}
+
+		if rr.ChannelID != 0 {
+			validGuild, err := welcomer.CheckChannelGuild(ctx, welcomer.SandwichClient, guildID, rr.ChannelID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(rr.ChannelID)).Msg("Failed to check channel guild for reaction role settings validation")
+
+				eg.Add(fmt.Errorf("reaction role %d: failed to validate channel ID: %v", i+1, err))
+
+				continue
+			}
+
+			if !validGuild {
+				welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Int64("channel_id", int64(rr.ChannelID)).Msg("Channel ID does not belong to this guild for reaction role settings validation")
+
+				eg.Add(fmt.Errorf("reaction role %d: channel ID does not belong to this guild", i+1))
+
+				continue
+			}
 		}
 
 		if rr.IsSystemMessage {

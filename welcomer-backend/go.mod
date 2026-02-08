@@ -3,9 +3,9 @@ module github.com/WelcomerTeam/Welcomer/welcomer-backend
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5
+	github.com/WelcomerTeam/Discord v0.0.0-20260208222515-5deac49b5fe2
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20251213141933-2c925b93b2dd
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gin-contrib/cache v1.4.1
 	github.com/gin-contrib/gzip v1.2.5
@@ -93,11 +93,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.39.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/arch v0.23.0 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
+	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260114163908-3f89685c29c3 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
