@@ -49,7 +49,7 @@
             </Switch>
           </td>
           <td class="py-3">
-            <discord-embed class="flex-1" :embeds="reactionRole.is_system_message ? parseDict(reactionRole.embed)?.embeds : []" :content="reactionRole.is_system_message ? parseDict(reactionRole.embed)?.content : ''" :buttons="getReactionRoleButtons(reactionRole.type, reactionRole.roles)" :isLight="true" :showAuthor="false" />
+            <discord-embed class="flex-1" :embeds="reactionRole.is_system_message ? parseDict(reactionRole.message)?.messages : []" :content="reactionRole.is_system_message ? parseDict(reactionRole.message)?.content : ''" :buttons="getReactionRoleButtons(reactionRole.type, reactionRole.roles)" :isLight="true" :showAuthor="false" />
           </td>
           <td class="py-3 text-right">
             <button class="relative py-2 px-2 border border-gray-300 dark:border-secondary-light rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm" @click="reactionRole.showPopup = true">
@@ -124,7 +124,7 @@ export default {
       this.createPopupData = {
         enabled: true,
         is_system_message: undefined,
-        embed: "{\"embeds\":[{\"description\":\"React below to get roles!\"}]}",
+        message: "{\"embeds\":[{\"description\":\"React below to get roles!\"}]}",
         roles: [],
       }
     },

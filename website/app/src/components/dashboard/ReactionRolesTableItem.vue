@@ -20,7 +20,7 @@
       </div>
       <div v-if="$props.reactionRole.is_system_message === true" class="mb-4">
         <form-value :type="FormTypeChannelListCategories" title="Channel" v-model="$props.reactionRole.channel_id" :validation="v$.channel_id"/>
-        <form-value :type="FormTypeEmbed" title="Message" v-model="$props.reactionRole.embed" class="mt-4" :validation="v$.embed"/>
+        <form-value :type="FormTypeEmbed" title="Message" v-model="$props.reactionRole.message" class="mt-4" :validation="v$.message"/>
       </div>
     </div>
     <div v-if="onboardingStep >= 1">
@@ -151,7 +151,7 @@ export default {
             () => props.reactionRole.is_system_message === true
           )),
         },
-        embed: {
+        message: {
           required: helpers.withMessage("The message is required", requiredIf(
             () => props.reactionRole.is_system_message === true
           )),
