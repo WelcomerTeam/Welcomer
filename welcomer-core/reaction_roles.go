@@ -14,13 +14,14 @@ type ReactionRoleType int32
 type GuildSettingsReactionRoles []GuildSettingsReactionRole
 
 type GuildSettingsReactionRole struct {
+	ID        string            `json:"id"`
 	Enabled   bool              `json:"enabled"`
 	ChannelID discord.Snowflake `json:"channel_id"`
 	MessageID discord.Snowflake `json:"message_id"`
 	// Indicates if it is a message sent by Welcomer. If false, the user cannot
 	// change the message embed through Welcomer.
 	IsSystemMessage bool                 `json:"is_system_message"`
-	MessageEmbed    *discord.Embed       `json:"message,omitempty"`
+	Message         string               `json:"message,omitempty"`
 	Type            ReactionRoleType     `json:"type"`
 	Roles           []ReactionRoleOption `json:"roles"`
 }
