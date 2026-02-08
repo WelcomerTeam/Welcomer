@@ -16,7 +16,11 @@ func (eg *ErrorGroup) Add(err error) {
 	*eg = append(*eg, err)
 }
 
-func (eg *ErrorGroup) Error(delimiter string) string {
+func (eg *ErrorGroup) Error() string {
+	return eg.ErrorWithDelimiter("; ")
+}
+
+func (eg *ErrorGroup) ErrorWithDelimiter(delimiter string) string {
 	if eg.Empty() {
 		return ""
 	}

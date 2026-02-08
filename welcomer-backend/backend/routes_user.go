@@ -135,9 +135,7 @@ func usersMe(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to get user memberships")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -180,9 +178,7 @@ func usersMeMemberships(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to get user memberships")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -236,9 +232,7 @@ func usersGuilds(ctx *gin.Context) {
 						Error: err.Error(),
 					})
 				} else {
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 				}
 
 				return

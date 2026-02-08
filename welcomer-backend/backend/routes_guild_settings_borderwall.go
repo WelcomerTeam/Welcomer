@@ -34,9 +34,7 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild borderwall settings")
 
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 					return
 				}
@@ -103,9 +101,7 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild borderwall settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}

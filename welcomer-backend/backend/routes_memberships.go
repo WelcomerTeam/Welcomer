@@ -83,9 +83,7 @@ func getMemberships(ctx *gin.Context) {
 
 		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -212,9 +210,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 
 		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -240,9 +236,7 @@ func postMembershipSubscribe(ctx *gin.Context) {
 				}
 
 				if err != nil {
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 					return
 				}

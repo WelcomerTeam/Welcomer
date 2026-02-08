@@ -28,9 +28,7 @@ func getGuildSettingsAutoRoles(ctx *gin.Context) {
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild autoroles settings")
 
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 					return
 				}
@@ -97,9 +95,7 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
