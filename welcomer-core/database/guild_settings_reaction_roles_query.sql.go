@@ -7,89 +7,147 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
+	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 )
 
-const CreateOrUpdateReactionRolesGuildSettings = `-- name: CreateOrUpdateReactionRolesGuildSettings :one
-INSERT INTO guild_settings_reaction_roles (guild_id, toggle_enabled, reaction_roles)
-    VALUES ($1, $2, $3)
-ON CONFLICT(guild_id) DO UPDATE
+const CreateOrUpdateReactionRoleSetting = `-- name: CreateOrUpdateReactionRoleSetting :one
+INSERT INTO guild_settings_reaction_roles (reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT(reaction_role_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
-        reaction_roles = EXCLUDED.reaction_roles
+        channel_id = EXCLUDED.channel_id,
+        message_id = EXCLUDED.message_id,
+        is_system_message = EXCLUDED.is_system_message,
+        system_message_format = EXCLUDED.system_message_format,
+        reaction_role_type = EXCLUDED.reaction_role_type,
+        roles = EXCLUDED.roles
 RETURNING
-    guild_id, toggle_enabled, reaction_roles
+    reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles
 `
 
-type CreateOrUpdateReactionRolesGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	ReactionRoles pgtype.JSONB `json:"reaction_roles"`
+type CreateOrUpdateReactionRoleSettingParams struct {
+	ReactionRoleID      uuid.UUID     `json:"reaction_role_id"`
+	GuildID             int64         `json:"guild_id"`
+	ToggleEnabled       bool          `json:"toggle_enabled"`
+	ChannelID           int64         `json:"channel_id"`
+	MessageID           sql.NullInt64 `json:"message_id"`
+	IsSystemMessage     bool          `json:"is_system_message"`
+	SystemMessageFormat pgtype.JSONB  `json:"system_message_format"`
+	ReactionRoleType    int32         `json:"reaction_role_type"`
+	Roles               pgtype.JSONB  `json:"roles"`
 }
 
-func (q *Queries) CreateOrUpdateReactionRolesGuildSettings(ctx context.Context, arg CreateOrUpdateReactionRolesGuildSettingsParams) (*GuildSettingsReactionRoles, error) {
-	row := q.db.QueryRow(ctx, CreateOrUpdateReactionRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.ReactionRoles)
+func (q *Queries) CreateOrUpdateReactionRoleSetting(ctx context.Context, arg CreateOrUpdateReactionRoleSettingParams) (*GuildSettingsReactionRoles, error) {
+	row := q.db.QueryRow(ctx, CreateOrUpdateReactionRoleSetting,
+		arg.ReactionRoleID,
+		arg.GuildID,
+		arg.ToggleEnabled,
+		arg.ChannelID,
+		arg.MessageID,
+		arg.IsSystemMessage,
+		arg.SystemMessageFormat,
+		arg.ReactionRoleType,
+		arg.Roles,
+	)
 	var i GuildSettingsReactionRoles
-	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.ReactionRoles)
+	err := row.Scan(
+		&i.ReactionRoleID,
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.ChannelID,
+		&i.MessageID,
+		&i.IsSystemMessage,
+		&i.SystemMessageFormat,
+		&i.ReactionRoleType,
+		&i.Roles,
+	)
 	return &i, err
 }
 
-const CreateReactionRolesGuildSettings = `-- name: CreateReactionRolesGuildSettings :one
-INSERT INTO guild_settings_reaction_roles (guild_id, toggle_enabled, reaction_roles)
-    VALUES ($1, $2, $3)
-RETURNING
-    guild_id, toggle_enabled, reaction_roles
+const DeleteReactionRoleSettings = `-- name: DeleteReactionRoleSettings :execrows
+DELETE FROM guild_settings_reaction_roles
+WHERE reaction_role_id IN ($1)
 `
 
-type CreateReactionRolesGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	ReactionRoles pgtype.JSONB `json:"reaction_roles"`
+func (q *Queries) DeleteReactionRoleSettings(ctx context.Context, reactionRoleID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, DeleteReactionRoleSettings, reactionRoleID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
-func (q *Queries) CreateReactionRolesGuildSettings(ctx context.Context, arg CreateReactionRolesGuildSettingsParams) (*GuildSettingsReactionRoles, error) {
-	row := q.db.QueryRow(ctx, CreateReactionRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.ReactionRoles)
-	var i GuildSettingsReactionRoles
-	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.ReactionRoles)
-	return &i, err
-}
-
-const GetReactionRolesGuildSettings = `-- name: GetReactionRolesGuildSettings :one
+const GetReactionRoleSettingByGuildId = `-- name: GetReactionRoleSettingByGuildId :many
 SELECT
-    guild_id, toggle_enabled, reaction_roles
+    reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles
 FROM
     guild_settings_reaction_roles
 WHERE
     guild_id = $1
 `
 
-func (q *Queries) GetReactionRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsReactionRoles, error) {
-	row := q.db.QueryRow(ctx, GetReactionRolesGuildSettings, guildID)
-	var i GuildSettingsReactionRoles
-	err := row.Scan(&i.GuildID, &i.ToggleEnabled, &i.ReactionRoles)
-	return &i, err
+func (q *Queries) GetReactionRoleSettingByGuildId(ctx context.Context, guildID int64) ([]*GuildSettingsReactionRoles, error) {
+	rows, err := q.db.Query(ctx, GetReactionRoleSettingByGuildId, guildID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GuildSettingsReactionRoles{}
+	for rows.Next() {
+		var i GuildSettingsReactionRoles
+		if err := rows.Scan(
+			&i.ReactionRoleID,
+			&i.GuildID,
+			&i.ToggleEnabled,
+			&i.ChannelID,
+			&i.MessageID,
+			&i.IsSystemMessage,
+			&i.SystemMessageFormat,
+			&i.ReactionRoleType,
+			&i.Roles,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
-const UpdateReactionRolesGuildSettings = `-- name: UpdateReactionRolesGuildSettings :execrows
+const UpdateReactionRoleSettingMessageId = `-- name: UpdateReactionRoleSettingMessageId :one
 UPDATE
     guild_settings_reaction_roles
 SET
-    toggle_enabled = $2,
-    reaction_roles = $3
+    message_id = $2
 WHERE
-    guild_id = $1
+    reaction_role_id = $1
+RETURNING
+    reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles
 `
 
-type UpdateReactionRolesGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	ReactionRoles pgtype.JSONB `json:"reaction_roles"`
+type UpdateReactionRoleSettingMessageIdParams struct {
+	ReactionRoleID uuid.UUID     `json:"reaction_role_id"`
+	MessageID      sql.NullInt64 `json:"message_id"`
 }
 
-func (q *Queries) UpdateReactionRolesGuildSettings(ctx context.Context, arg UpdateReactionRolesGuildSettingsParams) (int64, error) {
-	result, err := q.db.Exec(ctx, UpdateReactionRolesGuildSettings, arg.GuildID, arg.ToggleEnabled, arg.ReactionRoles)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (*GuildSettingsReactionRoles, error) {
+	row := q.db.QueryRow(ctx, UpdateReactionRoleSettingMessageId, arg.ReactionRoleID, arg.MessageID)
+	var i GuildSettingsReactionRoles
+	err := row.Scan(
+		&i.ReactionRoleID,
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.ChannelID,
+		&i.MessageID,
+		&i.IsSystemMessage,
+		&i.SystemMessageFormat,
+		&i.ReactionRoleType,
+		&i.Roles,
+	)
+	return &i, err
 }

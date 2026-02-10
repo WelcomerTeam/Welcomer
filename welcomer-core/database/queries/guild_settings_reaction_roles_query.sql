@@ -1,19 +1,22 @@
--- name: CreateReactionRolesGuildSettings :one
-INSERT INTO guild_settings_reaction_roles (guild_id, toggle_enabled, reaction_roles)
-    VALUES ($1, $2, $3)
-RETURNING
-    *;
-
--- name: CreateOrUpdateReactionRolesGuildSettings :one
-INSERT INTO guild_settings_reaction_roles (guild_id, toggle_enabled, reaction_roles)
-    VALUES ($1, $2, $3)
-ON CONFLICT(guild_id) DO UPDATE
+-- name: CreateOrUpdateReactionRoleSetting :one
+INSERT INTO guild_settings_reaction_roles (reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT(reaction_role_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
-        reaction_roles = EXCLUDED.reaction_roles
+        channel_id = EXCLUDED.channel_id,
+        message_id = EXCLUDED.message_id,
+        is_system_message = EXCLUDED.is_system_message,
+        system_message_format = EXCLUDED.system_message_format,
+        reaction_role_type = EXCLUDED.reaction_role_type,
+        roles = EXCLUDED.roles
 RETURNING
     *;
 
--- name: GetReactionRolesGuildSettings :one
+-- name: DeleteReactionRoleSettings :execrows
+DELETE FROM guild_settings_reaction_roles
+WHERE reaction_role_id IN ($1);
+
+-- name: GetReactionRoleSettingByGuildId :many
 SELECT
     *
 FROM
@@ -21,11 +24,12 @@ FROM
 WHERE
     guild_id = $1;
 
--- name: UpdateReactionRolesGuildSettings :execrows
+-- name: UpdateReactionRoleSettingMessageId :one
 UPDATE
     guild_settings_reaction_roles
 SET
-    toggle_enabled = $2,
-    reaction_roles = $3
+    message_id = $2
 WHERE
-    guild_id = $1;
+    reaction_role_id = $1
+RETURNING
+    *;
