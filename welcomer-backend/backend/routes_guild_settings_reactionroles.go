@@ -254,9 +254,9 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			err = disableReactionRoleMessage(ctx, new.ChannelID, new.MessageID)
 			if err != nil {
 				eg.Add(fmt.Errorf("failed to disable message for disabled system message reaction role configuration: %v", err))
-
-				return new.MessageID
 			}
+
+			return new.MessageID
 		}
 
 		if message == nil {
