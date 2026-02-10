@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-gateway
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5
+	github.com/WelcomerTeam/Discord v0.0.0-20260208222515-5deac49b5fe2
 	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
@@ -26,7 +26,7 @@ require (
 	github.com/coder/websocket v1.8.14 // indirect
 	github.com/davidmytton/url-verifier v1.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

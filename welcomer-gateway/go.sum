@@ -6,14 +6,6 @@ github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5 h1:GQpNw6ttGB
 github.com/WelcomerTeam/Discord v0.0.0-20260109154616-30eec6a16aa5/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117224108-05f8a2f9c19d h1:PnhOv7//ULJKAWKTIXLdV5+mxTiemBTrI+nAZliOMjg=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117224108-05f8a2f9c19d/go.mod h1:wXrSDGzpeSHamHEK23GN0GnYn2h28dSpd9BFtCVv5a0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117224636-7c21bf833cad h1:1DNi63nIIYBOjj+KHJ/OA+tglyGCh0aETFtEm/FrQpE=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117224636-7c21bf833cad/go.mod h1:wXrSDGzpeSHamHEK23GN0GnYn2h28dSpd9BFtCVv5a0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117225643-e77885ca9ac5 h1:oAc191sR7J5U1V8//2gQmZikk4DXfeP3dJmSwfOKP1Y=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117225643-e77885ca9ac5/go.mod h1:wXrSDGzpeSHamHEK23GN0GnYn2h28dSpd9BFtCVv5a0=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117230809-8f17b636ac14 h1:m5qs6+PdH6rQmv54aBoRZtE42tVtaA4wyIMY6NcfjAI=
-github.com/WelcomerTeam/Sandwich v0.0.0-20260117230809-8f17b636ac14/go.mod h1:wXrSDGzpeSHamHEK23GN0GnYn2h28dSpd9BFtCVv5a0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944 h1:E3N8GPpSj1NBbRydeEu+HZJMIxqFgoU8QdzV6I8GVVM=
 github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944/go.mod h1:wXrSDGzpeSHamHEK23GN0GnYn2h28dSpd9BFtCVv5a0=
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a h1:UQq0sGa3JoRHgmxjSd1kmi91WQOkiXbHwpkvL01YGSA=
