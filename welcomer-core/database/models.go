@@ -124,15 +124,15 @@ type GuildSettingsLeaver struct {
 }
 
 type GuildSettingsReactionRoles struct {
-	ReactionRoleID      uuid.UUID     `json:"reaction_role_id"`
-	GuildID             int64         `json:"guild_id"`
-	ToggleEnabled       bool          `json:"toggle_enabled"`
-	ChannelID           int64         `json:"channel_id"`
-	MessageID           sql.NullInt64 `json:"message_id"`
-	IsSystemMessage     bool          `json:"is_system_message"`
-	SystemMessageFormat pgtype.JSONB  `json:"system_message_format"`
-	ReactionRoleType    int32         `json:"reaction_role_type"`
-	Roles               pgtype.JSONB  `json:"roles"`
+	ReactionRoleID      uuid.UUID    `json:"reaction_role_id"`
+	GuildID             int64        `json:"guild_id"`
+	ToggleEnabled       bool         `json:"toggle_enabled"`
+	ChannelID           int64        `json:"channel_id"`
+	MessageID           int64        `json:"message_id"`
+	IsSystemMessage     bool         `json:"is_system_message"`
+	SystemMessageFormat pgtype.JSONB `json:"system_message_format"`
+	ReactionRoleType    int32        `json:"reaction_role_type"`
+	Roles               pgtype.JSONB `json:"roles"`
 }
 
 type GuildSettingsRules struct {

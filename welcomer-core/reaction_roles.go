@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/gofrs/uuid"
 )
 
 //go:generate go-enum -f=$GOFILE --marshal
@@ -14,10 +15,10 @@ type ReactionRoleType int32
 type GuildSettingsReactionRoles []GuildSettingsReactionRole
 
 type GuildSettingsReactionRole struct {
-	ID        string            `json:"id"`
-	Enabled   bool              `json:"enabled"`
-	ChannelID discord.Snowflake `json:"channel_id"`
-	MessageID discord.Snowflake `json:"message_id"`
+	ReactionRoleID uuid.UUID         `json:"id"`
+	Enabled        bool              `json:"enabled"`
+	ChannelID      discord.Snowflake `json:"channel_id"`
+	MessageID      discord.Snowflake `json:"message_id"`
 	// Indicates if it is a message sent by Welcomer. If false, the user cannot
 	// change the message embed through Welcomer.
 	IsSystemMessage bool                 `json:"is_system_message"`
@@ -34,14 +35,14 @@ type ReactionRoleOption struct {
 	Description string                            `json:"description,omitempty"`
 }
 
-func UnmarshalReactionRolesJSON(reactionRolesJSON []byte) (reactionRoles []GuildSettingsReactionRole) {
-	_ = json.Unmarshal(reactionRolesJSON, &reactionRoles)
+func UnmarshalReactionRolesJSON(data []byte) (reactionRoles []ReactionRoleOption) {
+	_ = json.Unmarshal(data, &reactionRoles)
 
 	return
 }
 
-func MarshalReactionRolesJSON(reactionRoles []GuildSettingsReactionRole) (reactionRolesJSON []byte) {
-	reactionRolesJSON, _ = json.Marshal(reactionRoles)
+func MarshalReactionRolesJSON(options []ReactionRoleOption) (reactionRolesJSON []byte) {
+	reactionRolesJSON, _ = json.Marshal(options)
 
 	return
 }

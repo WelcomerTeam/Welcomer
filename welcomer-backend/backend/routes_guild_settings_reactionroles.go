@@ -28,14 +28,9 @@ func getGuildSettingsReactionRoles(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			reactionroles, err := welcomer.Queries.GetReactionRolesGuildSettings(ctx, int64(guildID))
+			reactionroles, err := welcomer.Queries.GetReactionRoleSettingByGuildId(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					reactionroles = &database.GuildSettingsReactionRoles{
-						GuildID:       int64(guildID),
-						ToggleEnabled: welcomer.DefaultReactionRoles.ToggleEnabled,
-						ReactionRoles: welcomer.DefaultReactionRoles.ReactionRoles,
-					}
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild reaction roles settings")
 
@@ -74,8 +69,8 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 			}
 
 			for i, reactionRole := range partial.ReactionRoles {
-				if reactionRole.ID == "" {
-					partial.ReactionRoles[i].ID = uuid.Must(gen.NewV7()).String()
+				if reactionRole.ReactionRoleID.IsNil() {
+					partial.ReactionRoles[i].ReactionRoleID = uuid.Must(gen.NewV7())
 				}
 			}
 
@@ -91,7 +86,7 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 				return
 			}
 
-			oldReactionRoleSettings, err := welcomer.Queries.GetReactionRolesGuildSettings(ctx, int64(guildID))
+			oldReactionRoleSettings, err := welcomer.Queries.GetReactionRoleSettingByGuildId(ctx, int64(guildID))
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get existing guild reaction roles settings for update")
 
@@ -102,40 +97,17 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 
 			user := tryGetUser(ctx)
 
-			if partial.ToggleEnabled {
-				eg, messageIDs := processReactionRolesSettingsChange(ctx, GuildSettingsReactionRolesSettingsToPartial(oldReactionRoleSettings), partial)
-
-				// Update message IDs
-				for id, messageID := range messageIDs {
-					for i, k := range partial.ReactionRoles {
-						if k.ID == id {
-							partial.ReactionRoles[i].MessageID = messageID
-						}
-					}
-				}
-
-				if eg != nil && !eg.Empty() {
-					welcomer.Logger.Warn().Err(eg).Int64("guild_id", int64(guildID)).Int64("user_id", int64(user.ID)).Msg("Failed to process reaction roles settings change")
-
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok:    false,
-						Error: eg.ErrorWithDelimiter("\n"),
-					})
-
-					return
-				}
-			}
-
 			reactionroles := PartialToGuildSettingsReactionRolesSettings(int64(guildID), partial)
-			databaseReactionRolesGuildSettings := database.CreateOrUpdateReactionRolesGuildSettingsParams(*reactionroles)
-
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *reactionroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating reaction roles guild settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx, databaseReactionRolesGuildSettings, user.ID)
+					eg := welcomer.CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx, guildID, reactionroles, user.ID)
 
-					return err
+					if eg != nil {
+						return eg.AsStandardError()
+					}
+
+					return nil
 				},
 				func() error {
 					return welcomer.EnsureGuild(ctx, guildID)
@@ -149,6 +121,20 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 
 				return
 			}
+
+			eg := processReactionRolesSettingsChange(ctx, GuildSettingsReactionRolesSettingsToPartial(oldReactionRoleSettings), partial)
+			if eg != nil && !eg.Empty() {
+				welcomer.Logger.Warn().Err(eg).Int64("guild_id", int64(guildID)).Int64("user_id", int64(user.ID)).Msg("Failed to process reaction roles settings change")
+
+				ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					Ok:    false,
+					Error: eg.ErrorWithDelimiter("\n"),
+				})
+
+				return
+			}
+
+			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", reactionroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating reaction roles guild settings")
 
 			getGuildSettingsReactionRoles(ctx)
 		})
@@ -166,7 +152,7 @@ type reactionRoleConfigurations struct {
 	NewIndex int
 }
 
-func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSettingsReactionRoles) (*welcomer.ErrorGroup, map[string]discord.Snowflake) {
+func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
 	eg := welcomer.NewErrorGroup()
 
 	configurationChanges := make(map[reactionRoleConfigurationsKey]reactionRoleConfigurations)
@@ -196,18 +182,26 @@ func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSetting
 		configurationChanges[key] = configuration
 	}
 
-	messageIDs := make(map[string]discord.Snowflake)
+	guildID := tryGetGuildID(ctx)
 
 	for _, config := range configurationChanges {
 		if (config.Old != nil && config.Old.IsSystemMessage) || (config.New != nil && config.New.IsSystemMessage) {
 			messageID := processReactionRolesSettingsChangeSystemMessage(ctx, eg, config.Old, config.New)
-			messageIDs[config.New.ID] = messageID
+
+			_, err := welcomer.Queries.UpdateReactionRoleSettingMessageId(ctx, database.UpdateReactionRoleSettingMessageIdParams{
+				ReactionRoleID: config.New.ReactionRoleID,
+				GuildID:        int64(guildID),
+				MessageID:      int64(messageID),
+			})
+			if err != nil {
+				eg.Add(err)
+			}
 		} else {
 			processReactionRolesSettingsChangeNonSystemMessage(ctx, eg, config.Old, config.New)
 		}
 	}
 
-	return eg, messageIDs
+	return eg
 }
 
 func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) discord.Snowflake {
@@ -219,7 +213,6 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	}
 
 	if !hasConfigurationChanged(old, new) {
-		println("No configuration change detected for system message reaction role, skipping processing")
 		return new.MessageID
 	}
 
@@ -686,10 +679,6 @@ func checkGuildSettingsReactionRolesMessage(ctx *gin.Context) {
 
 // Validate reaction role settings.
 func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, partial *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
-	if !partial.ToggleEnabled {
-		return nil
-	}
-
 	eg := welcomer.NewErrorGroup()
 
 	for i, rr := range partial.ReactionRoles {

@@ -70,7 +70,7 @@ type Querier interface {
 	DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) (int64, error)
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
 	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)
-	DeleteReactionRoleSettings(ctx context.Context, reactionRoleID uuid.UUID) (int64, error)
+	DeleteReactionRoleSettings(ctx context.Context, arg DeleteReactionRoleSettingsParams) (int64, error)
 	DeleteUserMembership(ctx context.Context, membershipUuid uuid.UUID) (int64, error)
 	DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error)
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)

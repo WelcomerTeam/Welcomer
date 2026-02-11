@@ -138,8 +138,3 @@ var DefaultGuild database.Guilds = database.Guilds{
 	SiteGuildVisible: false,
 	SiteAllowInvites: false,
 }
-
-var DefaultReactionRoles database.GuildSettingsReactionRoles = database.GuildSettingsReactionRoles{
-	ToggleEnabled: false,
-	ReactionRoles: pgtype.JSONB{Status: pgtype.Null},
-}

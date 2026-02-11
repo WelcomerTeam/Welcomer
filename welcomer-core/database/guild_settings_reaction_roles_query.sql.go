@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
@@ -29,15 +28,15 @@ RETURNING
 `
 
 type CreateOrUpdateReactionRoleSettingParams struct {
-	ReactionRoleID      uuid.UUID     `json:"reaction_role_id"`
-	GuildID             int64         `json:"guild_id"`
-	ToggleEnabled       bool          `json:"toggle_enabled"`
-	ChannelID           int64         `json:"channel_id"`
-	MessageID           sql.NullInt64 `json:"message_id"`
-	IsSystemMessage     bool          `json:"is_system_message"`
-	SystemMessageFormat pgtype.JSONB  `json:"system_message_format"`
-	ReactionRoleType    int32         `json:"reaction_role_type"`
-	Roles               pgtype.JSONB  `json:"roles"`
+	ReactionRoleID      uuid.UUID    `json:"reaction_role_id"`
+	GuildID             int64        `json:"guild_id"`
+	ToggleEnabled       bool         `json:"toggle_enabled"`
+	ChannelID           int64        `json:"channel_id"`
+	MessageID           int64        `json:"message_id"`
+	IsSystemMessage     bool         `json:"is_system_message"`
+	SystemMessageFormat pgtype.JSONB `json:"system_message_format"`
+	ReactionRoleType    int32        `json:"reaction_role_type"`
+	Roles               pgtype.JSONB `json:"roles"`
 }
 
 func (q *Queries) CreateOrUpdateReactionRoleSetting(ctx context.Context, arg CreateOrUpdateReactionRoleSettingParams) (*GuildSettingsReactionRoles, error) {
@@ -69,11 +68,16 @@ func (q *Queries) CreateOrUpdateReactionRoleSetting(ctx context.Context, arg Cre
 
 const DeleteReactionRoleSettings = `-- name: DeleteReactionRoleSettings :execrows
 DELETE FROM guild_settings_reaction_roles
-WHERE reaction_role_id IN ($1)
+WHERE reaction_role_id IN ($1) AND guild_id = $2
 `
 
-func (q *Queries) DeleteReactionRoleSettings(ctx context.Context, reactionRoleID uuid.UUID) (int64, error) {
-	result, err := q.db.Exec(ctx, DeleteReactionRoleSettings, reactionRoleID)
+type DeleteReactionRoleSettingsParams struct {
+	ReactionRoleID uuid.UUID `json:"reaction_role_id"`
+	GuildID        int64     `json:"guild_id"`
+}
+
+func (q *Queries) DeleteReactionRoleSettings(ctx context.Context, arg DeleteReactionRoleSettingsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, DeleteReactionRoleSettings, arg.ReactionRoleID, arg.GuildID)
 	if err != nil {
 		return 0, err
 	}
@@ -123,20 +127,22 @@ const UpdateReactionRoleSettingMessageId = `-- name: UpdateReactionRoleSettingMe
 UPDATE
     guild_settings_reaction_roles
 SET
-    message_id = $2
+    message_id = $3
 WHERE
     reaction_role_id = $1
+    AND guild_id = $2
 RETURNING
     reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles
 `
 
 type UpdateReactionRoleSettingMessageIdParams struct {
-	ReactionRoleID uuid.UUID     `json:"reaction_role_id"`
-	MessageID      sql.NullInt64 `json:"message_id"`
+	ReactionRoleID uuid.UUID `json:"reaction_role_id"`
+	GuildID        int64     `json:"guild_id"`
+	MessageID      int64     `json:"message_id"`
 }
 
 func (q *Queries) UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (*GuildSettingsReactionRoles, error) {
-	row := q.db.QueryRow(ctx, UpdateReactionRoleSettingMessageId, arg.ReactionRoleID, arg.MessageID)
+	row := q.db.QueryRow(ctx, UpdateReactionRoleSettingMessageId, arg.ReactionRoleID, arg.GuildID, arg.MessageID)
 	var i GuildSettingsReactionRoles
 	err := row.Scan(
 		&i.ReactionRoleID,

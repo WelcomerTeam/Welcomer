@@ -14,7 +14,7 @@ RETURNING
 
 -- name: DeleteReactionRoleSettings :execrows
 DELETE FROM guild_settings_reaction_roles
-WHERE reaction_role_id IN ($1);
+WHERE reaction_role_id IN ($1) AND guild_id = $2;
 
 -- name: GetReactionRoleSettingByGuildId :many
 SELECT
@@ -28,8 +28,9 @@ WHERE
 UPDATE
     guild_settings_reaction_roles
 SET
-    message_id = $2
+    message_id = $3
 WHERE
     reaction_role_id = $1
+    AND guild_id = $2
 RETURNING
     *;

@@ -3,9 +3,9 @@ CREATE TABLE IF NOT EXISTS guild_settings_reaction_roles (
     guild_id bigint NOT NULL,
     toggle_enabled boolean NOT NULL,
     channel_id bigint NOT NULL,
-    message_id bigint,
+    message_id bigint NOT NULL,
     is_system_message boolean NOT NULL,
-    system_message_format jsonb,
+    system_message_format jsonb NOT NULL,
     reaction_role_type int NOT NULL,
     roles jsonb NOT NULL,
 

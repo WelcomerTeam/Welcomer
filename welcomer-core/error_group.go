@@ -20,6 +20,14 @@ func (eg *ErrorGroup) Error() string {
 	return eg.ErrorWithDelimiter("; ")
 }
 
+func (eg *ErrorGroup) AsStandardError() error {
+	if eg.Empty() {
+		return nil
+	}
+
+	return ErrorGroupError(eg.Error())
+}
+
 func (eg *ErrorGroup) ErrorWithDelimiter(delimiter string) string {
 	if eg.Empty() {
 		return ""
@@ -36,4 +44,11 @@ func (eg *ErrorGroup) ErrorWithDelimiter(delimiter string) string {
 	}
 
 	return errorBuilder.String()
+}
+
+// Hack to allow for err != nil checks
+type ErrorGroupError string
+
+func (e ErrorGroupError) Error() string {
+	return string(e)
 }
