@@ -14,11 +14,7 @@
         </div>
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
-            <form-value title="Enable Reaction Roles" :type="FormTypeToggle" v-model="config.enabled"
-                        @update:modelValue="onValueUpdate" :validation="v$.enabled">Reaction Roles allow users to assign themselves roles by reacting to messages.</form-value>
-            
-            
-            <form-value title="Reaction Roles" type="FormTypeBlank" :validation="v$.roles">
+            <form-value type="FormTypeBlank">
               <reaction-roles-table :modelValue="config"
                                     @update:modelValue="onValueUpdate"></reaction-roles-table>
             </form-value>
@@ -32,9 +28,7 @@
 </template>
 
 <script>
-import { computed, ref } from "vue";
-
-import useVuelidate from "@vuelidate/core";
+import { ref } from "vue";
 
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
@@ -70,15 +64,6 @@ export default {
     
     let config = ref({});
     
-    const validation_rules = computed(() => {
-      const validation_rules = {
-      };
-      
-      return validation_rules;
-    });
-    
-    const v$ = useVuelidate(validation_rules, config, { $rewardEarly: true });
-    
     return {
       FormTypeBlank,
       FormTypeToggle,
@@ -89,7 +74,6 @@ export default {
       isChangeInProgress,
       
       config,
-      v$,
     };
   },
   
