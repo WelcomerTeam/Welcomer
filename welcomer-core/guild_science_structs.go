@@ -67,3 +67,9 @@ type GuildScienceLeaverMessageRemoved struct {
 	MessageID        discord.Snowflake `json:"message_id,omitempty"`
 	MessageChannelID discord.Snowflake `json:"channel_id,omitempty"`
 }
+
+type GuildScienceReactionRoleGivenRemoved struct {
+	TimeToResolveMs  int64             `json:"ttr,omitempty"`
+	RoleID           discord.Snowflake `json:"role_id"`
+	ReactionRoleUUID uuid.UUID         `json:"reaction_role_uuid"`
+}

@@ -155,6 +155,38 @@ func (q *Queries) GetReactionRoleSettingById(ctx context.Context, arg GetReactio
 	return &i, err
 }
 
+const GetReactionRoleSettingByMessageId = `-- name: GetReactionRoleSettingByMessageId :one
+SELECT
+    reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles
+FROM
+    guild_settings_reaction_roles
+WHERE
+    message_id = $1
+    AND guild_id = $2
+`
+
+type GetReactionRoleSettingByMessageIdParams struct {
+	MessageID int64 `json:"message_id"`
+	GuildID   int64 `json:"guild_id"`
+}
+
+func (q *Queries) GetReactionRoleSettingByMessageId(ctx context.Context, arg GetReactionRoleSettingByMessageIdParams) (*GuildSettingsReactionRoles, error) {
+	row := q.db.QueryRow(ctx, GetReactionRoleSettingByMessageId, arg.MessageID, arg.GuildID)
+	var i GuildSettingsReactionRoles
+	err := row.Scan(
+		&i.ReactionRoleID,
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.ChannelID,
+		&i.MessageID,
+		&i.IsSystemMessage,
+		&i.SystemMessageFormat,
+		&i.ReactionRoleType,
+		&i.Roles,
+	)
+	return &i, err
+}
+
 const UpdateReactionRoleSettingMessageId = `-- name: UpdateReactionRoleSettingMessageId :one
 UPDATE
     guild_settings_reaction_roles

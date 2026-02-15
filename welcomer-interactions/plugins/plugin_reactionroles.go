@@ -37,21 +37,26 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 			if interaction.GuildID == nil || interaction.Data.CustomID == "" {
 				return nil, nil
 			}
+
 			customIDSplit := strings.Split(interaction.Data.CustomID, ":")
 			if len(customIDSplit) != 3 {
 				return nil, nil
 			}
+
 			if customIDSplit[0] != "reaction_role" {
 				return nil, nil
 			}
+
 			reactionRoleUUID, err := uuid.FromString(customIDSplit[1])
 			if err != nil {
 				return nil, err
 			}
+
 			roleID, err := welcomer.Atoi(customIDSplit[2])
 			if err != nil {
 				return nil, err
 			}
+
 			reactionRole, err := welcomer.Queries.GetReactionRoleSettingById(ctx, database.GetReactionRoleSettingByIdParams{
 				ReactionRoleID: reactionRoleUUID,
 				GuildID:        int64(*interaction.GuildID),
@@ -59,6 +64,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				return nil, err
 			}
+
 			if !reactionRole.ToggleEnabled {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -99,7 +105,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 
 			data, err := json.Marshal(core.CustomEventInvokeReactionRolesStructure{
 				Interaction:      &interaction,
-				Member:           *interaction.Member,
+				Member:           interaction.Member,
 				ReactionRoleUUID: reactionRoleUUID,
 				RoleID:           discord.Snowflake(roleID),
 			})

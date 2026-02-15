@@ -1051,7 +1051,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				func() string { return usedInvite.Code },
 				func() string { return "" },
 			),
-		})
+		},
+	)
 
 	return err
 }
