@@ -226,10 +226,6 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			message, err = createReactionRoleMessage(ctx, eg, new)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
-			} else {
-				if new != nil {
-					new.MessageID = message.ID
-				}
 			}
 		}
 
@@ -286,54 +282,8 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 		}
 
 		if hasConfigurationChangedRoles(old, new) && new.Type == welcomer.ReactionRoleTypeEmoji {
-			for _, reaction := range message.Reactions {
-				found := false
-
-				for _, option := range new.Roles {
-					if option.Emoji == reaction.Emoji.ID.String() || option.Emoji == reaction.Emoji.Name {
-						found = true
-
-						break
-					}
-				}
-
-				// Remove reactions that are no longer valid for the updated configuration.
-				if !found {
-					var emoji string
-
-					if reaction.Emoji.ID != 0 {
-						emoji = "_:" + reaction.Emoji.ID.String()
-					} else {
-						emoji = reaction.Emoji.Name
-					}
-
-					err = message.ClearReaction(ctx, backend.BotSession, emoji)
-					if err != nil {
-						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", emoji).Msg("Failed to remove reaction from message for updated system message reaction role configuration")
-
-						eg.Add(fmt.Errorf("failed to remove reaction '%s' from message for updated system message reaction role configuration: %v", reaction.Emoji, err))
-					}
-				}
-			}
-
-			for _, option := range new.Roles {
-				if option.Emoji != "" {
-					var emoji string
-
-					if _, err := welcomer.Atoi(option.Emoji); err == nil {
-						emoji = "_:" + option.Emoji
-					} else {
-						emoji = option.Emoji
-					}
-
-					err = message.AddReaction(ctx, backend.BotSession, emoji)
-					if err != nil {
-						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", option.Emoji).Msg("Failed to add reaction to message for updated system message reaction role configuration")
-
-						eg.Add(fmt.Errorf("failed to add reaction '%s' to message for updated system message reaction role configuration: %v", option.Emoji, err))
-					}
-				}
-			}
+			removeUnusedMessageReactions(ctx, eg, message, new)
+			addMessageReactions(ctx, eg, message, new)
 		}
 	}
 
@@ -341,7 +291,75 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 }
 
 func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
-	return
+	message, err := discord.GetChannelMessage(ctx, backend.BotSession, new.ChannelID, new.MessageID)
+	if err != nil {
+		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(new.MessageID)).Msg("Failed to get message for updated system message reaction role configuration")
+
+		eg.Add(fmt.Errorf("failed to get message for reaction role configuration: %v", err))
+
+		return
+	}
+
+	switch new.Type {
+	case welcomer.ReactionRoleTypeEmoji:
+		removeUnusedMessageReactions(ctx, eg, message, new)
+		addMessageReactions(ctx, eg, message, new)
+	default:
+		eg.Add(fmt.Errorf("unsupported reaction role type for non-system message reaction role configuration: %s", new.Type))
+	}
+}
+
+func removeUnusedMessageReactions(ctx *gin.Context, eg *welcomer.ErrorGroup, message *discord.Message, new *welcomer.GuildSettingsReactionRole) {
+	for _, reaction := range message.Reactions {
+		found := false
+
+		for _, option := range new.Roles {
+			if option.Emoji == reaction.Emoji.ID.String() || option.Emoji == reaction.Emoji.Name {
+				found = true
+
+				break
+			}
+		}
+
+		// Remove reactions that are no longer valid for the updated configuration.
+		if !found {
+			var emoji string
+
+			if reaction.Emoji.ID != 0 {
+				emoji = "_:" + reaction.Emoji.ID.String()
+			} else {
+				emoji = reaction.Emoji.Name
+			}
+
+			err := message.ClearReaction(ctx, backend.BotSession, emoji)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", emoji).Msg("Failed to remove reaction from message for updated system message reaction role configuration")
+
+				eg.Add(fmt.Errorf("failed to remove reaction '%s:%s' from message for updated system message reaction role configuration: %v", reaction.Emoji.Name, reaction.Emoji.ID, err))
+			}
+		}
+	}
+}
+
+func addMessageReactions(ctx *gin.Context, eg *welcomer.ErrorGroup, message *discord.Message, new *welcomer.GuildSettingsReactionRole) {
+	for _, option := range new.Roles {
+		if option.Emoji != "" {
+			var emoji string
+
+			if _, err := welcomer.Atoi(option.Emoji); err == nil {
+				emoji = "_:" + option.Emoji
+			} else {
+				emoji = option.Emoji
+			}
+
+			err := message.AddReaction(ctx, backend.BotSession, emoji)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", option.Emoji).Msg("Failed to add reaction to message for updated system message reaction role configuration")
+
+				eg.Add(fmt.Errorf("failed to add reaction '%s' to message for updated system message reaction role configuration: %v", option.Emoji, err))
+			}
+		}
+	}
 }
 
 func createReactionRoleMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, new *welcomer.GuildSettingsReactionRole) (message *discord.Message, err error) {
@@ -357,29 +375,14 @@ func createReactionRoleMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, new *w
 			return nil, err
 		}
 
-		new.MessageID = message.ID
-
-		// TODO: update database with new message ID if they have changed
+		_, err = welcomer.Queries.UpdateReactionRoleSettingMessageId(ctx, database.UpdateReactionRoleSettingMessageIdParams{
+			ReactionRoleID: new.ReactionRoleID,
+			GuildID:        int64(tryGetGuildID(ctx)),
+			MessageID:      int64(message.ID),
+		})
 
 		if new.Type == welcomer.ReactionRoleTypeEmoji {
-			for _, option := range new.Roles {
-				if option.Emoji != "" {
-					var emoji string
-
-					if _, err := welcomer.Atoi(option.Emoji); err == nil {
-						emoji = "_:" + option.Emoji
-					} else {
-						emoji = option.Emoji
-					}
-
-					err = message.AddReaction(ctx, backend.BotSession, emoji)
-					if err != nil {
-						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(message.ID)).Str("emoji", option.Emoji).Msg("Failed to add reaction to message for updated system message reaction role configuration")
-
-						eg.Add(fmt.Errorf("failed to add reaction '%s' to message for updated system message reaction role configuration: %v", option.Emoji, err))
-					}
-				}
-			}
+			addMessageReactions(ctx, eg, message, new)
 		}
 	}
 
@@ -472,7 +475,7 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 			}
 
 			component := discord.InteractionComponent{
-				CustomID: fmt.Sprintf("reaction_role|%d|%d|%d", config.ChannelID, config.MessageID, option.RoleID),
+				CustomID: fmt.Sprintf("reaction_role:%s:%s", config.ReactionRoleID.String(), option.RoleID),
 				Emoji:    emoji,
 				Label:    option.Name,
 				Style:    discord.InteractionComponentStylePrimary,
@@ -507,7 +510,7 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 				Description: option.Description,
 				Emoji:       emoji,
 				Label:       option.Name,
-				Value:       fmt.Sprintf("%d", option.RoleID),
+				Value:       fmt.Sprintf("reaction_role:%s:%s", config.ReactionRoleID.String(), option.RoleID),
 			}
 
 			options = append(options, selectOption)
@@ -519,7 +522,7 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 				Components: []discord.InteractionComponent{
 					{
 						Type:     discord.InteractionComponentTypeStringSelect,
-						CustomID: fmt.Sprintf("reaction_role|%d|%d", config.ChannelID, config.MessageID),
+						CustomID: fmt.Sprintf("reaction_role:%s", config.ReactionRoleID.String()),
 						Options:  options,
 					},
 				},
