@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"os/signal"
@@ -13,8 +14,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	_ "net/http/pprof"
 
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	welcomer "github.com/WelcomerTeam/Welcomer/welcomer-core"

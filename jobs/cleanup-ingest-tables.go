@@ -8,12 +8,11 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/jackc/pgx/v4"
-	_ "github.com/joho/godotenv/autoload"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const (

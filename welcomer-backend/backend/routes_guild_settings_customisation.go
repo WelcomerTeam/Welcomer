@@ -6,19 +6,17 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"net/http"
-	"strings"
-
 	_ "image/jpeg"
 	_ "image/png"
-
-	_ "golang.org/x/image/webp"
+	"net/http"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	_ "golang.org/x/image/webp"
 )
 
 const (

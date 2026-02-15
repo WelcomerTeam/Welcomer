@@ -3,16 +3,16 @@ module github.com/WelcomerTeam/Welcomer/welcomer-interactions
 go 1.25.1
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260107232912-10e8fab839a8
-	github.com/WelcomerTeam/Sandwich v0.0.0-20251228155540-7f08246aad6d
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20251213141933-2c925b93b2dd
-	github.com/WelcomerTeam/Subway v0.0.0-20250728235017-02b54da8d689
+	github.com/WelcomerTeam/Discord v0.0.0-20260208222515-5deac49b5fe2
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
+	github.com/WelcomerTeam/Subway v0.0.0-20260214082728-cdfcd8b67cba
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgtype v1.14.4
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
-	google.golang.org/grpc v1.78.0
+	google.golang.org/grpc v1.79.1
 )
 
 require (
@@ -45,11 +45,11 @@ require (
 	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
