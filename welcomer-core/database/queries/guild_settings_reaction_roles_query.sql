@@ -24,6 +24,15 @@ FROM
 WHERE
     guild_id = $1;
 
+-- name: GetReactionRoleSettingById :one
+SELECT
+    *
+FROM
+    guild_settings_reaction_roles
+WHERE
+    reaction_role_id = $1
+    AND guild_id = $2;
+
 -- name: UpdateReactionRoleSettingMessageId :one
 UPDATE
     guild_settings_reaction_roles

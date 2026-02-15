@@ -103,6 +103,7 @@ type Querier interface {
 	GetPaypalSubscriptionBySubscriptionID(ctx context.Context, subscriptionID string) (*PaypalSubscriptions, error)
 	GetPaypalSubscriptionsByUserID(ctx context.Context, userID int64) ([]*PaypalSubscriptions, error)
 	GetReactionRoleSettingByGuildId(ctx context.Context, guildID int64) ([]*GuildSettingsReactionRoles, error)
+	GetReactionRoleSettingById(ctx context.Context, arg GetReactionRoleSettingByIdParams) (*GuildSettingsReactionRoles, error)
 	GetRulesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsRules, error)
 	GetScienceEvent(ctx context.Context, eventUuid uuid.UUID) (*ScienceEvents, error)
 	GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.UUID) (*ScienceGuildEvents, error)

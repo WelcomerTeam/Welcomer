@@ -3,6 +3,7 @@ package welcomer
 import (
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
+	"github.com/gofrs/uuid"
 )
 
 const (
@@ -14,6 +15,8 @@ const (
 
 	CustomEventInvokeBorderwall           = "WELCOMER_INVOKE_BORDERWALL"
 	CustomEventInvokeBorderwallCompletion = "WELCOMER_INVOKE_BORDERWALL_COMPLETION"
+
+	CustomEventInvokeReactionRoles = "WELCOMER_INVOKE_REACTION_ROLES"
 )
 
 type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeWelcomerStructure) error
@@ -56,4 +59,14 @@ type OnInvokeBorderwallFuncType func(eventCtx *sandwich.EventContext, member Cus
 
 type CustomEventInvokeBorderwallStructure struct {
 	Member discord.GuildMember
+}
+
+type OnInvokeReactionRolesFuncType func(eventCtx *sandwich.EventContext, member CustomEventInvokeReactionRolesStructure) error
+
+type CustomEventInvokeReactionRolesStructure struct {
+	Interaction *discord.Interaction
+	Member      discord.GuildMember
+
+	ReactionRoleUUID uuid.UUID
+	RoleID           discord.Snowflake
 }
