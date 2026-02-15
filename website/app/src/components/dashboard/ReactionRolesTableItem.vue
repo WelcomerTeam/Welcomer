@@ -3,7 +3,7 @@
     <div v-if="onboardingStep >= 0">
       <h2 class="text-2xl font-bold mb-8 text-center">Select Message Type</h2>
       <div class="grid grid-cols-2 space-x-2 mb-4">
-        <button :disabled="!$props.isSetup" @click="$props.reactionRole.is_system_message = false" :class="[$props.reactionRole.is_system_message === false ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4 disabled:bg-secondary-light']">
+        <button :disabled="true || !$props.isSetup" @click="$props.reactionRole.is_system_message = false" :class="[$props.reactionRole.is_system_message === false ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4 disabled:bg-secondary-light']">
           <h2 class="font-bold text-lg">Use an existing message</h2>
           <span>Use an existing message sent by any user, you cannot configure this message on the dashboard.</span>
         </button>
