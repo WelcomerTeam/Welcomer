@@ -4,8 +4,8 @@ go 1.26
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
-	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260219212036-0ff755353119
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260219211816-cc899f0920e7
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
@@ -35,11 +35,11 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgtype v1.14.4 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
-	github.com/klauspost/compress v1.18.3 // indirect
+	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/nats-io/nkeys v0.4.12 // indirect
+	github.com/nats-io/nkeys v0.4.15 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/plutov/paypal/v4 v4.17.0 // indirect
@@ -53,7 +53,7 @@ require (
 	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 

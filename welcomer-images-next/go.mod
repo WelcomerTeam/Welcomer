@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
-	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20260106000525-015b4644acdc
+	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0-20260119133355-7d41c01dbc33
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d
 	github.com/chromedp/chromedp v0.14.2
 	github.com/gin-contrib/logger v1.2.6
@@ -17,15 +17,15 @@ require (
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944 // indirect
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260219212036-0ff755353119 // indirect
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260219211816-cc899f0920e7 // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20260215223101-ec5a0f747ca9 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
-	github.com/bytedance/sonic v1.14.2 // indirect
-	github.com/bytedance/sonic/loader v0.4.0 // indirect
+	github.com/bytedance/sonic v1.15.0 // indirect
+	github.com/bytedance/sonic/loader v0.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
@@ -34,7 +34,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
-	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e // indirect
+	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.1 // indirect
@@ -76,12 +76,12 @@ require (
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/arch v0.23.0 // indirect
+	golang.org/x/arch v0.24.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

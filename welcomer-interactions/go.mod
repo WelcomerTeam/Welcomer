@@ -4,8 +4,8 @@ go 1.26
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
-	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260219212036-0ff755353119
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260219211816-cc899f0920e7
 	github.com/WelcomerTeam/Subway v0.0.0-20260215223101-ec5a0f747ca9
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -49,7 +49,7 @@ require (
 	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 

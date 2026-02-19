@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260219211816-cc899f0920e7
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gin-contrib/cache v1.4.1
 	github.com/gin-contrib/gzip v1.2.5
@@ -31,7 +31,7 @@ require (
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
-	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944 // indirect
+	github.com/WelcomerTeam/Sandwich v0.0.0-20260219212036-0ff755353119 // indirect
 	github.com/WelcomerTeam/Subway v0.0.0-20260215223101-ec5a0f747ca9 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -97,7 +97,7 @@ require (
 	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
