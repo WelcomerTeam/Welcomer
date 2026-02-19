@@ -34,12 +34,34 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 		Channel:            nil,
 		InitialInteraction: discord.Interaction{},
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			if interaction.GuildID == nil || interaction.Data.CustomID == "" {
+			if interaction.GuildID == nil {
 				return nil, nil
 			}
 
-			customIDSplit := strings.Split(interaction.Data.CustomID, ":")
-			if len(customIDSplit) != 3 {
+			var customID string
+
+			if interaction.Data.ComponentType == nil {
+				return nil, nil
+			}
+
+			switch *interaction.Data.ComponentType {
+			case discord.InteractionComponentTypeButton:
+				customID = interaction.Data.CustomID
+			case discord.InteractionComponentTypeStringSelect:
+				if len(interaction.Data.Values) == 0 {
+					return nil, nil
+				}
+				customID = interaction.Data.Values[0]
+			default:
+				return nil, nil
+			}
+
+			if customID == "" {
+				return nil, nil
+			}
+
+			customIDSplit := strings.Split(customID, ":")
+			if len(customIDSplit) == 0 {
 				return nil, nil
 			}
 
@@ -123,6 +145,9 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 			}
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Flags: uint32(discord.MessageFlagEphemeral),
+				},
 			}, nil
 		},
 	}

@@ -69,4 +69,5 @@ type CustomEventInvokeReactionRolesStructure struct {
 
 	ReactionRoleUUID uuid.UUID
 	RoleID           discord.Snowflake
+	Assign           *bool
 }
