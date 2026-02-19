@@ -103,7 +103,7 @@ func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitleme
 				{
 					Title:     "Discord Sale",
 					Color:     0x5865F2,
-					Timestamp: ToPointer(time.Now()),
+					Timestamp: new(time.Now()),
 					Fields: []discord.EmbedField{
 						{
 							Name:   "ID",

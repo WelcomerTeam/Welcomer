@@ -127,7 +127,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	if len(assignableRoles) > 0 {
 		member := sandwich.NewGuildMember(&eventCtx.Guild.ID, event.Member.User.ID)
 
-		err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, welcomer.ToPointer("Automatically assigned with BorderWall"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, new("Automatically assigned with BorderWall"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -483,7 +483,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	if len(assignableJoinRoles) > 0 {
-		err = member.RemoveRoles(eventCtx.Context, eventCtx.Session, assignableJoinRoles, welcomer.ToPointer("Automatically removed with BorderWall"), true)
+		err = member.RemoveRoles(eventCtx.Context, eventCtx.Session, assignableJoinRoles, new("Automatically removed with BorderWall"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -497,7 +497,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	}
 
 	if len(assignableVerifyRoles) > 0 {
-		err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableVerifyRoles, welcomer.ToPointer("Automatically assigned with BorderWall"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableVerifyRoles, new("Automatically assigned with BorderWall"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

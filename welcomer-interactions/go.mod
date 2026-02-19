@@ -1,12 +1,12 @@
 module github.com/WelcomerTeam/Welcomer/welcomer-interactions
 
-go 1.25.1
+go 1.26
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260208222515-5deac49b5fe2
+	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
 	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
-	github.com/WelcomerTeam/Subway v0.0.0-20260214082728-cdfcd8b67cba
+	github.com/WelcomerTeam/Subway v0.0.0-20260215223101-ec5a0f747ca9
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgtype v1.14.4

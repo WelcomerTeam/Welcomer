@@ -1,11 +1,7 @@
 package welcomer
 
-func GuildHasFeature(guildFeatures []GuildFeature, feature GuildFeature) bool {
-	for _, gf := range guildFeatures {
-		if gf == feature {
-			return true
-		}
-	}
+import "slices"
 
-	return false
+func GuildHasFeature(guildFeatures []GuildFeature, feature GuildFeature) bool {
+	return slices.Contains(guildFeatures, feature)
 }

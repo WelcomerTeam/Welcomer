@@ -1077,8 +1077,8 @@ func getReferencesFromCustomImage(customImage *welcomer.CustomWelcomerImage) []s
 }
 
 func isRef(value string) (bool, string) {
-	if strings.HasPrefix(value, CustomBuilderReferencePrefix) {
-		return true, strings.TrimPrefix(value, CustomBuilderReferencePrefix)
+	if after, ok := strings.CutPrefix(value, CustomBuilderReferencePrefix); ok {
+		return true, after
 	}
 
 	return false, ""

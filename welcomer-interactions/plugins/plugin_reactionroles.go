@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -101,14 +102,10 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 			reactionRoleSettings := welcomer.UnmarshalReactionRolesJSON(reactionRole.Roles.Bytes)
-			var found bool
-			for _, setting := range reactionRoleSettings {
-				if setting.RoleID == discord.Snowflake(roleID) {
-					found = true
-					break
-				}
-			}
-			if !found {
+
+			if found := slices.ContainsFunc(reactionRoleSettings, func(setting core.ReactionRoleOption) bool {
+				return setting.RoleID == discord.Snowflake(roleID)
+			}); !found {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{

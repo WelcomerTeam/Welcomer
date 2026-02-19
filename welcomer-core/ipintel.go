@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"sync"
 )
@@ -137,15 +138,7 @@ func (c *LRUIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIn
 
 func (c *LRUIPChecker) moveToFront(ipaddress string) {
 	// Find the index of the IP address in the access order
-	index := -1
-
-	for i, addr := range c.accessOrder {
-		if addr == ipaddress {
-			index = i
-
-			break
-		}
-	}
+	index := slices.IndexFunc(c.accessOrder, func(v string) bool { return v == ipaddress })
 
 	// If the IP address is already at the front, no need to move
 	if index == 0 {

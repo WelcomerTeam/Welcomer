@@ -130,10 +130,6 @@ func StringToJsonLiteral(s string) json.RawMessage {
 	return json.RawMessage([]byte(`"` + s + `"`))
 }
 
-func ToPointer[K any](k K) *K {
-	return &k
-}
-
 func FormatTextStroke(v bool) int {
 	if v {
 		return 4
@@ -353,13 +349,13 @@ func ParseColour(str, defaultValue string) (*color.RGBA, error) {
 
 	switch {
 	case strings.HasPrefix(str, RGBPrefix):
-		if strings.HasPrefix(str, RGBAPrefix) {
+		if after, ok := strings.CutPrefix(str, RGBAPrefix); ok {
 			// Validate against RGBA regex
 			if RGBARegex.MatchString(str) {
-				str = strings.TrimPrefix(str, RGBAPrefix) // (255, 255, 255, 0.1)
-				str = strings.TrimPrefix(str, "(")        // 255, 255, 255, 0.1)
-				str = strings.TrimSuffix(str, ")")        // 255, 255, 255, 0.1
-				values := strings.Split(str, ",")         // ["255", " 255", " 255, " 0.1"]
+				str = after                        // (255, 255, 255, 0.1)
+				str = strings.TrimPrefix(str, "(") // 255, 255, 255, 0.1)
+				str = strings.TrimSuffix(str, ")") // 255, 255, 255, 0.1
+				values := strings.Split(str, ",")  // ["255", " 255", " 255, " 0.1"]
 
 				var alphaFloat float64
 				var err error
@@ -586,16 +582,6 @@ func IfElseFunc[T any](condition bool, trueFunc T, falseValue func() T) T {
 	}
 
 	return falseValue()
-}
-
-func SliceContains[T comparable](slice []T, value T) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-
-	return false
 }
 
 func SendWebhookMessage(ctx context.Context, webhookURL string, message discord.WebhookMessageParams) error {

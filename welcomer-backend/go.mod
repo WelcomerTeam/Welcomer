@@ -1,9 +1,9 @@
 module github.com/WelcomerTeam/Welcomer/welcomer-backend
 
-go 1.25.1
+go 1.26
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260208222515-5deac49b5fe2
+	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
 	github.com/WelcomerTeam/Recoder v0.0.0-20221011234038-88363954a5e1
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
@@ -32,7 +32,7 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
 	github.com/WelcomerTeam/Sandwich v0.0.0-20260117232955-ff8ccfeeb944 // indirect
-	github.com/WelcomerTeam/Subway v0.0.0-20260214082728-cdfcd8b67cba // indirect
+	github.com/WelcomerTeam/Subway v0.0.0-20260215223101-ec5a0f747ca9 // indirect
 	github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

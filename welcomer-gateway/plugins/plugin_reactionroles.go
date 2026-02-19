@@ -3,6 +3,7 @@ package plugins
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -166,18 +167,14 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 
 	println(event.RoleID, len(event.Member.Roles))
 
-	for _, role := range event.Member.Roles {
-		if role == event.RoleID {
-			hasRole = true
-
-			break
-		}
+	if slices.Contains(event.Member.Roles, event.RoleID) {
+		hasRole = true
 	}
 
 	println("has role:", hasRole)
 
 	if !hasRole && (event.Assign == nil || *event.Assign) {
-		err := event.Member.AddRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, welcomer.ToPointer("Automatically assigned with Reaction Roles"), true)
+		err := event.Member.AddRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically assigned with Reaction Roles"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*event.Member.GuildID)).
@@ -236,7 +233,7 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 	}
 
 	if hasRole && (event.Assign == nil || !*event.Assign) {
-		err := event.Member.RemoveRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, welcomer.ToPointer("Automatically removed with Reaction Roles"), true)
+		err := event.Member.RemoveRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically removed with Reaction Roles"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*event.Member.GuildID)).

@@ -3,6 +3,7 @@ package welcomer
 import (
 	"fmt"
 	"html"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -285,9 +286,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 	}
 
-	for key, value := range extraValues {
-		vars[key] = value
-	}
+	maps.Copy(vars, extraValues)
 
 	return vars
 }

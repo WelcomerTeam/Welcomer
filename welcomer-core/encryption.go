@@ -22,7 +22,7 @@ const (
 )
 
 // LoadRSAKey loads an RSA public or private key from a file specified in environment variable
-func LoadRSAKey(keyType KeyType) (interface{}, error) {
+func LoadRSAKey(keyType KeyType) (any, error) {
 	var path string
 
 	folder := os.Getenv("CUSTOM_BOT_KEY_FOLDER")

@@ -47,7 +47,7 @@ func main() {
 						Title:       "Cleanup Expired Welcome Messages Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   welcomer.ToPointer(time.Now()),
+						Timestamp:   new(time.Now()),
 					},
 				},
 			})
@@ -250,7 +250,7 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 		}
 
 		if len(messageIDs) > 2 {
-			err = discord.BulkDeleteMessages(ctx, session, channelID, messageIDs, welcomer.ToPointer("Expired welcome message cleanup"))
+			err = discord.BulkDeleteMessages(ctx, session, channelID, messageIDs, new("Expired welcome message cleanup"))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(channelID)).
 					Msg("Failed to bulk delete welcome messages for guild")
@@ -258,7 +258,7 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 		} else {
 			message := discord.Message{ID: messageIDs[0], ChannelID: channelID}
 
-			err = message.Delete(ctx, session, welcomer.ToPointer("Expired welcome message cleanup"))
+			err = message.Delete(ctx, session, new("Expired welcome message cleanup"))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(channelID)).
 					Msg("Failed to delete welcome message for guild")

@@ -46,7 +46,7 @@ func main() {
 						Title:       "Patreon Service",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   welcomer.ToPointer(time.Now()),
+						Timestamp:   new(time.Now()),
 					},
 				},
 			})
@@ -392,7 +392,7 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 					Title:     "Patreon Service",
 					Fields:    embedFields,
 					Color:     welcomer.If(processHasWarning, int32(16760839), int32(5415248)),
-					Timestamp: welcomer.ToPointer(time.Now()),
+					Timestamp: new(time.Now()),
 				},
 			},
 		})

@@ -1,6 +1,6 @@
 module github.com/WelcomerTeam/Welcomer/welcomer-ingest
 
-go 1.25.3
+go 1.26
 
 require (
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260117103610-349cfd19aa9a

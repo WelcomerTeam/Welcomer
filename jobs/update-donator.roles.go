@@ -54,7 +54,7 @@ func main() {
 						Title:       "Update Donator Roles Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   welcomer.ToPointer(time.Now()),
+						Timestamp:   new(time.Now()),
 					},
 				},
 			})
@@ -160,7 +160,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Assigning donator role to user")
 
-			err := member.AddRoles(ctx, session, []discord.Snowflake{DonatorRole}, welcomer.ToPointer("Active welcomer donator"), true)
+			err := member.AddRoles(ctx, session, []discord.Snowflake{DonatorRole}, new("Active welcomer donator"), true)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).
@@ -173,7 +173,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Removing donator role from user")
 
-			err := member.RemoveRoles(ctx, session, []discord.Snowflake{DonatorRole}, welcomer.ToPointer("No longer active welcomer donator"), true)
+			err := member.RemoveRoles(ctx, session, []discord.Snowflake{DonatorRole}, new("No longer active welcomer donator"), true)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).
@@ -188,7 +188,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Assigning welcomer pro role to user")
 
-			err := member.AddRoles(ctx, session, []discord.Snowflake{WelcomerProRole}, welcomer.ToPointer("Active welcomer pro membership"), true)
+			err := member.AddRoles(ctx, session, []discord.Snowflake{WelcomerProRole}, new("Active welcomer pro membership"), true)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).
@@ -201,7 +201,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Removing welcomer pro role from user")
 
-			err := member.RemoveRoles(ctx, session, []discord.Snowflake{WelcomerProRole}, welcomer.ToPointer("No longer active welcomer pro membership"), true)
+			err := member.RemoveRoles(ctx, session, []discord.Snowflake{WelcomerProRole}, new("No longer active welcomer pro membership"), true)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
@@ -311,18 +312,10 @@ func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *we
 
 func removeUnusedMessageReactions(ctx *gin.Context, eg *welcomer.ErrorGroup, message *discord.Message, new *welcomer.GuildSettingsReactionRole) {
 	for _, reaction := range message.Reactions {
-		found := false
-
-		for _, option := range new.Roles {
-			if option.Emoji == reaction.Emoji.ID.String() || option.Emoji == reaction.Emoji.Name {
-				found = true
-
-				break
-			}
-		}
-
 		// Remove reactions that are no longer valid for the updated configuration.
-		if !found {
+		if found := slices.ContainsFunc(new.Roles, func(option welcomer.ReactionRoleOption) bool {
+			return option.Emoji == reaction.Emoji.Name || option.Emoji == reaction.Emoji.ID.String()
+		}); !found {
 			var emoji string
 
 			if reaction.Emoji.ID != 0 {

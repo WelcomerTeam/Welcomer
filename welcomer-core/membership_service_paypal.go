@@ -60,7 +60,7 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 				{
 					Title:     "Paypal Sale",
 					Color:     0x009CDE,
-					Timestamp: ToPointer(time.Now()),
+					Timestamp: new(time.Now()),
 					Fields: []discord.EmbedField{
 						{
 							Name:   "ID",
@@ -225,7 +225,7 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 				{
 					Title:     "Paypal Subscription " + action,
 					Color:     0x009CDE,
-					Timestamp: ToPointer(time.Now()),
+					Timestamp: new(time.Now()),
 					Fields: []discord.EmbedField{
 						{
 							Name:   "ID",

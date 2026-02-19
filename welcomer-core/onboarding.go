@@ -12,7 +12,7 @@ func GetOnboardingMessage(guildID discord.Snowflake) discord.MessageParams {
 		Components: []discord.InteractionComponent{
 			{
 				Type:        discord.InteractionComponentTypeContainer,
-				AccentColor: ToPointer(uint32(0xfbc01b)),
+				AccentColor: new(uint32(0xfbc01b)),
 				Components: []discord.InteractionComponent{
 					{
 						Type: discord.InteractionComponentTypeSection,

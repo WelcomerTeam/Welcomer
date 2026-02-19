@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"errors"
+	"slices"
 	"strconv"
 	"time"
 
@@ -158,15 +159,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		for _, timeRole := range assignableTimeRoles {
 			if timeRole.Seconds <= secondsSinceJoining {
-				hasRole := false
-
-				for _, role := range guildMember.Roles {
-					if role == int64(timeRole.Role) {
-						hasRole = true
-
-						break
-					}
-				}
+				hasRole := slices.Contains(guildMember.Roles, int64(timeRole.Role))
 
 				if !hasRole && timeRole.Role != 0 {
 					rolesToAssign = append(rolesToAssign, timeRole.Role)
@@ -209,7 +202,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		member.GuildID = &guildID
 
-		err = member.AddRoles(eventCtx.Context, eventCtx.Session, roles, welcomer.ToPointer("Automatically assigned with TimeRoles"), true)
+		err = member.AddRoles(eventCtx.Context, eventCtx.Session, roles, new("Automatically assigned with TimeRoles"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).

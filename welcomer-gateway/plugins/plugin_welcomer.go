@@ -1123,7 +1123,7 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 		if !userWelcomedEvent.MessageID.IsNil() && !userWelcomedEvent.MessageChannelID.IsNil() {
 			message := discord.Message{ChannelID: userWelcomedEvent.MessageChannelID, ID: userWelcomedEvent.MessageID}
 
-			err = message.Delete(eventCtx.Context, eventCtx.Session, welcomer.ToPointer("Auto delete welcome message on leave"))
+			err = message.Delete(eventCtx.Context, eventCtx.Session, new("Auto delete welcome message on leave"))
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).

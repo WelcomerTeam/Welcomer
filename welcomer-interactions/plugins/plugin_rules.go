@@ -77,7 +77,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -192,7 +192,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -366,12 +366,12 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "rule",
 				Description:  "The rule to add.",
 
-				MaxLength: welcomer.ToPointer(int32(welcomer.MaxRuleLength)),
+				MaxLength: new(int32(welcomer.MaxRuleLength)),
 			},
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -521,7 +521,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
