@@ -471,7 +471,7 @@ func createMessageComponentsForReactionRole(config *welcomer.GuildSettingsReacti
 				CustomID: fmt.Sprintf("reaction_role:%s:%s", config.ReactionRoleID.String(), option.RoleID),
 				Emoji:    emoji,
 				Label:    option.Name,
-				Style:    discord.InteractionComponentStylePrimary,
+				Style:    discord.InteractionComponentStyleSecondary,
 				Type:     discord.InteractionComponentTypeButton,
 			}
 
