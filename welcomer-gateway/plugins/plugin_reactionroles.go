@@ -85,6 +85,37 @@ func (r *ReactionRolesCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
+	r.EventHandler.RegisterOnMessageDeleteEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake) error {
+		if channel.GuildID == nil {
+			return nil
+		}
+
+		reactionRole, err := welcomer.Queries.GetReactionRoleSettingByMessageId(eventCtx.Context, database.GetReactionRoleSettingByMessageIdParams{
+			MessageID: int64(messageID),
+			GuildID:   int64(*channel.GuildID),
+		})
+		if err != nil {
+			if !errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(*channel.GuildID)).Int64("message_id", int64(messageID)).Msg("Failed to get reaction role setting by message ID for message delete event")
+			}
+
+			return nil
+		}
+
+		_, err = welcomer.Queries.UpdateReactionRoleSettingMessageId(eventCtx.Context, database.UpdateReactionRoleSettingMessageIdParams{
+			ReactionRoleID: reactionRole.ReactionRoleID,
+			GuildID:        int64(*channel.GuildID),
+			MessageID:      0,
+		})
+		if err != nil {
+			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(*channel.GuildID)).Int64("message_id", int64(messageID)).Msg("Failed to update reaction role setting message ID to 0 for message delete event")
+
+			return nil
+		}
+
+		return nil
+	})
+
 	// Call OnInvokeReactionRoles when CustomEventInvokeReactionRoles is triggered.
 	r.EventHandler.RegisterEvent(core.CustomEventInvokeReactionRoles, nil, (welcomer.OnInvokeReactionRolesFuncType)(r.OnInvokeReactionRoles))
 
