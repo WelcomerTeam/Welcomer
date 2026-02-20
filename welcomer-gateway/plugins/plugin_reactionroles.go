@@ -48,7 +48,6 @@ func (r *ReactionRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register reaction add/remove handler.
 
 	r.EventHandler.RegisterOnMessageReactionAddEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake, emoji discord.Emoji, guildMember discord.GuildMember) error {
-		println("REACTION ADD")
 		if guildMember.User == nil || channel.GuildID == nil {
 			return nil
 		}
@@ -57,7 +56,6 @@ func (r *ReactionRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	r.EventHandler.RegisterOnMessageReactionRemoveEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake, emoji discord.Emoji, user *discord.User) error {
-		println("REACTION REMOVE")
 		if user == nil || channel.GuildID == nil {
 			return nil
 		}
@@ -103,14 +101,10 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Int64("message_id", int64(messageID)).Msg("Failed to get reaction role setting by message ID")
 		}
 
-		println("No reaction role setting found for message", messageID)
-
 		return nil
 	}
 
 	if !reactionRole.ToggleEnabled {
-		println("Reaction role setting found for message but toggle is not enabled", messageID)
-
 		return nil
 	}
 
@@ -129,8 +123,6 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 	}
 
 	if !found {
-		println("No reaction role setting found for message and emoji", messageID, emoji.Name)
-
 		return nil
 	}
 
@@ -163,15 +155,7 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 		event.Member = pb.PBToGuildMember(memberPb)
 	}
 
-	var hasRole bool
-
-	println(event.RoleID, len(event.Member.Roles))
-
-	if slices.Contains(event.Member.Roles, event.RoleID) {
-		hasRole = true
-	}
-
-	println("has role:", hasRole)
+	hasRole := slices.Contains(event.Member.Roles, event.RoleID)
 
 	if !hasRole && (event.Assign == nil || *event.Assign) {
 		err := event.Member.AddRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically assigned with Reaction Roles"), true)
@@ -259,33 +243,33 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 
 			return nil
 		}
-	}
 
-	welcomer.PusherGuildScience.Push(
-		eventCtx.Context,
-		eventCtx.Guild.ID,
-		event.Member.User.ID,
-		database.ScienceGuildEventTypeReactionRoleRemoved,
-		welcomer.GuildScienceReactionRoleGivenRemoved{
-			TimeToResolveMs:  time.Since(startedAt).Milliseconds(),
-			RoleID:           event.RoleID,
-			ReactionRoleUUID: event.ReactionRoleUUID,
-		},
-	)
-
-	if event.Interaction != nil {
-		_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
-			discord.WebhookMessageParams{
-				Embeds: welcomer.NewEmbed(fmt.Sprintf("Role <@&%d> removed successfully!", event.RoleID), welcomer.EmbedColourSuccess),
-				Flags:  discord.MessageFlagEphemeral,
+		welcomer.PusherGuildScience.Push(
+			eventCtx.Context,
+			eventCtx.Guild.ID,
+			event.Member.User.ID,
+			database.ScienceGuildEventTypeReactionRoleRemoved,
+			welcomer.GuildScienceReactionRoleGivenRemoved{
+				TimeToResolveMs:  time.Since(startedAt).Milliseconds(),
+				RoleID:           event.RoleID,
+				ReactionRoleUUID: event.ReactionRoleUUID,
 			},
 		)
-		if err != nil {
-			welcomer.Logger.Warn().Err(err).
-				Int64("guild_id", int64(*event.Member.GuildID)).
-				Int64("user_id", int64(event.Member.User.ID)).
-				Int64("role_id", int64(event.RoleID)).
-				Msg("Failed to send interaction response for successful remove role in reaction roles")
+
+		if event.Interaction != nil {
+			_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
+				discord.WebhookMessageParams{
+					Embeds: welcomer.NewEmbed(fmt.Sprintf("Role <@&%d> removed successfully!", event.RoleID), welcomer.EmbedColourSuccess),
+					Flags:  discord.MessageFlagEphemeral,
+				},
+			)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(*event.Member.GuildID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Int64("role_id", int64(event.RoleID)).
+					Msg("Failed to send interaction response for successful remove role in reaction roles")
+			}
 		}
 	}
 
