@@ -74,6 +74,7 @@ type Querier interface {
 	DeleteUserMembership(ctx context.Context, membershipUuid uuid.UUID) (int64, error)
 	DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error)
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)
+	DisableReactionRoleSettingByMessageId(ctx context.Context, arg DisableReactionRoleSettingByMessageIdParams) (int64, error)
 	GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error)
 	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error)
@@ -145,7 +146,7 @@ type Querier interface {
 	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
-	UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (*GuildSettingsReactionRoles, error)
+	UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (int64, error)
 	UpdateRuleGuildSettings(ctx context.Context, arg UpdateRuleGuildSettingsParams) (int64, error)
 	UpdateTempChannelsGuildSettings(ctx context.Context, arg UpdateTempChannelsGuildSettingsParams) (int64, error)
 	UpdateTimeRolesGuildSettings(ctx context.Context, arg UpdateTimeRolesGuildSettingsParams) (int64, error)

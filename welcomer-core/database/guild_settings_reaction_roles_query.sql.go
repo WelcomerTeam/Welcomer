@@ -18,7 +18,6 @@ INSERT INTO guild_settings_reaction_roles (reaction_role_id, guild_id, toggle_en
 ON CONFLICT(reaction_role_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         channel_id = EXCLUDED.channel_id,
-        message_id = EXCLUDED.message_id,
         is_system_message = EXCLUDED.is_system_message,
         system_message_format = EXCLUDED.system_message_format,
         reaction_role_type = EXCLUDED.reaction_role_type,
@@ -78,6 +77,30 @@ type DeleteReactionRoleSettingsParams struct {
 
 func (q *Queries) DeleteReactionRoleSettings(ctx context.Context, arg DeleteReactionRoleSettingsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, DeleteReactionRoleSettings, arg.ReactionRoleID, arg.GuildID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const DisableReactionRoleSettingByMessageId = `-- name: DisableReactionRoleSettingByMessageId :execrows
+UPDATE
+    guild_settings_reaction_roles
+SET
+    toggle_enabled = FALSE,
+    message_id = 0
+WHERE
+    message_id = $1
+    AND guild_id = $2
+`
+
+type DisableReactionRoleSettingByMessageIdParams struct {
+	MessageID int64 `json:"message_id"`
+	GuildID   int64 `json:"guild_id"`
+}
+
+func (q *Queries) DisableReactionRoleSettingByMessageId(ctx context.Context, arg DisableReactionRoleSettingByMessageIdParams) (int64, error) {
+	result, err := q.db.Exec(ctx, DisableReactionRoleSettingByMessageId, arg.MessageID, arg.GuildID)
 	if err != nil {
 		return 0, err
 	}
@@ -187,7 +210,7 @@ func (q *Queries) GetReactionRoleSettingByMessageId(ctx context.Context, arg Get
 	return &i, err
 }
 
-const UpdateReactionRoleSettingMessageId = `-- name: UpdateReactionRoleSettingMessageId :one
+const UpdateReactionRoleSettingMessageId = `-- name: UpdateReactionRoleSettingMessageId :execrows
 UPDATE
     guild_settings_reaction_roles
 SET
@@ -195,8 +218,6 @@ SET
 WHERE
     reaction_role_id = $1
     AND guild_id = $2
-RETURNING
-    reaction_role_id, guild_id, toggle_enabled, channel_id, message_id, is_system_message, system_message_format, reaction_role_type, roles
 `
 
 type UpdateReactionRoleSettingMessageIdParams struct {
@@ -205,19 +226,10 @@ type UpdateReactionRoleSettingMessageIdParams struct {
 	MessageID      int64     `json:"message_id"`
 }
 
-func (q *Queries) UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (*GuildSettingsReactionRoles, error) {
-	row := q.db.QueryRow(ctx, UpdateReactionRoleSettingMessageId, arg.ReactionRoleID, arg.GuildID, arg.MessageID)
-	var i GuildSettingsReactionRoles
-	err := row.Scan(
-		&i.ReactionRoleID,
-		&i.GuildID,
-		&i.ToggleEnabled,
-		&i.ChannelID,
-		&i.MessageID,
-		&i.IsSystemMessage,
-		&i.SystemMessageFormat,
-		&i.ReactionRoleType,
-		&i.Roles,
-	)
-	return &i, err
+func (q *Queries) UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (int64, error) {
+	result, err := q.db.Exec(ctx, UpdateReactionRoleSettingMessageId, arg.ReactionRoleID, arg.GuildID, arg.MessageID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

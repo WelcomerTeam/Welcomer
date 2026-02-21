@@ -142,11 +142,6 @@ func setGuildSettingsReactionRoles(ctx *gin.Context) {
 	})
 }
 
-type reactionRoleConfigurationsKey struct {
-	ChannelID discord.Snowflake
-	MessageID discord.Snowflake
-}
-
 type reactionRoleConfigurations struct {
 	Old      *welcomer.GuildSettingsReactionRole
 	New      *welcomer.GuildSettingsReactionRole
@@ -156,47 +151,34 @@ type reactionRoleConfigurations struct {
 func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
 	eg := welcomer.NewErrorGroup()
 
-	configurationChanges := make(map[reactionRoleConfigurationsKey]reactionRoleConfigurations)
+	configurationChanges := make(map[uuid.UUID]reactionRoleConfigurations)
 
 	for _, oldConfig := range old.ReactionRoles {
-		key := reactionRoleConfigurationsKey{oldConfig.ChannelID, oldConfig.MessageID}
-		_, ok := configurationChanges[key]
+		_, ok := configurationChanges[oldConfig.ReactionRoleID]
 		if !ok {
-			configurationChanges[key] = reactionRoleConfigurations{}
+			configurationChanges[oldConfig.ReactionRoleID] = reactionRoleConfigurations{}
 		}
 
-		configuration := configurationChanges[key]
+		configuration := configurationChanges[oldConfig.ReactionRoleID]
 		configuration.Old = &oldConfig
-		configurationChanges[key] = configuration
+		configurationChanges[oldConfig.ReactionRoleID] = configuration
 	}
 
 	for i, newConfig := range new.ReactionRoles {
-		key := reactionRoleConfigurationsKey{newConfig.ChannelID, newConfig.MessageID}
-		_, ok := configurationChanges[key]
+		_, ok := configurationChanges[newConfig.ReactionRoleID]
 		if !ok {
-			configurationChanges[key] = reactionRoleConfigurations{}
+			configurationChanges[newConfig.ReactionRoleID] = reactionRoleConfigurations{}
 		}
 
-		configuration := configurationChanges[key]
+		configuration := configurationChanges[newConfig.ReactionRoleID]
 		configuration.New = &newConfig
 		configuration.NewIndex = i
-		configurationChanges[key] = configuration
+		configurationChanges[newConfig.ReactionRoleID] = configuration
 	}
-
-	guildID := tryGetGuildID(ctx)
 
 	for _, config := range configurationChanges {
 		if (config.Old != nil && config.Old.IsSystemMessage) || (config.New != nil && config.New.IsSystemMessage) {
-			messageID := processReactionRolesSettingsChangeSystemMessage(ctx, eg, config.Old, config.New)
-
-			_, err := welcomer.Queries.UpdateReactionRoleSettingMessageId(ctx, database.UpdateReactionRoleSettingMessageIdParams{
-				ReactionRoleID: config.New.ReactionRoleID,
-				GuildID:        int64(guildID),
-				MessageID:      int64(messageID),
-			})
-			if err != nil {
-				eg.Add(err)
-			}
+			processReactionRolesSettingsChangeSystemMessage(ctx, eg, config.Old, config.New)
 		} else {
 			processReactionRolesSettingsChangeNonSystemMessage(ctx, eg, config.Old, config.New)
 		}
@@ -205,7 +187,7 @@ func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSetting
 	return eg
 }
 
-func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) discord.Snowflake {
+func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
 	if old != nil && new == nil {
 		err := disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
 		if err != nil {
@@ -214,7 +196,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	}
 
 	if !hasConfigurationChanged(old, new) {
-		return new.MessageID
+		return
 	}
 
 	var message *discord.Message
@@ -227,6 +209,12 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			message, err = createReactionRoleMessage(ctx, eg, new)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
+			}
+
+			if message != nil {
+				new.MessageID = message.ID
+			} else {
+				new.MessageID = 0
 			}
 		}
 
@@ -246,7 +234,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 				eg.Add(fmt.Errorf("failed to disable message for disabled system message reaction role configuration: %v", err))
 			}
 
-			return new.MessageID
+			return
 		}
 
 		if message == nil {
@@ -259,13 +247,13 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
 				}
 
-				return new.MessageID
+				return
 			}
 		}
 
 		// If message cannot be retrieved or created, there is not much we can do to update the configuration, so just return and log the error.
 		if message == nil {
-			return new.MessageID
+			return
 		}
 
 		// Message has changed or button/dropdown configuration has changed.
@@ -277,7 +265,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 
 					eg.Add(fmt.Errorf("failed to edit message for updated system message reaction role configuration: %v", err))
 
-					return new.MessageID
+					return
 				}
 			}
 		}
@@ -288,7 +276,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 		}
 	}
 
-	return new.MessageID
+	return
 }
 
 func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
@@ -373,6 +361,13 @@ func createReactionRoleMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, new *w
 			GuildID:        int64(tryGetGuildID(ctx)),
 			MessageID:      int64(message.ID),
 		})
+		if err != nil {
+			welcomer.Logger.Warn().Err(err).
+				Int64("guild_id", int64(tryGetGuildID(ctx))).
+				Int64("channel_id", int64(new.ChannelID)).
+				Int64("message_id", int64(message.ID)).
+				Msg("Failed to update message ID for updated system message reaction role configuration")
+		}
 
 		if new.Type == welcomer.ReactionRoleTypeEmoji {
 			addMessageReactions(ctx, eg, message, new)

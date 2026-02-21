@@ -85,6 +85,7 @@ func (r *ReactionRolesCog) RegisterCog(bot *sandwich.Bot) error {
 		return nil
 	})
 
+	// If a reaction role is deleted, set the message_id in the database to 0.
 	r.EventHandler.RegisterOnMessageDeleteEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake) error {
 		if channel.GuildID == nil {
 			return nil

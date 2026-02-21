@@ -4,7 +4,6 @@ INSERT INTO guild_settings_reaction_roles (reaction_role_id, guild_id, toggle_en
 ON CONFLICT(reaction_role_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         channel_id = EXCLUDED.channel_id,
-        message_id = EXCLUDED.message_id,
         is_system_message = EXCLUDED.is_system_message,
         system_message_format = EXCLUDED.system_message_format,
         reaction_role_type = EXCLUDED.reaction_role_type,
@@ -42,13 +41,21 @@ WHERE
     message_id = $1
     AND guild_id = $2;
 
--- name: UpdateReactionRoleSettingMessageId :one
+-- name: UpdateReactionRoleSettingMessageId :execrows
 UPDATE
     guild_settings_reaction_roles
 SET
     message_id = $3
 WHERE
     reaction_role_id = $1
-    AND guild_id = $2
-RETURNING
-    *;
+    AND guild_id = $2;
+
+-- name: DisableReactionRoleSettingByMessageId :execrows
+UPDATE
+    guild_settings_reaction_roles
+SET
+    toggle_enabled = FALSE,
+    message_id = 0
+WHERE
+    message_id = $1
+    AND guild_id = $2;
