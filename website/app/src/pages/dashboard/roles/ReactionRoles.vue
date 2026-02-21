@@ -18,6 +18,7 @@
               <reaction-roles-table :modelValue="config"
                                     @update:modelValue="onValueUpdate"></reaction-roles-table>
             </form-value>
+            <div v-if="!config.reaction_roles || config.reaction_roles.length == 0" class="mt-4 text-sm text-gray-500 mx-auto text-center max-w-lg">No reaction roles have been configured yet! Select the "Create   Reaction Role" button to get started.</div>
           </div>
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
                            @save="saveConfig"></unsaved-changes>

@@ -6,7 +6,7 @@
           <th></th>
           <th></th>
           <th class="text-right">
-            <button type="button" class="cta-button bg-primary hover:bg-primary-dark" @click="openCreatePopup()">
+            <button type="button" class="cta-button bg-primary hover:bg-primary-dark w-full md:w-auto" @click="openCreatePopup()">
               Create Reaction Role
             </button>
           </th>

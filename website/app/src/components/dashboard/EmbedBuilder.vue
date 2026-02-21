@@ -5,7 +5,7 @@
         ? 'ring-red-500 border-red-500'
         : 'border-gray-300 dark:border-secondary-light',
       open ? 'rounded-b-none' : '',
-      'border p-4 rounded-md flex shadow-sm text-left',
+      'border p-4 rounded-md flex shadow-sm text-left flex-col md:flex-row',
     ]">
       <discord-embed class="flex-1" :embeds="parseDict(modelValue).embeds" :content="parseDict(modelValue).content"
                      :isLight="true" :isBot="true" />

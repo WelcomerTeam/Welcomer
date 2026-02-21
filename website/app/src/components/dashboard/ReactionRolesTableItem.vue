@@ -2,7 +2,7 @@
   <div>
     <div v-if="onboardingStep >= 0">
       <h2 class="text-2xl font-bold mb-8 text-center">Select Message Type</h2>
-      <div class="grid grid-cols-2 space-x-2 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
         <button :disabled="true || !$props.isSetup" @click="$props.reactionRole.is_system_message = false" :class="[$props.reactionRole.is_system_message === false ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4 disabled:bg-secondary-light']">
           <h2 class="font-bold text-lg">Use an existing message</h2>
           <span>Use an existing message sent by any user, you cannot configure this message on the dashboard.</span>
@@ -25,18 +25,18 @@
     </div>
     <div v-if="onboardingStep >= 1">
       <h2 class="text-2xl font-bold mb-8 mt-8 text-center">Select Reaction Role Type</h2>
-      <div class="grid grid-cols-3 space-x-2 mb-4">
+      <div class="grid  grid-cols-1 md:grid-cols-3 gap-2 mb-4">
         <button @click="$props.reactionRole.type = 'emoji'" :class="[$props.reactionRole.type === 'emoji' ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit disabled:bg-secondary-light']">
           <h2 class="font-semibold text-center mb-2">Emojis</h2>
-          <img src="/assets/reaction_roles_emoji.png" alt="Emoji Reaction Roles" class="mt-4" />
+          <img src="/assets/reaction_roles_emoji.png" alt="Emoji Reaction Roles" class="mt-4 mx-auto" />
         </button>
         <button @click="$props.reactionRole.type = 'buttons'" :disabled="$props.reactionRole.is_system_message == false" :class="[$props.reactionRole.type === 'buttons' ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit disabled:bg-secondary-light']">
           <h2 class="font-semibold text-center mb-2">Buttons</h2>
-          <img src="/assets/reaction_roles_buttons.png" alt="Button Reaction Roles" class="mt-4" />
+          <img src="/assets/reaction_roles_buttons.png" alt="Button Reaction Roles" class="mt-4 mx-auto" />
         </button>
         <button @click="$props.reactionRole.type = 'dropdown'" :disabled="$props.reactionRole.is_system_message == false" :class="[$props.reactionRole.type === 'dropdown' ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit disabled:bg-secondary-light']">
           <h2 class="font-semibold text-center mb-2">Dropdown</h2>
-          <img src="/assets/reaction_roles_dropdown.png" alt="Dropdown Reaction Roles" class="mt-4" />
+          <img src="/assets/reaction_roles_dropdown.png" alt="Dropdown Reaction Roles" class="mt-4 mx-auto" />
         </button>
       </div>
     </div>
