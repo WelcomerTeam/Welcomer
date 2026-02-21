@@ -6,19 +6,17 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"net/http"
-	"strings"
-
 	_ "image/jpeg"
 	_ "image/png"
-
-	_ "golang.org/x/image/webp"
+	"net/http"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
+	_ "golang.org/x/image/webp"
 )
 
 const (
@@ -253,7 +251,7 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 				backend.BotSession,
 				guildID,
 				modifyCurrentMemberParams,
-				welcomer.ToPointer("Updated bot customisation"),
+				new("Updated bot customisation"),
 			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
@@ -338,12 +336,12 @@ func doValidateImageForCustomisation(data []byte, maxWidth, maxHeight int) error
 }
 
 func decodeBase64Image(data string) ([]byte, error) {
-	commaIndex := strings.Index(data, ",")
-	if commaIndex == -1 {
+	_, after, ok := strings.Cut(data, ",")
+	if !ok {
 		return nil, fmt.Errorf("invalid base64 image data")
 	}
 
-	decodedData, err := base64.StdEncoding.DecodeString(data[commaIndex+1:])
+	decodedData, err := base64.StdEncoding.DecodeString(after)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode base64 image data: %w", err)
 	}

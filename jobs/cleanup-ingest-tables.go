@@ -8,12 +8,11 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/jackc/pgx/v4"
-	_ "github.com/joho/godotenv/autoload"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgx/v4"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const (
@@ -45,7 +44,7 @@ func main() {
 						Title:       "Cleanup Ingest Tables Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   welcomer.ToPointer(time.Now()),
+						Timestamp:   new(time.Now()),
 					},
 				},
 			})

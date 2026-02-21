@@ -23,30 +23,30 @@
         </span>
       </PopoverButton>
     </div>
-    <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-      leave-to-class="opacity-0">
+    <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                leave-to-class="opacity-0">
       <PopoverPanel
         class="block w-full overflow-auto text-base bg-white dark:bg-secondary rounded-md shadow-sm sm:text-sm rounded-t-none border-t-0">
         <div class="border-gray-300 dark:border-secondary-light rounded-md border shadow-sm p-4 space-y-1">
           <div v-if="showYears" class="flex items-center gap-2"><input v-model="years" type="number" min="0"
-              class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @input="onUpdate" />
+                                                                       class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                                                       @input="onUpdate" />
             years</div>
           <div v-if="showDays" class="flex items-center gap-2"><input v-model="days" type="number" min="0"
-              class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @input="onUpdate" />
+                                                                      class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                                                      @input="onUpdate" />
             days</div>
           <div v-if="showHours" class="flex items-center gap-2"><input v-model="hours" type="number" min="0"
-              class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @input="onUpdate" />
+                                                                       class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                                                       @input="onUpdate" />
             hours</div>
           <div v-if="showMinutes" class="flex items-center gap-2"><input v-model="minutes" type="number" min="0"
-              class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @input="onUpdate" />
+                                                                         class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                                                         @input="onUpdate" />
             minutes</div>
           <div v-if="showSeconds" class="flex items-center gap-2"><input v-model="seconds" type="number" min="0"
-              class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
-              @input="onUpdate" />
+                                                                         class="flex-1 shadow-sm block w-4 max-w-32 border-gray-300 dark:border-secondary-light dark:bg-secondary-dark rounded-md focus:ring-primary focus:border-primary sm:text-sm"
+                                                                         @input="onUpdate" />
             seconds</div>
         </div>
       </PopoverPanel>

@@ -1,12 +1,12 @@
 <template>
   <div>
     <component :is="$props.isTextarea ? 'textarea' : 'input'" ref="textarea" :value="value" @input="onInput"
-      @keydown.down="highlightNext" @keydown.up="highlightPrev" @keydown.enter="selectSuggestion"
-      @keydown.tab="selectSuggestion" @selectionchange="selectionChange" :class="$props.class" :placeholder="$props.placeholder"
-      :disabled="$props.disabled" :rows="$props.isTextarea ? 4 : undefined" :id="$props.id" :type="$props.type"></component>
+               @keydown.down="highlightNext" @keydown.up="highlightPrev" @keydown.enter="selectSuggestion"
+               @keydown.tab="selectSuggestion" @selectionchange="selectionChange" :class="$props.class" :placeholder="$props.placeholder"
+               :disabled="$props.disabled" :rows="$props.isTextarea ? 4 : undefined" :id="$props.id" :type="$props.type"></component>
     <div v-if="showSuggestions"
-      class="absolute rounded-lg shadow-lg mt-1 z-50 border dark:border-secondary-light dark:bg-secondary bg-gray-50 border-gray-300 overflow-hidden"
-      :style="{ top: `${position.top}px`, left: `${position.left}px`, width: `${position.width}px` }">
+         class="absolute rounded-lg shadow-lg mt-1 z-50 border dark:border-secondary-light dark:bg-secondary bg-gray-50 border-gray-300 overflow-hidden"
+         :style="{ top: `${position.top}px`, left: `${position.left}px`, width: `${position.width}px` }">
       <p class="p-2 text-xs font-bold group uppercase text-secondary-light dark:text-gray-400">
         {{ suggestionTitle }}
       </p>
@@ -16,15 +16,15 @@
           'relative px-2 py-1 cursor-pointer rounded-md': true
         }" @click="selectSuggestionAsIndex(index)" @mouseover="highlightedIndex = index">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-            v-if="suggestion.iconType === iconTypeChannel">
+               v-if="suggestion.iconType === iconTypeChannel">
             <font-awesome-icon icon="hashtag" class="w-5 h-5 text-gray-400" aria-hidden="true" />
           </div>
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-            v-else-if="suggestion.iconType === iconTypeRole">
+               v-else-if="suggestion.iconType === iconTypeRole">
             <font-awesome-icon icon="user-tag" class="w-5 h-5 text-gray-400" aria-hidden="true" />
           </div>
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-            v-else-if="suggestion.iconType === iconTypeIcon">
+               v-else-if="suggestion.iconType === iconTypeIcon">
             <img :src="suggestion.icon" class="w-full max-w-5 max-h-5" />
           </div>
           <span :class="{
@@ -38,9 +38,10 @@
 </template>
 
 <script>
+import { ref } from 'vue';
+
 import store from "@/store/index";
 
-import { ref } from 'vue';
 
 var iconTypeChannel = 1;
 var iconTypeRole = 1;

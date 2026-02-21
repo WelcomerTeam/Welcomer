@@ -224,7 +224,7 @@ func setBorderwall(ctx *gin.Context) {
 					GlobalName:    user.GlobalName,
 					Avatar:        user.Avatar,
 				},
-				GuildID: welcomer.ToPointer(discord.Snowflake(borderwallRequest.GuildID)),
+				GuildID: new(discord.Snowflake(borderwallRequest.GuildID)),
 			},
 		})
 		if err != nil {

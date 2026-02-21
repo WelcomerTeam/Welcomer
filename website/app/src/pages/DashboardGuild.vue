@@ -2,19 +2,19 @@
   <div class="flex min-h-screen bg-gray-100">
     <TransitionRoot as="template" :show="$props.sidebarOpen">
       <Dialog as="div" static class="fixed inset-0 z-40 flex lg:hidden" @close="this.$emit('closeSidebar')"
-        :open="$props.sidebarOpen">
-        <TransitionChild as="template" enter="transition-opacity ease-linear duration-300" enter-from="opacity-0"
-          enter-to="opacity-100" leave="transition-opacity ease-linear duration-300" leave-from="opacity-100"
-          leave-to="opacity-0">
+              :open="$props.sidebarOpen">
+        <TransitionChild :show="$props.sidebarOpen" as="template" enter="transition-opacity ease-linear duration-300" enter-from="opacity-0"
+                         enter-to="opacity-100" leave="transition-opacity ease-linear duration-300" leave-from="opacity-100"
+                         leave-to="opacity-0">
           <DialogOverlay class="fixed inset-0 bg-gray-600 bg-opacity-25" />
         </TransitionChild>
-        <TransitionChild as="template" enter="transition ease-in-out duration-300 transform"
-          enter-from="-translate-x-full" enter-to="translate-x-0" leave="transition ease-in-out duration-300 transform"
-          leave-from="translate-x-0" leave-to="-translate-x-full">
+        <TransitionChild :show="$props.sidebarOpen" as="template" enter="transition ease-in-out duration-300 transform"
+                         enter-from="-translate-x-full" enter-to="translate-x-0" leave="transition ease-in-out duration-300 transform"
+                         leave-from="translate-x-0" leave-to="-translate-x-full">
           <div
             class="relative flex flex-col flex-1 w-full max-w-xs bg-gray-100 border-r dark:bg-secondary-dark dark:border-secondary-light shadow-inner">
-            <TransitionChild as="template" enter="ease-in-out duration-300" enter-from="opacity-0" enter-to="opacity-100"
-              leave="ease-in-out duration-300" leave-from="opacity-100" leave-to="opacity-0">
+            <TransitionChild :show="$props.sidebarOpen" as="template" enter="ease-in-out duration-300" enter-from="opacity-0" enter-to="opacity-100"
+                             leave="ease-in-out duration-300" leave-from="opacity-100" leave-to="opacity-0">
               <div class="absolute top-0 right-0 pt-2 -mr-12">
                 <button
                   class="flex items-center justify-center w-10 h-10 ml-1 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white bg-secondary-dark"
@@ -65,11 +65,6 @@
 </template>
 
 <script>
-import Header from "@/components/dashboard/Header.vue";
-import DashboardSidebar from "@/components/dashboard/Sidebar.vue";
-import Toast from "@/components/dashboard/Toast.vue";
-import HoistHeading from "@/components/hoist/HoistHeading.vue";
-
 import {
   Dialog,
   DialogOverlay,
@@ -78,9 +73,12 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-
 import { XIcon } from "@heroicons/vue/outline";
 
+import Header from "@/components/dashboard/Header.vue";
+import DashboardSidebar from "@/components/dashboard/Sidebar.vue";
+import Toast from "@/components/dashboard/Toast.vue";
+import HoistHeading from "@/components/hoist/HoistHeading.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 
 export default {

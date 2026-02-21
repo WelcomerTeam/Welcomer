@@ -27,12 +27,12 @@
                     <img :title="image.name" :alt="'Background image ' + image.name" v-lazy="{
                       src: `/assets/backgrounds/${image.name}.webp`,
                     }" :class="[
-                        $props.modelValue == image.name
-                          ? 'border-primary ring-primary ring-4'
-                          : '',
-                        'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
-                      ]" />
-                      <span class="sr-only">Select background {{ image.name }}</span>
+                      $props.modelValue == image.name
+                        ? 'border-primary ring-primary ring-4'
+                        : '',
+                      'hover:brightness-75 rounded-md focus:outline-none focus:ring-4 focus:ring-primary focus:border-primary aspect-[10/3] w-full',
+                    ]" />
+                    <span class="sr-only">Select background {{ image.name }}</span>
                   </button>
                 </div>
               </div>
@@ -59,10 +59,7 @@
 </template>
 
 <script>
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
 
-import backgrounds from "@/backgrounds.json";
 
 import {
   Listbox,
@@ -71,11 +68,13 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
-
 import { SelectorIcon } from "@heroicons/vue/solid";
 
+import backgrounds from "@/backgrounds.json";
 import BackgroundCarousel from "@/components/BackgroundCarousel.vue";
 import BackgroundPreview from "@/components/BackgroundPreview.vue";
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
 
 export default {
   components: {

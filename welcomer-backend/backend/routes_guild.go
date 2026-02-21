@@ -108,9 +108,7 @@ func getGuild(ctx *gin.Context) {
 				} else {
 					welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting guild settings")
 
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 					return
 				}

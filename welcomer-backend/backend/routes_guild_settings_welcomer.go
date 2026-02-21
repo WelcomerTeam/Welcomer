@@ -237,9 +237,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 					fileBytes, multipartFile, err := getBufferFromFileHeader(fileValue)
 					if err != nil {
-						ctx.JSON(http.StatusInternalServerError, BaseResponse{
-							Ok: false,
-						})
+						ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 						return
 					}
@@ -288,9 +286,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 									Error: err.Error(),
 								})
 							default:
-								ctx.JSON(http.StatusInternalServerError, BaseResponse{
-									Ok: false,
-								})
+								ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 							}
 
 							return
@@ -357,9 +353,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer config settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -382,9 +376,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer text settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -397,9 +389,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -412,9 +402,7 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -608,9 +596,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Info().Err(err).Msg("Failed to unmarshal custom builder data")
 
-				ctx.JSON(http.StatusBadRequest, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -632,7 +618,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 			}
 
-			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+			if !hasWelcomerPro && !hasCustomBackgrounds && !welcomer.GuildHasFeature(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
 				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 					Ok:    false,
 					Error: ErrMissingMembership.Error(),
@@ -647,9 +633,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get existing welcomer builder artifacts")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -686,9 +670,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -700,9 +682,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild welcomer images settings")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -723,7 +703,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
 			}
 
-			if !hasWelcomerPro && !hasCustomBackgrounds && !slices.Contains(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+			if !hasWelcomerPro && !hasCustomBackgrounds && !welcomer.GuildHasFeature(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
 				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 					Ok:    false,
 					Error: ErrMissingMembership.Error(),
@@ -744,9 +724,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 
 			fileBytes, multipartFile, err := getBufferFromFileHeader(fileValue)
 			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -794,7 +772,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 				if err != nil {
 					welcomer.Logger.Info().Err(err).Msg("Failed to encode image to png")
 
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
+					ctx.JSON(http.StatusBadRequest, BaseResponse{
 						Ok:    false,
 						Error: ErrConversionFailed.Error(),
 					})
@@ -831,9 +809,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Msg("Failed to create welcomer builder artifact")
 
-				ctx.JSON(http.StatusInternalServerError, BaseResponse{
-					Ok: false,
-				})
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 				return
 			}
@@ -1101,8 +1077,8 @@ func getReferencesFromCustomImage(customImage *welcomer.CustomWelcomerImage) []s
 }
 
 func isRef(value string) (bool, string) {
-	if strings.HasPrefix(value, CustomBuilderReferencePrefix) {
-		return true, strings.TrimPrefix(value, CustomBuilderReferencePrefix)
+	if after, ok := strings.CutPrefix(value, CustomBuilderReferencePrefix); ok {
+		return true, after
 	}
 
 	return false, ""

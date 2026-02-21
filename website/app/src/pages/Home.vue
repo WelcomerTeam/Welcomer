@@ -57,7 +57,7 @@
                 </h2>
                 <span class="text-gray-700">{{ item.description }}
                   <router-link :to="item.href" v-if="item.href"
-                    class="text-primary hover:text-primary-dark font-semibold">
+                               class="text-primary hover:text-primary-dark font-semibold">
                     {{ item.label }}
                   </router-link>
                 </span>
@@ -65,7 +65,7 @@
             </div>
             <div class="my-auto">
               <DiscordEmbed v-if="item.embeds" class="max-w-full m-auto" :isBot="true" :isDark="false"
-                :respectDarkMode="false" :embeds="item.embeds" />
+                            :respectDarkMode="false" :embeds="item.embeds" />
               <img v-else :src="item.src" alt="Preview image" class="max-w-full m-auto" />
             </div>
           </div>
@@ -76,7 +76,7 @@
         <div class="hero-features">
           <div class="hero-features-item">
             <div v-for="item in features" :key="item.name"
-              class="p-4 mx-0 my-3 text-center rounded-lg sm:text-left sm:mx-2 hover:bg-primary-light">
+                 class="p-4 mx-0 my-3 text-center rounded-lg sm:text-left sm:mx-2 hover:bg-primary-light">
               <h2 class="text-xl font-medium text-white">{{ item.name }}</h2>
               <p>{{ item.description }}</p>
             </div>
@@ -109,12 +109,11 @@
 <script>
 import { ref } from "vue";
 
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
-import DiscordEmbed from "@/components/DiscordEmbed.vue";
-import HoistHeading from "@/components/hoist/HoistHeading.vue";
-
 import dashboardAPI from "@/api/dashboard";
+import DiscordEmbed from "@/components/DiscordEmbed.vue";
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
+import HoistHeading from "@/components/hoist/HoistHeading.vue";
 
 function makeAFunEmbed() {
   let messages = [
@@ -268,7 +267,10 @@ const features = [
   // LevelRoles
   // Lockdown
   // Polls
-  // ReactionRoles
+  {
+    name: "Reaction Roles",
+    description: "Let users assign roles to themselves by interacting with a message with emojis or buttons.",
+  },
   {
     name: "Rules",
     description: "Provide a list of rules for users to see, and send them when a user joins your server.",

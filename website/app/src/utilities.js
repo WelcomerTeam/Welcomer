@@ -24,7 +24,7 @@ export function navigateToErrors() {
 export function isValidJson(json) {
     try {
         JSON.parse(json);
-    } catch (e) {
+    } catch {
         return false;
     }
     return true;

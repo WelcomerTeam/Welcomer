@@ -11,11 +11,11 @@ type GuildSettingsTimeRoles struct {
 }
 
 func GuildSettingsTimeRolesSettingsToPartial(
-	timeroles *database.GuildSettingsTimeroles,
+	timeRoles *database.GuildSettingsTimeroles,
 ) *GuildSettingsTimeRoles {
 	partial := &GuildSettingsTimeRoles{
-		ToggleEnabled: timeroles.ToggleEnabled,
-		Roles:         welcomer.UnmarshalTimeRolesJSON(welcomer.JSONBToBytes(timeroles.Timeroles)),
+		ToggleEnabled: timeRoles.ToggleEnabled,
+		Roles:         welcomer.UnmarshalTimeRolesJSON(welcomer.JSONBToBytes(timeRoles.Timeroles)),
 	}
 
 	if len(partial.Roles) == 0 {

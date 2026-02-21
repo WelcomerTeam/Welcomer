@@ -15,11 +15,7 @@ func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, int
 	ticker := time.NewTicker(time.Millisecond)
 	hasReset := false
 
-	waitGroup.Add(1)
-
-	go func() {
-		defer waitGroup.Done()
-
+	waitGroup.Go(func() {
 		for {
 			select {
 			case <-ticker.C:
@@ -47,7 +43,7 @@ func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, int
 				return
 			}
 		}
-	}()
+	})
 }
 
 func checkpointVoiceChannels(ctx context.Context) error {

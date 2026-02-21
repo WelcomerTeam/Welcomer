@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -55,6 +56,8 @@ func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasW
 			Msg("Failed to get guild features")
 	}
 
+	guildFeatures = append(guildFeatures, GuildFeatureCustomWelcomerImageBuilder.String())
+
 	features = make([]GuildFeature, 0, len(guildFeatures))
 
 	for _, guildFeature := range guildFeatures {
@@ -89,10 +92,8 @@ func IsWelcomerProMembership(membershipType database.MembershipType) bool {
 
 func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember) bool {
 	if member.User != nil {
-		for _, elevatedUser := range ElevatedUsers {
-			if member.User.ID == elevatedUser {
-				return true
-			}
+		if slices.Contains(ElevatedUsers, member.User.ID) {
+			return true
 		}
 	}
 

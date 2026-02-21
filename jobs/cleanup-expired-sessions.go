@@ -39,7 +39,7 @@ func main() {
 						Title:       "Cleanup Expired Sessions Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   welcomer.ToPointer(time.Now()),
+						Timestamp:   new(time.Now()),
 					},
 				},
 			})

@@ -33,9 +33,7 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 				} else {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
 
-					ctx.JSON(http.StatusInternalServerError, BaseResponse{
-						Ok: false,
-					})
+					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 					return
 				}

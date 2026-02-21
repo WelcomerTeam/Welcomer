@@ -42,11 +42,7 @@ func AggregateMessageCounts(ctx context.Context, waitGroup *sync.WaitGroup, inte
 	ticker := time.NewTicker(time.Millisecond)
 	hasReset := false
 
-	waitGroup.Add(1)
-
-	go func() {
-		defer waitGroup.Done()
-
+	waitGroup.Go(func() {
 		for {
 			select {
 			case <-ticker.C:
@@ -73,7 +69,7 @@ func AggregateMessageCounts(ctx context.Context, waitGroup *sync.WaitGroup, inte
 				return
 			}
 		}
-	}()
+	})
 }
 
 type aggRow struct {

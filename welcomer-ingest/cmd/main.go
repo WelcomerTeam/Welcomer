@@ -9,12 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	ingest "github.com/WelcomerTeam/Welcomer/welcomer-ingest/ingest"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
 const (

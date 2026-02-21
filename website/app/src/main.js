@@ -1,16 +1,13 @@
 import { createApp } from "vue";
-import App from "./App.vue";
-
-import router from "./router";
-import store from "./store";
 
 import VueLazyload from "vue3-lazyload";
+
+
 
 import "./index.scss";
 
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-
 import {
   faDiscord,
   faPatreon,
@@ -62,6 +59,7 @@ import {
   faRobot as fasRobot,
   faRotateRight as fasRotateRight,
   faShield as fasShield,
+  faSmilePlus as fasSmilePlus,
   faSquare as fasSquare,
   faSun as fasSun,
   faTachographDigital as fasTachographDigital,
@@ -81,7 +79,6 @@ import {
   faUserShield as fasUserShield,
   faWrench as fasWrench,
 } from "@fortawesome/pro-solid-svg-icons";
-
 import {
   faChartLine as farChartLine,
   faCopy as farCopy,
@@ -91,6 +88,7 @@ import {
   faListOl as farListOl,
   faMicrophoneLines as farMicrophoneLines,
   faRobot as farRobot,
+  faSmilePlus as farSmilePlus,
   faTag as farTag,
   faUserCheck as farUserCheck,
   faUserClock as farUserClock,
@@ -99,14 +97,15 @@ import {
   faUserPlus as farUserPlus,
   faWrench as farWrench,
 } from "@fortawesome/pro-regular-svg-icons";
-
 import {
   faBadgeCheck as falBadgeCheck,
 } from "@fortawesome/sharp-light-svg-icons";
-
 import {
   faPersonDigging as fadPersonDigging
 } from "@fortawesome/pro-duotone-svg-icons";
+import store from "./store";
+import router from "./router";
+import App from "./App.vue";
 
 library.add(
   fasArrowsRotate,
@@ -150,6 +149,7 @@ library.add(
   fasRobot,
   fasRotateRight,
   fasShield,
+  fasSmilePlus,
   fasSquare,
   fasSun,
   fasTachographDigital,
@@ -177,6 +177,7 @@ library.add(
   farListOl,
   farMicrophoneLines,
   farRobot,
+  farSmilePlus,
   farTag,
   farUserCheck,
   farUserClock,

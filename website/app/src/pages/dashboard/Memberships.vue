@@ -23,9 +23,9 @@
                       <div class="flex-shrink-0">
                         <div class="flex overflow-hidden -space-x-1">
                           <img alt="" class="w-10 h-10 rounded-lg" v-lazy="{
-                              src: getAccountByPlatform('patreon')?.thumb_url || '/assets/patreonIcon.svg',
-                              error: '/assets/patreonIcon.svg',
-                            }" />
+                            src: getAccountByPlatform('patreon')?.thumb_url || '/assets/patreonIcon.svg',
+                            error: '/assets/patreonIcon.svg',
+                          }" />
                         </div>
                       </div>
                       <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
@@ -60,7 +60,7 @@
           <div class="dashboard-inputs">
 
             <div v-if="isDataFetched"
-              class="mt-4 bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
+                 class="mt-4 bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
               <ul role="list" class="divide-y divide-gray-200 dark:divide-secondary-light">
                 <li v-if="memberships.length === 0">
                   <div class="p-4">
@@ -76,14 +76,14 @@
                         <div class="flex overflow-hidden -space-x-1">
                           <div v-if="membership.guild_id == 0" class="w-10 h-10 rounded-lg dark:bg-white bg-black opacity-20"></div>
                           <img v-else alt=""
-                            :class="[
-                              (membership.guild_id > 0 || isMembershipActive(membership)) && !hasMembershipExpired(membership) ? '' : 'saturate-0', 'w-10 h-10 rounded-lg']"
-                            v-lazy="{
-                              src: membership.guild_icon !== ''
-                                ? `https://cdn.discordapp.com/icons/${membership.guild_id}/${membership.guild_icon}.webp?size=128`
-                                : '/assets/discordServer.svg',
-                              error: '/assets/discordServer.svg',
-                            }" />
+                               :class="[
+                                 (membership.guild_id > 0 || isMembershipActive(membership)) && !hasMembershipExpired(membership) ? '' : 'saturate-0', 'w-10 h-10 rounded-lg']"
+                               v-lazy="{
+                                 src: membership.guild_icon !== ''
+                                   ? `https://cdn.discordapp.com/icons/${membership.guild_id}/${membership.guild_icon}.webp?size=128`
+                                   : '/assets/discordServer.svg',
+                                 error: '/assets/discordServer.svg',
+                               }" />
                         </div>
                       </div>
                       <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
@@ -106,11 +106,11 @@
                                   {{ getMembershipStatusLabel(membership) }}
                                   <span v-if="
                                     membershipExpiresInFuture(membership) &&
-                                    !isCustomBackgroundsMembership(membership) &&
-                                    (
-                                      (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon && membership.platform_type !== PlatformTypePaypalSubscription)
-                                      && getDaysLeftOfMembership(membership) <= 30
-                                    )
+                                      !isCustomBackgroundsMembership(membership) &&
+                                      (
+                                        (membership.platform_type !== PlatformTypeDiscord && membership.platform_type !== PlatformTypePatreon && membership.platform_type !== PlatformTypePaypalSubscription)
+                                        && getDaysLeftOfMembership(membership) <= 30
+                                      )
                                   ">• {{ getMembershipDurationLeft(membership) }}</span>
                                 </span>
                               </span>
@@ -127,7 +127,7 @@
                             </MenuButton>
                           </div>
 
-                          <transition enter-active-class="transition ease-out duration-100" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95">
+                          <transition :show="open" enter-active-class="transition ease-out duration-100" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95">
                             <MenuItems class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-secondary shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
@@ -218,7 +218,7 @@
         </div>
 
         <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-          @save="saveConfig"></unsaved-changes>
+                         @save="saveConfig"></unsaved-changes>
       </div>
     </div>
   </div>
@@ -227,20 +227,20 @@
 <script>
 import { ref } from "vue";
 
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import { DotsVerticalIcon } from '@heroicons/vue/solid'
+
+import endpoints from "@/api/endpoints";
+import userAPI from "@/api/user";
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeBlank,
   FormTypeToggle,
 } from "@/components/dashboard/FormValueEnum";
-
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 import Popup from "@/components/Popup.vue";
-
-import userAPI from "@/api/user";
-import endpoints from "@/api/endpoints";
-
 import {
   getErrorToast,
   getSuccessToast,
@@ -248,8 +248,7 @@ import {
   navigateToErrors,
 } from "@/utilities";
 
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { DotsVerticalIcon } from '@heroicons/vue/solid'
+
 import {
   OpenPatreonLink,
   PlatformTypePatreon,

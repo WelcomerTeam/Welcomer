@@ -6,13 +6,12 @@ import (
 	"html"
 	"image"
 	"image/color"
-	"net/http"
-	"net/url"
-	"strings"
-
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )

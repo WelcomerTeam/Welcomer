@@ -27,7 +27,7 @@
               <div v-for="formattingTag in formattingTags" :key="formattingTag.name" class="mb-6 border rounded-lg">
                 <h2 class="bg-gray-50 py-2 px-3 text-left text-sm font-semibold">{{ formattingTag.name }}</h2>
                 <div v-for="(value, id) in formattingTag.values" :key="value.name"
-                  :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t flex flex-col md:flex-row']">
+                     :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t flex flex-col md:flex-row']">
                   <div class="py-4 px-3 text-sm font-medium w-full md:w-1/4">
                     <code class="cursor-copy relative whitespace-nowrap" @click="copyTag(value)">
                       {{ value.name }}
@@ -52,16 +52,16 @@
                 <template v-for="formattingTag in formattingTags" :key="formattingTag.name">
                   <tr class="border-t border-gray-200">
                     <th colspan="5" scope="colgroup"
-                      class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{ formattingTag.name }}
+                        class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold sm:pl-3">{{ formattingTag.name }}
                     </th>
                   </tr>
                   <tr v-for="(value, id) in formattingTag.values" :key="value.name"
-                    :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
+                      :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
                     <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3">
                       <code class="cursor-copy group relative whitespace-nowrap" @click="copyTag(value)">
-                      {{ value.name }}
-                      <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400 absolute -left-6 group-hover:visible invisible" aria-hidden="true" />
-                    </code>
+                        {{ value.name }}
+                        <font-awesome-icon icon="fa-regular fa-copy" class="w-4 h-4 top-1 text-gray-400 absolute -left-6 group-hover:visible invisible" aria-hidden="true" />
+                      </code>
                     </td>
                     <td class="px-3 py-4 text-sm" v-html="marked(value.description, true, true)"></td>
                     <td class="px-3 py-4 text-sm break-all" v-html="marked(value.example, true)"></td>
@@ -90,7 +90,7 @@
               </thead>
               <tbody>
                 <tr v-for="(value, id) in textExamples" :key="value.name"
-                  :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
+                    :class="[id === 0 ? 'border-gray-300' : 'border-gray-200', 'border-t']">
                   <td class="py-4 pl-4 pr-3 text-sm font-medium sm:pl-3"><kbd>{{ value.example }}</kbd>
                   </td>
                   <td class="px-3 py-4 text-sm" v-html="marked(value.result, true)"></td>
@@ -115,10 +115,9 @@ code {
 </style>
 
 <script>
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
 import Toast from "@/components/dashboard/Toast.vue";
-
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
 import { marked } from "@/utilities";
 
 const formattingTags = [

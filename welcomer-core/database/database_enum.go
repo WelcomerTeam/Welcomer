@@ -437,11 +437,15 @@ const (
 	ScienceGuildEventTypeUserLeftMessage
 	// ScienceGuildEventTypeLeaverMessageRemoved is a ScienceGuildEventType of type LeaverMessageRemoved.
 	ScienceGuildEventTypeLeaverMessageRemoved
+	// ScienceGuildEventTypeReactionRoleGiven is a ScienceGuildEventType of type ReactionRoleGiven.
+	ScienceGuildEventTypeReactionRoleGiven
+	// ScienceGuildEventTypeReactionRoleRemoved is a ScienceGuildEventType of type ReactionRoleRemoved.
+	ScienceGuildEventTypeReactionRoleRemoved
 )
 
 var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
 
-const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoveduserLeftMessageleaverMessageRemoved"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoveduserLeftMessageleaverMessageRemovedreactionRoleGivenreactionRoleRemoved"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeUnknown:               _ScienceGuildEventTypeName[0:7],
@@ -461,6 +465,8 @@ var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeWelcomeMessageRemoved: _ScienceGuildEventTypeName[191:212],
 	ScienceGuildEventTypeUserLeftMessage:       _ScienceGuildEventTypeName[212:227],
 	ScienceGuildEventTypeLeaverMessageRemoved:  _ScienceGuildEventTypeName[227:247],
+	ScienceGuildEventTypeReactionRoleGiven:     _ScienceGuildEventTypeName[247:264],
+	ScienceGuildEventTypeReactionRoleRemoved:   _ScienceGuildEventTypeName[264:283],
 }
 
 // String implements the Stringer interface.
@@ -496,6 +502,8 @@ var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[191:212]: ScienceGuildEventTypeWelcomeMessageRemoved,
 	_ScienceGuildEventTypeName[212:227]: ScienceGuildEventTypeUserLeftMessage,
 	_ScienceGuildEventTypeName[227:247]: ScienceGuildEventTypeLeaverMessageRemoved,
+	_ScienceGuildEventTypeName[247:264]: ScienceGuildEventTypeReactionRoleGiven,
+	_ScienceGuildEventTypeName[264:283]: ScienceGuildEventTypeReactionRoleRemoved,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.

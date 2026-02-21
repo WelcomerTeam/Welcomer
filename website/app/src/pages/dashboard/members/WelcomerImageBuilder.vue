@@ -132,29 +132,29 @@
         <div v-else :class="[selectedAction == 0 ? '' : 'cursor-crosshair', 'canvas']" @mousedown="onCanvasMouseDown" :style="getCanvasStyle(x, y)">
           <div v-for="(obj, index) in image_config.layers" :key="index">
             <div @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
-              :style="getObjectStyleBase(obj, index)">
+                 :style="getObjectStyleBase(obj, index)">
               <div v-if="obj.type == CustomWelcomerImageLayerTypeText" :style="getObjectStyle(obj, index)"
-                class="pointer-events-none"><span v-html="marked(obj.value, true)"></span></div>
+                   class="pointer-events-none"><span v-html="marked(obj.value, true)"></span></div>
               <div v-else-if="obj.type == CustomWelcomerImageLayerTypeImage" :style="getObjectStyle(obj, index)"
-                class="pointer-events-none"/>
+                   class="pointer-events-none"/>
               <div
                 v-else-if="obj.type == CustomWelcomerImageLayerTypeShapeRectangle || obj.type == CustomWelcomerImageLayerTypeShapeCircle"
                 :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
 
               <div v-if="hoveredObject == index || selectedObject == index"
-                class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0)">
+                   class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0)">
                 <div v-if="selectedObject == index"
-                  class="absolute -left-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                  @mousedown="onGrabStart(1)"></div>
+                     class="absolute -left-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                     @mousedown="onGrabStart(1)"></div>
                 <div v-if="selectedObject == index"
-                  class="absolute -right-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                  @mousedown="onGrabStart(2)"></div>
+                     class="absolute -right-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                     @mousedown="onGrabStart(2)"></div>
                 <div v-if="selectedObject == index"
-                  class="absolute -left-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                  @mousedown="onGrabStart(3)"></div>
+                     class="absolute -left-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                     @mousedown="onGrabStart(3)"></div>
                 <div v-if="selectedObject == index"
-                  class="absolute -right-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                  @mousedown="onGrabStart(4)"></div>
+                     class="absolute -right-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
+                     @mousedown="onGrabStart(4)"></div>
               </div>
             </div>
           </div>
@@ -165,8 +165,8 @@
           <span class="font-semibold text-sm">Layers</span>
           <ul>
             <li v-for="(obj, index) in image_config.layers" :key="index" @click="onLayerClick(index)"
-              @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
-              :class="[selectedObject == index ? 'bg-primary text-white' : hoveredObject == index ? 'bg-secondary-light text-white' : 'hover:bg-secondary-light cursor-pointer', ' whitespace-nowrap overflow-ellipsis overflow-hidden px-2 py-1 rounded-md hover:cursor-pointer']">
+                @mouseover="onLayerMouseOver(index)" @mouseleave="onLayerMouseLeave()"
+                :class="[selectedObject == index ? 'bg-primary text-white' : hoveredObject == index ? 'bg-secondary-light text-white' : 'hover:bg-secondary-light cursor-pointer', ' whitespace-nowrap overflow-ellipsis overflow-hidden px-2 py-1 rounded-md hover:cursor-pointer']">
               <span v-if="obj.type == CustomWelcomerImageLayerTypeText">
                 <font-awesome-icon icon="text" class="mr-2" />
                 {{ obj.value || 'Text ' + (index + 1) }}
@@ -217,18 +217,18 @@
                   </div>
                   <span class="block pl-10 truncate">{{
                     image_config.stroke.color.toUpperCase()
-                    }}</span>
+                  }}</span>
                   <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                     <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
                   </span>
                 </ListboxButton>
 
-                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                  leave-to-class="opacity-0">
+                <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                            leave-to-class="opacity-0">
                   <ListboxOptions class="absolute z-10 mt-1">
                     <ColorPicker theme="dark" :color="image_config.stroke.color || '#000000'"
-                      @changeColor="image_config.stroke.color = rgbaToHex($event)"
-                      :sucker-hide="true" />
+                                 @changeColor="image_config.stroke.color = rgbaToHex($event)"
+                                 :sucker-hide="true" />
                   </ListboxOptions>
                 </transition>
               </div>
@@ -254,14 +254,14 @@
           <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeText">
             <span class="font-semibold text-sm mb-2 block">Text</span>
             <AutocompleteInput type="text" :isTextarea="true" class="border rounded p-2 bg-transparent w-full"
-              placeholder="Message Content" rows="4" :value="image_config.layers[selectedObject].value"
-              @update:modelValue="image_config.layers[selectedObject].value = $event" />
+                               placeholder="Message Content" rows="4" :value="image_config.layers[selectedObject].value"
+                               @update:modelValue="image_config.layers[selectedObject].value = $event" />
           </div>
           <div class="p-4" v-if="image_config.layers[selectedObject].type == CustomWelcomerImageLayerTypeImage">
             <span class="font-semibold text-sm mb-2 block">Image URL</span>
             <AutocompleteInput type="text" class="border rounded p-2 bg-transparent w-full" placeholder="Image URL"
-              :value="image_config.layers[selectedObject].value"
-              @update:modelValue="image_config.layers[selectedObject].value = $event" />
+                               :value="image_config.layers[selectedObject].value"
+                               @update:modelValue="image_config.layers[selectedObject].value = $event" />
           </div>
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Position</span>
@@ -290,19 +290,19 @@
             <span class="block text-neutral-500 text-xs font-medium">Border Radius</span>
             <div class="grid grid-cols-2 gap-2 mt-1">
               <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
-                v-model="image_config.layers[selectedObject].border_radius[0]">
+                               v-model="image_config.layers[selectedObject].border_radius[0]">
                 Top Left
               </InputCalculator>
               <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
-                v-model="image_config.layers[selectedObject].border_radius[1]">
+                               v-model="image_config.layers[selectedObject].border_radius[1]">
                 Top Right
               </InputCalculator>
               <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
-                v-model="image_config.layers[selectedObject].border_radius[3]">
+                               v-model="image_config.layers[selectedObject].border_radius[3]">
                 Bottom Left
               </InputCalculator>
               <InputCalculator type="number" min="0" minPercentage="0" maxPercentage="100" forceStringOutput="true"
-                v-model="image_config.layers[selectedObject].border_radius[2]">
+                               v-model="image_config.layers[selectedObject].border_radius[2]">
                 Bottom Right
               </InputCalculator>
             </div>
@@ -322,8 +322,8 @@
                     {{
                       fonts[image_config.layers[selectedObject].typography.font_family]?.weights[image_config.layers[selectedObject].typography.font_weight]
                         ? image_config.layers[selectedObject].typography.font_weight :
-                        (fonts[image_config.layers[selectedObject].typography.font_family] ?
-                          fonts[image_config.layers[selectedObject].typography.font_family].defaultWeight : 'normal') }}
+                          (fonts[image_config.layers[selectedObject].typography.font_family] ?
+                            fonts[image_config.layers[selectedObject].typography.font_family].defaultWeight : 'normal') }}
                   </ListboxButton>
                   <ListboxOptions
                     class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -342,9 +342,9 @@
               <InputCalculator type="number" min="8" v-model="image_config.layers[selectedObject].typography.font_size">
               </InputCalculator>
               <InputCalculator type="number" min="0.1" step="0.1"
-                v-model="image_config.layers[selectedObject].typography.line_height">Line Height</InputCalculator>
+                               v-model="image_config.layers[selectedObject].typography.line_height">Line Height</InputCalculator>
               <InputCalculator type="number" step="0.1"
-                v-model="image_config.layers[selectedObject].typography.letter_spacing">Letter Spacing</InputCalculator>
+                               v-model="image_config.layers[selectedObject].typography.letter_spacing">Letter Spacing</InputCalculator>
             </div>
             <span class="block text-neutral-500 text-xs font-medium mt-2">Alignment</span>
             <div class="grid grid-cols-2 gap-2 mt-1">
@@ -415,18 +415,18 @@
                   </div>
                   <span class="block pl-10 truncate">{{
                     image_config.layers[selectedObject].fill.toUpperCase()
-                    }}</span>
+                  }}</span>
                   <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                     <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
                   </span>
                 </ListboxButton>
 
-                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                  leave-to-class="opacity-0">
+                <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                            leave-to-class="opacity-0">
                   <ListboxOptions class="absolute z-10 mt-1">
                     <ColorPicker theme="dark" :color="image_config.layers[selectedObject].fill || '#000000'"
-                      @changeColor="image_config.layers[selectedObject].fill = rgbaToHex($event)"
-                      :sucker-hide="true" />
+                                 @changeColor="image_config.layers[selectedObject].fill = rgbaToHex($event)"
+                                 :sucker-hide="true" />
                   </ListboxOptions>
                 </transition>
               </div>
@@ -449,18 +449,18 @@
                   </div>
                   <span class="block pl-10 truncate">{{
                     image_config.layers[selectedObject].stroke.color.toUpperCase()
-                    }}</span>
+                  }}</span>
                   <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                     <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
                   </span>
                 </ListboxButton>
 
-                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                  leave-to-class="opacity-0">
+                <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                            leave-to-class="opacity-0">
                   <ListboxOptions class="absolute z-10 mt-1">
                     <ColorPicker theme="dark" :color="image_config.layers[selectedObject].stroke.color || '#000000'"
-                      @changeColor="image_config.layers[selectedObject].stroke.color = rgbaToHex($event)"
-                      :sucker-hide="true" />
+                                 @changeColor="image_config.layers[selectedObject].stroke.color = rgbaToHex($event)"
+                                 :sucker-hide="true" />
                   </ListboxOptions>
                 </transition>
               </div>
@@ -481,7 +481,7 @@
     </div>
 
     <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-      v-on:save="saveConfig"></unsaved-changes>
+                     v-on:save="saveConfig"></unsaved-changes>
     <Toast />
   </div>
 </template>
@@ -510,21 +510,9 @@ body {
 
 <script>
 import { ref } from "vue";
+
 import store from "@/store/index";
-import { useRoute } from "vue-router";
-
-import AutocompleteInput from "@/components/AutocompleteInput.vue";
-import InputCalculator from "@/components/dashboard/InputCalculator.vue";
-import ImageBuilderColourSelector from "@/components/dashboard/ImageBuilderColourSelector.vue";
-import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
-
 import dashboardAPI from "@/api/dashboard";
-import endpoints from "@/api/endpoints";
-
-import Toast from "@/components/dashboard/Toast.vue";
-import Popup from "@/components/Popup.vue";
-import VirtualFontSelector from "@/components/dashboard/VirtualFontSelector.vue";
 
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
@@ -535,16 +523,25 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
+import { useRoute } from "vue-router";
 
+import endpoints from "@/api/endpoints";
+import { doRequest } from "@/api/routes";
+import AutocompleteInput from "@/components/AutocompleteInput.vue";
+import ImageBuilderColourSelector from "@/components/dashboard/ImageBuilderColourSelector.vue";
+import InputCalculator from "@/components/dashboard/InputCalculator.vue";
+import Toast from "@/components/dashboard/Toast.vue";
+import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
+import VirtualFontSelector from "@/components/dashboard/VirtualFontSelector.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import Popup from "@/components/Popup.vue";
+import fonts from "@/fonts.json";
 import {
   getErrorToast,
   getSuccessToast,
   marked,
   formatText,
 } from "@/utilities";
-
-import { doRequest } from "@/api/routes";
-import fonts from "@/fonts.json";
 
 const CustomWelcomerImageLayerTypeText = 0;
 const CustomWelcomerImageLayerTypeImage = 1;

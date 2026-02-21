@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 
@@ -47,7 +48,7 @@ func getDefaultCurrency(ipIntelResponse welcomer.IPIntelResponse) welcomer.Curre
 		return welcomer.CurrencyGBP
 	case ipIntelResponse.Country == "IN":
 		return welcomer.CurrencyINR
-	case welcomer.SliceContains(euroZone, ipIntelResponse.Country):
+	case slices.Contains(euroZone, ipIntelResponse.Country):
 		return welcomer.CurrencyEUR
 	default:
 		return welcomer.CurrencyUSD
@@ -160,7 +161,7 @@ func createPayment(ctx *gin.Context) {
 		}
 
 		currencies := getAvailableCurrencies(response)
-		if !welcomer.SliceContains(currencies, request.Currency) {
+		if !slices.Contains(currencies, request.Currency) {
 			welcomer.Logger.Warn().Str("currency", string(request.Currency)).Msg("Invalid currency")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrCurrencyNotAvailable, nil))

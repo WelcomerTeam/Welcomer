@@ -15,20 +15,20 @@
         <div class="dashboard-contents">
           <div class="dashboard-inputs">
             <form-value title="Number Format" :type="FormTypeDropdown" v-model="config.number_locale	"
-            @update:modelValue="onValueUpdate" :validation="v$.number_locale" :values="[
-              { key: 'Default (123456)', value: 'default' },
-              { key: 'Dots (123.456)', value: 'dots' },
-              { key: 'Commas (123,456)', value: 'commas' },
-              { key: 'Indian (1,23,456)', value: 'indian' },
-              { key: 'Arabic (١٢٣٬٤٥٦)', value: 'arabic' },
-            ]">This setting changes how numbers are formatted across Welcomer when using <code class="bg-secondary-dark px-2 py-1 rounded-md">Ordinal()</code> or <code class="bg-secondary-dark px-2 py-1 rounded-md">FormatNumber()</code> in your messages.</form-value>
+                        @update:modelValue="onValueUpdate" :validation="v$.number_locale" :values="[
+                          { key: 'Default (123456)', value: 'default' },
+                          { key: 'Dots (123.456)', value: 'dots' },
+                          { key: 'Commas (123,456)', value: 'commas' },
+                          { key: 'Indian (1,23,456)', value: 'indian' },
+                          { key: 'Arabic (١٢٣٬٤٥٦)', value: 'arabic' },
+                        ]">This setting changes how numbers are formatted across Welcomer when using <code class="bg-secondary-dark px-2 py-1 rounded-md">Ordinal()</code> or <code class="bg-secondary-dark px-2 py-1 rounded-md">FormatNumber()</code> in your messages.</form-value>
             <form-value title="Total Members Joined" :type="FormTypeNumberWithConfirm" v-model="config.member_count"
-            :disabled="!$store.getters.guildHasWelcomerPro" :validation="v$.member_count" @save="(value) => { onNumberFormatSave(value) }">
-            This is the total number of members who have joined your server since Welcomer was added. You can reference this value in your welcome messages using <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.MembersJoined&#125;&#125;</code> in your welcomer messages, instead of <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.Members&#125;&#125;</code>.
-            <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50">
-              Using and editing the members joined counter requires a Welcomer Pro subscription.
-              <a href="/premium" class="underline">Learn more</a>
-            </div>
+                        :disabled="!$store.getters.guildHasWelcomerPro" :validation="v$.member_count" @save="(value) => { onNumberFormatSave(value) }">
+              This is the total number of members who have joined your server since Welcomer was added. You can reference this value in your welcome messages using <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.MembersJoined&#125;&#125;</code> in your welcomer messages, instead of <code class="bg-secondary-dark px-2 py-1 rounded-md">&#123;&#123;Guild.Members&#125;&#125;</code>.
+              <div v-if="!$store.getters.guildHasWelcomerPro" class="border-primary text- border p-4 rounded-lg shadow-sm h-fit mt-4 text-secondary dark:text-gray-50">
+                Using and editing the members joined counter requires a Welcomer Pro subscription.
+                <a href="/premium" class="underline">Learn more</a>
+              </div>
             </form-value>
           </div>
           <!-- <div class="dashboard-inputs">
@@ -47,7 +47,7 @@
             @update:modelValue="onValueUpdate" :validation="v$.site_allow_invites">When enabled, users will be able to use Welcomer to get an invite for your server through the website. If you have a vanity invite, this will be used instead.</form-value>
           </div> -->
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
-            @save="saveConfig"></unsaved-changes>
+                           @save="saveConfig"></unsaved-changes>
         </div>
       </div>
     </div>
@@ -65,19 +65,16 @@ import { computed, ref } from "vue";
 
 import useVuelidate from "@vuelidate/core";
 
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
+import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeDropdown,
   FormTypeNumberWithConfirm,
 } from "@/components/dashboard/FormValueEnum";
-
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
-import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
-import FormValue from "@/components/dashboard/FormValue.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-
-import dashboardAPI from "@/api/dashboard";
-import endpoints from "@/api/endpoints";
-
 import {
   getErrorToast,
   getSuccessToast,

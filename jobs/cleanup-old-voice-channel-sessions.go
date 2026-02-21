@@ -8,12 +8,11 @@ import (
 	"runtime/debug"
 	"time"
 
-	_ "github.com/joho/godotenv/autoload"
-
 	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgx/v4"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
@@ -41,7 +40,7 @@ func main() {
 						Title:       "Cleanup Old Voice Channel Sessions Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
-						Timestamp:   welcomer.ToPointer(time.Now()),
+						Timestamp:   new(time.Now()),
 					},
 				},
 			})

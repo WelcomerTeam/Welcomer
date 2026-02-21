@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -91,6 +92,9 @@ func (p *TempChannelsCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger OnInvokeVoiceStateUpdate when VoiceStateUpdate event is triggered.
 	p.EventHandler.RegisterOnVoiceStateUpdateEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "TempChannelsCog.OnInvokeVoiceStateUpdate")
+
 		if before.ChannelID != after.ChannelID {
 			return p.OnInvokeVoiceStateUpdate(eventCtx, member, before, after)
 		}
@@ -209,7 +213,7 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 			Name:     p.formatChannelName(member),
 			Type:     discord.ChannelTypeGuildVoice,
 			ParentID: &category,
-		}, welcomer.ToPointer("Automatically created by TempChannels"))
+		}, new("Automatically created by TempChannels"))
 		if err != nil || channel == nil {
 			welcomer.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
@@ -219,7 +223,7 @@ func (p *TempChannelsCog) createChannelAndMove(eventCtx *sandwich.EventContext, 
 		}
 	}
 
-	err = member.MoveTo(eventCtx.Context, eventCtx.Session, &channel.ID, welcomer.ToPointer("Automatically move by TempChannels"))
+	err = member.MoveTo(eventCtx.Context, eventCtx.Session, &channel.ID, new("Automatically move by TempChannels"))
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("guild_id", guildID.String()).
@@ -269,7 +273,7 @@ func (p *TempChannelsCog) deleteChannelIfEmpty(eventCtx *sandwich.EventContext, 
 	}
 
 	if (channel.ParentID != nil && *channel.ParentID == category) && channel.MemberCount == 0 && channel.ID != lobby {
-		err = channel.Delete(eventCtx.Context, eventCtx.Session, welcomer.ToPointer("Automatically deleted by TempChannels"))
+		err = channel.Delete(eventCtx.Context, eventCtx.Session, new("Automatically deleted by TempChannels"))
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Str("guild_id", guildID.String()).
@@ -318,7 +322,7 @@ func (p *TempChannelsCog) OnInvokeTempChannelsRemoveEvent(eventCtx *sandwich.Eve
 	}
 
 	if channel != nil && channel.ID != discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
-		err = channel.Delete(eventCtx.Context, eventCtx.Session, welcomer.ToPointer("Automatically deleted by TempChannels"))
+		err = channel.Delete(eventCtx.Context, eventCtx.Session, new("Automatically deleted by TempChannels"))
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Str("guild_id", payload.Member.GuildID.String()).

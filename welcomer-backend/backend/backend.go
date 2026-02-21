@@ -113,8 +113,8 @@ func NewBackend(options Options) (*Backend, error) {
 
 	keyPairs := [][]byte{}
 
-	keyPairStrings := strings.Split(options.KeyPairs, ",")
-	for _, keyPairString := range keyPairStrings {
+	keyPairStrings := strings.SplitSeq(options.KeyPairs, ",")
+	for keyPairString := range keyPairStrings {
 		byteSlice, err := hex.DecodeString(keyPairString)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse keyPairString %s to hex: %w", keyPairString, err)
@@ -231,6 +231,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildSettingsTimeRolesRoutes(router)
 	registerGuildSettingsWelcomerRoutes(router)
 	registerGuildCustomBotRoutes(router)
+	registerGuildSettingsReactionRolesRoutes(router)
 
 	return router
 }

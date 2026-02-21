@@ -6,8 +6,8 @@
           <div class="dashboard-title-container">
             <div class="dashboard-title">My Guilds</div>
             <button type="button"
-              class="-mx-1.5 bg-white text-gray-500 rounded-lg focus:ring-2 focus:ring-gray-500 p-1.5 inline-flex h-8 w-8 hover:bg-gray-100 dark:bg-secondary-dark dark:text-gray-50 dark:hover:bg-secondary-light"
-              @click="refreshGuildList()" aria-label="Refresh guild list">
+                    class="-mx-1.5 bg-white text-gray-500 rounded-lg focus:ring-2 focus:ring-gray-500 p-1.5 inline-flex h-8 w-8 hover:bg-gray-100 dark:bg-secondary-dark dark:text-gray-50 dark:hover:bg-secondary-light"
+                    @click="refreshGuildList()" aria-label="Refresh guild list">
               <span class="sr-only">Refresh guild list</span>
               <font-awesome-icon icon="arrows-rotate" :class="[
                 $store.getters.isLoadingGuilds ? 'fa-spin' : '',
@@ -22,7 +22,7 @@
               Loading your guilds...
             </div> -->
             <div v-if="!$store.getters.isLoadingGuilds"
-              class="mt-4 bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
+                 class="mt-4 bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
               <ul role="list" class="divide-y divide-gray-200 dark:divide-secondary-light">
                 <li v-if="$store.getters.getGuilds.length === 0">
                   <div class="p-4">
@@ -56,11 +56,11 @@
                           <div class="flex text-sm">
                             <p class="font-bold truncate dark:text-gray-50">
                               <span v-if="guild.has_welcomer_pro"
-                                class="mr-2 inline-flex items-center p-2 rounded-md text-xs font-medium bg-primary-light text-white">
+                                    class="mr-2 inline-flex items-center p-2 rounded-md text-xs font-medium bg-primary-light text-white">
                                 <font-awesome-icon icon="heart" />
                               </span>
                               <span v-else-if="guild.has_custom_backgrounds"
-                                class="mr-2 inline-flex items-center p-2 rounded-md text-xs font-medium bg-gray-500 text-white">
+                                    class="mr-2 inline-flex items-center p-2 rounded-md text-xs font-medium bg-gray-500 text-white">
                                 <font-awesome-icon icon="heart" />
                               </span>
                               {{ guild.name }}
@@ -89,16 +89,16 @@
 </template>
 
 <script>
-import Footer from "@/components/Footer.vue";
 import { ChevronRightIcon, PlusIcon } from "@heroicons/vue/outline";
-import FormValue from "@/components/dashboard/FormValue.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
-import store from "@/store/index";
 
+import FormValue from "@/components/dashboard/FormValue.vue";
+import Footer from "@/components/Footer.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
 import {
   OpenBotInvite,
   PrimaryBotId
 } from "@/constants";
+import store from "@/store/index";
 
 export default {
   components: { FormValue, ChevronRightIcon, LoadingIcon, PlusIcon, Footer },

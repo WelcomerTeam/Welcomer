@@ -704,8 +704,8 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "limit",
 				ArgumentType: subway.ArgumentTypeInt,
 				Description:  "Limit of messages to search for",
-				MaxValue:     welcomer.ToPointer(int32(100)),
-				MinValue:     welcomer.ToPointer(int32(1)),
+				MaxValue:     new(int32(100)),
+				MinValue:     new(int32(1)),
 			},
 			{
 				Name:         "bot",
@@ -726,7 +726,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Name:         "timeout",
 				ArgumentType: subway.ArgumentTypeInt,
 				Description:  "When supplied, the user will also be timed out for this number of hours",
-				MinValue:     welcomer.ToPointer(int32(1)),
+				MinValue:     new(int32(1)),
 			},
 			{
 				Name:         "reason",
@@ -754,7 +754,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 				var limit *int32
 				if argumentLimit > 0 {
-					limit = welcomer.ToPointer(int32(argumentLimit))
+					limit = new(int32(argumentLimit))
 				}
 
 				messageHistory, err := channel.History(ctx, session, nil, nil, nil, limit)
@@ -799,7 +799,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 					err = message.Delete(
 						ctx, session,
-						welcomer.ToPointer(fmt.Sprintf(
+						new(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.GetUser()),
 							interaction.GetUser().ID,
@@ -815,7 +815,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					err = channel.DeleteMessages(
 						ctx, session,
 						messagesToDelete,
-						welcomer.ToPointer(fmt.Sprintf(
+						new(fmt.Sprintf(
 							"Purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.GetUser()),
 							interaction.GetUser().ID,
@@ -829,7 +829,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				communicationDisabledUntil := welcomer.ToPointer(time.Now().Add(time.Hour * time.Duration(argumentTimeout)))
+				communicationDisabledUntil := new(time.Now().Add(time.Hour * time.Duration(argumentTimeout)))
 
 				for userID := range usersToTimeout {
 					guildMember := discord.GuildMember{GuildID: interaction.GuildID, User: &discord.User{ID: userID}}
@@ -837,7 +837,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						discord.GuildMemberParams{
 							CommunicationDisabledUntil: communicationDisabledUntil,
 						},
-						welcomer.ToPointer(fmt.Sprintf(
+						new(fmt.Sprintf(
 							"Timeout from purge by %s (%d). Reason: %s",
 							welcomer.GetUserDisplayName(interaction.GetUser()),
 							interaction.GetUser().ID,
@@ -888,7 +888,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Description: "Need help with the bot?",
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return &discord.InteractionResponse{
@@ -995,7 +995,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Description: "Opt-in to new welcomer features.",
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(discord.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(discord.PermissionElevated)),
 
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
 			features := welcomer.OptinGuildFeatures

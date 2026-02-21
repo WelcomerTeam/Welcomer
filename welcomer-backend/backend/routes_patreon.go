@@ -193,9 +193,7 @@ func deletePatreonLink(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to get patreon user")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}
@@ -207,9 +205,7 @@ func deletePatreonLink(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to delete patreon user")
 
-			ctx.JSON(http.StatusInternalServerError, BaseResponse{
-				Ok: false,
-			})
+			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
 
 			return
 		}

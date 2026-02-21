@@ -59,7 +59,7 @@ func GetWelcomerPresence(ctx context.Context, guildID discord.Snowflake) (guildM
 				}
 			}
 
-			guildMembers[i].Permissions = ToPointer(discord.Int64(permissions))
+			guildMembers[i].Permissions = new(discord.Int64(permissions))
 		}
 	}
 

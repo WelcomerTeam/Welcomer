@@ -3,6 +3,7 @@ package welcomer
 import (
 	"context"
 	"errors"
+	"slices"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -399,4 +400,43 @@ func UpdateBioWithAudit(ctx context.Context, params database.UpdateGuildBioParam
 	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, params.Bio, database.AuditTypeBio)
 
 	return newRow, nil
+}
+
+func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, guildID discord.Snowflake, params []database.CreateOrUpdateReactionRoleSettingParams, actor discord.Snowflake) *ErrorGroup {
+	var old []*database.GuildSettingsReactionRoles
+	if existing, err := Queries.GetReactionRoleSettingByGuildId(ctx, int64(guildID)); err == nil {
+		old = existing
+	}
+
+	eg := NewErrorGroup()
+
+	for _, param := range params {
+		_, err := Queries.CreateOrUpdateReactionRoleSetting(ctx, param)
+		if err != nil {
+			eg.Add(err)
+		}
+	}
+
+	// Delete any reaction role settings that were removed in the new params.
+	for _, oldRow := range old {
+		if !slices.ContainsFunc(params, func(param database.CreateOrUpdateReactionRoleSettingParams) bool {
+			return oldRow.ReactionRoleID == param.ReactionRoleID
+		}) {
+			_, err := Queries.DeleteReactionRoleSettings(ctx, database.DeleteReactionRoleSettingsParams{
+				ReactionRoleID: oldRow.ReactionRoleID,
+				GuildID:        int64(guildID),
+			})
+			if err != nil {
+				eg.Add(err)
+			}
+		}
+	}
+
+	AuditChange(ctx, guildID, actor, old, params, database.AuditTypeGuildSettingsReactionroles)
+
+	if eg.Empty() {
+		return nil
+	}
+
+	return eg
 }

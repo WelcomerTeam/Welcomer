@@ -1,6 +1,8 @@
 package plugins
 
 import (
+	"time"
+
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -38,11 +40,17 @@ func (c *EventsCog) GetEventHandlers() *sandwich.Handlers {
 func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register event for when a guild is joined.
 	c.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnGuildJoin")
+
 		return welcomer.EnsureGuild(eventCtx.Context, guild.ID)
 	})
 
 	// Register event for when an invite is created.
 	c.EventHandler.RegisterOnInviteCreateEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnInviteCreate")
+
 		var guildID int64
 
 		if invite.GuildID != nil {
@@ -87,6 +95,9 @@ func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register event for when an invite is deleted.
 	c.EventHandler.RegisterOnInviteDeleteEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnInviteDelete")
+
 		var guildID int64
 
 		if invite.GuildID != nil {

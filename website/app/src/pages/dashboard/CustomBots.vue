@@ -11,6 +11,9 @@
           Got a Discord token? Turn it into your very own Welcomer bot that greets, manages, and shows off your server's
           style.
         </p>
+        <p class="mt-8 bg-yellow-50 text-yellow-900 p-4 rounded-md border-2 border-dashed border-yellow-900">
+          Custom Bots are being deprecated. If you have an existing custom bot, it will stop working soon. Please use the <b>Bot Customisation</b> feature instead.
+        </p>
       </div>
 
       <div class="dashboard-components">
@@ -41,7 +44,7 @@
             </div>
             <ul role="list" class="space-y-4" v-else>
               <li v-for="customBot in customBots" :key="customBot.id"
-                class="bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
+                  class="bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
                 <button
                   :class="['block hover:bg-gray-50 dark:hover:bg-secondary w-full rounded-md', customBot.open ? 'border-b border-gray-300 dark:border-secondary-light rounded-b-none' : '']"
                   @click="customBot.open = !customBot.open; customBot.showTokenInput = false">
@@ -76,12 +79,12 @@
                       <div v-if="!customBot.is_active">Inactive</div>
                       <div v-else-if="customBot.shards.length === 0">Idle</div>
                       <div v-else-if="customBot.shards.length > 0"
-                        :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard(customBot.shards[0])]"> {{
-                          getLabelForShard(customBot.shards[0]) }} </div>
+                           :class="['font-bold text-sm px-2 py-1 rounded-md', getStyleForShard(customBot.shards[0])]"> {{
+                             getLabelForShard(customBot.shards[0]) }} </div>
                     </div>
                     <div class="flex-shrink-0">
                       <ChevronRightIcon :class="['h-5 w-5 text-gray-400 transition-all duration-100', customBot.open ? 'rotate-90' : '']"
-                        aria-hidden="true" />
+                                        aria-hidden="true" />
                     </div>
                   </div>
                   <div v-if="customBot.shards[0]?.status == 1" class="bg-red-100 text-red-800 m-2 p-2 rounded-md text-sm">
@@ -92,64 +95,64 @@
                 <div v-if="customBot.open" class="p-4 flex flex-col gap-4">
                   <div class="flex gap-2 w-full">
                     <input v-model="customBot.public_key" type="text" autocomplete="off"
-                      placeholder="Enter custom bot public key" class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
+                           placeholder="Enter custom bot public key" class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
                     <button type="button" @click="showPublicKeyPopup = true"
-                      class="cta-button-dark dark:text-gray-50 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
+                            class="cta-button-dark dark:text-gray-50 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
                       ?
                     </button>
                     <button type="button" @click="updateCustomBot(customBot.id, '', customBot.public_key)"
-                      class="cta-button bg-primary hover:bg-primary-dark">
+                            class="cta-button bg-primary hover:bg-primary-dark">
                       Update Public Key
                     </button>
                   </div>
                   <a href="#" @click="copyToClipboard(getInteractionsEndpointURL(customBot))"
-                    class="text-gray-600 dark:text-gray-400 text-xs">
+                     class="text-gray-600 dark:text-gray-400 text-xs">
                     Your interactions endpoint URL is:
                     <span class="whitespace-nowrap underline">
                       {{ getInteractionsEndpointURL(customBot) }}
                       <font-awesome-icon icon="fa-regular fa-copy"
-                        class="w-4 h-4 top-1 text-gray-400 absolute -left-6 hover:visible invisible"
-                        aria-hidden="true" />
+                                         class="w-4 h-4 top-1 text-gray-400 absolute -left-6 hover:visible invisible"
+                                         aria-hidden="true" />
                     </span>
                   </a>
 
                   <button v-if="!customBot.showTokenInput" type="button" @click="customBot.showTokenInput = true"
-                    class="cta-button-dark dark:text-gray-50 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
+                          class="cta-button-dark dark:text-gray-50 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
                     Update Token
                   </button>
                   <div v-else class="flex items-center space-x-2 mb-4 w-full">
                     <input v-model="customBot.token" type="password" autocomplete="off"
-                      placeholder="Enter custom bot token" class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
+                           placeholder="Enter custom bot token" class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
                     <button type="button" @click="showTokenPopup = true"
-                      class="cta-button-dark dark:text-gray-50 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
+                            class="cta-button-dark dark:text-gray-50 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
                       ?
                     </button>
                     <button type="button" @click="updateCustomBot(customBot.id, customBot.token, customBot.public_key)"
-                      class="cta-button bg-primary hover:bg-primary-dark">
+                            class="cta-button bg-primary hover:bg-primary-dark">
                       Update Token
                     </button>
                   </div>
 
                   <div class="flex justify-between gap-2">
                     <button v-if="customBot.shards.length === 0 || (customBot.shards[0]?.status == 1) || !customBot.is_active" type="button"
-                      @click="startCustomBot(customBot.id)" class="cta-button bg-green-500 hover:bg-green-600">
+                            @click="startCustomBot(customBot.id)" class="cta-button bg-green-500 hover:bg-green-600">
                       <LoadingIcon class="mr-3" v-if="isChangeInProgress" />
                       Start Bot
                     </button>
                     <button v-else type="button" @click="stopCustomBot(customBot.id)"
-                      class="cta-button bg-gray-500 hover:bg-gray-600">
+                            class="cta-button bg-gray-500 hover:bg-gray-600">
                       <LoadingIcon class="mr-3" v-if="isChangeInProgress" />
                       Stop Bot
                     </button>
                     <button type="button" @click="deleteCustomBot(customBot.id)"
-                      class="cta-button bg-red-500 hover:bg-red-600">
+                            class="cta-button bg-red-500 hover:bg-red-600">
                       Delete Bot
                     </button>
                   </div>
                 </div>
               </li>
               <li v-for="n in limit - customBots.length" :key="n"
-                class="rounded-md border-gray-300 dark:border-secondary-light border border-dashed">
+                  class="rounded-md border-gray-300 dark:border-secondary-light border border-dashed">
                 <div class="px-4 py-4 flex items-center space-x-5 group">
                   <div class="flex-shrink-0">
                     <div class="flex -space-x-1">
@@ -168,9 +171,9 @@
                 </div>
               </li>
               <li v-if="customBots.length < limit"
-                class="bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
+                  class="bg-white dark:bg-secondary-dark shadow-sm rounded-md border-gray-300 dark:border-secondary-light border">
                 <button class="block hover:bg-gray-50 dark:hover:bg-secondary w-full rounded-md"
-                  @click="showCreateBotPopup = true">
+                        @click="showCreateBotPopup = true">
                   <div class="flex p-4">
                     <div class="flex justify-start flex-grow">
                       Create Custom Bot
@@ -200,7 +203,7 @@
       </Popup>
 
       <Popup :open="showCreateBotPopup" @close="showCreateBotPopup = false" :hideContinueButton="false"
-        continueLabel="Create">
+             continueLabel="Create">
         <template v-slot:title>
           Create Custom Bot
         </template>
@@ -209,7 +212,7 @@
           <p>
             To create a custom bot, you will need to provide a valid Discord bot token and public key for interactions.
             Head to <a href="https://discord.com/developers/applications" target="_blank"
-              class="text-blue-500 underline">Discord Developer Portal</a> to create an application, or use an existing
+                       class="text-blue-500 underline">Discord Developer Portal</a> to create an application, or use an existing
             one.
           </p>
 
@@ -222,7 +225,7 @@
 
           <div>
             <input v-model="newPublicKey" type="text" autocomplete="off" placeholder="Enter custom bot public key"
-              class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
+                   class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
             <span class="text-gray-600 dark:text-gray-400 text-sm">You can get your application public key from the
               General
               Information tab in your application on the Discord Developer Portal. The public key cannot be changed, is
@@ -232,7 +235,7 @@
 
           <div>
             <input v-model="newBotToken" type="password" autocomplete="off" placeholder="Enter new custom bot token"
-              class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
+                   class="flex-1 shadow-sm block w-full min-w-0 border-gray-300 dark:border-secondary-light rounded-md focus:ring-primary focus:border-primary sm:text-sm text-black">
             <span class="text-gray-600 dark:text-gray-400 text-sm">You can get your bot's token from the Bot tab in your
               application on the Discord Developer Portal. If you forgot your token, you will need to reset it. Tokens
               usually
@@ -241,9 +244,9 @@
 
           <div class="flex justify-end">
             <button type="button"
-              class="cta-button bg-green-500 hover:bg-green-600 disabled:bg-gray-100 disabled:dark:bg-secondary-light disabled:text-neutral-500"
-              @click="createCustomBot(newBotToken, newPublicKey)"
-              :disabled="isChangeInProgress || !newPublicKey || !newBotToken">
+                    class="cta-button bg-green-500 hover:bg-green-600 disabled:bg-gray-100 disabled:dark:bg-secondary-light disabled:text-neutral-500"
+                    @click="createCustomBot(newBotToken, newPublicKey)"
+                    :disabled="isChangeInProgress || !newPublicKey || !newBotToken">
               Create
             </button>
           </div>
@@ -261,17 +264,14 @@ import { ref } from "vue";
 //   FormTypeToggle,
 // } from "@/components/dashboard/FormValueEnum";
 
-import { ChevronRightIcon, PlusIcon } from "@heroicons/vue/outline";
-
-import FormValue from "@/components/dashboard/FormValue.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
-import Popup from "@/components/Popup.vue";
-
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
+import { ChevronRightIcon, PlusIcon } from "@heroicons/vue/outline";
 
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
-
+import FormValue from "@/components/dashboard/FormValue.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import Popup from "@/components/Popup.vue";
 import {
   getErrorToast
 } from "@/utilities";

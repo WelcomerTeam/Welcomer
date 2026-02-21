@@ -50,11 +50,11 @@
             <div
               class="lg:max-w-lg flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-secondary-light border-dashed rounded-md relative mx-auto mb-4">
               <input id="file-upload" name="file-upload" type="file" accept="image/*"
-                class="absolute top-0 left-0 w-full h-full opacity-0" @change="onFileUpdate" />
+                     class="absolute top-0 left-0 w-full h-full opacity-0" @change="onFileUpdate" />
               <div class="space-y-1 text-center" v-if="!$props.modelValue.startsWith('ref:')">
                 <div class="flex text-sm text-gray-600 dark:text-gray-200 flex-col">
                   <label for="file-upload"
-                    class="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                         class="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
                     <span>Upload a file</span>
                   </label>
                   <p class="pl-1">or drag and drop</p>
@@ -77,7 +77,7 @@
             </div>
             <div>
               <button as="template" v-for="image in $props.customImages" :key="image"
-                @click="updateValue(customPrefix + image)">
+                      @click="updateValue(customPrefix + image)">
                 <img v-lazy="customRoot(image)" :class="[
                   $props.modelValue == customPrefix + image
                     ? 'border-primary ring-primary ring-4'
@@ -97,19 +97,19 @@
               <div class="mt-1 sm:mt-0 sm:col-span-2 text-left sm:text-right">
                 <Switch :modelValue="$props.modelValue ==
                   solidColourPrefix + solidColourProfileBased
-                  " @update:modelValue="
-                    updateValue(
-                      $event
-                        ? solidColourPrefix + solidColourProfileBased
-                        : '#FFFFFF'
-                    )
-                    " :class="[
-                      $props.modelValue ==
-                        solidColourPrefix + solidColourProfileBased
-                        ? 'bg-green-500 focus:ring-green-500'
-                        : 'bg-gray-400 focus:ring-gray-400',
-                      'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
-                    ]">
+                " @update:modelValue="
+                  updateValue(
+                    $event
+                      ? solidColourPrefix + solidColourProfileBased
+                      : '#FFFFFF'
+                  )
+                " :class="[
+                  $props.modelValue ==
+                    solidColourPrefix + solidColourProfileBased
+                    ? 'bg-green-500 focus:ring-green-500'
+                    : 'bg-gray-400 focus:ring-gray-400',
+                  'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+                ]">
                   <span :class="[
                     $props.modelValue ==
                       solidColourPrefix + solidColourProfileBased
@@ -126,7 +126,7 @@
                     ]" aria-hidden="true">
                       <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 12 12">
                         <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2"
-                          stroke-linecap="round" stroke-linejoin="round" />
+                              stroke-linecap="round" stroke-linejoin="round" />
                       </svg>
                     </span>
                     <span :class="[
@@ -166,11 +166,11 @@
                   </span>
                 </ListboxButton>
 
-                <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                  leave-to-class="opacity-0">
+                <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                            leave-to-class="opacity-0">
                   <ListboxOptions class="absolute z-10 mt-1">
                     <ColorPicker theme="dark" :color="parseCSSValue(trimPrefix(modelValue))"
-                      @changeColor="SetRGBIntToRGB" :sucker-hide="true" />
+                                 @changeColor="SetRGBIntToRGB" :sucker-hide="true" />
                   </ListboxOptions>
                 </transition>
               </div>
@@ -191,6 +191,10 @@
 <script>
 import LoadingIcon from "@/components/LoadingIcon.vue";
 
+
+
+import { ref } from "vue";
+
 import {
   Listbox,
   ListboxButton,
@@ -204,12 +208,8 @@ import {
   PopoverButton,
   PopoverPanel,
 } from "@headlessui/vue";
-
-import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { XIcon } from "@heroicons/vue/outline";
-
-import { ref } from "vue";
-
+import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
 
@@ -217,9 +217,7 @@ import parse from "parse-css-color";
 
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
-
 import backgrounds from "@/backgrounds.json";
-
 import {
   getErrorToast,
   getSuccessToast,

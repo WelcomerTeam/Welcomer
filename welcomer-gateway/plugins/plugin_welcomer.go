@@ -94,6 +94,9 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
 	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "WelcomerCog.OnGuildMemberAdd")
+
 		welcomer.Logger.Trace().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(member.User.ID)).
@@ -146,7 +149,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		)
 
 		if !member.Pending {
-			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
+			go p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
 				Member:      member,
 			})
@@ -157,6 +160,9 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
 	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "WelcomerCog.OnGuildMemberUpdate")
+
 		welcomer.Logger.Trace().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(after.User.ID)).
@@ -165,7 +171,7 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 			Msg("Guild member update event")
 
 		if before.Pending && !after.Pending {
-			return p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
+			go p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
 				Interaction: nil,
 				Member:      after,
 			})
@@ -176,6 +182,9 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Handle removal of messages when users leave.
 	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, member discord.User) error {
+		startTime := time.Now()
+		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "WelcomerCog.OnGuildMemberRemove")
+
 		return p.HandleGuildMemberRemoved(eventCtx, member)
 	})
 
@@ -1042,7 +1051,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				func() string { return usedInvite.Code },
 				func() string { return "" },
 			),
-		})
+		},
+	)
 
 	return err
 }
@@ -1113,7 +1123,7 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 		if !userWelcomedEvent.MessageID.IsNil() && !userWelcomedEvent.MessageChannelID.IsNil() {
 			message := discord.Message{ChannelID: userWelcomedEvent.MessageChannelID, ID: userWelcomedEvent.MessageID}
 
-			err = message.Delete(eventCtx.Context, eventCtx.Session, welcomer.ToPointer("Auto delete welcome message on leave"))
+			err = message.Delete(eventCtx.Context, eventCtx.Session, new("Auto delete welcome message on leave"))
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).

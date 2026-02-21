@@ -1,16 +1,16 @@
 <template>
-    <div>
-        <label v-if="$slots.default" class="block mb-1 text-neutral-500 text-xs font-medium">
-            <slot></slot>
-        </label>
-        <input :value="modelValue"
-            @blur="onblur($event.target.value)"
-            @keydown.enter="onenter($event)"
-            @keydown.up="onarrow($event)"
-            @keydown.down="onarrow($event)"
-            :placeholder="placeholder"
-            class="border rounded w-full h-9 py-2 px-3 bg-secondary-dark border-secondary-light"/>
-    </div>
+  <div>
+    <label v-if="$slots.default" class="block mb-1 text-neutral-500 text-xs font-medium">
+      <slot></slot>
+    </label>
+    <input :value="modelValue"
+           @blur="onblur($event.target.value)"
+           @keydown.enter="onenter($event)"
+           @keydown.up="onarrow($event)"
+           @keydown.down="onarrow($event)"
+           :placeholder="placeholder"
+           class="border rounded w-full h-9 py-2 px-3 bg-secondary-dark border-secondary-light"/>
+  </div>
 </template>
 
 <script>
@@ -78,7 +78,7 @@ export default {
                     if (typeof result === 'number' && isFinite(result)) {
                         value = result;
                     }
-                } catch (e) {
+                } catch {
                     // leave value as-is on error
                 }
             }

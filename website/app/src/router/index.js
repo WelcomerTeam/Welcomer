@@ -1,7 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router";
 
-import Home from "@/pages/Home.vue";
 import Dashboard from "@/pages/Dashboard.vue";
+import Home from "@/pages/Home.vue";
 
 const routes = [
   {
@@ -145,6 +145,11 @@ const routes = [
             name: "dashboard.guild.freeroles",
             path: "freeroles",
             component: () => import("@/pages/dashboard/roles/Freeroles.vue"),
+          },
+          {
+            name: "dashboard.guild.reactionroles",
+            path: "reactionroles",
+            component: () => import("@/pages/dashboard/roles/ReactionRoles.vue"),
           },
           {
             name: "dashboard.guild.timeroles",

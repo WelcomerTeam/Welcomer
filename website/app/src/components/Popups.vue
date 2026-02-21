@@ -21,7 +21,6 @@
 
 <script>
 import Popup from "@/components/Popup.vue";
-
 import { marked } from "@/utilities";
 
 export default {

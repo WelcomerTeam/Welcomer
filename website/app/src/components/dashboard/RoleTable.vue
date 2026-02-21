@@ -10,12 +10,12 @@
           } : {}" />
           <div v-if="
             ($store.getters.getGuildRoleById(role_id)?.is_elevated && $store.getters.getGuildRoleById(role_id)?.is_assignable) ||
-            !$store.getters.getGuildRoleById(role_id)?.is_assignable" class="inline" title="This role is elevated or not assignable">
+              !$store.getters.getGuildRoleById(role_id)?.is_assignable" class="inline" title="This role is elevated or not assignable">
             <font-awesome-icon icon="exclamation-triangle" class="text-red-500 w-4 h-4 mr-1" />
           </div>
           {{ $store.getters.getGuildRoleById(role_id)?.name }}
         </td>
-        <td class="whitespace-nowrap py-4 text-sm text-center dark:text-gray-50 space-x-2">
+        <td class="whitespace-nowrap py-4 px-2 text-right text-sm dark:text-gray-50 space-x-2">
           <a @click="this.onRemoveRole(role_id)" class="text-primary hover:text-primary-dark cursor-pointer">
             <font-awesome-icon icon="close" />
           </a>
@@ -28,15 +28,15 @@
               <ListboxButton
                 class="bg-white dark:bg-secondary-dark relative w-full mt-2 py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-secondary-light rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
                 <div v-if="$store.getters.isLoadingGuild"
-                  class="block h-6 sm:h-5 animate-pulse bg-gray-200 w-48 rounded-md"></div>
+                     class="block h-6 sm:h-5 animate-pulse bg-gray-200 w-48 rounded-md"></div>
                 <span v-else class="block truncate">Add role</span>
                 <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                   <SelectorIcon class="w-5 h-5 text-gray-400" aria-hidden="true" />
                 </span>
               </ListboxButton>
 
-              <transition leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                leave-to-class="opacity-0">
+              <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                          leave-to-class="opacity-0">
                 <ListboxOptions
                   class="absolute z-20 w-full mt-1 overflow-auto text-base bg-white dark:bg-secondary-dark rounded-md shadow-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                   <div v-if="$store.getters.isLoadingGuild" class="flex py-5 w-full justify-center">
@@ -44,7 +44,7 @@
                   </div>
                   <div v-else>
                     <ListboxOption as="template" v-for="role in this.selectableRoles" :key="role.id" :value="role.id"
-                      v-slot="{ active, selected }" :disabled="!role.is_assignable" @click="onClickRole(role)">
+                                   v-slot="{ active, selected }" :disabled="!role.is_assignable" @click="onClickRole(role)">
                       <li :class="[
                         role.is_assignable ? '' : 'bg-gray-200 dark:bg-secondary-light',
                         active ? 'text-white bg-primary' : 'text-gray-900 dark:text-gray-50',
@@ -85,23 +85,25 @@
 </template>
 
 <script>
+import { ref } from "vue";
+
 import {
   Listbox,
   ListboxButton,
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
-
-import { ref } from "vue";
-import { CheckIcon, SelectorIcon } from "@heroicons/vue/solid";
 import { XIcon } from "@heroicons/vue/outline";
+import { CheckIcon, SelectorIcon } from "@heroicons/vue/solid";
+
+import LoadingIcon from "@/components/LoadingIcon.vue";
+import { getHexColor, getRolePermissionListAsString } from "@/utilities";
+
 import EmbedBuilder from "./EmbedBuilder.vue";
 import FormValue from "./FormValue.vue";
 import { FormTypeBlank } from "./FormValueEnum";
 import UnsavedChanges from "./UnsavedChanges.vue";
-import LoadingIcon from "@/components/LoadingIcon.vue";
 
-import { getHexColor, getRolePermissionListAsString } from "@/utilities";
 
 export default {
   props: {

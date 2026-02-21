@@ -59,7 +59,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -122,7 +122,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -362,16 +362,14 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			role := discord.Role{ID: discord.Snowflake(roleIDInt64)}
 
 			// Check if the user already has the role.
-			for _, roleID := range interaction.Member.Roles {
-				if roleID == role.ID {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("You already have this role.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
+			if slices.Contains(interaction.Member.Roles, role.ID) {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("You already have this role.", welcomer.EmbedColourInfo),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
 			}
 
 			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
@@ -432,7 +430,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 			err = interaction.Member.AddRoles(ctx, session,
 				[]discord.Snowflake{role.ID},
-				welcomer.ToPointer("Assigned with FreeRoles"),
+				new("Assigned with FreeRoles"),
 				true,
 			)
 			if err != nil {
@@ -537,7 +535,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 			err = interaction.Member.RemoveRoles(ctx, session,
 				[]discord.Snowflake{role.ID},
-				welcomer.ToPointer("Unassigned with FreeRoles"),
+				new("Unassigned with FreeRoles"),
 				false,
 			)
 			if err != nil {
@@ -576,7 +574,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -703,7 +701,7 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		DMPermission:            &welcomer.False,
-		DefaultMemberPermission: welcomer.ToPointer(discord.Int64(welcomer.PermissionElevated)),
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
