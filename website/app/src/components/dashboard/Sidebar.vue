@@ -51,6 +51,7 @@
                 item.class,
               ]" aria-hidden="true" />
               {{ item.name }}
+              <span v-if="item.headline" class="ml-2 px-1 py-0.5 bg-patreon text-white text-primary-content rounded-md text-xs font-bold">{{item.headline}}</span>
             </router-link>
           </div>
         </div>
@@ -126,6 +127,7 @@ const navigation = [
         name: "Welcomer",
         linkname: "dashboard.guild.welcomer",
         icon: "fa-user-plus",
+        headline: "New"
       },
     ],
   },
@@ -145,6 +147,7 @@ const navigation = [
         name: "Reaction Roles",
         linkname: "dashboard.guild.reactionroles",
         icon: "fa-face-smile-plus",
+        headline: "New"
       },
       {
         name: "TimeRoles",
