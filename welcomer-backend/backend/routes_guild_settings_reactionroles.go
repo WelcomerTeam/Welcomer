@@ -275,8 +275,6 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			addMessageReactions(ctx, eg, message, new)
 		}
 	}
-
-	return
 }
 
 func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
