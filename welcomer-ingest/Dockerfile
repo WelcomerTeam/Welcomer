@@ -1,4 +1,4 @@
-FROM golang:1.25 AS build_base
+FROM golang:1.26 AS build_base
 COPY . /tmp
 WORKDIR /tmp/welcomer-ingest
 RUN cd /tmp/welcomer-ingest
