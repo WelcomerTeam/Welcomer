@@ -59,7 +59,7 @@ func (is *ImageService) getCanvasStyle(ctx *ImageGenerationContext, customImage 
 	styling.Add("background", is.getFillAsCSS(ctx, customImage.Fill, "transparent")+" center / cover no-repeat")
 	styling.Add("background-origin", "border-box")
 	styling.Add("box-sizing", "border-box")
-	styling.Add("overflow", "hidden")
+	styling.Add("overflow", "visible")
 	styling.Add("position", "relative")
 
 	if customImage.Stroke != nil && customImage.Stroke.Width > 0 {
