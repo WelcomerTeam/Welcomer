@@ -56,7 +56,7 @@ func (is *ImageService) getCanvasStyle(ctx *ImageGenerationContext, customImage 
 		styling.Add("height", welcomer.Itoa(int64(customImage.Dimensions[1]))+"px")
 	}
 
-	styling.Add("background", is.getFillAsCSS(ctx, customImage.Fill, "transparent"))
+	styling.Add("background", is.getFillAsCSS(ctx, customImage.Fill, "transparent")+" center / cover no-repeat")
 	styling.Add("background-origin", "border-box")
 	styling.Add("box-sizing", "border-box")
 	styling.Add("overflow", "hidden")

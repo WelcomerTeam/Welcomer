@@ -116,7 +116,7 @@
 
         <!-- canvas -->
 
-        <div v-if="preview" :style="getCanvasStyleBase(x , y)">
+        <div v-if="preview" class="preview" :style="getCanvasStyle(x , y, true)">
           <LoadingIcon v-if="!isPreviewFetched && !isPreviewError" :isLight="true" />
           <div v-else-if="isPreviewError" class="w-full h-full flex flex-col items-center justify-center">
             <p class="mb-2">Failed to load preview</p>
@@ -1183,7 +1183,7 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       };
     },
 
-    getCanvasStyle(x, y) {
+    getCanvasStyle(x, y, excludeBackground) {
       // this outputs as a style=""
 
       let dimensions = this.image_config?.dimensions || [0, 0];
@@ -1192,7 +1192,7 @@ you are the {{Ordinal(Guild.Members)}} member!`;
         ...this.getCanvasStyleBase(x, y),
         width: (dimensions[0] || 0) + "px",
         height: (dimensions[1] || 0) + "px",
-        background: this.getFillAsCSS(this.image_config.fill || '#ffffff'),
+        background: excludeBackground ? "transparent" : this.getFillAsCSS(this.image_config.fill || '#ffffff'),
         "background-origin": "border-box",
         overflow: this.preview ? "hidden" : "visible",
         border: (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
