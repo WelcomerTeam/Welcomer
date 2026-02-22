@@ -55,8 +55,22 @@ func FetchUser(ctx context.Context, userID discord.Snowflake) (*discord.User, er
 
 	userPb, ok := users.GetUsers()[int64(userID)]
 	if ok {
-		return sandwich_protobuf.PBToUser(userPb), err
+		return sandwich_protobuf.PBToUser(userPb), nil
 	}
 
 	return nil, ErrMissingUser
+}
+
+func FetchUserWithDiscordFallback(ctx context.Context, session *discord.Session, userID discord.Snowflake) (*discord.User, error) {
+	user, err := FetchUser(ctx, userID)
+	if err == nil {
+		return user, nil
+	}
+
+	user, err = discord.GetUser(ctx, session, userID)
+	if err != nil {
+		user = &discord.User{ID: userID}
+	}
+
+	return user, err
 }
