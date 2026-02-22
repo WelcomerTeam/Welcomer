@@ -1183,7 +1183,7 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       };
     },
 
-    getCanvasStyle(x, y, excludeBackground) {
+    getCanvasStyle(x, y, isPreview) {
       // this outputs as a style=""
 
       let dimensions = this.image_config?.dimensions || [0, 0];
@@ -1192,10 +1192,10 @@ you are the {{Ordinal(Guild.Members)}} member!`;
         ...this.getCanvasStyleBase(x, y),
         width: (dimensions[0] || 0) + "px",
         height: (dimensions[1] || 0) + "px",
-        background: excludeBackground ? "transparent" : this.getFillAsCSS(this.image_config.fill || '#ffffff'),
+        background: isPreview ? "transparent" : this.getFillAsCSS(this.image_config.fill || '#ffffff'),
         "background-origin": "border-box",
-        overflow: this.preview ? "hidden" : "visible",
-        border: (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
+        overflow: isPreview ? "hidden" : "visible",
+        border: isPreview ? '' : (this.image_config.stroke?.width > 0 ? this.image_config.stroke.width + "px solid " + this.getFillAsCSS(this.image_config.stroke.color) : "none")
       };
     },
 
