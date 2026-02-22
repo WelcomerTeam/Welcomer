@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -28,6 +29,8 @@ const (
 	DefaultFont               = "fredokaone-regular"
 	DefaultImageBorderWidth   = 16
 	DefaultProfileBorderWidth = 8
+
+	SendDMToUserTimeout = 10 * time.Second
 )
 
 var (
@@ -1000,7 +1003,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, dmerr = user.Send(eventCtx.Context, eventCtx.Session, directMessage)
+		newcontextWithTimeout, cancel := context.WithTimeout(eventCtx.Context, SendDMToUserTimeout)
+		defer cancel()
+
+		_, dmerr = user.Send(newcontextWithTimeout, eventCtx.Session, directMessage)
 
 		welcomer.Logger.Info().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
