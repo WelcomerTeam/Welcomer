@@ -1003,10 +1003,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		newcontextWithTimeout, cancel := context.WithTimeout(eventCtx.Context, SendDMToUserTimeout)
+		dmCtx, cancel := context.WithTimeout(eventCtx.Context, SendDMToUserTimeout)
 		defer cancel()
 
-		_, dmerr = user.Send(newcontextWithTimeout, eventCtx.Session, directMessage)
+		_, dmerr = user.Send(dmCtx, eventCtx.Session, directMessage)
 
 		welcomer.Logger.Info().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
