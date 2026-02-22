@@ -26,7 +26,7 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 
 	for index, layer := range ctx.CustomWelcomerImage.Layers {
 		builder.WriteString(`<div style="`)
-		getObjectStyleBase(layer, len(ctx.CustomWelcomerImage.Layers), 0).Build(&builder)
+		getObjectStyleBase(layer, len(ctx.CustomWelcomerImage.Layers), index).Build(&builder)
 		builder.WriteString(`">`)
 
 		switch layer.Type {
