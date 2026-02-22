@@ -254,7 +254,7 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 			return err
 		}
 
-		user, err := welcomer.FetchUser(eventCtx.Context, *entry.UserID)
+		user, err := welcomer.FetchUserWithDiscordFallback(eventCtx.Context, eventCtx.Session, *entry.UserID)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(guildID)).

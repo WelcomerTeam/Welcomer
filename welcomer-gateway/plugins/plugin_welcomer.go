@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -28,6 +29,8 @@ const (
 	DefaultFont               = "fredokaone-regular"
 	DefaultImageBorderWidth   = 16
 	DefaultProfileBorderWidth = 8
+
+	SendDMToUserTimeout = 10 * time.Second
 )
 
 var (
@@ -595,9 +598,18 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Str("invite_code", invite.InviteCode).
 					Msg("Received invite from buffer")
 
+				user, err := welcomer.FetchUserWithDiscordFallback(eventCtx, eventCtx.Session, discord.Snowflake(invite.CreatedBy))
+				if err != nil {
+					welcomer.Logger.Warn().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Int64("user_id", int64(event.Member.User.ID)).
+						Int64("inviter_id", invite.CreatedBy).
+						Msg("Failed to fetch user from database for invite")
+				}
+
 				usedInvite = &discord.Invite{
 					CreatedAt: invite.CreatedAt,
-					Inviter:   &discord.User{ID: discord.Snowflake(invite.CreatedBy)},
+					Inviter:   user,
 					Code:      invite.InviteCode,
 					Uses:      int32(invite.Uses),
 				}
@@ -642,9 +654,18 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 						Int64("user_id", int64(event.Member.User.ID)).
 						Msg("Received invite from database")
 
+					user, err := welcomer.FetchUserWithDiscordFallback(eventCtx, eventCtx.Session, discord.Snowflake(invite.CreatedBy))
+					if err != nil {
+						welcomer.Logger.Warn().Err(err).
+							Int64("guild_id", int64(eventCtx.Guild.ID)).
+							Int64("user_id", int64(event.Member.User.ID)).
+							Int64("inviter_id", invite.CreatedBy).
+							Msg("Failed to fetch user from database for invite")
+					}
+
 					usedInvite = &discord.Invite{
 						CreatedAt: recentEvent.CreatedAt_2.Time,
-						Inviter:   &discord.User{ID: discord.Snowflake(invite.CreatedBy)},
+						Inviter:   user,
 						Code:      recentEvent.InviteCode.String,
 						Uses:      int32(recentEvent.Uses.Int64),
 					}
@@ -674,36 +695,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			Str("inviter_username", welcomer.IfFunc(usedInvite != nil && usedInvite.Inviter != nil, func() string { return usedInvite.Inviter.Username }, func() string { return "" })).
 			Str("inviter_id", welcomer.IfFunc(usedInvite != nil && usedInvite.Inviter != nil, func() string { return usedInvite.Inviter.ID.String() }, func() string { return "" })).
 			Msg("Used invite for user")
-
-		// If we have an invite, make sure the inviter is fetched from the database or Discord API if they are only an ID.
-		if usedInvite != nil && usedInvite.Inviter != nil && usedInvite.Inviter.Username == "" && !usedInvite.Inviter.ID.IsNil() {
-			inviter, err := welcomer.FetchUser(eventCtx.Context, usedInvite.Inviter.ID)
-			if err != nil {
-				welcomer.Logger.Warn().Err(err).
-					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Int64("user_id", int64(event.Member.User.ID)).
-					Msg("Failed to fetch user from database for invite")
-
-				discordUser, err := discord.GetUser(eventCtx.Context, eventCtx.Session, usedInvite.Inviter.ID)
-				if err != nil {
-					welcomer.Logger.Warn().Err(err).
-						Int64("guild_id", int64(eventCtx.Guild.ID)).
-						Int64("user_id", int64(event.Member.User.ID)).
-						Msg("Failed to fetch user from Discord API for invite")
-				} else {
-					welcomer.Logger.Info().
-						Int64("guild_id", int64(eventCtx.Guild.ID)).
-						Int64("user_id", int64(event.Member.User.ID)).
-						Str("inviter_id", usedInvite.Inviter.ID.String()).
-						Str("inviter_username", usedInvite.Inviter.Username).
-						Msg("Fetched inviter from Discord API for invite")
-
-					usedInvite.Inviter = discordUser
-				}
-			} else {
-				usedInvite.Inviter = inviter
-			}
-		}
 	}
 
 	guildSettings, err := welcomer.Queries.GetGuild(eventCtx.Context, int64(eventCtx.Guild.ID))
@@ -1012,7 +1003,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
-		_, dmerr = user.Send(eventCtx.Context, eventCtx.Session, directMessage)
+		dmCtx, cancel := context.WithTimeout(eventCtx.Context, SendDMToUserTimeout)
+		defer cancel()
+
+		_, dmerr = user.Send(dmCtx, eventCtx.Session, directMessage)
 
 		welcomer.Logger.Info().
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
