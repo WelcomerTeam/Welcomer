@@ -31,6 +31,11 @@
               </div>
             </form-value>
           </div>
+          <div class="dashboard-inputs">
+            <form-value title="Export Audit Logs" :type="FormTypeButton" buttonLabel="Export" @click="exportAuditLogs">
+              Exports a csv copy of all changes made to your server's settings in Welcomer. A better view of this data will be available in the future.
+            </form-value>
+          </div>
           <!-- <div class="dashboard-inputs">
             <form-value title="Embed Colour" :type="FormTypeColour" v-model="config.embed_colour"
             @update:modelValue="onValueUpdate" :validation="v$.embed_colour">This changes the embed colour accent on any commands you run with Welcomer</form-value>
@@ -70,6 +75,7 @@ import endpoints from "@/api/endpoints";
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
 import FormValue from "@/components/dashboard/FormValue.vue";
 import {
+  FormTypeButton,
   FormTypeDropdown,
   FormTypeNumberWithConfirm,
 } from "@/components/dashboard/FormValueEnum";
@@ -119,6 +125,7 @@ export default {
     const v$ = useVuelidate(validation_rules, config, { $rewardEarly: true });
 
     return {
+      FormTypeButton,
       FormTypeDropdown,
       FormTypeNumberWithConfirm,
 
@@ -220,7 +227,10 @@ export default {
           this.isChangeInProgress = false;
         }
       );
+    },
 
+    exportAuditLogs() {
+      window.open(endpoints.EndpointExportGuildAuditLogs(this.$store.getters.getSelectedGuildID), "_blank");
     },
 
     onValueUpdate() {

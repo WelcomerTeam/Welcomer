@@ -8,9 +8,53 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/jackc/pgtype"
 )
+
+const GetGuildAuditLogs = `-- name: GetGuildAuditLogs :many
+SELECT
+    created_at, user_id, audit_type, changes
+FROM
+    audit_logs
+WHERE
+    guild_id = $1
+ORDER BY
+    created_at ASC
+`
+
+type GetGuildAuditLogsRow struct {
+	CreatedAt time.Time    `json:"created_at"`
+	UserID    int64        `json:"user_id"`
+	AuditType int32        `json:"audit_type"`
+	Changes   pgtype.JSONB `json:"changes"`
+}
+
+func (q *Queries) GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) ([]*GetGuildAuditLogsRow, error) {
+	rows, err := q.db.Query(ctx, GetGuildAuditLogs, guildID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetGuildAuditLogsRow{}
+	for rows.Next() {
+		var i GetGuildAuditLogsRow
+		if err := rows.Scan(
+			&i.CreatedAt,
+			&i.UserID,
+			&i.AuditType,
+			&i.Changes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const InsertAuditLog = `-- name: InsertAuditLog :one
 INSERT INTO audit_logs (audit_uuid, created_at, guild_id, user_id, audit_type, changes)
