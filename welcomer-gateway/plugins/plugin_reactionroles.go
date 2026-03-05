@@ -168,21 +168,70 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 }
 
 func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext, event core.CustomEventInvokeReactionRolesStructure) error {
+	if err := r.OnInvokeReactionRolesInner(eventCtx, event); err != nil {
+		if event.Interaction != nil {
+			_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
+				discord.WebhookMessageParams{
+					Embeds: welcomer.NewEmbed(fmt.Sprintf("There was an issue assigning your reaction role. Please try again later.`", event.RoleID), welcomer.EmbedColourSuccess),
+					Flags:  discord.MessageFlagEphemeral,
+				},
+			)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(*event.Member.GuildID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Int64("role_id", int64(event.RoleID)).
+					Msg("Failed to send interaction response for successful remove role in reaction roles")
+			}
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventContext, event core.CustomEventInvokeReactionRolesStructure) error {
 	startedAt := time.Now()
 
 	if len(event.Member.Roles) == 0 {
+		_, err := welcomer.SandwichClient.RequestGuildChunk(eventCtx.Context, &pb.RequestGuildChunkRequest{
+			GuildId:     int64(*event.Member.GuildID),
+			AlwaysChunk: false,
+		})
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(*event.Member.GuildID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to request guild chunk for reaction roles")
+
+			return fmt.Errorf("failed to request guild chunk: %w", err)
+		}
+
 		membersPb, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
 			GuildId: int64(*event.Member.GuildID),
 			UserIds: []int64{int64(event.Member.User.ID)},
 		})
 		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(*event.Member.GuildID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Failed to fetch guild member for reaction roles")
+
 			return fmt.Errorf("failed to fetch guild member: %w", err)
 		}
 
 		memberPb, ok := membersPb.GuildMembers[int64(event.Member.User.ID)]
 		if !ok {
+			welcomer.Logger.Error().
+				Int64("guild_id", int64(*event.Member.GuildID)).
+				Int64("user_id", int64(event.Member.User.ID)).
+				Msg("Guild member not found in response for reaction roles")
+
 			return fmt.Errorf("guild member not found in response")
 		}
+
+		memberPb.GuildID = int64(*event.Member.GuildID)
 
 		event.Member = pb.PBToGuildMember(memberPb)
 	}
