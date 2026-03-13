@@ -1000,7 +1000,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Send direct message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(directMessage) {
-		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
+		directMessage = welcomer.IncludeSentByButton(directMessage, guild.ID, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
 		dmCtx, cancel := context.WithTimeout(eventCtx.Context, SendDMToUserTimeout)
