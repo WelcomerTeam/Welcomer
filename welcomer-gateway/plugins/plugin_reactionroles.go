@@ -137,6 +137,8 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 	}
 
 	if !reactionRole.ToggleEnabled {
+		welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Msg("Reaction role is not enabled")
+
 		return nil
 	}
 
@@ -155,8 +157,12 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 	}
 
 	if !found {
+		welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Msg("Reaction role emoji not found")
+
 		return nil
 	}
+
+	member.GuildID = &guildID
 
 	return r.OnInvokeReactionRoles(eventCtx, core.CustomEventInvokeReactionRolesStructure{
 		Interaction:      nil,
@@ -169,6 +175,12 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 
 func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext, event core.CustomEventInvokeReactionRolesStructure) error {
 	if err := r.OnInvokeReactionRolesInner(eventCtx, event); err != nil {
+		welcomer.Logger.Warn().Err(err).
+			Int64("guild_id", int64(*event.Member.GuildID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Int64("role_id", int64(event.RoleID)).
+			Msg("Failed to invoke reaction roles")
+
 		if event.Interaction != nil {
 			_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 				discord.WebhookMessageParams{
@@ -232,13 +244,18 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 		}
 
 		memberPb.GuildID = int64(*event.Member.GuildID)
-
 		event.Member = pb.PBToGuildMember(memberPb)
 	}
 
 	hasRole := slices.Contains(event.Member.Roles, event.RoleID)
 
 	if !hasRole && (event.Assign == nil || *event.Assign) {
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(*event.Member.GuildID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Int64("role_id", int64(event.RoleID)).
+			Msg("Assigning reaction role to user")
+
 		err := event.Member.AddRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically assigned with Reaction Roles"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
@@ -295,9 +312,13 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 		}
 
 		return nil
-	}
+	} else if hasRole && (event.Assign == nil || !*event.Assign) {
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(*event.Member.GuildID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Int64("role_id", int64(event.RoleID)).
+			Msg("Unassigning reaction role to user")
 
-	if hasRole && (event.Assign == nil || !*event.Assign) {
 		err := event.Member.RemoveRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically removed with Reaction Roles"), true)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
@@ -352,6 +373,22 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 					Msg("Failed to send interaction response for successful remove role in reaction roles")
 			}
 		}
+	} else {
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(*event.Member.GuildID)).
+			Int64("user_id", int64(event.Member.User.ID)).
+			Int64("role_id", int64(event.RoleID)).
+			Bool("assign", welcomer.IfFunc(
+				event.Assign != nil,
+				func() bool {
+					return *event.Assign
+				},
+				func() bool {
+					return false
+				},
+			)).
+			Bool("has_role", hasRole).
+			Msg("Nothing to do with reaction role")
 	}
 
 	return nil
