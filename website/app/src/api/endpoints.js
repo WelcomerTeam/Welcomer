@@ -86,6 +86,10 @@ let EndpointCheckMessage = function(guildID, channelID, messageID) {
   return `${EndpointGuild(guildID)}/checkmessage/${channelID}/${messageID}`;
 }
 
+let EndpointExportGuildAuditLogs = function(guildID) {
+  return `${EndpointGuildSettings(guildID)}/export-audit-logs`;
+}
+
 export default {
   EndpointGuild,
   EndpointGuildAutorole,
@@ -109,4 +113,5 @@ export default {
   EndpointStartGuildCustomBot,
   EndpointStopGuildCustomBot,
   EndpointCheckMessage,
+  EndpointExportGuildAuditLogs,
 };

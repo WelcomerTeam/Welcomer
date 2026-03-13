@@ -113,7 +113,7 @@ var DefaultWelcomerImages database.GuildSettingsWelcomerImages = database.GuildS
 	ColourProfileBorder:    "#FFFFFF",
 	ImageAlignment:         int32(ImageAlignmentLeft),
 	ImageTheme:             int32(ImageThemeDefault),
-	ImageMessage:           "Welcome {{User.Name}}\nto {{Guild.Name}}you are the {{Ordinal(Guild.Members)}} member!",
+	ImageMessage:           "Welcome {{User.Name}}\nto {{Guild.Name}} you are the {{Ordinal(Guild.Members)}} member!",
 	ImageProfileBorderType: int32(ImageProfileBorderTypeCircular),
 	UseCustomBuilder:       false,
 	CustomBuilderData: pgtype.JSONB{

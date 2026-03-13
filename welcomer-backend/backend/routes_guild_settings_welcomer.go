@@ -667,7 +667,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			}
 
 			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID))
-			if err != nil {
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
 
 				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))

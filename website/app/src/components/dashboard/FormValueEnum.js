@@ -16,6 +16,7 @@ const FormTypeGuildList = 13;
 const FormTypeCustom = 14;
 const FormTypeNumberWithConfirm = 15;
 const FormTypeDuration = 16;
+const FormTypeButton = 17;
 
 export {
   FormTypeBlank,
@@ -36,4 +37,5 @@ export {
   FormTypeCustom,
   FormTypeNumberWithConfirm,
   FormTypeDuration,
+  FormTypeButton,
 };

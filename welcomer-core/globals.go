@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/go-redis/redis/v8"
@@ -73,9 +74,9 @@ func SetupPusherIngestMessageEvents(limit int) func(ctx context.Context, interva
 	return PusherIngestMessageEvents.Run
 }
 
-var DedupeProvider *RedisDedupeProvider
+var DedupeProvider sandwich_daemon.DedupeProvider
 
-func SetupDedupeProvider(provider *RedisDedupeProvider) {
+func SetupDedupeProvider(provider sandwich_daemon.DedupeProvider) {
 	DedupeProvider = provider
 }
 

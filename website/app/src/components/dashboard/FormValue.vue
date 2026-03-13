@@ -880,6 +880,16 @@
         </div>
       </div>
 
+      <div v-else-if="type == FormTypeButton">
+        <button type="button" :class="[$props.disabled ? 'bg-gray-100 dark:bg-secondary-light text-neutral-500' : 'bg-primary hover:bg-primary-dark', 'cta-button']" @click="click()" :disabled="$props.disabled">
+          {{ $props.buttonLabel }}
+        </button>
+
+        <div v-if="$props.validation?.$invalid" class="errors">
+          <span v-bind:key="index" v-for="(message, index) in $props.validation?.$errors">{{ message.$message }}&nbsp;</span>
+        </div>
+      </div>
+
       <div v-else-if="type == FormTypeDuration">
         <DurationSelector :disabled="$props.disabled" :modelValue="modelValue" @update:modelValue="updateValue($event)" blankDisplay="Never" :showYears="false" :showDays="false" :showSeconds="false" />
         <div v-if="$props.validation?.$invalid" class="errors">
@@ -950,6 +960,7 @@ import {
   FormTypeCustom,
   FormTypeNumberWithConfirm,
   FormTypeDuration,
+  FormTypeButton,
 } from "./FormValueEnum";
 
 export default {
@@ -1079,6 +1090,10 @@ export default {
       type: Boolean,
       required: false,
       default: true,
+    },
+    buttonLabel: {
+      type: String,
+      required: true,
     }
   },
 
@@ -1113,6 +1128,7 @@ export default {
       FormTypeCustom,
       FormTypeNumberWithConfirm,
       FormTypeDuration,
+      FormTypeButton,
 
       idRegex,
 
@@ -1201,6 +1217,10 @@ export default {
 
     save(value) {
       this.$emit("save", value);
+    },
+
+    click() {
+      this.$emit("click");
     },
 
     filterChannels(channels) {

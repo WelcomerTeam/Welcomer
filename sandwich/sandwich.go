@@ -39,6 +39,7 @@ func main() {
 	redisHost := flag.String("redisHost", os.Getenv("REDIS_HOST"), "Redis host")
 	grpcHost := flag.String("grpcHost", os.Getenv("GRPC_HOST"), "GRPC host")
 	proxyHost := flag.String("proxyHost", os.Getenv("PROXY_HOST"), "Proxy host")
+	disableDedupeProvider := flag.Bool("disableDedupe", false, "Disables deduplication")
 
 	enablePprof := flag.Bool("enablePprof", welcomer.TryParseBool(os.Getenv("ENABLE_PPROF")), "Enable pprof debugging server")
 
@@ -53,7 +54,12 @@ func main() {
 	stateProvider := sandwich_daemon.NewStateProviderMemoryOptimized()
 
 	welcomer.SetupRedisClient(*redisHost)
-	welcomer.SetupDedupeProvider(welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()))
+
+	if *disableDedupeProvider {
+		welcomer.SetupDedupeProvider(welcomer.NewDummyDedupeProvider())
+	} else {
+		welcomer.SetupDedupeProvider(welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()))
+	}
 
 	producerProvider, err := jetstream_client.NewJetstreamProducerProvider(
 		ctx,

@@ -6,6 +6,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -91,6 +92,7 @@ type Querier interface {
 	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
+	GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) ([]*GetGuildAuditLogsRow, error)
 	GetGuildFeatures(ctx context.Context, guildID int64) ([]string, error)
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
