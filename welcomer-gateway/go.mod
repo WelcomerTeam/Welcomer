@@ -3,7 +3,7 @@ module github.com/WelcomerTeam/Welcomer/welcomer-gateway
 go 1.26
 
 require (
-	github.com/WelcomerTeam/Discord v0.0.0-20260218220309-ab6ed1baf936
+	github.com/WelcomerTeam/Discord v0.0.0-20260309184215-ff4810d57dc4
 	github.com/WelcomerTeam/Sandwich v0.0.0-20260219212036-0ff755353119
 	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260219211816-cc899f0920e7
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0

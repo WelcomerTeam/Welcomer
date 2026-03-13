@@ -235,7 +235,6 @@ import userAPI from "@/api/user";
 import EmbedBuilder from "@/components/dashboard/EmbedBuilder.vue";
 import FormValue from "@/components/dashboard/FormValue.vue";
 import {
-  FormTypeBlank,
   FormTypeToggle,
 } from "@/components/dashboard/FormValueEnum";
 import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
@@ -284,7 +283,6 @@ export default {
     let showPatreonPopup = ref(false);
 
     return {
-      FormTypeBlank,
       FormTypeToggle,
 
       isDataFetched,

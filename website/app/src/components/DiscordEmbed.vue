@@ -144,7 +144,6 @@
   overflow-wrap: break-word;
   user-select: text;
   -webkit-box-flex: 0;
-  flex: 0 0 auto;
   padding-right: 16px;
   min-height: 1.375rem;
 }

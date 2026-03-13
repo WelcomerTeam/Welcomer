@@ -75,7 +75,7 @@
                   !$store.getters.guildHasCustomBackgrounds &&
                   !($store.getters.guildFeatures.includes('CustomWelcomerImageBuilder'))" @click="config.images.use_custom_builder = true; onValueUpdate()" :class="[config.images.use_custom_builder ? ' border-primary' : 'border-gray-300 dark:border-secondary-light', 'p-8 border rounded-lg shadow-sm h-fit mb-4']">
                 <h2 class="font-bold text-lg">
-                  <span class="px-2 py-1 bg-primary text-primary-content rounded-md text-xs font-bold">NEW</span>
+                  <span class="px-2 py-1 bg-patreon rounded-md text-xs font-bold">NEW</span>
                   Use Custom Image Builder
                 </h2>
                 <span>Advanced configuration for creating a custom welcome image.</span>

@@ -333,7 +333,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	// Send direct message if it's not empty.
 	if user != nil && !welcomer.IsMessageParamsEmpty(directMessage) {
 		directMessage = welcomer.IncludeBorderwallVerifyButton(directMessage, borderwallLink)
-		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
+		directMessage = welcomer.IncludeSentByButton(directMessage, guild.ID, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
 		_, err = user.Send(eventCtx.Context, eventCtx.Session, directMessage)
@@ -641,7 +641,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 
 	// Send direct message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(directMessage) {
-		directMessage = welcomer.IncludeSentByButton(directMessage, guild.Name)
+		directMessage = welcomer.IncludeSentByButton(directMessage, guild.ID, guild.Name)
 		directMessage = welcomer.IncludeScamsButton(directMessage)
 
 		_, err = user.Send(eventCtx.Context, eventCtx.Session, directMessage)

@@ -1,14 +1,19 @@
 package backend
 
 import (
+	"database/sql"
 	_ "embed"
+	"encoding/csv"
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
+	"github.com/savsgio/gotils/strconv"
 )
 
 // Route GET /api/guild/:guildID/settings.
@@ -140,6 +145,55 @@ func updateGuildSettingsMemberCount(ctx *gin.Context) {
 	})
 }
 
+// Route GET /api/guild/:guildID/settings/export-audit-logs
+func exportGuildSettingsAuditLogs(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			guildID := tryGetGuildID(ctx)
+
+			rows, err := welcomer.Queries.GetGuildAuditLogs(ctx, sql.NullInt64{
+				Int64: int64(guildID),
+				Valid: true,
+			})
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings audit logs")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			ctx.Header("Content-Type", "text/csv")
+			ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"audit_logs_%d_%s.csv\"", guildID, time.Now().Format("2006-01-02_15-04-05")))
+
+			writer := csv.NewWriter(ctx.Writer)
+
+			_ = writer.Write([]string{"created_at", "user_id", "audit_type", "changes"})
+
+			for _, row := range rows {
+				_ = writer.Write([]string{
+					row.CreatedAt.Format("2006-01-02 15:04:05"),
+					"\"" + welcomer.Itoa(row.UserID) + "\"",
+					database.AuditType(row.AuditType).String(),
+					strconv.B2S(row.Changes.Bytes),
+				})
+			}
+
+			writer.Flush()
+
+			if err := writer.Error(); err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to write guild settings audit logs to csv")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			ctx.Status(http.StatusOK)
+		})
+	})
+}
+
 // Validates settings.
 func doValidateSettings(guildSettings *GuildSettingsSettings) error {
 	// TODO: validate settings
@@ -155,4 +209,5 @@ func registerGuildSettingsRoutes(g *gin.Engine) {
 	g.GET("/api/guild/:guildID/settings", getGuildSettingsSettings)
 	g.POST("/api/guild/:guildID/settings", setGuildSettingsSettings)
 	g.POST("/api/guild/:guildID/settings/update-member-count", updateGuildSettingsMemberCount)
+	g.GET("/api/guild/:guildID/settings/export-audit-logs", exportGuildSettingsAuditLogs)
 }

@@ -15,10 +15,13 @@ func includeActionRow(messageParams discord.MessageParams) discord.MessageParams
 	return messageParams
 }
 
-func IncludeSentByButton(messageParams discord.MessageParams, guildName string) discord.MessageParams {
+func IncludeSentByButton(messageParams discord.MessageParams, guildID discord.Snowflake, guildName string) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
-	label := Overflow("Sent by "+guildName, 80)
+	message := "Sent by " + guildName
+	messageWithID := message + " (" + Itoa(int64(guildID)) + ")"
+
+	label := Overflow(message, 80)
 
 	messageParams.Components[0].Components = append(
 		messageParams.Components[0].Components,
@@ -31,6 +34,20 @@ func IncludeSentByButton(messageParams discord.MessageParams, guildName string) 
 			Disabled: true,
 		},
 	)
+
+	startingMessage := "-# "
+
+	if len(messageParams.Content)+len(messageWithID) <= 1995 {
+		startingMessage += messageWithID
+	} else if len(messageParams.Content)+len(message) <= 1995 {
+		startingMessage += message
+	}
+
+	if len(messageParams.Content) == 0 {
+		messageParams.Content = startingMessage
+	} else {
+		messageParams.Content = startingMessage + "\n\n" + messageParams.Content
+	}
 
 	return messageParams
 }
