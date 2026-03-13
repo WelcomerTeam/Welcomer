@@ -666,6 +666,40 @@ func checkGuildSettingsReactionRolesMessage(ctx *gin.Context) {
 	})
 }
 
+// Validates if string is a valid emoji. This can be a snowflake or a unicode emoji.
+func isValidEmoji(emoji string) bool {
+	if _, err := welcomer.Atoi(emoji); err == nil {
+		return true
+	}
+
+	for _, rune := range emoji {
+		switch {
+
+		// emoji blocks
+		case rune >= 0x1F600 && rune <= 0x1F64F:
+		case rune >= 0x1F300 && rune <= 0x1F5FF:
+		case rune >= 0x1F680 && rune <= 0x1F6FF:
+		case rune >= 0x1F900 && rune <= 0x1F9FF:
+		case rune >= 0x1FA70 && rune <= 0x1FAFF:
+		case rune >= 0x1F1E6 && rune <= 0x1F1FF:
+		case rune >= 0x2600 && rune <= 0x26FF:
+		case rune >= 0x2700 && rune <= 0x27BF:
+
+		// emoji modifiers
+		case rune >= 0x1F3FB && rune <= 0x1F3FF: // skin tones
+
+		// joiners / selectors
+		case rune == 0x200D: // ZWJ
+		case rune == 0xFE0F: // variation selector
+
+		default:
+			return false
+		}
+	}
+
+	return len(emoji) > 0
+}
+
 // Validate reaction role settings.
 func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, partial *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
 	eg := welcomer.NewErrorGroup()
@@ -738,6 +772,10 @@ func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, par
 				if len(option.Name) > 50 {
 					eg.Add(fmt.Errorf("reaction role %d: option %d: name cannot be longer than 50 characters", i+1, j+1))
 				}
+
+				if option.Emoji != "" && !isValidEmoji(option.Emoji) {
+					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
+				}
 			}
 		case welcomer.ReactionRoleTypeDropdown:
 			if len(rr.Roles) > MaximumOptionsDropdown {
@@ -756,6 +794,10 @@ func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, par
 				if option.Description != "" && len(option.Description) > 100 {
 					eg.Add(fmt.Errorf("reaction role %d: option %d: description cannot be longer than 100 characters", i+1, j+1))
 				}
+
+				if option.Emoji != "" && !isValidEmoji(option.Emoji) {
+					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
+				}
 			}
 		case welcomer.ReactionRoleTypeEmoji:
 			if len(rr.Roles) > MaximumOptionsEmojis {
@@ -773,6 +815,10 @@ func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, par
 						eg.Add(fmt.Errorf("reaction role %d: option %d: emoji has already been used", i+1, k))
 						break
 					}
+				}
+
+				if option.Emoji != "" && !isValidEmoji(option.Emoji) {
+					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
 				}
 			}
 		default:
