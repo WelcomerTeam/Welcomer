@@ -1233,10 +1233,7 @@ you are the {{Ordinal(Guild.Members)}} member!`;
         this.normalizeBorderRadius(obj.border_radius[3])
 
       if (obj.type == CustomWelcomerImageLayerTypeImage) {
-        let src = this.formatText(obj.value);
-        let size = (obj.value.includes("{{User.Avatar}}") || obj.value.includes("#xpad") ? '80%' : '100%');
-
-        styles.background = `${this.getFillAsCSS(obj.fill)} url(${src}) center / ${size} no-repeat`;
+        styles.background = `${this.getFillAsCSS(obj.fill)} url(${this.formatText(obj.value)}) center / 100% no-repeat`;
       } else {
         styles.background = (obj.type != CustomWelcomerImageLayerTypeText ? this.getFillAsCSS(obj.fill) : "transparent")
       }

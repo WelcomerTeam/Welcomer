@@ -124,9 +124,7 @@ func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcom
 		styling.Add("background", "transparent")
 		styling.Add("color", is.getFillAsCSS(ctx, layer.Fill, "inherit"))
 	} else if layer.Type == welcomer.CustomWelcomerImageLayerTypeImage {
-		size := welcomer.If(strings.Contains(layer.Value, "{{User.Avatar}}") || strings.Contains(layer.Value, "#xpad"), "80%", "100%")
-
-		styling.Add("background", "url("+html.EscapeString(formattedValue)+") center / "+size+" no-repeat, "+is.getFillAsCSS(ctx, layer.Fill, "transparent"))
+		styling.Add("background", "url("+html.EscapeString(formattedValue)+") center / 100% no-repeat, "+is.getFillAsCSS(ctx, layer.Fill, "transparent"))
 		styling.Add("background-clip", "padding-box")
 		styling.Add("color", "inherit")
 	} else {
