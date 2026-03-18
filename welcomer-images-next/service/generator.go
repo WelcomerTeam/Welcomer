@@ -34,6 +34,7 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 			formattedValue, err := welcomer.FormatString(functions, variables, layer.Value)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to format string for custom welcomer image layer")
+				builder.WriteString(`</div>`)
 
 				continue
 			}
@@ -41,6 +42,7 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 			markdownValue, err := Render(formattedValue)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to render markdown for custom welcomer image layer")
+				builder.WriteString(`</div>`)
 
 				continue
 			}
@@ -56,13 +58,14 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 			formattedValue, err := welcomer.FormatString(functions, variables, layer.Value)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to format string for custom welcomer image layer")
+				builder.WriteString(`</div>`)
 
 				continue
 			}
 
 			builder.WriteString("<div style=\"")
 			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, formattedValue).Build(&builder)
-			builder.WriteString(`"><div>`)
+			builder.WriteString(`"></div>`)
 		case welcomer.CustomWelcomerImageLayerTypeShapeRectangle, welcomer.CustomWelcomerImageLayerTypeShapeCircle:
 			builder.WriteString("<div style=\"")
 			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, layer.Value).Build(&builder)
