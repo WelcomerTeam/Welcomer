@@ -372,16 +372,8 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 		PaymentInstruction: nil,
 	}
 
-	paymentSource := &paypal.PaymentSource{
-		Paypal: &paypal.PaymentSourcePaypal{
-			ExperienceContext: paypal.PaymentSourcePaypalExperienceContext{
-				UserAction: "PAY_NOW",
-			},
-		},
-	}
-
 	// Send order request to paypal.
-	order, err := backend.PaypalClient.CreateOrder(ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, paymentSource, applicationContext)
+	order, err := backend.PaypalClient.CreateOrder(ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, applicationContext)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create order")
 
