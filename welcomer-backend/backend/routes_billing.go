@@ -107,7 +107,8 @@ type CreatePaymentRequest struct {
 }
 
 type CreatePaymentResponse struct {
-	URL string `json:"url"`
+	OrderID string `json:"order_id"`
+	URL     string `json:"url"`
 }
 
 // Route POST /api/billing/payments.
@@ -195,7 +196,7 @@ func createPayment(ctx *gin.Context) {
 		applicationContext := &paypal.ApplicationContext{
 			BrandName:          "Welcomer",
 			ShippingPreference: paypal.ShippingPreferenceNoShipping,
-			UserAction:         paypal.UserActionPayNow,
+			UserAction:         welcomer.If(sku.IsRecurring, paypal.UserActionSubscribeNow, paypal.UserActionPayNow),
 			PaymentMethod: paypal.PaymentMethod{
 				PayeePreferred:         paypal.PayeePreferredUnrestricted,
 				StandardEntryClassCode: paypal.StandardEntryClassCodeWeb,
@@ -371,8 +372,16 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 		PaymentInstruction: nil,
 	}
 
+	paymentSource := &paypal.PaymentSource{
+		Paypal: &paypal.PaymentSourcePaypal{
+			ExperienceContext: paypal.PaymentSourcePaypalExperienceContext{
+				UserAction: "PAY_NOW",
+			},
+		},
+	}
+
 	// Send order request to paypal.
-	order, err := backend.PaypalClient.CreateOrder(ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, applicationContext)
+	order, err := backend.PaypalClient.CreateOrder(ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, paymentSource, applicationContext)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create order")
 
@@ -419,7 +428,8 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	ctx.JSON(http.StatusOK, BaseResponse{
 		Ok: true,
 		Data: CreatePaymentResponse{
-			URL: payerActionLink,
+			OrderID: order.ID,
+			URL:     payerActionLink,
 		},
 	})
 }
