@@ -31,14 +31,6 @@ var euroZone = []string{"AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "I
 var certificateCache map[string][]byte = make(map[string][]byte)
 
 func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer.Currency {
-	// If the IPIntel response is above the threshold, we assume the user is on a VPN.
-	if ipintelResponse.Result <= IPIntelThreshold {
-		mapping, ok := welcomer.CountryMapping[ipintelResponse.Country]
-		if ok {
-			return append(welcomer.GlobalCurrencies, mapping)
-		}
-	}
-
 	return welcomer.GlobalCurrencies
 }
 
@@ -46,8 +38,6 @@ func getDefaultCurrency(ipIntelResponse welcomer.IPIntelResponse) welcomer.Curre
 	switch {
 	case ipIntelResponse.Country == "GB":
 		return welcomer.CurrencyGBP
-	case ipIntelResponse.Country == "IN":
-		return welcomer.CurrencyINR
 	case slices.Contains(euroZone, ipIntelResponse.Country):
 		return welcomer.CurrencyEUR
 	default:

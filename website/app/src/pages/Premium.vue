@@ -93,21 +93,8 @@
                   ]">
                     Monthly
                     <span v-if="isMonthlyRecurring"
-                          class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-patreon text-white">
+                          class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-patreon text-white">
                       Recurring
-                    </span>
-                  </button>
-                  <button type="button" @click="selectDuration(durationBiAnnually)" :class="[
-                    'ml-0.5',
-                    durationSelected === durationBiAnnually
-                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
-                      : 'border-transparent text-gray-700',
-                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
-                  ]">
-                    Biannual
-                    <span
-                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
-                      20% off
                     </span>
                   </button>
                   <button type="button" @click="selectDuration(durationAnnually)" :class="[
@@ -119,9 +106,18 @@
                   ]">
                     Yearly
                     <span
-                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                      class="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary text-white">
                       20% off
                     </span>
+                  </button>
+                  <button type="button" @click="selectDuration(durationLifetime)" :class="[
+                    'ml-0.5',
+                    durationSelected === durationLifetime
+                      ? 'bg-white border-gray-300 text-gray-900 shadow-sm'
+                      : 'border-transparent text-gray-700',
+                    'relative border rounded-md py-2 w-full text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 lg:w-auto lg:px-8',
+                  ]">
+                    Lifetime
                   </button>
                 </div>
                 <div class="relative bg-gray-100 rounded-lg p-0.5 flex flex-wrap self-center shadow-sm">
@@ -188,9 +184,9 @@
                   <p class="mt-4 flex items-baseline gap-x-1" v-if="isDataFetched">
                     <span class="text-xl font-bold tracking-tight">{{ formatCurrency(this.currency,
                                                                                      (this.getSKU(this.getRelativeSKU())?.costs[this.currency] /
-                                                                                       this.getSKU(this.getRelativeSKU())?.month_count)) }}</span>
+                                                                                       Math.max(this.getSKU(this.getRelativeSKU())?.month_count, 1))) }}</span>
                     <span class="text-sm font-semibold leading-6">{{
-                      this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month' }}</span>
+                      this.getSKU(this.getRelativeSKU())?.month_count == -1 ? '' : (this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month') }}</span>
                   </p>
 
                   <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial)"
@@ -438,13 +434,13 @@ const faqs = [
 ];
 
 const durationMonthly = 1;
-const durationBiAnnually = 2;
 const durationAnnually = 3;
+const durationLifetime = 4;
 
 const skuCustomBackgrounds = "WEL/CBG";
 const skuWelcomerPro = "WEL/1P1";
-const skuWelcomerProBiAnnual = "WEL/1P6";
 const skuWelcomerProAnnual = "WEL/1P12";
+const skuWelcomerProLifetime = "WEL/1PLT";
 
 export default {
   components: {
@@ -509,12 +505,13 @@ export default {
       hasFreeTrial,
 
       durationMonthly,
-      durationBiAnnually,
       durationAnnually,
+      durationLifetime,
+
       skuCustomBackgrounds,
       skuWelcomerPro,
-      skuWelcomerProBiAnnual,
       skuWelcomerProAnnual,
+      skuWelcomerProLifetime,
 
       selectedGuildID,
       selectedSKU,
@@ -571,10 +568,12 @@ export default {
     getRelativeSKU() {
       if (this.durationSelected == durationMonthly) {
         return this.skuWelcomerPro;
-      } else if (this.durationSelected == durationBiAnnually) {
-        return this.skuWelcomerProBiAnnual;
       } else if (this.durationSelected == durationAnnually) {
         return this.skuWelcomerProAnnual;
+      } else if (this.durationSelected == durationLifetime) {
+        return this.skuWelcomerProLifetime;
+      } else {
+        console.error(`Unknown sku for duration ${this.durationSelected}`)
       }
     },
 
