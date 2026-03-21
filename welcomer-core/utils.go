@@ -26,11 +26,6 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-var (
-	True  = true
-	False = false
-)
-
 var verifier = urlverifier.NewVerifier()
 
 var UUIDGen = uuid.NewGen()

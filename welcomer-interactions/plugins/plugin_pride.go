@@ -186,7 +186,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "background",
 				Description:  "The background you want to set.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: new(true),
 			},
 			{
 				Required:     false,
