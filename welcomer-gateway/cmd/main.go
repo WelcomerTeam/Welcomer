@@ -62,38 +62,51 @@ func main() {
 	welcomer.SetupRedisClient(*redisHost)
 	welcomer.SetupDedupeProvider(welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()))
 
-	jetstreamClient, err := jetstream_client.SetupJetstreamConsumer(
-		ctx,
-		*stanAddress,
-		*stanChannel,
-		*jetstreamClientName,
-		nil,
-		nil,
-	)
-	if err != nil {
-		panic(fmt.Errorf(`jetstream_client.SetupJetstreamConsumer(): %w`, err))
-	}
-
 	eventsChannel := make(chan []byte, 1024)
 
-	consumeContext, err := jetstreamClient.Consume(func(msg jetstream.Msg) {
-		err := msg.Ack()
-		if err != nil {
-			welcomer.Logger.Error().Err(err).Msg("Failed to ack message")
-		}
+	go func() {
+		for {
+			jetstreamClient, err := jetstream_client.SetupJetstreamConsumer(
+				ctx,
+				*stanAddress,
+				*stanChannel,
+				*jetstreamClientName,
+				nil,
+				nil,
+			)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Msg("Failed to setup jetstream consumer. Retrying...")
 
-		select {
-		case eventsChannel <- msg.Data():
-		default:
-			welcomer.Logger.Warn().Msg("Channel is full!")
+				time.Sleep(time.Second)
 
+				continue
+			}
+
+			welcomer.Logger.Info().Msg("Successfully connected to jetstream")
+
+			consumeContext, err := jetstreamClient.Consume(func(msg jetstream.Msg) {
+				err := msg.Ack()
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to ack message")
+				}
+
+				select {
+				case eventsChannel <- msg.Data():
+				default:
+					welcomer.Logger.Warn().Msg("Channel is full!")
+
+				}
+			}, jetstream.ConsumeErrHandler(func(consumeCtx jetstream.ConsumeContext, err error) {
+				welcomer.Logger.Warn().Err(err).Msg("Error consuming jetstream message. Attempting to reconnect...")
+				consumeCtx.Drain()
+			}))
+			if err != nil {
+				panic(fmt.Errorf("jetstreamClient.Consume(): %w", err))
+			}
+
+			<-consumeContext.Closed()
 		}
-	}, jetstream.ConsumeErrHandler(func(consumeCtx jetstream.ConsumeContext, err error) {
-		welcomer.Logger.Fatal().Err(err).Msg("Error consuming jetstream message")
-	}))
-	if err != nil {
-		panic(fmt.Errorf("jetstreamClient.Consume(): %w", err))
-	}
+	}()
 
 	pusherGuildScience := welcomer.SetupPusherGuildScience(ScienceIngestBufferSize)
 	pusherGuildScience(ctx, ScienceIngestFlushInterval)
@@ -120,8 +133,6 @@ func main() {
 	if err = sandwichClient.ListenToChannel(ctx, eventsChannel); err != nil {
 		welcomer.Logger.Panic().Err(err).Msg("Failed to listen to channel")
 	}
-
-	consumeContext.Drain()
 
 	if err = welcomer.GRPCConnection.Close(); err != nil {
 		welcomer.Logger.Warn().Err(err).Msg("Exception whilst closing grpc client")
