@@ -31,14 +31,6 @@ var euroZone = []string{"AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "I
 var certificateCache map[string][]byte = make(map[string][]byte)
 
 func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer.Currency {
-	// If the IPIntel response is above the threshold, we assume the user is on a VPN.
-	if ipintelResponse.Result <= IPIntelThreshold {
-		mapping, ok := welcomer.CountryMapping[ipintelResponse.Country]
-		if ok {
-			return append(welcomer.GlobalCurrencies, mapping)
-		}
-	}
-
 	return welcomer.GlobalCurrencies
 }
 
@@ -46,8 +38,6 @@ func getDefaultCurrency(ipIntelResponse welcomer.IPIntelResponse) welcomer.Curre
 	switch {
 	case ipIntelResponse.Country == "GB":
 		return welcomer.CurrencyGBP
-	case ipIntelResponse.Country == "IN":
-		return welcomer.CurrencyINR
 	case slices.Contains(euroZone, ipIntelResponse.Country):
 		return welcomer.CurrencyEUR
 	default:
@@ -117,7 +107,8 @@ type CreatePaymentRequest struct {
 }
 
 type CreatePaymentResponse struct {
-	URL string `json:"url"`
+	OrderID string `json:"order_id"`
+	URL     string `json:"url"`
 }
 
 // Route POST /api/billing/payments.
@@ -205,7 +196,7 @@ func createPayment(ctx *gin.Context) {
 		applicationContext := &paypal.ApplicationContext{
 			BrandName:          "Welcomer",
 			ShippingPreference: paypal.ShippingPreferenceNoShipping,
-			UserAction:         paypal.UserActionPayNow,
+			UserAction:         welcomer.If(sku.IsRecurring, paypal.UserActionSubscribeNow, paypal.UserActionPayNow),
 			PaymentMethod: paypal.PaymentMethod{
 				PayeePreferred:         paypal.PayeePreferredUnrestricted,
 				StandardEntryClassCode: paypal.StandardEntryClassCodeWeb,
@@ -429,7 +420,8 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	ctx.JSON(http.StatusOK, BaseResponse{
 		Ok: true,
 		Data: CreatePaymentResponse{
-			URL: payerActionLink,
+			OrderID: order.ID,
+			URL:     payerActionLink,
 		},
 	})
 }

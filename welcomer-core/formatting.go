@@ -249,8 +249,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 			channelID = invite.Channel.ID
 		}
 
-		vars["Invite"] = StubInvite{
-			ExpiresAt: StubTime(invite.ExpiresAt),
+		stubInvite := StubInvite{
 			CreatedAt: StubTime(invite.CreatedAt),
 			Inviter:   inviter,
 			ChannelID: channelID,
@@ -260,6 +259,12 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 			MaxAge:    invite.MaxAge,
 			Temporary: invite.Temporary,
 		}
+
+		if invite.ExpiresAt != nil {
+			stubInvite.ExpiresAt = StubTime(*invite.ExpiresAt)
+		}
+
+		vars["Invite"] = stubInvite
 	} else {
 		vars["Invite"] = StubInvite{
 			ExpiresAt: StubTime(time.Time{}),

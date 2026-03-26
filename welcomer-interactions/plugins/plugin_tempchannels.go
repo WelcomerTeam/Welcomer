@@ -55,7 +55,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the tempchannels module for DM channels.
-	tempchannelsGroup.DMPermission = &welcomer.False
+	tempchannelsGroup.DMPermission = new(false)
 
 	tempchannelsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "give",
@@ -63,7 +63,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -130,7 +130,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return core.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -181,7 +181,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -292,7 +292,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -399,7 +399,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -479,7 +479,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {

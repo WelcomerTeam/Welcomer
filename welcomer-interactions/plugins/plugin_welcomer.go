@@ -58,7 +58,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the welcomer module for DM channels.
-	welcomerGroup.DMPermission = &welcomer.False
+	welcomerGroup.DMPermission = new(false)
 
 	welcomerGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "test",
@@ -75,7 +75,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -221,7 +221,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -439,7 +439,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -654,7 +654,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -734,7 +734,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {

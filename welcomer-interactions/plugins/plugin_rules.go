@@ -54,7 +54,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the rules module for DM channels.
-	ruleGroup.DMPermission = &welcomer.False
+	ruleGroup.DMPermission = new(false)
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -76,7 +76,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -191,7 +191,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -283,7 +283,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -370,7 +370,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -516,11 +516,11 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "rule",
 				Description:  "The rule to remove.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: new(true),
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {

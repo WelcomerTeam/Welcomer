@@ -56,7 +56,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the borderwall module for DM channels.
-	borderwallGroup.DMPermission = &welcomer.False
+	borderwallGroup.DMPermission = new(false)
 
 	borderwallGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -78,7 +78,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -212,7 +212,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -312,7 +312,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -347,7 +347,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -460,7 +460,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -575,7 +575,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -747,7 +747,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 			},
 		},
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {

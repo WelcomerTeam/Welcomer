@@ -143,7 +143,7 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 	}
 
 	// If user is moving to lobby, create channel and move user.
-	if guildSettingsTimeroles.ChannelLobby != 0 && after.ChannelID == discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
+	if guildSettingsTimeroles.ChannelLobby != 0 && after.ChannelID != nil && *after.ChannelID == discord.Snowflake(guildSettingsTimeroles.ChannelLobby) {
 		return p.createChannelAndMove(eventCtx, guildID, discord.Snowflake(guildSettingsTimeroles.ChannelCategory), discord.Snowflake(guildSettingsTimeroles.ChannelLobby), &member)
 	}
 
@@ -160,8 +160,8 @@ func (p *TempChannelsCog) OnInvokeVoiceStateUpdate(eventCtx *sandwich.EventConte
 
 	// If user is leaving or moving to a different channel, delete channel if empty.
 	if guildSettingsTimeroles.ToggleAutopurge {
-		if (after.GuildID == nil || beforeGuildID != afterGuildID || before.ChannelID != after.ChannelID) && !before.ChannelID.IsNil() {
-			_, err = p.deleteChannelIfEmpty(eventCtx, guildID, discord.Snowflake(guildSettingsTimeroles.ChannelCategory), discord.Snowflake(guildSettingsTimeroles.ChannelLobby), before.ChannelID)
+		if before.ChannelID != nil && (after.GuildID == nil || beforeGuildID != afterGuildID || before.ChannelID != after.ChannelID) {
+			_, err = p.deleteChannelIfEmpty(eventCtx, guildID, discord.Snowflake(guildSettingsTimeroles.ChannelCategory), discord.Snowflake(guildSettingsTimeroles.ChannelLobby), *before.ChannelID)
 			if err != nil {
 				return err
 			}

@@ -98,10 +98,10 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 			return nil
 		}
 
-		if !before.ChannelID.IsNil() && after.ChannelID.IsNil() ||
-			!before.ChannelID.IsNil() && !after.ChannelID.IsNil() {
+		if (before.ChannelID != nil && after.ChannelID == nil) ||
+			(before.ChannelID != nil && after.ChannelID != nil) {
 			// Left or moved voice channel.
-			err := closeSession(eventCtx.Context, guildID, before.ChannelID, member.User.ID)
+			err := closeSession(eventCtx.Context, guildID, *before.ChannelID, member.User.ID)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to close voice channel session")
 
@@ -109,10 +109,10 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 			}
 		}
 
-		if before.ChannelID.IsNil() && !after.ChannelID.IsNil() ||
-			!before.ChannelID.IsNil() && !after.ChannelID.IsNil() {
+		if (before.ChannelID == nil && after.ChannelID != nil) ||
+			(before.ChannelID != nil && after.ChannelID != nil) {
 			// Joined or moved voice channel.
-			err := createSession(eventCtx.Context, guildID, after.ChannelID, member.User.ID)
+			err := createSession(eventCtx.Context, guildID, *after.ChannelID, member.User.ID)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create voice channel session")
 

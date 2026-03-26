@@ -235,7 +235,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "add",
 		Description: "Add a membership to a server.",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
 			userID := interaction.GetUser().ID
@@ -288,7 +288,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "membership",
 				Description:  "The membership to add.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: new(true),
 			},
 			{
 				Required:     false,
@@ -547,7 +547,7 @@ func (p *MembershipCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "membership",
 				Description:  "The membership to remove.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: new(true),
 			},
 		},
 

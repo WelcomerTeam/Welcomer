@@ -11,22 +11,18 @@ type Currency string
 const (
 	CurrencyEUR Currency = "EUR"
 	CurrencyGBP Currency = "GBP"
-	CurrencyINR Currency = "INR"
 	CurrencyUSD Currency = "USD"
 )
 
 type SKUName string
 
 const (
-	SKUCustomBackgrounds   SKUName = "WEL/CBG"
-	SKUWelcomerPro         SKUName = "WEL/1P1"
-	SKUWelcomerProBiAnnual SKUName = "WEL/1P6"
+	SKUCustomBackgrounds SKUName = "WEL/CBG"
+	SKUWelcomerPro       SKUName = "WEL/1P1"
+	// SKUWelcomerProBiAnnual SKUName = "WEL/1P6"
 	SKUWelcomerProAnnual   SKUName = "WEL/1P12"
+	SKUWelcomerProLifetime SKUName = "WEL/1PLT"
 )
-
-var CountryMapping = map[string]Currency{
-	"IN": CurrencyINR,
-}
 
 var GlobalCurrencies = []Currency{CurrencyEUR, CurrencyGBP, CurrencyUSD}
 
@@ -59,7 +55,6 @@ var SKUPricingTable = map[int]map[SKUName]PricingSKU{
 				CurrencyEUR: "12.00",
 				CurrencyGBP: "10.00",
 				CurrencyUSD: "12.00",
-				CurrencyINR: "300",
 			},
 		},
 		SKUWelcomerPro: {
@@ -70,10 +65,9 @@ var SKUPricingTable = map[int]map[SKUName]PricingSKU{
 			SoftDescriptor: "Pro",
 			MonthCount:     1,
 			Costs: map[Currency]string{
-				CurrencyEUR: "8.00",
-				CurrencyGBP: "7.00",
-				CurrencyUSD: "8.00",
-				CurrencyINR: "300",
+				CurrencyEUR: "5.00",
+				CurrencyGBP: "4.00",
+				CurrencyUSD: "5.00",
 			},
 			IsRecurring: os.Getenv("WELCOMER_PRO_RECURRING") == "true",
 			PaypalSubscriptionID: map[Currency]string{
@@ -82,20 +76,6 @@ var SKUPricingTable = map[int]map[SKUName]PricingSKU{
 				CurrencyUSD: os.Getenv("WELCOMER_PRO_PAYPAL_SUBSCRIPTION_USD_ID"),
 			},
 		},
-		SKUWelcomerProBiAnnual: {
-			ID:             SKUWelcomerProBiAnnual,
-			Name:           "Welcomer Pro",
-			Description:    "Unlock all Welcomer Pro features for your server.",
-			MembershipType: database.MembershipTypeWelcomerPro,
-			SoftDescriptor: "Pro",
-			MonthCount:     6,
-			Costs: map[Currency]string{
-				CurrencyEUR: "40.00",
-				CurrencyGBP: "35.00",
-				CurrencyUSD: "40.00",
-				CurrencyINR: "1500",
-			},
-		},
 		SKUWelcomerProAnnual: {
 			ID:             SKUWelcomerProAnnual,
 			Name:           "Welcomer Pro",
@@ -104,70 +84,22 @@ var SKUPricingTable = map[int]map[SKUName]PricingSKU{
 			SoftDescriptor: "Pro",
 			MonthCount:     12,
 			Costs: map[Currency]string{
-				CurrencyEUR: "80.00",
-				CurrencyGBP: "70.00",
-				CurrencyUSD: "80.00",
-				CurrencyINR: "3000",
+				CurrencyEUR: "50.00",
+				CurrencyGBP: "40.00",
+				CurrencyUSD: "50.00",
 			},
 		},
-	},
-
-	// 25% off
-	1: {
-		SKUCustomBackgrounds: {
-			ID:             SKUCustomBackgrounds,
-			Name:           "Custom Backgrounds",
-			Description:    "One-time purchase to unlock custom welcome backgrounds for your server.",
-			MembershipType: database.MembershipTypeCustomBackgrounds,
-			SoftDescriptor: "Backgrounds",
+		SKUWelcomerProLifetime: {
+			ID:             SKUWelcomerProLifetime,
+			Name:           "Welcomer Pro Lifetime",
+			Description:    "Unlock all Welcomer Pro features for your server, forever.",
+			MembershipType: database.MembershipTypeWelcomerPro,
+			SoftDescriptor: "Pro Lifetime",
 			MonthCount:     -1,
 			Costs: map[Currency]string{
-				CurrencyEUR: "9.00",
-				CurrencyGBP: "7.50",
-				CurrencyUSD: "9.00",
-				CurrencyINR: "225",
-			},
-		},
-		SKUWelcomerPro: {
-			ID:             SKUWelcomerPro,
-			Name:           "Welcomer Pro",
-			Description:    "Unlock all Welcomer Pro features for your server.",
-			MembershipType: database.MembershipTypeWelcomerPro,
-			SoftDescriptor: "Pro",
-			MonthCount:     1,
-			Costs: map[Currency]string{
-				CurrencyEUR: "6.00",
-				CurrencyGBP: "5.25",
-				CurrencyUSD: "6.00",
-				CurrencyINR: "250",
-			},
-		},
-		SKUWelcomerProBiAnnual: {
-			ID:             SKUWelcomerProBiAnnual,
-			Name:           "Welcomer Pro",
-			Description:    "Unlock all Welcomer Pro features for your server.",
-			MembershipType: database.MembershipTypeWelcomerPro,
-			SoftDescriptor: "Pro",
-			MonthCount:     6,
-			Costs: map[Currency]string{
-				CurrencyEUR: "30.00",
-				CurrencyGBP: "26.25",
-				CurrencyUSD: "30.00",
-				CurrencyINR: "1125",
-			},
-		},
-		SKUWelcomerProAnnual: {
-			ID:             SKUWelcomerProAnnual,
-			Name:           "Welcomer Pro",
-			Description:    "Unlock all Welcomer Pro features for your server.",
-			MembershipType: database.MembershipTypeWelcomerPro,
-			SoftDescriptor: "Pro",
-			MonthCount:     12,
-			Costs: map[Currency]string{
-				CurrencyEUR: "60.00",
-				CurrencyGBP: "52.50",
-				CurrencyUSD: "80.00",
-				CurrencyINR: "2250",
+				CurrencyEUR: "100.00",
+				CurrencyGBP: "80.00",
+				CurrencyUSD: "100.00",
 			},
 		},
 	},

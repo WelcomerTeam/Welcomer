@@ -87,12 +87,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			var user discord.User
-			if interaction.Member != nil {
-				user = *interaction.GetUser()
-			} else {
-				user = *interaction.GetUser()
-			}
+			user := *interaction.GetUser()
 
 			if _, err := welcomer.Queries.CreateOrUpdateUser(ctx, database.CreateOrUpdateUserParams{
 				UserID:        int64(user.ID),
@@ -186,7 +181,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Name:         "background",
 				Description:  "The background you want to set.",
-				Autocomplete: &welcomer.True,
+				Autocomplete: new(true),
 			},
 			{
 				Required:     false,
@@ -197,12 +192,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			var user discord.User
-			if interaction.Member != nil {
-				user = *interaction.GetUser()
-			} else {
-				user = *interaction.GetUser()
-			}
+			user := interaction.GetUser()
 
 			background := subway.MustGetArgument(ctx, "background").MustString()
 			direction := subway.MustGetArgument(ctx, "direction").MustString()
@@ -277,7 +267,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 
 			if _, err := welcomer.Queries.CreateOrUpdateUser(ctx, database.CreateOrUpdateUserParams{
 				UserID:        int64(user.ID),
-				Name:          welcomer.GetUserDisplayName(&user),
+				Name:          welcomer.GetUserDisplayName(user),
 				Discriminator: user.Discriminator,
 				AvatarHash:    user.Avatar,
 				Background:    newBackground,
@@ -289,7 +279,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 
 			generateOptionsRaw := welcomer.GenerateImageOptionsRaw{
 				ShowAvatar:         true,
-				AvatarURL:          welcomer.GetUserAvatar(&user),
+				AvatarURL:          welcomer.GetUserAvatar(user),
 				Background:         newBackground,
 				TextColor:          0xFFFFFFFF,
 				ProfileBorderColor: 0xFFFFFFFF,

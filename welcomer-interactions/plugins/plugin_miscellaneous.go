@@ -222,7 +222,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "emojis",
 		Description: "Get a list of all the emojis in the guild",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -293,7 +293,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "invites",
 		Description: "Get a leaderboard of the top inviters on this server",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -404,7 +404,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "newcreation",
 		Description: "Returns a list of newly created users on discord",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -494,7 +494,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "newmembers",
 		Description: "Returns a list of new members on this guild",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -575,7 +575,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "oldmembers",
 		Description: "Returns a list of the oldest members on this guild",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -887,7 +887,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "support",
 		Description: "Need help with the bot?",
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -909,7 +909,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "zipemojis",
 		Description: "Get all the emojis in the guild as a zip file",
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -994,7 +994,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 		Name:        "optin",
 		Description: "Opt-in to new welcomer features.",
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(discord.PermissionElevated)),
 
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
@@ -1027,7 +1027,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				ArgumentType: subway.ArgumentTypeString,
 				Description:  "The feature to opt-in to",
 				Required:     true,
-				Autocomplete: &welcomer.True,
+				Autocomplete: new(true),
 			},
 		},
 

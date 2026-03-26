@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -51,7 +50,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	// Disable the TimeRoles module for DM channels.
-	ruleGroup.DMPermission = &welcomer.False
+	ruleGroup.DMPermission = new(false)
 
 	ruleGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "enable",
@@ -59,7 +58,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -122,7 +121,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -184,7 +183,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
@@ -324,7 +323,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission: &welcomer.False,
+		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
@@ -415,7 +414,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		ArgumentParameter: []subway.ArgumentParameter{
@@ -445,29 +444,22 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				durationString := subway.MustGetArgument(ctx, "duration").MustString()
 				ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").MustBool()
 
-				var seconds int
+				var err error
 
-				// Check if the durationString is only a number
-				if secondsValue, err := strconv.Atoi(durationString); err == nil && secondsValue >= 0 {
-					seconds = secondsValue
-				} else {
-					var err error
+				seconds, err := welcomer.ParseDurationAsSeconds(durationString)
+				if err != nil || seconds < 0 {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("duration", durationString).
+						Msg("Failed to parse duration")
 
-					seconds, err = welcomer.ParseDurationAsSeconds(durationString)
-					if err != nil || seconds < 0 {
-						welcomer.Logger.Error().Err(err).
-							Int64("guild_id", int64(*interaction.GuildID)).
-							Str("duration", durationString).
-							Msg("Failed to parse duration")
-
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Invalid duration. It must be a positive number in a valid format (e.g., `5y`, `30d`, `1h`, `30m`, `3600s`, `3600`). Only years, days, hours, minutes and seconds are supported.", welcomer.EmbedColourError),
-								Flags:  uint32(discord.MessageFlagEphemeral),
-							},
-						}, nil
-					}
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Invalid duration. It must be a positive number in a valid format (e.g., `5y`, `30d`, `1h`, `30m`, `3600s`, `3600`). Only years, days, hours, minutes and seconds are supported.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
 				}
 
 				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, &role)
@@ -585,7 +577,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		DMPermission:            &welcomer.False,
+		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		ArgumentParameter: []subway.ArgumentParameter{
