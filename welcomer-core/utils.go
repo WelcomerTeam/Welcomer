@@ -604,6 +604,11 @@ func SendWebhookMessage(ctx context.Context, webhookURL string, message discord.
 func ParseDurationAsSeconds(input string) (int, error) {
 	input = strings.TrimSpace(input)
 
+	// If the input is a number, assume it as seconds.
+	if secondsValue, err := strconv.Atoi(input); err == nil && secondsValue >= 0 {
+		return secondsValue, nil
+	}
+
 	// Check if the input is a number, if so, return it as seconds
 	value, err := strconv.Atoi(input)
 	if err == nil {
@@ -765,4 +770,30 @@ func FormatNumber(value int64, locale database.NumberLocale) string {
 	p := message.NewPrinter(lang)
 
 	return p.Sprintf("%d", value)
+}
+
+func WebhookMessageParamsToMessageParams(params discord.WebhookMessageParams) discord.MessageParams {
+	return discord.MessageParams{
+		PayloadJSON:     params.PayloadJSON,
+		Content:         params.Content,
+		Embeds:          params.Embeds,
+		AllowedMentions: params.AllowedMentions,
+		Components:      params.Components,
+		Files:           params.Files,
+		Attachments:     params.Attachments,
+		Flags:           params.Flags,
+		TTS:             params.TTS,
+	}
+}
+
+func WebhookMessageParamsToInteractionCallbackData(params discord.WebhookMessageParams) *discord.InteractionCallbackData {
+	return &discord.InteractionCallbackData{
+		Content:         params.Content,
+		Embeds:          params.Embeds,
+		AllowedMentions: params.AllowedMentions,
+		Attachments:     params.Attachments,
+		Files:           params.Files,
+		Components:      params.Components,
+		TTS:             params.TTS,
+	}
 }
