@@ -24,9 +24,7 @@ func (d *DummyDedupeProvider) Deduplicate(ctx context.Context, _ string, _ time.
 	return true
 }
 
-func (d *DummyDedupeProvider) Release(ctx context.Context, key string) {
-	return
-}
+func (d *DummyDedupeProvider) Release(ctx context.Context, key string) {}
 
 type RedisDedupeProvider struct {
 	client *redis.Client
