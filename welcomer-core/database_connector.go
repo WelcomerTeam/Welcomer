@@ -440,3 +440,22 @@ func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, guil
 
 	return eg
 }
+
+func UpdateGiveawayGuildSettingsWithAudit(ctx context.Context, params database.UpdateGiveawayParams, actor, guildID discord.Snowflake) (*database.GuildGiveaways, error) {
+	var old database.GuildGiveaways
+	if existing, err := Queries.GetGiveaway(ctx, database.GetGiveawayParams{
+		GuildID:      int64(guildID),
+		GiveawayUuid: params.GiveawayUuid,
+	}); err == nil {
+		old = *existing
+	}
+
+	newRow, err := Queries.UpdateGiveaway(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGiveaways)
+
+	return newRow, nil
+}

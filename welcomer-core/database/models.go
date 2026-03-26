@@ -74,6 +74,29 @@ type GuildFeatures struct {
 	Feature   string    `json:"feature"`
 }
 
+type GuildGiveaways struct {
+	GiveawayUuid    uuid.UUID    `json:"giveaway_uuid"`
+	CreatedAt       time.Time    `json:"created_at"`
+	GuildID         int64        `json:"guild_id"`
+	CreatedBy       int64        `json:"created_by"`
+	IsSetup         bool         `json:"is_setup"`
+	Title           string       `json:"title"`
+	StartTime       time.Time    `json:"start_time"`
+	EndTime         time.Time    `json:"end_time"`
+	AnnounceWinners bool         `json:"announce_winners"`
+	GiveawayPrizes  pgtype.JSONB `json:"giveaway_prizes"`
+	RolesAllowed    pgtype.JSONB `json:"roles_allowed"`
+	RolesExcluded   pgtype.JSONB `json:"roles_excluded"`
+	MinimumJoinDate time.Time    `json:"minimum_join_date"`
+}
+
+type GuildGiveawaysEntries struct {
+	GuildGiveawayEntryUuid uuid.UUID `json:"guild_giveaway_entry_uuid"`
+	GiveawayUuid           uuid.UUID `json:"giveaway_uuid"`
+	UserID                 int64     `json:"user_id"`
+	CreatedAt              time.Time `json:"created_at"`
+}
+
 type GuildInvites struct {
 	InviteCode string    `json:"invite_code"`
 	GuildID    int64     `json:"guild_id"`

@@ -14,6 +14,7 @@ import (
 )
 
 type Querier interface {
+	AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) error
 	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
 	CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
@@ -23,6 +24,7 @@ type Querier interface {
 	CreateCommandUsage(ctx context.Context, arg CreateCommandUsageParams) (*ScienceCommandUsages, error)
 	CreateCustomBot(ctx context.Context, arg CreateCustomBotParams) (*CustomBots, error)
 	CreateFreeRolesGuildSettings(ctx context.Context, arg CreateFreeRolesGuildSettingsParams) (*GuildSettingsFreeroles, error)
+	CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) (*GuildGiveaways, error)
 	CreateGuild(ctx context.Context, arg CreateGuildParams) (*Guilds, error)
 	CreateGuildInvites(ctx context.Context, arg CreateGuildInvitesParams) (*GuildInvites, error)
 	CreateGuildVoiceChannelOpenSession(ctx context.Context, arg CreateGuildVoiceChannelOpenSessionParams) error
@@ -91,6 +93,7 @@ type Querier interface {
 	GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExpiredWelcomeMessageEventsParams) ([]*GetExpiredWelcomeMessageEventsRow, error)
 	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
+	GetGiveaway(ctx context.Context, arg GetGiveawayParams) (*GuildGiveaways, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
 	GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) ([]*GetGuildAuditLogsRow, error)
 	GetGuildFeatures(ctx context.Context, guildID int64) ([]string, error)
@@ -134,6 +137,7 @@ type Querier interface {
 	IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error)
 	InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error)
+	RemoveGiveawayEntry(ctx context.Context, arg RemoveGiveawayEntryParams) error
 	RemoveGuildFeature(ctx context.Context, arg RemoveGuildFeatureParams) error
 	RemoveWelcomerArtifact(ctx context.Context, arg RemoveWelcomerArtifactParams) (int64, error)
 	SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error)
@@ -143,6 +147,7 @@ type Querier interface {
 	UpdateCustomBot(ctx context.Context, arg UpdateCustomBotParams) (*CustomBots, error)
 	UpdateCustomBotToken(ctx context.Context, arg UpdateCustomBotTokenParams) (*CustomBots, error)
 	UpdateFreeRolesGuildSettings(ctx context.Context, arg UpdateFreeRolesGuildSettingsParams) (int64, error)
+	UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) (*GuildGiveaways, error)
 	UpdateGuild(ctx context.Context, arg UpdateGuildParams) (*Guilds, error)
 	UpdateGuildBio(ctx context.Context, arg UpdateGuildBioParams) (*Guilds, error)
 	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error
