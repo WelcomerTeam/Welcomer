@@ -74,12 +74,23 @@ func main() {
 		panic(fmt.Errorf(`jetstream_client.SetupJetstreamConsumer(): %w`, err))
 	}
 
-	eventsChannel := make(chan []byte)
+	eventsChannel := make(chan []byte, 1024)
 
 	consumeContext, err := jetstreamClient.Consume(func(msg jetstream.Msg) {
-		msg.Ack()
-		eventsChannel <- msg.Data()
-	})
+		err := msg.Ack()
+		if err != nil {
+			welcomer.Logger.Error().Err(err).Msg("Failed to ack message")
+		}
+
+		select {
+		case eventsChannel <- msg.Data():
+		default:
+			welcomer.Logger.Warn().Msg("Channel is full!")
+
+		}
+	}, jetstream.ConsumeErrHandler(func(consumeCtx jetstream.ConsumeContext, err error) {
+		welcomer.Logger.Fatal().Err(err).Msg("Error consuming jetstream message")
+	}))
 	if err != nil {
 		panic(fmt.Errorf("jetstreamClient.Consume(): %w", err))
 	}
