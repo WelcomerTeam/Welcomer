@@ -72,7 +72,7 @@ const rules = {
 			};
 		},
 		html: (node, output, state) => {
-			return htmlTag('a', output(node.content, state), { href: markdown.sanitizeUrl(node.target) }, state);
+			return htmlTag('a', markdown.sanitizeText(output(node.content, state)), { href: markdown.sanitizeUrl(node.target) }, state);
 		}
 	}),
 	url: Object.assign({}, markdown.defaultRules.url, {
@@ -86,7 +86,7 @@ const rules = {
 			}
 		},
 		html: (node, output, state) => {
-			return htmlTag('a', output(node.content, state), { href: markdown.sanitizeUrl(node.target) }, state);
+			return htmlTag('a', markdown.sanitizeText(output(node.content, state)), { href: markdown.sanitizeUrl(node.target) }, state);
 		}
 	}),
 	em: Object.assign({}, markdown.defaultRules.em, {
@@ -140,7 +140,7 @@ const rules = {
 			};
 		},
 		html: function (node, output, state) {
-			return htmlTag('span', output(node.content, state), { class: 'd-spoiler' }, state);
+			return htmlTag('span', markdown.sanitizeText(output(node.content, state)), { class: 'd-spoiler' }, state);
 		}
 	}
 };
@@ -163,7 +163,7 @@ const rulesDiscord = {
 			};
 		},
 		html: function (node, output, state) {
-			return htmlTag('span', state.discordCallback.user(node), { class: 'd-mention d-user' }, state);
+			return htmlTag('span', markdown.sanitizeText(state.discordCallback.user(node)), { class: 'd-mention d-user' }, state);
 		}
 	},
 	discordChannel: {
@@ -175,7 +175,7 @@ const rulesDiscord = {
 			};
 		},
 		html: function (node, output, state) {
-			return htmlTag('span', state.discordCallback.channel(node), { class: 'd-mention d-channel' }, state);
+			return htmlTag('span', markdown.sanitizeText(state.discordCallback.channel(node)), { class: 'd-mention d-channel' }, state);
 		}
 	},
 	discordRole: {
@@ -187,7 +187,7 @@ const rulesDiscord = {
 			};
 		},
 		html: function (node, output, state) {
-			return htmlTag('span', state.discordCallback.role(node), { class: 'd-mention d-role' }, state);
+			return htmlTag('span', markdown.sanitizeText(state.discordCallback.role(node)), { class: 'd-mention d-role' }, state);
 		}
 	},
 	discordEmoji: {
@@ -215,7 +215,7 @@ const rulesDiscord = {
 			return {};
 		},
 		html: function (node, output, state) {
-			return htmlTag('span', state.discordCallback.everyone(node), { class: 'd-mention d-user' }, state);
+			return htmlTag('span', markdown.sanitizeText(state.discordCallback.everyone(node)), { class: 'd-mention d-user' }, state);
 		}
 	},
 	discordHere: {
@@ -225,7 +225,7 @@ const rulesDiscord = {
 			return {};
 		},
 		html: function (node, output, state) {
-			return htmlTag('span', state.discordCallback.here(node), { class: 'd-mention d-user' }, state);
+			return htmlTag('span', markdown.sanitizeText(state.discordCallback.here(node)), { class: 'd-mention d-user' }, state);
 		}
 	}
 };
