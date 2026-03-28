@@ -25,7 +25,11 @@ const (
 
 	giveawaySetupMenuDurationKey        = "duration"
 	giveawaySetupMenuAnnounceWinnersKey = "announce_winners"
-	giveawaySetupMenuRolesAllowedKey    = "roles_allowed"
+
+	giveawaySetupMenuRolesAllowedKey         = "roles_allowed"
+	giveawaySetupMenuRolesAllowedIncludedKey = "roles_allowed_included"
+	giveawaySetupMenuRolesAllowedExcludedKey = "roles_allowed_excluded"
+
 	giveawaySetupMenuMinimumJoinDateKey = "minimum_join_date"
 	giveawaySetupMenuStartKey           = "start"
 
@@ -40,6 +44,7 @@ const (
 	giveawaySetupMenuPingEveryoneKey            = "ping_everyone"
 	giveawaySetupMenuPingHereKey                = "ping_here"
 	giveawaySetupMenuPingRolesAllowedToEnterKey = "ping_roles_allowed_to_enter"
+	giveawaySetupMenuPingAdditionalRolesKey     = "additional_roles_to_ping"
 )
 
 func NewGiveawaysCog() *GiveawaysCog {
@@ -367,7 +372,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 							Label:       "Roles Allowed to Enter",
 							Description: "Users must have at least one of these roles to enter. Ignored if empty.",
 							Component: &discord.InteractionComponent{
-								CustomID:  "allowed",
+								CustomID:  giveawaySetupMenuRolesAllowedIncludedKey,
 								Type:      discord.InteractionComponentTypeRoleSelect,
 								Required:  new(false),
 								MaxValues: new(int32(25)),
@@ -378,7 +383,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 							Label:       "Roles Excluded from Entering",
 							Description: "Users with any of these roles cannot enter. Ignored if empty.",
 							Component: &discord.InteractionComponent{
-								CustomID:  "excluded",
+								CustomID:  giveawaySetupMenuRolesAllowedExcludedKey,
 								Type:      discord.InteractionComponentTypeRoleSelect,
 								Required:  new(false),
 								MaxValues: new(int32(25)),
@@ -413,23 +418,27 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		case giveawaySetupMenuStartKey:
 			roles := welcomer.UnmarshalRolesListJSON(giveaway.RolesAllowed.Bytes)
 
-			options := []discord.ApplicationSelectOption{
-				{
-					Label: "Ping @everyone",
-					Value: giveawaySetupMenuPingEveryoneKey,
-				},
-				{
-					Label: "Ping @here",
-					Value: giveawaySetupMenuPingHereKey,
-				},
-			}
+			var options []discord.ApplicationSelectOption
 
-			if len(roles) > 0 {
-				options = append(options, discord.ApplicationSelectOption{
-					Label:       "Ping Roles Allowed to Enter",
-					Value:       giveawaySetupMenuPingRolesAllowedToEnterKey,
-					Description: "Pings roles you have configured in \"roles allowed to enter\"",
-				})
+			if len(roles) == 0 {
+				options = []discord.ApplicationSelectOption{
+					{
+						Label: "Ping @everyone",
+						Value: giveawaySetupMenuPingEveryoneKey,
+					},
+					{
+						Label: "Ping @here",
+						Value: giveawaySetupMenuPingHereKey,
+					},
+				}
+			} else {
+				options = []discord.ApplicationSelectOption{
+					{
+						Label:       "Ping Roles Allowed to Enter",
+						Value:       giveawaySetupMenuPingRolesAllowedToEnterKey,
+						Description: "Pings roles you have configured in \"roles allowed to enter\"",
+					},
+				}
 			}
 
 			return &discord.InteractionResponse{
@@ -439,7 +448,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 					Components: []discord.InteractionComponent{
 						{
 							Type:    discord.InteractionComponentTypeTextDisplay,
-							Content: "Once started, the giveaway message will be sent and entries will be allowed. You can end or extend the giveaway at any time, but you cannot edit the giveaway settings.",
+							Content: "Once started, the giveaway message will be sent and entries will be allowed. You can end or extend the giveaway at any time, but you cannot edit the giveaway settings.\n\nBelow you can configure who should be pinged when the giveaway starts.",
 						},
 						{
 							Type:  discord.InteractionComponentTypeLabel,
@@ -450,6 +459,16 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								Required:  new(false),
 								MaxValues: new(int32(1)),
 								Options:   options,
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Additional Roles to Ping",
+							Component: &discord.InteractionComponent{
+								Type:      discord.InteractionComponentTypeRoleSelect,
+								CustomID:  giveawaySetupMenuPingAdditionalRolesKey,
+								Required:  new(false),
+								MaxValues: new(int32(25)),
 							},
 						},
 					},
@@ -512,7 +531,34 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			return nil, nil
 		}
 	case discord.InteractionTypeModalSubmit:
-		if customIDSplit[2] == giveawaySetupMenuTitleKey || customIDSplit[2] == "" {
+		switch customIDSplit[2] {
+		case "":
+			if titleString, err := subway.GetArgument(ctx, giveawaySetupMenuTitleKey); err == nil {
+				giveaway.Title = titleString.MustString()
+			}
+
+			if prizesString, err := subway.GetArgument(ctx, giveawaySetupMenuPrizesKey); err == nil {
+				prizes := parsePrizesFromString(prizesString.MustString())
+				giveaway.GiveawayPrizes = pgtype.JSONB{
+					Bytes:  welcomer.MarshalGiveawayPrizeJSON(prizes),
+					Status: pgtype.Present,
+				}
+			}
+
+			if durationString, err := subway.GetArgument(ctx, giveawaySetupMenuDurationKey); err == nil {
+				seconds, err := welcomer.ParseDurationAsSeconds(durationString.MustString())
+				if err != nil || seconds < 0 {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("duration", durationString.MustString()).
+						Msg("Failed to parse duration")
+
+					return nil, nil
+				}
+
+				giveaway.EndTime = time.Unix(int64(seconds), 0)
+			}
+		case giveawaySetupMenuTitleKey:
 			if titleString, err := subway.GetArgument(ctx, giveawaySetupMenuTitleKey); err == nil {
 				giveaway.Title = titleString.MustString()
 			} else {
@@ -556,18 +602,16 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				giveaway.ImageUrl = ""
 			}
 
-			if displayOptions, err := subway.GetArgument(ctx, giveawaySetupMenuDisplayKey); err == nil {
-				options := displayOptions.MustStrings()
+			if displayOptionsArgument, err := subway.GetArgument(ctx, giveawaySetupMenuDisplayKey); err == nil {
+				displayOptions := displayOptionsArgument.MustStrings()
 
-				giveaway.ShowPrizes = slices.Contains(options, giveawaySetupMenuDisplayShowPrizesKey)
-				giveaway.ShowEntries = slices.Contains(options, giveawaySetupMenuDisplayShowEntriesKey)
+				giveaway.ShowPrizes = slices.Contains(displayOptions, giveawaySetupMenuDisplayShowPrizesKey)
+				giveaway.ShowEntries = slices.Contains(displayOptions, giveawaySetupMenuDisplayShowEntriesKey)
 			} else {
 				giveaway.ShowPrizes = false
 				giveaway.ShowEntries = false
 			}
-		}
-
-		if customIDSplit[2] == giveawaySetupMenuPrizesKey || customIDSplit[2] == "" {
+		case giveawaySetupMenuPrizesKey:
 			if prizesString, err := subway.GetArgument(ctx, giveawaySetupMenuPrizesKey); err == nil {
 				prizes := parsePrizesFromString(prizesString.MustString())
 				giveaway.GiveawayPrizes = pgtype.JSONB{
@@ -580,9 +624,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 					Status: pgtype.Null,
 				}
 			}
-		}
-
-		if customIDSplit[2] == giveawaySetupMenuDurationKey || customIDSplit[2] == "" {
+		case giveawaySetupMenuDurationKey:
 			if durationString, err := subway.GetArgument(ctx, giveawaySetupMenuDurationKey); err == nil {
 				seconds, err := welcomer.ParseDurationAsSeconds(durationString.MustString())
 				if err != nil || seconds < 0 {
@@ -598,10 +640,8 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			} else {
 				giveaway.EndTime = time.Time{}
 			}
-		}
-
-		if customIDSplit[2] == giveawaySetupMenuRolesAllowedKey || customIDSplit[2] == "" {
-			if allowedRoles, err := subway.GetArgument(ctx, "allowed"); err == nil {
+		case giveawaySetupMenuRolesAllowedKey:
+			if allowedRoles, err := subway.GetArgument(ctx, giveawaySetupMenuRolesAllowedIncludedKey); err == nil {
 				allowedRolesList := make([]discord.Snowflake, 0, len(allowedRoles.MustStrings()))
 
 				for _, roleString := range allowedRoles.MustStrings() {
@@ -622,7 +662,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			}
 
-			if excludedRoles, err := subway.GetArgument(ctx, "excluded"); err == nil {
+			if excludedRoles, err := subway.GetArgument(ctx, giveawaySetupMenuRolesAllowedExcludedKey); err == nil {
 				excludedRolesList := make([]discord.Snowflake, 0, len(excludedRoles.MustStrings()))
 
 				for _, roleString := range excludedRoles.MustStrings() {
@@ -642,9 +682,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 					Status: pgtype.Present,
 				}
 			}
-		}
-
-		if customIDSplit[2] == giveawaySetupMenuMinimumJoinDateKey || customIDSplit[2] == "" {
+		case giveawaySetupMenuMinimumJoinDateKey:
 			if durationString, err := subway.GetArgument(ctx, giveawaySetupMenuMinimumJoinDateKey); err == nil {
 				seconds, err := welcomer.ParseDurationAsSeconds(durationString.MustString())
 				if err != nil || seconds < 0 {
@@ -660,9 +698,13 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			} else {
 				giveaway.MinimumJoinDate = time.Time{}
 			}
-		}
+		case giveawaySetupMenuStartKey:
+			var pingOptions []string
 
-		if customIDSplit[2] == giveawaySetupMenuStartKey {
+			if pingOptionsArgument, err := subway.GetArgument(ctx, giveawaySetupMenuPingKey); err == nil {
+				pingOptions = pingOptionsArgument.MustStrings()
+			}
+
 			giveaway.StartTime = time.Now()
 
 			if giveaway.EndTime.Unix() > 0 {
@@ -685,15 +727,66 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				return nil, err
 			}
 
-			err = discord.DeleteOriginalInteractionResponse(ctx, session, interaction.ApplicationID, interaction.Token)
+			pingMessage := ""
+
+			if len(pingOptions) > 0 {
+				if slices.Contains(pingOptions, giveawaySetupMenuPingEveryoneKey) {
+					pingMessage += "@everyone"
+				} else if slices.Contains(pingOptions, giveawaySetupMenuPingHereKey) {
+					pingMessage += "@here"
+				} else if slices.Contains(pingOptions, giveawaySetupMenuPingRolesAllowedToEnterKey) {
+					rolesAllowedToEnter := welcomer.UnmarshalRolesListJSON(giveaway.RolesAllowed.Bytes)
+
+					if len(rolesAllowedToEnter) > 0 {
+						for _, role := range rolesAllowedToEnter {
+							pingMessage += fmt.Sprintf(" <@&%d>", role)
+						}
+					}
+				}
+			}
+
+			if additionalRolesArgument, err := subway.GetArgument(ctx, giveawaySetupMenuPingAdditionalRolesKey); err == nil {
+				additionalRoles := additionalRolesArgument.MustStrings()
+
+				for _, roleString := range additionalRoles {
+					roleSnowflake, err := welcomer.Atoi(roleString)
+					if err == nil {
+						pingMessage += fmt.Sprintf(" <@&%d>", roleSnowflake)
+					}
+				}
+			}
+
+			if pingMessage != "" {
+				_, err = interaction.Channel.Send(ctx, session, discord.MessageParams{
+					Content: pingMessage,
+				})
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to send giveaway ping message")
+				}
+			}
+
+			_, err = welcomer.Queries.UpdateGiveawayMessage(ctx, database.UpdateGiveawayMessageParams{
+				GiveawayUuid: giveawayUUID,
+				MessageID:    int64(message.ID),
+				ChannelID:    int64(message.ChannelID),
+			})
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
-					Msg("Failed to delete original interaction response")
-			}
+					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+					Msg("Failed to update giveaway message and channel")
 
-			println(message.ID)
-			// TODO
+				return nil, err
+			}
+		default:
+			welcomer.Logger.Warn().
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("custom_id", interaction.Data.CustomID).
+				Msg("Unknown giveaway edit menu option")
+
+			return nil, nil
 		}
 	default:
 		welcomer.Logger.Warn().
@@ -730,10 +823,25 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		return nil, err
 	}
 
-	err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
-		Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
-		Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawaySetupView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
-	})
+	if giveaway.IsSetup {
+		err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+			Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
+			Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawaySetupView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
+		})
+	} else {
+		err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeUpdateMessage,
+			Data: &discord.InteractionCallbackData{
+				Components: []discord.InteractionComponent{
+					{
+						Type:    discord.InteractionComponentTypeTextDisplay,
+						Content: "Your giveaway has started!",
+					},
+				},
+			},
+		})
+	}
+
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(*interaction.GuildID)).
@@ -743,7 +851,9 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		return nil, err
 	}
 
-	return nil, nil
+	return &discord.InteractionResponse{
+		Type: discord.InteractionCallbackTypeDeferredUpdateMessage,
+	}, nil
 }
 
 func joinRolesList(roles []discord.Snowflake) string {
