@@ -35,6 +35,11 @@ const (
 
 	giveawaySetupMenuPreviewOnKey  = "preview_on"
 	giveawaySetupMenuPreviewOffKey = "preview_off"
+
+	giveawaySetupMenuPingKey                    = "ping"
+	giveawaySetupMenuPingEveryoneKey            = "ping_everyone"
+	giveawaySetupMenuPingHereKey                = "ping_here"
+	giveawaySetupMenuPingRolesAllowedToEnterKey = "ping_roles_allowed_to_enter"
 )
 
 func NewGiveawaysCog() *GiveawaysCog {
@@ -122,18 +127,6 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 								Placeholder: giveaway.Title,
 								Value:       giveaway.Title,
 								Style:       discord.InteractionComponentStyleShort,
-								Required:    new(false),
-							},
-						},
-						{
-							Type:  discord.InteractionComponentTypeLabel,
-							Label: "Description",
-							Component: &discord.InteractionComponent{
-								CustomID:    giveawaySetupMenuDescriptionKey,
-								Type:        discord.InteractionComponentTypeTextInput,
-								Placeholder: giveaway.Description,
-								Value:       giveaway.Description,
-								Style:       discord.InteractionComponentStyleParagraph,
 								Required:    new(false),
 							},
 						},
@@ -237,7 +230,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		case giveawaySetupMenuTitleKey:
 			return &discord.InteractionResponse{
 				Data: &discord.InteractionCallbackData{
-					Title:    "Customise Giveaway Display",
+					Title:    "Customise Giveaway Message",
 					CustomID: interaction.Data.CustomID,
 					Components: []discord.InteractionComponent{
 						{
@@ -418,10 +411,49 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				Type: discord.InteractionCallbackTypeModal,
 			}, nil
 		case giveawaySetupMenuStartKey:
-			// TODO
+			roles := welcomer.UnmarshalRolesListJSON(giveaway.RolesAllowed.Bytes)
+
+			options := []discord.ApplicationSelectOption{
+				{
+					Label: "Ping @everyone",
+					Value: giveawaySetupMenuPingEveryoneKey,
+				},
+				{
+					Label: "Ping @here",
+					Value: giveawaySetupMenuPingHereKey,
+				},
+			}
+
+			if len(roles) > 0 {
+				options = append(options, discord.ApplicationSelectOption{
+					Label:       "Ping Roles Allowed to Enter",
+					Value:       giveawaySetupMenuPingRolesAllowedToEnterKey,
+					Description: "Pings roles you have configured in \"roles allowed to enter\"",
+				})
+			}
 
 			return &discord.InteractionResponse{
-				Data: &discord.InteractionCallbackData{},
+				Data: &discord.InteractionCallbackData{
+					Title:    "Start Giveaway",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:    discord.InteractionComponentTypeTextDisplay,
+							Content: "Once started, the giveaway message will be sent and entries will be allowed. You can end or extend the giveaway at any time, but you cannot edit the giveaway settings.",
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Delivery Option",
+							Component: &discord.InteractionComponent{
+								Type:      discord.InteractionComponentTypeCheckboxGroup,
+								CustomID:  giveawaySetupMenuPingKey,
+								Required:  new(false),
+								MaxValues: new(int32(1)),
+								Options:   options,
+							},
+						},
+					},
+				},
 				Type: discord.InteractionCallbackTypeModal,
 			}, nil
 		case giveawaySetupMenuPreviewOnKey:
