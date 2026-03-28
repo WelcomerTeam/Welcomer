@@ -14,9 +14,10 @@ import (
 )
 
 type Querier interface {
-	AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) error
+	AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) (uuid.UUID, error)
 	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
+	CountGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID) (int32, error)
 	CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
 	CreateBorderwallRequest(ctx context.Context, arg CreateBorderwallRequestParams) (*BorderwallRequests, error)

@@ -11,9 +11,11 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-const AddGiveawayEntry = `-- name: AddGiveawayEntry :exec
+const AddGiveawayEntry = `-- name: AddGiveawayEntry :one
 INSERT INTO guild_giveaways_entries (guild_giveaway_entry_uuid, giveaway_uuid, user_id, created_at)
 VALUES (uuid_generate_v7(), $1, $2, NOW())
+ON CONFLICT (giveaway_uuid, user_id) DO NOTHING
+RETURNING guild_giveaway_entry_uuid
 `
 
 type AddGiveawayEntryParams struct {
@@ -21,9 +23,23 @@ type AddGiveawayEntryParams struct {
 	UserID       int64     `json:"user_id"`
 }
 
-func (q *Queries) AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) error {
-	_, err := q.db.Exec(ctx, AddGiveawayEntry, arg.GiveawayUuid, arg.UserID)
-	return err
+func (q *Queries) AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, AddGiveawayEntry, arg.GiveawayUuid, arg.UserID)
+	var guild_giveaway_entry_uuid uuid.UUID
+	err := row.Scan(&guild_giveaway_entry_uuid)
+	return guild_giveaway_entry_uuid, err
+}
+
+const CountGiveawayEntries = `-- name: CountGiveawayEntries :one
+SELECT COUNT(*)::int FROM guild_giveaways_entries
+WHERE giveaway_uuid = $1
+`
+
+func (q *Queries) CountGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, CountGiveawayEntries, giveawayUuid)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const RemoveGiveawayEntry = `-- name: RemoveGiveawayEntry :exec
