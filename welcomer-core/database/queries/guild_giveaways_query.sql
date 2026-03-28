@@ -1,6 +1,6 @@
 -- name: CreateGiveaway :one
-INSERT INTO guild_giveaways (giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, end_time, start_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, accent_colour, image_url)
-VALUES (uuid_generate_v7(), NOW(), $1, $2, TRUE, $3, $4, $5, NOW(), TRUE, '[]', '[]', '[]', 'epoch', 0, 0, -1, '')
+INSERT INTO guild_giveaways (giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, end_time, start_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, accent_colour, image_url, show_prizes, show_entries)
+VALUES (uuid_generate_v7(), NOW(), $1, $2, TRUE, $3, $4, $5, NOW(), TRUE, '[]', '[]', '[]', 'epoch', 0, 0, -1, '', TRUE, TRUE)
 RETURNING
     *;
 
@@ -19,7 +19,9 @@ SET
     roles_excluded = $10,
     minimum_join_date = $11,
     accent_colour = $12,
-    image_url = $13
+    image_url = $13,
+    show_prizes = $14,
+    show_entries = $15
 WHERE
     giveaway_uuid = $1
 RETURNING

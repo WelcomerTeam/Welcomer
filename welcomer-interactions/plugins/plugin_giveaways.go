@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -20,14 +21,17 @@ const (
 	giveawaySetupMenuAccentColourKey = "accent_colour"
 	giveawaySetupMenuThumbnailURLKey = "thumbnail_url"
 
-	giveawaySetupMenuPrizesKey     = "prizes"
-	giveawaySetupMenuPrizesShowKey = "prizes_show"
+	giveawaySetupMenuPrizesKey = "prizes"
 
 	giveawaySetupMenuDurationKey        = "duration"
 	giveawaySetupMenuAnnounceWinnersKey = "announce_winners"
 	giveawaySetupMenuRolesAllowedKey    = "roles_allowed"
 	giveawaySetupMenuMinimumJoinDateKey = "minimum_join_date"
 	giveawaySetupMenuStartKey           = "start"
+
+	giveawaySetupMenuDisplayKey            = "display"
+	giveawaySetupMenuDisplayShowPrizesKey  = "display_show_prizes"
+	giveawaySetupMenuDisplayShowEntriesKey = "display_show_entries"
 
 	giveawaySetupMenuPreviewOnKey  = "preview_on"
 	giveawaySetupMenuPreviewOffKey = "preview_off"
@@ -73,21 +77,10 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
-		ArgumentParameter: []subway.ArgumentParameter{
-			{
-				Name:         "title",
-				Description:  "The title of the giveaway.",
-				ArgumentType: subway.ArgumentTypeString,
-				Required:     false,
-			},
-		},
-
 		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			title := subway.MustGetArgument(ctx, "title").MustString()
-
 			var giveaway *database.GuildGiveaways
 			var err error
 
@@ -96,7 +89,6 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 					giveaway, err = welcomer.Queries.CreateGiveaway(ctx, database.CreateGiveawayParams{
 						GuildID:   int64(*interaction.GuildID),
 						CreatedBy: int64(interaction.GetUser().ID),
-						Title:     title,
 						EndTime:   time.Time{},
 					})
 
@@ -110,7 +102,6 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("title", title).
 					Msg("Failed to create giveaway settings")
 
 				return nil, err
@@ -149,11 +140,12 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Prizes",
-							Description: "one prize per line, with optional count, e.g. 2x Discord Nitro",
+							Description: "One prize per line, with optional count, e.g. 2x Discord Nitro",
 							Component: &discord.InteractionComponent{
-								CustomID: giveawaySetupMenuPrizesKey,
-								Type:     discord.InteractionComponentTypeTextInput,
-								Style:    discord.InteractionComponentStyleParagraph,
+								CustomID:    giveawaySetupMenuPrizesKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Style:       discord.InteractionComponentStyleParagraph,
+								Placeholder: "Welcomer Pro\n2x Discord Nitro",
 							},
 						},
 						{
@@ -288,7 +280,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Image URL",
-							Description: "If specified, this image will show at the bottom of your giveaway message.",
+							Description: "If specified, this image will show below your title and description.",
 							Component: &discord.InteractionComponent{
 								CustomID:    giveawaySetupMenuThumbnailURLKey,
 								Type:        discord.InteractionComponentTypeTextInput,
@@ -296,6 +288,29 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								Value:       giveaway.ImageUrl,
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Giveaway Message Display Options",
+							Component: &discord.InteractionComponent{
+								Type:     discord.InteractionComponentTypeCheckboxGroup,
+								CustomID: giveawaySetupMenuDisplayKey,
+								Required: new(false),
+								Options: []discord.ApplicationSelectOption{
+									{
+										Label:       "Show Prizes",
+										Value:       giveawaySetupMenuDisplayShowPrizesKey,
+										Description: "When enabled, the list of prizes will show in the giveaway message shown to users.",
+										Default:     giveaway.ShowPrizes,
+									},
+									{
+										Label:       "Show Entries",
+										Value:       giveawaySetupMenuDisplayShowEntriesKey,
+										Description: "When enabled, the number of entries will show in the giveaway message shown to users.",
+										Default:     giveaway.ShowEntries,
+									},
+								},
 							},
 						},
 					},
@@ -309,21 +324,13 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 					CustomID: interaction.Data.CustomID,
 					Components: []discord.InteractionComponent{
 						{
-							Type:  discord.InteractionComponentTypeLabel,
-							Label: "Show prizes in giveaway message",
-							Component: &discord.InteractionComponent{
-								CustomID: giveawaySetupMenuPrizesShowKey,
-								Type:     discord.InteractionComponentTypeCheckbox,
-							},
-						},
-						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Prizes",
-							Description: "one prize per line, with optional count, e.g. 2x Discord Nitro",
+							Description: "One prize per line, with optional count, e.g. 2x Discord Nitro",
 							Component: &discord.InteractionComponent{
 								CustomID:    giveawaySetupMenuPrizesKey,
 								Type:        discord.InteractionComponentTypeTextInput,
-								Placeholder: formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)),
+								Placeholder: welcomer.Coalesce(formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)), "Welcomer Pro\n2x Discord Nitro"),
 								Value:       formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)),
 								Style:       discord.InteractionComponentStyleParagraph,
 							},
@@ -516,6 +523,16 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			} else {
 				giveaway.ImageUrl = ""
 			}
+
+			if displayOptions, err := subway.GetArgument(ctx, giveawaySetupMenuDisplayKey); err == nil {
+				options := displayOptions.MustStrings()
+
+				giveaway.ShowPrizes = slices.Contains(options, giveawaySetupMenuDisplayShowPrizesKey)
+				giveaway.ShowEntries = slices.Contains(options, giveawaySetupMenuDisplayShowEntriesKey)
+			} else {
+				giveaway.ShowPrizes = false
+				giveaway.ShowEntries = false
+			}
 		}
 
 		if customIDSplit[2] == giveawaySetupMenuPrizesKey || customIDSplit[2] == "" {
@@ -669,6 +686,8 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		Description:     giveaway.Description,
 		AccentColour:    giveaway.AccentColour,
 		ImageUrl:        giveaway.ImageUrl,
+		ShowPrizes:      giveaway.ShowPrizes,
+		ShowEntries:     giveaway.ShowEntries,
 	}, interaction.GetUser().ID, *interaction.GuildID)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
@@ -752,21 +771,26 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int) discord.Webhoo
 		})
 	}
 
+	if giveaway.ShowPrizes {
+		containerComponents = append(containerComponents, []discord.InteractionComponent{
+			{
+				Type: discord.InteractionComponentTypeSeparator,
+			},
+			{
+				Type:    discord.InteractionComponentTypeTextDisplay,
+				Content: getGiveawayPrizesAsString(giveawayPrizes),
+			},
+		}...)
+	}
+
 	containerComponents = append(containerComponents, []discord.InteractionComponent{
-		{
-			Type: discord.InteractionComponentTypeSeparator,
-		},
-		{
-			Type:    discord.InteractionComponentTypeTextDisplay,
-			Content: getGiveawayPrizesAsString(giveawayPrizes),
-		},
 		{
 			Type: discord.InteractionComponentTypeSeparator,
 		},
 		{
 			Type: discord.InteractionComponentTypeTextDisplay,
 			Content: "**Giveaway Ends:** " + welcomer.If(giveaway.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)", "Never") +
-				"\n" + fmt.Sprintf("**Entries:** %d", entries),
+				"\n" + welcomer.If(giveaway.ShowEntries, fmt.Sprintf("**Entries:** %d", entries), ""),
 		},
 	}...)
 
@@ -822,13 +846,13 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: "**" + welcomer.Coalesce(giveaway.Title, "Unnamed Giveaway") + "**\n" + giveaway.Description,
+					Content: "**" + welcomer.Coalesce(giveaway.Title, "New Giveaway") + "**\n" + giveaway.Description,
 				},
 			},
 			Accessory: &discord.InteractionComponent{
 				Type:     discord.InteractionComponentTypeButton,
-				Style:    discord.InteractionComponentStyleSecondary,
-				Label:    "Customise",
+				Style:    discord.InteractionComponentStylePrimary,
+				Label:    "Customise Message",
 				CustomID: customIDPrefix + giveawaySetupMenuTitleKey,
 			},
 		},
@@ -875,7 +899,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Duration**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "Forever") +
-						welcomer.If(giveaway.EndTime.IsZero(), "\n-# When duration is not set, giveaway will run indefinitely until ended manually with `/giveaway end`.", ""),
+						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually with `/giveaway end`.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{

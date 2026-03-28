@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS guild_giveaways (
     minimum_join_date timestamp NOT NULL,
     message_id bigint NOT NULL,
     channel_id bigint NOT NULL,
+    show_prizes boolean NOT NULL,
+    show_entries boolean NOT NULL,
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

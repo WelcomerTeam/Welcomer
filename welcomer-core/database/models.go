@@ -93,6 +93,8 @@ type GuildGiveaways struct {
 	MinimumJoinDate time.Time    `json:"minimum_join_date"`
 	MessageID       int64        `json:"message_id"`
 	ChannelID       int64        `json:"channel_id"`
+	ShowPrizes      bool         `json:"show_prizes"`
+	ShowEntries     bool         `json:"show_entries"`
 }
 
 type GuildGiveawaysEntries struct {
