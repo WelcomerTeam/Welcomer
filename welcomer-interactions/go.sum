@@ -2,8 +2,10 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible h1:1G1pk05UrOh0NlF1oeaaix1x8XzrfjIDK47TY0Zehcw=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
-github.com/WelcomerTeam/Discord v0.0.0-20260322234648-33813c37ac70 h1:QzfBwmltr2iVZaN84EV3v0bOxCjmMY4W6omXJEjcY8Y=
-github.com/WelcomerTeam/Discord v0.0.0-20260322234648-33813c37ac70/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
+github.com/WelcomerTeam/Discord v0.0.0-20260328112533-b49983f54c7e h1:BqQYkyy/P3yZHz6yaX3x1y8xaaaI/BV6AdqV6J2tif8=
+github.com/WelcomerTeam/Discord v0.0.0-20260328112533-b49983f54c7e/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
+github.com/WelcomerTeam/Discord v0.0.0-20260328112928-8804aec6aa5e h1:eqIAqmO+IhJ8lvoxAofqxi5piozi2pUXTDhwOFlB1d0=
+github.com/WelcomerTeam/Discord v0.0.0-20260328112928-8804aec6aa5e/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20260322170931-61406f17b909 h1:KcOTFz9hAvMtaKrsMvQa38vSJpAjpEJpc1dbiVU+Rqg=

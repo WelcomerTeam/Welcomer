@@ -20,7 +20,9 @@ const (
 	giveawaySetupMenuAccentColourKey = "accent_colour"
 	giveawaySetupMenuThumbnailURLKey = "thumbnail_url"
 
-	giveawaySetupMenuPrizesKey          = "prizes"
+	giveawaySetupMenuPrizesKey     = "prizes"
+	giveawaySetupMenuPrizesShowKey = "prizes_show"
+
 	giveawaySetupMenuDurationKey        = "duration"
 	giveawaySetupMenuAnnounceWinnersKey = "announce_winners"
 	giveawaySetupMenuRolesAllowedKey    = "roles_allowed"
@@ -121,6 +123,30 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 					CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String(),
 					Components: []discord.InteractionComponent{
 						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Title",
+							Component: &discord.InteractionComponent{
+								CustomID:    giveawaySetupMenuTitleKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: giveaway.Title,
+								Value:       giveaway.Title,
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Description",
+							Component: &discord.InteractionComponent{
+								CustomID:    giveawaySetupMenuDescriptionKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: giveaway.Description,
+								Value:       giveaway.Description,
+								Style:       discord.InteractionComponentStyleParagraph,
+								Required:    new(false),
+							},
+						},
+						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Prizes",
 							Description: "one prize per line, with optional count, e.g. 2x Discord Nitro",
@@ -136,40 +162,6 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 							Description: "e.g., 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
 							Component: &discord.InteractionComponent{
 								CustomID:    giveawaySetupMenuDurationKey,
-								Type:        discord.InteractionComponentTypeTextInput,
-								Placeholder: "7d 3h 60m",
-								Style:       discord.InteractionComponentStyleShort,
-								Required:    new(false),
-							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Roles Allowed to Enter",
-							Description: "Users must have at least one of these roles to enter. Ignored if empty.",
-							Component: &discord.InteractionComponent{
-								CustomID:  "allowed",
-								Type:      discord.InteractionComponentTypeRoleSelect,
-								Required:  new(false),
-								MaxValues: new(int32(25)),
-							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Roles Excluded from Entering",
-							Description: "Users with any of these roles cannot enter. Ignored if empty.",
-							Component: &discord.InteractionComponent{
-								CustomID:  "excluded",
-								Type:      discord.InteractionComponentTypeRoleSelect,
-								Required:  new(false),
-								MaxValues: new(int32(25)),
-							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Minimum Join Date",
-							Description: "Users joined within the duration specified cannot enter. Ignored if empty. e.g., 1h, 30m, 2d. ",
-							Component: &discord.InteractionComponent{
-								CustomID:    giveawaySetupMenuMinimumJoinDateKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "7d 3h 60m",
 								Style:       discord.InteractionComponentStyleShort,
@@ -316,6 +308,14 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 					Title:    "Edit Giveaway Prizes",
 					CustomID: interaction.Data.CustomID,
 					Components: []discord.InteractionComponent{
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Show prizes in giveaway message",
+							Component: &discord.InteractionComponent{
+								CustomID: giveawaySetupMenuPrizesShowKey,
+								Type:     discord.InteractionComponentTypeCheckbox,
+							},
+						},
 						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Prizes",
@@ -809,126 +809,148 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 
 	customIDPrefix := "giveaway_edit:" + giveaway.GiveawayUuid.String() + ":"
 
+	containerComponents := []discord.InteractionComponent{
+		{
+			Type:    discord.InteractionComponentTypeTextDisplay,
+			Content: "### Create Giveaway",
+		},
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type:    discord.InteractionComponentTypeTextDisplay,
+					Content: "**" + welcomer.Coalesce(giveaway.Title, "Unnamed Giveaway") + "**\n" + giveaway.Description,
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    "Customise",
+				CustomID: customIDPrefix + giveawaySetupMenuTitleKey,
+			},
+		},
+	}
+
+	if giveaway.ImageUrl != "" {
+		containerComponents = append(containerComponents, discord.InteractionComponent{
+			Type: discord.InteractionComponentTypeMediaGallery,
+			Items: []discord.InteractionComponentMediaGalleryItem{
+				{
+					Media: discord.MediaItem{
+						URL: giveaway.ImageUrl,
+					},
+				},
+			},
+		})
+	}
+
+	containerComponents = append(containerComponents, []discord.InteractionComponent{
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type:    discord.InteractionComponentTypeTextDisplay,
+					Content: getGiveawayPrizesAsString(giveawayPrizes),
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    "Edit",
+				CustomID: customIDPrefix + giveawaySetupMenuPrizesKey,
+			},
+		},
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type: discord.InteractionComponentTypeTextDisplay,
+					Content: "**Duration**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "Forever") +
+						welcomer.If(giveaway.EndTime.IsZero(), "\n-# When duration is not set, giveaway will run indefinitely until ended manually with `/giveaway end`.", ""),
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    "Edit",
+				CustomID: customIDPrefix + giveawaySetupMenuDurationKey,
+			},
+		},
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type: discord.InteractionComponentTypeTextDisplay,
+					Content: "**Announce Winners**:\n" +
+						welcomer.If(giveaway.AnnounceWinners, "True", "False") +
+						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be assigned. You can use `/giveaway export` to get a list of entries and select winners manually.", ""),
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    welcomer.If(giveaway.AnnounceWinners, "Disable", "Enable"),
+				CustomID: customIDPrefix + giveawaySetupMenuAnnounceWinnersKey,
+			},
+		},
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type:    discord.InteractionComponentTypeTextDisplay,
+					Content: "**Roles Allowed to Enter**:\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering**:\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    "Edit",
+				CustomID: customIDPrefix + giveawaySetupMenuRolesAllowedKey,
+			},
+		},
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type: discord.InteractionComponentTypeTextDisplay,
+					Content: "**Minimum Join Date**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None") +
+						welcomer.If(!giveaway.MinimumJoinDate.IsZero(), "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true)+" of the giveaway starting cannot enter the giveaway.", ""),
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    "Edit",
+				CustomID: customIDPrefix + giveawaySetupMenuMinimumJoinDateKey,
+			},
+		},
+	}...)
+
 	message := discord.WebhookMessageParams{
 		Flags: discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2,
 		Components: []discord.InteractionComponent{
 			{
 				Type:        discord.InteractionComponentTypeContainer,
 				AccentColor: new(uint32(welcomer.If(giveaway.AccentColour >= 0, giveaway.AccentColour, welcomer.EmbedColourInfo))),
-				Components: []discord.InteractionComponent{
-					{
-						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: "### Create Giveaway",
-					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
-					{
-						Type: discord.InteractionComponentTypeSection,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "**" + welcomer.Coalesce(giveaway.Title, "Unnamed Giveaway") + "**\n" + giveaway.Description,
-							},
-						},
-						Accessory: &discord.InteractionComponent{
-							Type:     discord.InteractionComponentTypeButton,
-							Style:    discord.InteractionComponentStyleSecondary,
-							Label:    "Customise",
-							CustomID: customIDPrefix + giveawaySetupMenuTitleKey,
-						},
-					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
-					{
-						Type: discord.InteractionComponentTypeSection,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: getGiveawayPrizesAsString(giveawayPrizes),
-							},
-						},
-						Accessory: &discord.InteractionComponent{
-							Type:     discord.InteractionComponentTypeButton,
-							Style:    discord.InteractionComponentStyleSecondary,
-							Label:    "Edit",
-							CustomID: customIDPrefix + giveawaySetupMenuPrizesKey,
-						},
-					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
-					{
-						Type: discord.InteractionComponentTypeSection,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "**Duration**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "Forever"),
-							},
-						},
-						Accessory: &discord.InteractionComponent{
-							Type:     discord.InteractionComponentTypeButton,
-							Style:    discord.InteractionComponentStyleSecondary,
-							Label:    "Edit",
-							CustomID: customIDPrefix + giveawaySetupMenuDurationKey,
-						},
-					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
-					{
-						Type: discord.InteractionComponentTypeSection,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "**Announce Winners**:\n" + welcomer.If(giveaway.AnnounceWinners, "True", "False"),
-							},
-						},
-						Accessory: &discord.InteractionComponent{
-							Type:     discord.InteractionComponentTypeButton,
-							Style:    discord.InteractionComponentStyleSecondary,
-							Label:    welcomer.If(giveaway.AnnounceWinners, "Disable", "Enable"),
-							CustomID: customIDPrefix + giveawaySetupMenuAnnounceWinnersKey,
-						},
-					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
-					{
-						Type: discord.InteractionComponentTypeSection,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "**Roles Allowed to Enter**:\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "None") + "\n\n**Roles Excluded from Entering**:\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
-							},
-						},
-						Accessory: &discord.InteractionComponent{
-							Type:     discord.InteractionComponentTypeButton,
-							Style:    discord.InteractionComponentStyleSecondary,
-							Label:    "Edit",
-							CustomID: customIDPrefix + giveawaySetupMenuRolesAllowedKey,
-						},
-					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
-					{
-						Type: discord.InteractionComponentTypeSection,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "**Minimum Join Date**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None"),
-							},
-						},
-						Accessory: &discord.InteractionComponent{
-							Type:     discord.InteractionComponentTypeButton,
-							Style:    discord.InteractionComponentStyleSecondary,
-							Label:    "Edit",
-							CustomID: customIDPrefix + giveawaySetupMenuMinimumJoinDateKey,
-						},
-					},
-				},
+				Components:  containerComponents,
 			},
 			{
 				Type: discord.InteractionComponentTypeActionRow,
@@ -949,19 +971,6 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 				},
 			},
 		},
-	}
-
-	if giveaway.ImageUrl != "" {
-		message.Components[0].Components = append(message.Components[0].Components, discord.InteractionComponent{
-			Type: discord.InteractionComponentTypeMediaGallery,
-			Items: []discord.InteractionComponentMediaGalleryItem{
-				{
-					Media: discord.MediaItem{
-						URL: giveaway.ImageUrl,
-					},
-				},
-			},
-		})
 	}
 
 	return message
