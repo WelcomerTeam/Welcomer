@@ -786,7 +786,7 @@ func WebhookMessageParamsToMessageParams(params discord.WebhookMessageParams) di
 	}
 }
 
-func WebhookMessageParamsToInteractionCallbackData(params discord.WebhookMessageParams) *discord.InteractionCallbackData {
+func WebhookMessageParamsToInteractionCallbackData(params discord.WebhookMessageParams, flags uint32) *discord.InteractionCallbackData {
 	return &discord.InteractionCallbackData{
 		Content:         params.Content,
 		Embeds:          params.Embeds,
@@ -795,5 +795,6 @@ func WebhookMessageParamsToInteractionCallbackData(params discord.WebhookMessage
 		Files:           params.Files,
 		Components:      params.Components,
 		TTS:             params.TTS,
+		Flags:           flags,
 	}
 }
