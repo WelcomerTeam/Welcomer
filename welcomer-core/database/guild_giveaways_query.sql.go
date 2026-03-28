@@ -14,17 +14,18 @@ import (
 )
 
 const CreateGiveaway = `-- name: CreateGiveaway :one
-INSERT INTO guild_giveaways (giveaway_uuid, created_at, guild_id, created_by, is_setup, title, end_time, start_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date)
-VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, $3, $4, NOW(), TRUE, '[]', '[]', '[]', 'epoch')
+INSERT INTO guild_giveaways (giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, end_time, start_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, accent_colour, image_url)
+VALUES (uuid_generate_v7(), NOW(), $1, $2, TRUE, $3, $4, $5, NOW(), TRUE, '[]', '[]', '[]', 'epoch', 0, 0, -1, '')
 RETURNING
-    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date
+    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 `
 
 type CreateGiveawayParams struct {
-	GuildID   int64     `json:"guild_id"`
-	CreatedBy int64     `json:"created_by"`
-	Title     string    `json:"title"`
-	EndTime   time.Time `json:"end_time"`
+	GuildID     int64     `json:"guild_id"`
+	CreatedBy   int64     `json:"created_by"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	EndTime     time.Time `json:"end_time"`
 }
 
 func (q *Queries) CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) (*GuildGiveaways, error) {
@@ -32,6 +33,7 @@ func (q *Queries) CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) 
 		arg.GuildID,
 		arg.CreatedBy,
 		arg.Title,
+		arg.Description,
 		arg.EndTime,
 	)
 	var i GuildGiveaways
@@ -42,6 +44,9 @@ func (q *Queries) CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) 
 		&i.CreatedBy,
 		&i.IsSetup,
 		&i.Title,
+		&i.Description,
+		&i.AccentColour,
+		&i.ImageUrl,
 		&i.StartTime,
 		&i.EndTime,
 		&i.AnnounceWinners,
@@ -49,13 +54,15 @@ func (q *Queries) CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) 
 		&i.RolesAllowed,
 		&i.RolesExcluded,
 		&i.MinimumJoinDate,
+		&i.MessageID,
+		&i.ChannelID,
 	)
 	return &i, err
 }
 
 const GetGiveaway = `-- name: GetGiveaway :one
 SELECT
-    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date
+    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 FROM
     guild_giveaways
 WHERE
@@ -78,6 +85,9 @@ func (q *Queries) GetGiveaway(ctx context.Context, arg GetGiveawayParams) (*Guil
 		&i.CreatedBy,
 		&i.IsSetup,
 		&i.Title,
+		&i.Description,
+		&i.AccentColour,
+		&i.ImageUrl,
 		&i.StartTime,
 		&i.EndTime,
 		&i.AnnounceWinners,
@@ -85,6 +95,8 @@ func (q *Queries) GetGiveaway(ctx context.Context, arg GetGiveawayParams) (*Guil
 		&i.RolesAllowed,
 		&i.RolesExcluded,
 		&i.MinimumJoinDate,
+		&i.MessageID,
+		&i.ChannelID,
 	)
 	return &i, err
 }
@@ -95,23 +107,27 @@ UPDATE
 SET
     is_setup = $2,
     title = $3,
-    start_time = $4,
-    end_time = $5,
-    announce_winners = $6,
-    giveaway_prizes = $7,
-    roles_allowed = $8,
-    roles_excluded = $9,
-    minimum_join_date = $10
+    description = $4,
+    start_time = $5,
+    end_time = $6,
+    announce_winners = $7,
+    giveaway_prizes = $8,
+    roles_allowed = $9,
+    roles_excluded = $10,
+    minimum_join_date = $11,
+    accent_colour = $12,
+    image_url = $13
 WHERE
     giveaway_uuid = $1
 RETURNING
-    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date
+    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 `
 
 type UpdateGiveawayParams struct {
 	GiveawayUuid    uuid.UUID    `json:"giveaway_uuid"`
 	IsSetup         bool         `json:"is_setup"`
 	Title           string       `json:"title"`
+	Description     string       `json:"description"`
 	StartTime       time.Time    `json:"start_time"`
 	EndTime         time.Time    `json:"end_time"`
 	AnnounceWinners bool         `json:"announce_winners"`
@@ -119,6 +135,8 @@ type UpdateGiveawayParams struct {
 	RolesAllowed    pgtype.JSONB `json:"roles_allowed"`
 	RolesExcluded   pgtype.JSONB `json:"roles_excluded"`
 	MinimumJoinDate time.Time    `json:"minimum_join_date"`
+	AccentColour    int64        `json:"accent_colour"`
+	ImageUrl        string       `json:"image_url"`
 }
 
 func (q *Queries) UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) (*GuildGiveaways, error) {
@@ -126,6 +144,7 @@ func (q *Queries) UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) 
 		arg.GiveawayUuid,
 		arg.IsSetup,
 		arg.Title,
+		arg.Description,
 		arg.StartTime,
 		arg.EndTime,
 		arg.AnnounceWinners,
@@ -133,6 +152,8 @@ func (q *Queries) UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) 
 		arg.RolesAllowed,
 		arg.RolesExcluded,
 		arg.MinimumJoinDate,
+		arg.AccentColour,
+		arg.ImageUrl,
 	)
 	var i GuildGiveaways
 	err := row.Scan(
@@ -142,6 +163,9 @@ func (q *Queries) UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) 
 		&i.CreatedBy,
 		&i.IsSetup,
 		&i.Title,
+		&i.Description,
+		&i.AccentColour,
+		&i.ImageUrl,
 		&i.StartTime,
 		&i.EndTime,
 		&i.AnnounceWinners,
@@ -149,6 +173,52 @@ func (q *Queries) UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) 
 		&i.RolesAllowed,
 		&i.RolesExcluded,
 		&i.MinimumJoinDate,
+		&i.MessageID,
+		&i.ChannelID,
+	)
+	return &i, err
+}
+
+const UpdateGiveawayMessage = `-- name: UpdateGiveawayMessage :one
+UPDATE
+    guild_giveaways
+SET
+    message_id = $2,
+    channel_id = $3
+WHERE
+    giveaway_uuid = $1
+RETURNING
+    giveaway_uuid, created_at, guild_id, created_by, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
+`
+
+type UpdateGiveawayMessageParams struct {
+	GiveawayUuid uuid.UUID `json:"giveaway_uuid"`
+	MessageID    int64     `json:"message_id"`
+	ChannelID    int64     `json:"channel_id"`
+}
+
+func (q *Queries) UpdateGiveawayMessage(ctx context.Context, arg UpdateGiveawayMessageParams) (*GuildGiveaways, error) {
+	row := q.db.QueryRow(ctx, UpdateGiveawayMessage, arg.GiveawayUuid, arg.MessageID, arg.ChannelID)
+	var i GuildGiveaways
+	err := row.Scan(
+		&i.GiveawayUuid,
+		&i.CreatedAt,
+		&i.GuildID,
+		&i.CreatedBy,
+		&i.IsSetup,
+		&i.Title,
+		&i.Description,
+		&i.AccentColour,
+		&i.ImageUrl,
+		&i.StartTime,
+		&i.EndTime,
+		&i.AnnounceWinners,
+		&i.GiveawayPrizes,
+		&i.RolesAllowed,
+		&i.RolesExcluded,
+		&i.MinimumJoinDate,
+		&i.MessageID,
+		&i.ChannelID,
 	)
 	return &i, err
 }

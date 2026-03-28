@@ -148,6 +148,7 @@ type Querier interface {
 	UpdateCustomBotToken(ctx context.Context, arg UpdateCustomBotTokenParams) (*CustomBots, error)
 	UpdateFreeRolesGuildSettings(ctx context.Context, arg UpdateFreeRolesGuildSettingsParams) (int64, error)
 	UpdateGiveaway(ctx context.Context, arg UpdateGiveawayParams) (*GuildGiveaways, error)
+	UpdateGiveawayMessage(ctx context.Context, arg UpdateGiveawayMessageParams) (*GuildGiveaways, error)
 	UpdateGuild(ctx context.Context, arg UpdateGuildParams) (*Guilds, error)
 	UpdateGuildBio(ctx context.Context, arg UpdateGuildBioParams) (*Guilds, error)
 	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error

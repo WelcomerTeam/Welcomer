@@ -81,6 +81,9 @@ type GuildGiveaways struct {
 	CreatedBy       int64        `json:"created_by"`
 	IsSetup         bool         `json:"is_setup"`
 	Title           string       `json:"title"`
+	Description     string       `json:"description"`
+	AccentColour    int64        `json:"accent_colour"`
+	ImageUrl        string       `json:"image_url"`
 	StartTime       time.Time    `json:"start_time"`
 	EndTime         time.Time    `json:"end_time"`
 	AnnounceWinners bool         `json:"announce_winners"`
@@ -88,6 +91,8 @@ type GuildGiveaways struct {
 	RolesAllowed    pgtype.JSONB `json:"roles_allowed"`
 	RolesExcluded   pgtype.JSONB `json:"roles_excluded"`
 	MinimumJoinDate time.Time    `json:"minimum_join_date"`
+	MessageID       int64        `json:"message_id"`
+	ChannelID       int64        `json:"channel_id"`
 }
 
 type GuildGiveawaysEntries struct {
