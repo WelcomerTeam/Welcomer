@@ -245,7 +245,17 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 		}, nil
 	}
 
-	if giveaway.IsSetup {
+	if giveaway.HasEnded {
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("This giveaway has already ended. Better luck next time!", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	if !giveaway.AllowEntries {
 		return &discord.InteractionResponse{
 			Type: discord.InteractionCallbackTypeChannelMessageSource,
 			Data: &discord.InteractionCallbackData{
@@ -332,7 +342,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 		}
 
 		if entries == newEntries {
-			msg := discord.Message{
+			message := discord.Message{
 				ID:        discord.Snowflake(giveaway.MessageID),
 				ChannelID: discord.Snowflake(giveaway.ChannelID),
 			}
@@ -347,7 +357,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 				return
 			}
 
-			_, err = msg.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(giveawayView(giveaway, newEntries)))
+			_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(giveawayView(giveaway, newEntries)))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -1015,6 +1025,8 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		ImageUrl:        giveaway.ImageUrl,
 		ShowPrizes:      giveaway.ShowPrizes,
 		ShowEntries:     giveaway.ShowEntries,
+		AllowEntries:    giveaway.AllowEntries,
+		HasEnded:        giveaway.HasEnded,
 	}, interaction.GetUser().ID, *interaction.GuildID)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
@@ -1157,7 +1169,7 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 						Style:    discord.InteractionComponentStyleSuccess,
 						CustomID: "giveaway_enter:" + giveaway.GiveawayUuid.String(),
 						Label:    "Enter Giveaway",
-						Disabled: giveaway.IsSetup,
+						Disabled: !giveaway.AllowEntries,
 						Emoji: &discord.Emoji{
 							Name: "🎉",
 						},
