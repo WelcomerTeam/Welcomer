@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS guild_giveaways (
     guild_id bigint NOT NULL,
     created_by bigint NOT NULL,
 
+    allow_entries boolean NOT NULL,
+    has_ended boolean NOT NULL,
     is_setup boolean NOT NULL,
     title text NOT NULL,
     description text NOT NULL,

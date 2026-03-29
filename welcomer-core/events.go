@@ -17,6 +17,8 @@ const (
 	CustomEventInvokeBorderwallCompletion = "WELCOMER_INVOKE_BORDERWALL_COMPLETION"
 
 	CustomEventInvokeReactionRoles = "WELCOMER_INVOKE_REACTION_ROLES"
+
+	CustomEventInvokeEndGiveaway = "WELCOMER_INVOKE_END_GIVEAWAY"
 )
 
 type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, event CustomEventInvokeWelcomerStructure) error
@@ -70,4 +72,11 @@ type CustomEventInvokeReactionRolesStructure struct {
 	ReactionRoleUUID uuid.UUID
 	RoleID           discord.Snowflake
 	Assign           *bool
+}
+
+type OnInvokeEndGiveawayFuncType func(eventCtx *sandwich.EventContext, event CustomEventEndGiveawayStructure) error
+
+type CustomEventEndGiveawayStructure struct {
+	GiveawayUUID uuid.UUID
+	GuildID      discord.Snowflake
 }

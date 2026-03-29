@@ -11,3 +11,7 @@ WHERE giveaway_uuid = $1 AND user_id = $2;
 -- name: CountGiveawayEntries :one
 SELECT COUNT(*)::int FROM guild_giveaways_entries
 WHERE giveaway_uuid = $1;
+
+-- name: GetGiveawayEntryUsers :many
+SELECT user_id FROM guild_giveaways_entries
+WHERE giveaway_uuid = $1;

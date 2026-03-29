@@ -79,6 +79,8 @@ type GuildGiveaways struct {
 	CreatedAt       time.Time    `json:"created_at"`
 	GuildID         int64        `json:"guild_id"`
 	CreatedBy       int64        `json:"created_by"`
+	AllowEntries    bool         `json:"allow_entries"`
+	HasEnded        bool         `json:"has_ended"`
 	IsSetup         bool         `json:"is_setup"`
 	Title           string       `json:"title"`
 	Description     string       `json:"description"`
@@ -102,6 +104,14 @@ type GuildGiveawaysEntries struct {
 	GiveawayUuid           uuid.UUID `json:"giveaway_uuid"`
 	UserID                 int64     `json:"user_id"`
 	CreatedAt              time.Time `json:"created_at"`
+}
+
+type GuildGiveawaysWinners struct {
+	GiveawayWinnerUuid uuid.UUID `json:"giveaway_winner_uuid"`
+	GiveawayUuid       uuid.UUID `json:"giveaway_uuid"`
+	UserID             int64     `json:"user_id"`
+	Prize              string    `json:"prize"`
+	MessageID          int64     `json:"message_id"`
 }
 
 type GuildInvites struct {
