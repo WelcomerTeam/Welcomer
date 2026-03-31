@@ -680,6 +680,39 @@ func ParseDurationAsSeconds(input string) (int, error) {
 	return totalSeconds, nil
 }
 
+func SecondsToDurationString(seconds int) string {
+	duration := time.Duration(seconds) * time.Second
+
+	var parts []string
+
+	years := int(duration.Hours() / 24 / 365)
+	if years > 0 {
+		parts = append(parts, fmt.Sprintf("%dy", years))
+	}
+
+	days := int(duration.Hours()/24) % 365
+	if days > 0 {
+		parts = append(parts, fmt.Sprintf("%dd", days))
+	}
+
+	hours := int(duration.Hours()) % 24
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hours))
+	}
+
+	minutes := int(duration.Minutes()) % 60
+	if minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", minutes))
+	}
+
+	remainingSeconds := int(duration.Seconds()) % 60
+	if remainingSeconds > 0 {
+		parts = append(parts, fmt.Sprintf("%ds", remainingSeconds))
+	}
+
+	return strings.Join(parts, "")
+}
+
 func Int64ToStringPointer(value int64) *string {
 	if value == 0 {
 		return nil

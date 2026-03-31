@@ -104,3 +104,29 @@ func TestFormatNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestDurationToSeconds(t *testing.T) {
+	tests := []string{
+		"1h",
+		"30m",
+		"2d",
+		"1y",
+		"",
+	}
+
+	for _, test := range tests {
+		t.Run(test, func(t *testing.T) {
+			t.Parallel()
+
+			seconds, err := ParseDurationAsSeconds(test)
+			if err != nil {
+				t.Errorf("DurationToSeconds(%q) returned error: %v", test, err)
+			}
+
+			secondsDuration := SecondsToDurationString(seconds)
+			if secondsDuration != test {
+				t.Errorf("SecondsToDurationString(%d) = %q, want %q", seconds, secondsDuration, test)
+			}
+		})
+	}
+}
