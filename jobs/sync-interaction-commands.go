@@ -142,9 +142,11 @@ func main() {
 		PrometheusAddress: *prometheusAddress,
 	})
 
-	err = PublicKeyHandlerInstance.SetDefaultPublicKeys(strings.Split(*publicKeys, ","))
-	if err != nil {
-		panic(fmt.Errorf("failed to set default public keys: %w", err))
+	if *publicKeys != "" {
+		err = PublicKeyHandlerInstance.SetDefaultPublicKeys(strings.Split(*publicKeys, ","))
+		if err != nil {
+			panic(fmt.Errorf("failed to set default public keys: %w", err))
+		}
 	}
 
 	err = FetchPublicKeys(ctx)
