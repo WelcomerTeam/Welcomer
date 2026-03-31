@@ -86,12 +86,14 @@ type Querier interface {
 	GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUID) (*BorderwallRequests, error)
 	GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg GetBorderwallRequestsByGuildIDUserIDParams) ([]*BorderwallRequests, error)
 	GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddress pgtype.Inet) ([]*BorderwallRequests, error)
+	GetCollectedEasterEggsByGuildID(ctx context.Context, guildID int64) ([]*GetCollectedEasterEggsByGuildIDRow, error)
 	GetCommandError(ctx context.Context, commandUuid uuid.UUID) (*GetCommandErrorRow, error)
 	GetCommandUsage(ctx context.Context, commandUuid uuid.UUID) (*ScienceCommandUsages, error)
 	GetCustomBotById(ctx context.Context, arg GetCustomBotByIdParams) (*GetCustomBotByIdRow, error)
 	GetCustomBotByIdWithToken(ctx context.Context, arg GetCustomBotByIdWithTokenParams) (*CustomBots, error)
 	GetCustomBotsByGuildId(ctx context.Context, guildID int64) ([]*GetCustomBotsByGuildIdRow, error)
 	GetDiscordSubscriptionsByUserID(ctx context.Context, userID int64) ([]*DiscordSubscriptions, error)
+	GetEasterEggsByUserID(ctx context.Context, userID int64) ([]*GetEasterEggsByUserIDRow, error)
 	GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExpiredWelcomeMessageEventsParams) ([]*GetExpiredWelcomeMessageEventsRow, error)
 	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
@@ -144,6 +146,7 @@ type Querier interface {
 	IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error)
 	InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error)
+	InsertEasterEgg(ctx context.Context, arg InsertEasterEggParams) (uuid.UUID, error)
 	RemoveGiveawayEntry(ctx context.Context, arg RemoveGiveawayEntryParams) error
 	RemoveGuildFeature(ctx context.Context, arg RemoveGuildFeatureParams) error
 	RemoveWelcomerArtifact(ctx context.Context, arg RemoveWelcomerArtifactParams) (int64, error)
