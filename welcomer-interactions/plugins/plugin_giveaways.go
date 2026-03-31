@@ -1,7 +1,10 @@
 package plugins
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -9,8 +12,10 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
@@ -47,6 +52,12 @@ const (
 	giveawaySetupMenuPingHereKey                = "ping_here"
 	giveawaySetupMenuPingRolesAllowedToEnterKey = "ping_roles_allowed_to_enter"
 	giveawaySetupMenuPingAdditionalRolesKey     = "additional_roles_to_ping"
+
+	giveawayManageMenuToggleAllowEntriesKey = "toggle_allow_entries"
+	giveawayManageMenuExtendDurationKey     = "extend_duration"
+	giveawayManageMenuEndGiveawayKey        = "end_giveaway"
+	giveawayManageMenuExportEntriesKey      = "export_entries"
+	giveawayManageMenuExportWinnersKey      = "export_winners"
 )
 
 func NewGiveawaysCog() *GiveawaysCog {
@@ -160,7 +171,7 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Duration",
-							Description: "e.g., 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
+							Description: "e.g. 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
 							Component: &discord.InteractionComponent{
 								CustomID:    giveawaySetupMenuDurationKey,
 								Type:        discord.InteractionComponentTypeTextInput,
@@ -175,25 +186,433 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
+	giveawaysGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name:        "manage",
+		Description: "Manage an existing giveaway",
+
+		Type:        subway.InteractionCommandableTypeSubcommand,
+		CommandType: new(discord.ApplicationCommandTypeMessage),
+
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
+		DMPermission:            new(false),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Components: []discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeContainer,
+							Components: []discord.InteractionComponent{
+								{
+									Type:    discord.InteractionComponentTypeTextDisplay,
+									Content: "You can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".",
+								},
+								{
+									Type: discord.InteractionComponentTypeMediaGallery,
+									Items: []discord.InteractionComponentMediaGalleryItem{
+										{
+											Media: discord.MediaItem{
+												URL: "https://welcomer.gg/assets/manage_giveaway.png",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
+				},
+			}, nil
+		},
+	})
+
+	cog.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name: "Manage Giveaway",
+
+		Type:        subway.InteractionCommandableTypeCommand,
+		CommandType: new(discord.ApplicationCommandTypeMessage),
+
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
+		DMPermission:            new(false),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			if interaction.Data.TargetID == nil {
+				return nil, nil
+			}
+
+			message, ok := interaction.Data.Resolved.Messages[*interaction.Data.TargetID]
+			if !ok {
+				welcomer.Logger.Error().
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Int64("message_id", int64(*interaction.Data.TargetID)).
+					Msg("Failed to find message for giveaway manage command")
+
+				return nil, errors.New("failed to find message for giveaway manage command")
+			}
+
+			giveaway, err := welcomer.Queries.GetGiveawayFromMessageID(ctx, database.GetGiveawayFromMessageIDParams{
+				GuildID:   int64(*interaction.GuildID),
+				ChannelID: int64(message.ChannelID),
+				MessageID: int64(message.ID),
+			})
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Int64("channel_id", int64(message.ChannelID)).
+					Int64("message_id", int64(message.ID)).
+					Msg("Failed to get giveaway settings from message ID")
+
+				return nil, err
+			} else if errors.Is(err, pgx.ErrNoRows) {
+				welcomer.Logger.Warn().
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Int64("channel_id", int64(message.ChannelID)).
+					Int64("message_id", int64(message.ID)).
+					Msg("Giveaway not found for giveaway settings message")
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("This message is not associated with a giveaway. Please make sure you are using this command on the giveaway message.", welcomer.EmbedColourError),
+						Flags:  uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			}
+
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawayManageView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
+			}, nil
+		},
+	})
+
+	// TODO: reroll giveaway on message
+	// TODO: resend giveaway message if accidentally deleted
+
 	sub.RegisterComponentListener("giveaway_edit:*", handleGiveawayEditComponent)
 	sub.RegisterComponentListener("giveaway_enter:*", handleGiveawayEnterComponent)
-
-	// close - stops more entries being added
-	// open  - allows more entries to be added
-
-	// extend - extends the duration of the giveaway by a specified amount of time
-	// end    - ends the giveaway immediately
-
-	// export - exports the giveaway results
-
-	// TODO: science events
-	// giveawaycreate
-	// giveawaystart
-	// giveawayended
+	sub.RegisterComponentListener("giveaway_manage:*", handleGiveawayManageComponent)
 
 	cog.InteractionCommands.MustAddInteractionCommand(giveawaysGroup)
 
 	return nil
+}
+
+func handleGiveawayManageComponent(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+	if interaction.GuildID == nil {
+		return nil, nil
+	}
+
+	if interaction.Data.CustomID == "" {
+		return nil, nil
+	}
+
+	customIDSplit := strings.Split(interaction.Data.CustomID, ":")
+	if len(customIDSplit) < 3 {
+		return nil, nil
+	}
+
+	giveawayUUID, err := uuid.FromString(customIDSplit[1])
+	if err != nil {
+		return nil, err
+	}
+
+	giveaway, err := welcomer.Queries.GetGiveaway(ctx, database.GetGiveawayParams{
+		GuildID:      int64(*interaction.GuildID),
+		GiveawayUuid: giveawayUUID,
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("giveaway_uuid", giveawayUUID.String()).
+			Msg("Failed to get giveaway settings")
+
+		return nil, err
+	}
+
+	switch interaction.Type {
+	case discord.InteractionTypeMessageComponent:
+		switch customIDSplit[2] {
+		case giveawayManageMenuToggleAllowEntriesKey:
+			giveaway.AllowEntries = !giveaway.AllowEntries
+		case giveawayManageMenuExtendDurationKey:
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "Extend Giveaway Duration",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeTextDisplay,
+							Content: "Enter the new giveaway duration from the current time. Leave empty if you want the giveaway to run indefinitely.\n\nIf you would like to remove time from the current duration, put a '-' before the duration." +
+								welcomer.If(giveaway.EndTime.IsZero(), "\n\nThis giveaway is currently set to run indefinitely so this will be the duration from the current time.", ""),
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Duration",
+							Description: "e.g. 1h, 30m, 2d, -5m. Only years, days, hours and minutes are supported.",
+							Component: &discord.InteractionComponent{
+								CustomID:    giveawayManageMenuExtendDurationKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "7d 3h 60m -2d",
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+					},
+				},
+			}, nil
+		case giveawayManageMenuEndGiveawayKey:
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "End Giveaway",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:    discord.InteractionComponentTypeTextDisplay,
+							Content: "Are you sure you want to end the giveaway early? This cannot be undone.",
+						},
+					},
+				},
+			}, nil
+		case giveawayManageMenuExportEntriesKey:
+			return exportGiveawayEntries(ctx, sub, interaction, giveaway)
+		case giveawayManageMenuExportWinnersKey:
+			return exportGiveawayWinners(ctx, sub, interaction, giveaway)
+		default:
+			welcomer.Logger.Warn().
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("giveaway_uuid", giveawayUUID.String()).
+				Str("custom_id", interaction.Data.CustomID).
+				Msg("Unknown giveaway manage component interaction")
+		}
+	case discord.InteractionTypeModalSubmit:
+		switch customIDSplit[2] {
+		case giveawayManageMenuExtendDurationKey:
+			durationArgument, err := subway.GetArgument(ctx, giveawayManageMenuExtendDurationKey)
+
+			if err == nil {
+				durationString := durationArgument.MustString()
+				durationString, hasMinus := strings.CutPrefix(durationString, "-")
+
+				seconds, err := welcomer.ParseDurationAsSeconds(durationString)
+				if err != nil || seconds < 0 {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("duration", durationString).
+						Msg("Failed to parse duration")
+
+					return nil, nil
+				}
+
+				// If the duration is indefinite, reset to current time.
+				if giveaway.EndTime.IsZero() {
+					giveaway.EndTime = time.Now()
+				}
+
+				if hasMinus {
+					giveaway.EndTime = giveaway.EndTime.Add(-time.Duration(seconds) * time.Second)
+				} else {
+					giveaway.EndTime = giveaway.EndTime.Add(time.Duration(seconds) * time.Second)
+				}
+
+				if giveaway.EndTime.Before(time.Now()) {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("The new end time cannot be in the past. Please end the giveaway if you want to do this.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+			} else {
+				// If no duration is passed, make the duration indefinite.
+				giveaway.EndTime = time.Time{}
+			}
+		case giveawayManageMenuEndGiveawayKey:
+			giveaway.EndTime = time.Now()
+
+			data, _ := json.Marshal(core.CustomEventInvokeEndGiveawayStructure{
+				GiveawayUUID: giveaway.GiveawayUuid,
+				GuildID:      *interaction.GuildID,
+			})
+
+			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+				Identifier: core.GetManagerNameFromContext(ctx),
+				Type:       core.CustomEventInvokeEndGiveaway,
+				Data:       data,
+			})
+			if err != nil {
+				return nil, err
+			}
+		default:
+			welcomer.Logger.Warn().
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("giveaway_uuid", giveawayUUID.String()).
+				Str("custom_id", interaction.Data.CustomID).
+				Msg("Unknown giveaway manage modal submit interaction")
+		}
+	}
+
+	_, err = welcomer.UpdateGiveawayGuildSettingsWithAudit(ctx, database.UpdateGiveawayParams{
+		GiveawayUuid:    giveaway.GiveawayUuid,
+		IsSetup:         giveaway.IsSetup,
+		Title:           giveaway.Title,
+		StartTime:       giveaway.StartTime,
+		EndTime:         giveaway.EndTime,
+		AnnounceWinners: giveaway.AnnounceWinners,
+		GiveawayPrizes:  giveaway.GiveawayPrizes,
+		RolesAllowed:    giveaway.RolesAllowed,
+		RolesExcluded:   giveaway.RolesExcluded,
+		MinimumJoinDate: giveaway.MinimumJoinDate,
+		Description:     giveaway.Description,
+		AccentColour:    giveaway.AccentColour,
+		ImageUrl:        giveaway.ImageUrl,
+		ShowPrizes:      giveaway.ShowPrizes,
+		ShowEntries:     giveaway.ShowEntries,
+		AllowEntries:    giveaway.AllowEntries,
+		HasEnded:        giveaway.HasEnded,
+	}, interaction.GetUser().ID, *interaction.GuildID)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to update giveaway settings")
+
+		return nil, err
+	}
+
+	if customIDSplit[2] == giveawayManageMenuEndGiveawayKey {
+		giveaway.HasEnded = true
+	}
+
+	err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+		Type: discord.InteractionCallbackTypeUpdateMessage,
+		Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawayManageView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("giveaway_uuid", giveawayUUID.String()).
+			Str("custom_id", interaction.Data.CustomID).
+			Msg("Failed to create interaction response for giveaway manage component")
+	}
+
+	return nil, nil
+}
+
+func exportGiveawayEntries(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, giveaway *database.GuildGiveaways) (*discord.InteractionResponse, error) {
+	entries, err := welcomer.Queries.GetGiveawayEntries(ctx, giveaway.GiveawayUuid)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to get giveaway entry users")
+
+		return nil, err
+	}
+
+	var file bytes.Buffer
+
+	writer := csv.NewWriter(&file)
+
+	_ = writer.Write([]string{"user_id", "entered_at"})
+
+	for _, entry := range entries {
+		_ = writer.Write([]string{
+			welcomer.Itoa(entry.UserID),
+			entry.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	writer.Flush()
+
+	if err := writer.Error(); err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to write giveaway entries to csv")
+
+		return nil, err
+	}
+
+	err = interaction.SendResponse(ctx, sub.EmptySession, discord.InteractionCallbackTypeChannelMessageSource, &discord.InteractionCallbackData{
+		Content: "Here are the entries for this giveaway:",
+		Files: []discord.File{
+			{
+				Reader:      &file,
+				Name:        fmt.Sprintf("giveaway_entries_%s.csv", giveaway.GiveawayUuid.String()),
+				ContentType: "text/csv",
+			},
+		},
+		Flags: uint32(discord.MessageFlagEphemeral),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to send giveaway entries response")
+
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func exportGiveawayWinners(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, giveaway *database.GuildGiveaways) (*discord.InteractionResponse, error) {
+	winners, err := welcomer.Queries.GetGiveawayWinners(ctx, giveaway.GiveawayUuid)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to get giveaway winners")
+
+		return nil, err
+	}
+
+	var file bytes.Buffer
+
+	writer := csv.NewWriter(&file)
+
+	_ = writer.Write([]string{"user_id", "prize", "message_id"})
+
+	for _, winner := range winners {
+		_ = writer.Write([]string{
+			welcomer.Itoa(winner.UserID),
+			winner.Prize,
+			welcomer.Itoa(winner.MessageID),
+		})
+	}
+
+	writer.Flush()
+
+	if err := writer.Error(); err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to write giveaway winners to csv")
+
+		return nil, err
+	}
+
+	err = interaction.SendResponse(ctx, sub.EmptySession, discord.InteractionCallbackTypeChannelMessageSource, &discord.InteractionCallbackData{
+		Content: "Here are the winners for this giveaway:\n" +
+			"-# If the giveaway has ended and the winners is empty, it may mean it has not finished processing the giveaway yet.",
+		Files: []discord.File{
+			{
+				Reader:      &file,
+				Name:        fmt.Sprintf("giveaway_winners_%s.csv", giveaway.GiveawayUuid.String()),
+				ContentType: "text/csv",
+			},
+		},
+		Flags: uint32(discord.MessageFlagEphemeral),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to send giveaway entries response")
+
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -207,10 +626,6 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 
 	customIDSplit := strings.Split(interaction.Data.CustomID, ":")
 	if len(customIDSplit) < 2 {
-		return nil, nil
-	}
-
-	if customIDSplit[0] != "giveaway_enter" {
 		return nil, nil
 	}
 
@@ -410,10 +825,6 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 		customIDSplit = append(customIDSplit, "")
 	}
 
-	if customIDSplit[0] != "giveaway_edit" {
-		return nil, nil
-	}
-
 	giveawayUUID, err := uuid.FromString(customIDSplit[1])
 	if err != nil {
 		return nil, err
@@ -547,7 +958,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Duration",
-							Description: "e.g., 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
+							Description: "e.g. 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
 							Component: &discord.InteractionComponent{
 								CustomID:    giveawaySetupMenuDurationKey,
 								Type:        discord.InteractionComponentTypeTextInput,
@@ -603,7 +1014,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 						{
 							Type:        discord.InteractionComponentTypeLabel,
 							Label:       "Minimum Join Date",
-							Description: "Users joined within the duration specified cannot enter. Ignored if empty. e.g., 1h, 30m, 2d. ",
+							Description: "Users joined within the duration specified cannot enter. Ignored if empty. e.g. 1h, 30m, 2d. ",
 							Component: &discord.InteractionComponent{
 								CustomID:    giveawaySetupMenuMinimumJoinDateKey,
 								Type:        discord.InteractionComponentTypeTextInput,
@@ -734,24 +1145,24 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 	case discord.InteractionTypeModalSubmit:
 		switch customIDSplit[2] {
 		case "":
-			if titleString, err := subway.GetArgument(ctx, giveawaySetupMenuTitleKey); err == nil {
-				giveaway.Title = titleString.MustString()
+			if titleArgument, err := subway.GetArgument(ctx, giveawaySetupMenuTitleKey); err == nil {
+				giveaway.Title = titleArgument.MustString()
 			}
 
-			if prizesString, err := subway.GetArgument(ctx, giveawaySetupMenuPrizesKey); err == nil {
-				prizes := parsePrizesFromString(prizesString.MustString())
+			if prizesArgument, err := subway.GetArgument(ctx, giveawaySetupMenuPrizesKey); err == nil {
+				prizes := parsePrizesFromString(prizesArgument.MustString())
 				giveaway.GiveawayPrizes = pgtype.JSONB{
 					Bytes:  welcomer.MarshalGiveawayPrizeJSON(prizes),
 					Status: pgtype.Present,
 				}
 			}
 
-			if durationString, err := subway.GetArgument(ctx, giveawaySetupMenuDurationKey); err == nil {
-				seconds, err := welcomer.ParseDurationAsSeconds(durationString.MustString())
+			if durationArgument, err := subway.GetArgument(ctx, giveawaySetupMenuDurationKey); err == nil {
+				seconds, err := welcomer.ParseDurationAsSeconds(durationArgument.MustString())
 				if err != nil || seconds < 0 {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Str("duration", durationString.MustString()).
+						Str("duration", durationArgument.MustString()).
 						Msg("Failed to parse duration")
 
 					return nil, nil
@@ -760,24 +1171,24 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				giveaway.EndTime = time.Unix(int64(seconds), 0)
 			}
 		case giveawaySetupMenuTitleKey:
-			if titleString, err := subway.GetArgument(ctx, giveawaySetupMenuTitleKey); err == nil {
-				giveaway.Title = titleString.MustString()
+			if titleArgument, err := subway.GetArgument(ctx, giveawaySetupMenuTitleKey); err == nil {
+				giveaway.Title = titleArgument.MustString()
 			} else {
 				giveaway.Title = ""
 			}
 
-			if descriptionString, err := subway.GetArgument(ctx, giveawaySetupMenuDescriptionKey); err == nil {
-				giveaway.Description = descriptionString.MustString()
+			if descriptionArgument, err := subway.GetArgument(ctx, giveawaySetupMenuDescriptionKey); err == nil {
+				giveaway.Description = descriptionArgument.MustString()
 			} else {
 				giveaway.Description = ""
 			}
 
-			if accentColourString, err := subway.GetArgument(ctx, giveawaySetupMenuAccentColourKey); err == nil {
-				rgba, err := welcomer.ParseColour(accentColourString.MustString(), "#000000")
+			if accentColourArgument, err := subway.GetArgument(ctx, giveawaySetupMenuAccentColourKey); err == nil {
+				rgba, err := welcomer.ParseColour(accentColourArgument.MustString(), "#000000")
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Str("accent_colour", accentColourString.MustString()).
+						Str("accent_colour", accentColourArgument.MustString()).
 						Msg("Failed to parse accent colour")
 
 					giveaway.AccentColour = -1
@@ -788,13 +1199,13 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				giveaway.AccentColour = -1
 			}
 
-			if thumbnailURLString, err := subway.GetArgument(ctx, giveawaySetupMenuThumbnailURLKey); err == nil {
-				giveaway.ImageUrl = thumbnailURLString.MustString()
+			if thumbnailURLArgument, err := subway.GetArgument(ctx, giveawaySetupMenuThumbnailURLKey); err == nil {
+				giveaway.ImageUrl = thumbnailURLArgument.MustString()
 
-				if _, ok := welcomer.IsValidURL(thumbnailURLString.MustString()); !ok {
+				if _, ok := welcomer.IsValidURL(thumbnailURLArgument.MustString()); !ok {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Str("thumbnail_url", thumbnailURLString.MustString()).
+						Str("thumbnail_url", thumbnailURLArgument.MustString()).
 						Msg("Failed to parse thumbnail URL")
 
 					giveaway.ImageUrl = ""
@@ -813,8 +1224,8 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				giveaway.ShowEntries = false
 			}
 		case giveawaySetupMenuPrizesKey:
-			if prizesString, err := subway.GetArgument(ctx, giveawaySetupMenuPrizesKey); err == nil {
-				prizes := parsePrizesFromString(prizesString.MustString())
+			if prizesArgument, err := subway.GetArgument(ctx, giveawaySetupMenuPrizesKey); err == nil {
+				prizes := parsePrizesFromString(prizesArgument.MustString())
 				giveaway.GiveawayPrizes = pgtype.JSONB{
 					Bytes:  welcomer.MarshalGiveawayPrizeJSON(prizes),
 					Status: pgtype.Present,
@@ -826,12 +1237,12 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			}
 		case giveawaySetupMenuDurationKey:
-			if durationString, err := subway.GetArgument(ctx, giveawaySetupMenuDurationKey); err == nil {
-				seconds, err := welcomer.ParseDurationAsSeconds(durationString.MustString())
+			if durationArgument, err := subway.GetArgument(ctx, giveawaySetupMenuDurationKey); err == nil {
+				seconds, err := welcomer.ParseDurationAsSeconds(durationArgument.MustString())
 				if err != nil || seconds < 0 {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Str("duration", durationString.MustString()).
+						Str("duration", durationArgument.MustString()).
 						Msg("Failed to parse duration")
 
 					return nil, nil
@@ -884,12 +1295,12 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			}
 		case giveawaySetupMenuMinimumJoinDateKey:
-			if durationString, err := subway.GetArgument(ctx, giveawaySetupMenuMinimumJoinDateKey); err == nil {
-				seconds, err := welcomer.ParseDurationAsSeconds(durationString.MustString())
+			if durationArgument, err := subway.GetArgument(ctx, giveawaySetupMenuMinimumJoinDateKey); err == nil {
+				seconds, err := welcomer.ParseDurationAsSeconds(durationArgument.MustString())
 				if err != nil || seconds < 0 {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
-						Str("duration", durationString.MustString()).
+						Str("duration", durationArgument.MustString()).
 						Msg("Failed to parse duration")
 
 					return nil, nil
@@ -1048,8 +1459,23 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			Data: &discord.InteractionCallbackData{
 				Components: []discord.InteractionComponent{
 					{
-						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: "Your giveaway has started!",
+						Type: discord.InteractionComponentTypeContainer,
+						Components: []discord.InteractionComponent{
+							{
+								Type:    discord.InteractionComponentTypeTextDisplay,
+								Content: "Your giveaway has now started!\n\nYou can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".",
+							},
+							{
+								Type: discord.InteractionComponentTypeMediaGallery,
+								Items: []discord.InteractionComponentMediaGalleryItem{
+									{
+										Media: discord.MediaItem{
+											URL: "https://welcomer.gg/assets/manage_giveaway.png",
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1145,7 +1571,7 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 		},
 		{
 			Type: discord.InteractionComponentTypeTextDisplay,
-			Content: "**Giveaway Ends:** " + welcomer.If(giveaway.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)", "Never") +
+			Content: "**Giveaway Ends:** " + welcomer.If(giveaway.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)", "No end time (runs indefinitely)") +
 				"\n" + welcomer.If(giveaway.ShowEntries, fmt.Sprintf("**Entries:** %d", entries), ""),
 		},
 	}...)
@@ -1169,7 +1595,7 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 						Style:    discord.InteractionComponentStyleSuccess,
 						CustomID: "giveaway_enter:" + giveaway.GiveawayUuid.String(),
 						Label:    "Enter Giveaway",
-						Disabled: !giveaway.AllowEntries,
+						Disabled: !giveaway.AllowEntries && !giveaway.IsSetup,
 						Emoji: &discord.Emoji{
 							Name: "🎉",
 						},
@@ -1181,6 +1607,136 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 	}
 
 	return message
+}
+
+func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessageParams {
+	customIDPrefix := "giveaway_manage:" + giveaway.GiveawayUuid.String() + ":"
+
+	return discord.WebhookMessageParams{
+		Components: []discord.InteractionComponent{
+			{
+				Type: discord.InteractionComponentTypeContainer,
+				Components: []discord.InteractionComponent{
+					{
+						Type:    discord.InteractionComponentTypeTextDisplay,
+						Content: fmt.Sprintf("### Manage entries for giveaway **%s**", welcomer.Coalesce(giveaway.Title, "New Giveaway")),
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Allow Giveaway Entries**:\n" +
+									welcomer.If(giveaway.AllowEntries, "True", "False") +
+									welcomer.If(!giveaway.AllowEntries, "\n-# When disabled, users cannot enter the giveaway. This is useful to temporarily pause entries without ending the giveaway.", ""),
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStyleSecondary,
+							Label:    welcomer.If(giveaway.AllowEntries, "Disable", "Enable"),
+							CustomID: customIDPrefix + giveawayManageMenuToggleAllowEntriesKey,
+							Disabled: giveaway.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Giveaway " + welcomer.If(giveaway.HasEnded, "Ended", "Ends") + ":**\n" +
+									welcomer.If(giveaway.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)", "No end time (runs indefinitely)") + "\n" +
+									welcomer.If(
+										giveaway.HasEnded,
+										"-# This giveaway has already ended, so the duration cannot be extended.",
+										"-# Extends the giveaway end time.",
+									),
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStyleSecondary,
+							Label:    "Extend",
+							CustomID: customIDPrefix + giveawayManageMenuExtendDurationKey,
+							Disabled: giveaway.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type:    discord.InteractionComponentTypeTextDisplay,
+								Content: "**End Giveaway**",
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStyleDanger,
+							Label:    "End Giveaway",
+							CustomID: customIDPrefix + giveawayManageMenuEndGiveawayKey,
+							Disabled: giveaway.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Export Giveaway Entries**\n" +
+									"-# Exports a CSV file of all giveaway entries.",
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStylePrimary,
+							Label:    "Export Entries",
+							CustomID: customIDPrefix + giveawayManageMenuExportEntriesKey,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Export Giveaway Winners**\n" +
+									"-# Exports a CSV file of giveaway winners. Only available after the giveaway has ended.",
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStylePrimary,
+							Label:    "Export Winners",
+							CustomID: customIDPrefix + giveawayManageMenuExportWinnersKey,
+							Disabled: !giveaway.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeTextDisplay,
+						Content: "**Reroll Giveaway Winners**\n" +
+							"-# Want to reroll a giveaway winner? Right click the announced message and select \"Reroll Giveaway Winner\" to select a new winner.",
+					},
+				},
+			},
+		},
+	}
 }
 
 func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessageParams {
@@ -1255,7 +1811,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Duration**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "Forever") +
+					Content: "**Duration**:\n" + welcomer.If(giveaway.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "No end time (runs indefinitely)") +
 						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually with `/giveaway end`.", ""),
 				},
 			},
@@ -1276,7 +1832,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Announce Winners**:\n" +
 						welcomer.If(giveaway.AnnounceWinners, "True", "False") +
-						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be assigned. You can use `/giveaway export` to get a list of entries and select winners manually.", ""),
+						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be announced. You can use `/giveaway export` to get a list of entries and select winners manually.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
