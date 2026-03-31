@@ -14,6 +14,8 @@ github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260322165858-683b139b5584 h1:nk
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260322165858-683b139b5584/go.mod h1:Y+1tDkJsmhc3J7Nq1NWB9x2Dobahr+M1Te4c2QwmXVc=
 github.com/WelcomerTeam/Subway v0.0.0-20260323232816-f746e1e15d6a h1:wV0579o5N2+F0pnYiUuvfDdtAX+AMVxsVdXiIprWqRU=
 github.com/WelcomerTeam/Subway v0.0.0-20260323232816-f746e1e15d6a/go.mod h1:N+Q0BER32JMc04U0v7SpxHBPZmlOtxReljgfrPFEkrQ=
+github.com/WelcomerTeam/Subway v0.0.0-20260329205304-067d25428ccb h1:Ir8rtgF93/1AZ/GWNzeGxZoGoAl06kf7DKeZupaPabo=
+github.com/WelcomerTeam/Subway v0.0.0-20260329205304-067d25428ccb/go.mod h1:N+Q0BER32JMc04U0v7SpxHBPZmlOtxReljgfrPFEkrQ=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 h1:WV4Ok6b0/kgczuLAgGTNtLVOB5JIqdfzJzgOpdlDM8Q=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904/go.mod h1:rCfCrg0xPnEoVKPXk+GNyHgzTWMzJjhnPaAfDe7UPJE=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=

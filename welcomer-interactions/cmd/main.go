@@ -148,6 +148,9 @@ func main() {
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
+	runPusherGuildScience := welcomer.SetupPusherGuildScience(1024)
+	runPusherGuildScience(ctx, time.Second*30)
+
 	// Setup app.
 
 	app := interactions.NewWelcomer(ctx, subway.SubwayOptions{
