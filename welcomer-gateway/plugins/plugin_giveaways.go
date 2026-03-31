@@ -375,5 +375,15 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 		return err
 	}
 
+	welcomer.PusherGuildScience.Push(
+		eventCtx.Context,
+		discord.Snowflake(giveaway.GuildID),
+		0,
+		database.ScienceGuildEventTypeGiveawayEnded,
+		&welcomer.GuildScienceGiveawayEvents{
+			GiveawayUUID: giveaway.GiveawayUuid,
+		},
+	)
+
 	return nil
 }
