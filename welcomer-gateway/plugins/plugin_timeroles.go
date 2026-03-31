@@ -89,6 +89,7 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		if dur > time.Millisecond*1 {
 			welcomer.Logger.Warn().Dur("duration", dur).
+				Int64("guild_id", int64(guildID)).
 				Msg("Invoke timeroles took a long time to process")
 		}
 	}()

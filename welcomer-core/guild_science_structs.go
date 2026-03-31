@@ -73,3 +73,7 @@ type GuildScienceReactionRoleGivenRemoved struct {
 	RoleID           discord.Snowflake `json:"role_id"`
 	ReactionRoleUUID uuid.UUID         `json:"reaction_role_uuid"`
 }
+
+type GuildScienceGiveawayEvents struct {
+	GiveawayUUID uuid.UUID `json:"giveaway_uuid"`
+}

@@ -31,7 +31,7 @@ func CreateOrUpdateUserWithAudit(ctx context.Context, params database.CreateOrUp
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.UserID), actor, old, *newRow, database.AuditTypeUsers)
+	AuditChange(ctx, discord.Snowflake(params.UserID), actor, old, *newRow, database.AuditTypeUsers, "")
 
 	return newRow, nil
 }
@@ -47,7 +47,7 @@ func CreateOrUpdateWelcomerGuildSettingsWithAudit(ctx context.Context, params da
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomer)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomer, "")
 
 	return newRow, nil
 }
@@ -64,7 +64,7 @@ func CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx context.Context, params d
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsAutoroles)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsAutoroles, "")
 
 	return newRow, nil
 }
@@ -85,7 +85,7 @@ func CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx context.Context, params 
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsBorderwall)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsBorderwall, "")
 
 	return newRow, nil
 }
@@ -101,7 +101,7 @@ func CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx context.Context, params d
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsFreeroles)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsFreeroles, "")
 
 	return newRow, nil
 }
@@ -120,7 +120,7 @@ func CreateOrUpdateLeaverGuildSettingsWithAudit(ctx context.Context, params data
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsLeaver)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsLeaver, "")
 
 	return newRow, nil
 }
@@ -136,7 +136,7 @@ func CreateOrUpdateRulesGuildSettingsWithAudit(ctx context.Context, params datab
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsRules)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsRules, "")
 
 	return newRow, nil
 }
@@ -152,7 +152,7 @@ func CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx context.Context, param
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsTempchannels)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsTempchannels, "")
 
 	return newRow, nil
 }
@@ -168,7 +168,7 @@ func CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx context.Context, params d
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsTimeroles)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsTimeroles, "")
 
 	return newRow, nil
 }
@@ -187,7 +187,7 @@ func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx context.Context, param
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerText)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerText, "")
 
 	return newRow, nil
 }
@@ -206,7 +206,7 @@ func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx context.Context, par
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
 
 	return newRow, nil
 }
@@ -226,7 +226,7 @@ func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx context.Context, params
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerDms)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerDms, "")
 
 	return newRow, nil
 }
@@ -240,7 +240,7 @@ func CreateWelcomerImagesWithAudit(ctx context.Context, params database.CreateWe
 		return nil, err
 	}
 
-	AuditChange(ctx, 0, actor, old, *newRow, database.AuditTypeWelcomerImages)
+	AuditChange(ctx, 0, actor, old, *newRow, database.AuditTypeWelcomerImages, "")
 
 	return newRow, nil
 }
@@ -253,7 +253,7 @@ func CreateBorderwallRequestWithAudit(ctx context.Context, params database.Creat
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeBorderwallRequests)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeBorderwallRequests, "")
 
 	return newRow, nil
 }
@@ -266,7 +266,7 @@ func CreateUserWithAudit(ctx context.Context, params database.CreateUserParams, 
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.UserID), actor, old, *newRow, database.AuditTypeUsers)
+	AuditChange(ctx, discord.Snowflake(params.UserID), actor, old, *newRow, database.AuditTypeUsers, "")
 
 	return newRow, nil
 }
@@ -279,7 +279,7 @@ func CreateCustomBotWithAudit(ctx context.Context, params database.CreateCustomB
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeCustomBots)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeCustomBots, newRow.CustomBotUuid.String())
 
 	return newRow, nil
 }
@@ -293,7 +293,7 @@ func CreateGuildWithAudit(ctx context.Context, params database.CreateGuildParams
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds, "")
 
 	return newRow, nil
 }
@@ -323,7 +323,7 @@ func UpdateCustomBotWithAudit(ctx context.Context, params database.UpdateCustomB
 		return nil, err
 	}
 
-	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeCustomBots)
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeCustomBots, params.CustomBotUuid.String())
 
 	return newRow, nil
 }
@@ -339,7 +339,7 @@ func UpdateGuildWithAudit(ctx context.Context, params database.UpdateGuildParams
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds, "")
 
 	return newRow, nil
 }
@@ -360,7 +360,7 @@ func AddGuildFeatureWithAudit(ctx context.Context, params database.AddGuildFeatu
 		return err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures, "")
 
 	return nil
 }
@@ -381,7 +381,7 @@ func RemoveGuildFeatureWithAudit(ctx context.Context, params database.RemoveGuil
 		return err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures, "")
 
 	return nil
 }
@@ -397,7 +397,7 @@ func UpdateBioWithAudit(ctx context.Context, params database.UpdateGuildBioParam
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, params.Bio, database.AuditTypeBio)
+	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, params.Bio, database.AuditTypeBio, "")
 
 	return newRow, nil
 }
@@ -432,11 +432,30 @@ func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, guil
 		}
 	}
 
-	AuditChange(ctx, guildID, actor, old, params, database.AuditTypeGuildSettingsReactionroles)
+	AuditChange(ctx, guildID, actor, old, params, database.AuditTypeGuildSettingsReactionroles, "")
 
 	if eg.Empty() {
 		return nil
 	}
 
 	return eg
+}
+
+func UpdateGiveawayGuildSettingsWithAudit(ctx context.Context, params database.UpdateGiveawayParams, actor, guildID discord.Snowflake) (*database.GuildGiveaways, error) {
+	var old database.GuildGiveaways
+	if existing, err := Queries.GetGiveaway(ctx, database.GetGiveawayParams{
+		GuildID:      int64(guildID),
+		GiveawayUuid: params.GiveawayUuid,
+	}); err == nil {
+		old = *existing
+	}
+
+	newRow, err := Queries.UpdateGiveaway(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGiveaways, params.GiveawayUuid.String())
+
+	return newRow, nil
 }

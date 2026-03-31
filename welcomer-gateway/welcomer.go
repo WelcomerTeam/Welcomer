@@ -40,6 +40,7 @@ func (w *Welcomer) Register() error {
 	bot.MustRegisterCog(plugins.NewEntitlementsCog())
 	bot.MustRegisterCog(plugins.NewIngestCog())
 	bot.MustRegisterCog(plugins.NewReactionRolesCog())
+	bot.MustRegisterCog(plugins.NewGiveawayCog())
 
 	w.Bot = bot
 
