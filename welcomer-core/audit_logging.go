@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-func AuditChange(ctx context.Context, guildID, userID discord.Snowflake, oldValue, newValue any, auditType database.AuditType) {
+func AuditChange(ctx context.Context, guildID, userID discord.Snowflake, oldValue, newValue any, auditType database.AuditType, customID string) {
 	changesAsJSON, hasChanges, err := CompareStructsAsJSON(oldValue, newValue)
 	if err != nil {
 		Logger.Warn().Err(err).
@@ -32,6 +32,7 @@ func AuditChange(ctx context.Context, guildID, userID discord.Snowflake, oldValu
 		},
 		UserID:    int64(userID),
 		AuditType: int32(auditType),
+		CustomID:  customID,
 		Changes:   pgtype.JSONB{Bytes: changesAsJSON, Status: pgtype.Present},
 	})
 	if err != nil {

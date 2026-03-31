@@ -269,7 +269,7 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 			}, GuildSettingsCustomisationAudit{
 				Nickname: welcomer.IfElseFunc(partial.Nickname == nil, "", func() string { return *partial.Nickname }),
 				Bio:      welcomer.IfElseFunc(partial.Bio == nil, "", func() string { return *partial.Bio }),
-			}, database.AuditTypeBotCustomisation)
+			}, database.AuditTypeBotCustomisation, "")
 
 			if partial.Bio != nil {
 				_, err = welcomer.UpdateBioWithAudit(ctx, database.UpdateGuildBioParams{

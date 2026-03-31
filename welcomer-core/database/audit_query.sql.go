@@ -15,7 +15,7 @@ import (
 
 const GetGuildAuditLogs = `-- name: GetGuildAuditLogs :many
 SELECT
-    created_at, user_id, audit_type, changes
+    created_at, user_id, audit_type, custom_id, changes
 FROM
     audit_logs
 WHERE
@@ -28,6 +28,7 @@ type GetGuildAuditLogsRow struct {
 	CreatedAt time.Time    `json:"created_at"`
 	UserID    int64        `json:"user_id"`
 	AuditType int32        `json:"audit_type"`
+	CustomID  string       `json:"custom_id"`
 	Changes   pgtype.JSONB `json:"changes"`
 }
 
@@ -44,6 +45,7 @@ func (q *Queries) GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) 
 			&i.CreatedAt,
 			&i.UserID,
 			&i.AuditType,
+			&i.CustomID,
 			&i.Changes,
 		); err != nil {
 			return nil, err
@@ -57,16 +59,17 @@ func (q *Queries) GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) 
 }
 
 const InsertAuditLog = `-- name: InsertAuditLog :one
-INSERT INTO audit_logs (audit_uuid, created_at, guild_id, user_id, audit_type, changes)
-    VALUES (uuid_generate_v7(), now(), $1, $2, $3, $4)
+INSERT INTO audit_logs (audit_uuid, created_at, guild_id, user_id, audit_type, custom_id, changes)
+    VALUES (uuid_generate_v7(), now(), $1, $2, $3, $4, $5)
 RETURNING
-    audit_uuid, created_at, guild_id, user_id, audit_type, changes
+    audit_uuid, created_at, guild_id, user_id, audit_type, custom_id, changes
 `
 
 type InsertAuditLogParams struct {
 	GuildID   sql.NullInt64 `json:"guild_id"`
 	UserID    int64         `json:"user_id"`
 	AuditType int32         `json:"audit_type"`
+	CustomID  string        `json:"custom_id"`
 	Changes   pgtype.JSONB  `json:"changes"`
 }
 
@@ -75,6 +78,7 @@ func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) 
 		arg.GuildID,
 		arg.UserID,
 		arg.AuditType,
+		arg.CustomID,
 		arg.Changes,
 	)
 	var i AuditLogs
@@ -84,6 +88,7 @@ func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) 
 		&i.GuildID,
 		&i.UserID,
 		&i.AuditType,
+		&i.CustomID,
 		&i.Changes,
 	)
 	return &i, err

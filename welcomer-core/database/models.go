@@ -18,6 +18,7 @@ type AuditLogs struct {
 	GuildID   sql.NullInt64 `json:"guild_id"`
 	UserID    int64         `json:"user_id"`
 	AuditType int32         `json:"audit_type"`
+	CustomID  string        `json:"custom_id"`
 	Changes   pgtype.JSONB  `json:"changes"`
 }
 

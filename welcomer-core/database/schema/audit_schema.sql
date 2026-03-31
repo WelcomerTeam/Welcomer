@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     guild_id BIGINT,
     user_id BIGINT NOT NULL,
     audit_type INT NOT NULL,
+    custom_id TEXT NOT NULL,
     changes JSONB NOT NULL
 );

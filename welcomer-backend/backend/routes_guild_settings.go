@@ -168,7 +168,7 @@ func exportGuildSettingsAuditLogs(ctx *gin.Context) {
 
 			writer := csv.NewWriter(ctx.Writer)
 
-			_ = writer.Write([]string{"created_at", "user_id", "audit_type", "changes"})
+			_ = writer.Write([]string{"created_at", "user_id", "audit_type", "changes", "custom_id"})
 
 			for _, row := range rows {
 				_ = writer.Write([]string{
@@ -176,6 +176,7 @@ func exportGuildSettingsAuditLogs(ctx *gin.Context) {
 					"\"" + welcomer.Itoa(row.UserID) + "\"",
 					database.AuditType(row.AuditType).String(),
 					strconv.B2S(row.Changes.Bytes),
+					row.CustomID,
 				})
 			}
 
