@@ -12,8 +12,8 @@ import (
 )
 
 const CreateGiveawayWinner = `-- name: CreateGiveawayWinner :one
-INSERT INTO guild_giveaways_winners (giveaway_uuid, user_id, prize, message_id)
-VALUES ($1, $2, $3, $4)
+INSERT INTO guild_giveaways_winners (giveaway_winner_uuid, giveaway_uuid, user_id, prize, message_id)
+VALUES (uuid_generate_v7(), $1, $2, $3, $4)
 RETURNING
     giveaway_winner_uuid, giveaway_uuid, user_id, prize, message_id
 `

@@ -74,9 +74,9 @@ type CustomEventInvokeReactionRolesStructure struct {
 	Assign           *bool
 }
 
-type OnInvokeEndGiveawayFuncType func(eventCtx *sandwich.EventContext, event CustomEventEndGiveawayStructure) error
+type OnInvokeEndGiveawayFuncType func(eventCtx *sandwich.EventContext, event CustomEventInvokeEndGiveawayStructure) error
 
-type CustomEventEndGiveawayStructure struct {
+type CustomEventInvokeEndGiveawayStructure struct {
 	GiveawayUUID uuid.UUID
 	GuildID      discord.Snowflake
 }

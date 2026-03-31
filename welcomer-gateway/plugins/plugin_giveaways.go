@@ -1,10 +1,10 @@
 package plugins
 
 import (
-	"context"
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"slices"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -47,7 +47,7 @@ func (g *GiveawayCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register giveaway end handler.
 
 	g.EventHandler.RegisterEventHandler(core.CustomEventInvokeEndGiveaway, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokeGiveawayEndPayload core.CustomEventEndGiveawayStructure
+		var invokeGiveawayEndPayload core.CustomEventInvokeEndGiveawayStructure
 		if err := eventCtx.DecodeContent(payload, &invokeGiveawayEndPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
@@ -72,7 +72,11 @@ func (g *GiveawayCog) RegisterCog(bot *sandwich.Bot) error {
 	return nil
 }
 
-func (g *GiveawayCog) OnInvokeEndGiveaway(eventCtx *sandwich.EventContext, event core.CustomEventEndGiveawayStructure) error {
+func (g *GiveawayCog) OnInvokeEndGiveaway(eventCtx *sandwich.EventContext, event core.CustomEventInvokeEndGiveawayStructure) error {
+	welcomer.Logger.Info().
+		Str("giveaway_uuid", event.GiveawayUUID.String()).
+		Msg("Received giveaway end event, processing giveaway end")
+
 	giveaway, err := welcomer.Queries.GetGiveaway(eventCtx.Context, database.GetGiveawayParams{
 		GiveawayUuid: event.GiveawayUUID,
 		GuildID:      int64(event.GuildID),
@@ -93,7 +97,7 @@ func (g *GiveawayCog) OnInvokeEndGiveaway(eventCtx *sandwich.EventContext, event
 		return nil
 	}
 
-	if err := g.EndGiveaway(eventCtx.Context, giveaway); err != nil {
+	if err := g.EndGiveaway(eventCtx, giveaway); err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", event.GiveawayUUID.String()).
 			Msg("Failed to end giveaway for giveaway end event")
@@ -115,7 +119,7 @@ func secureRandomInt(n int64) (int64, error) {
 	return r.Int64(), nil
 }
 
-func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildGiveaways) error {
+func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *database.GuildGiveaways) error {
 	if giveaway.HasEnded {
 		welcomer.Logger.Error().
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -124,18 +128,42 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 		return nil
 	}
 
-	session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+	// Set giveaway as ended
+
+	var err error
+
+	giveaway, err = welcomer.Queries.SetGiveawayEnded(eventCtx.Context, database.SetGiveawayEndedParams{
+		GiveawayUuid: giveaway.GiveawayUuid,
+		HasEnded:     true,
+	})
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
-			Msg("Failed to acquire session for giveaway end")
+			Msg("Failed to set giveaway as ended")
 
 		return err
 	}
 
+	defer func() {
+		if err != nil {
+			// Unset giveaway as ended on error
+
+			giveaway, err = welcomer.Queries.SetGiveawayEnded(eventCtx.Context, database.SetGiveawayEndedParams{
+				GiveawayUuid: giveaway.GiveawayUuid,
+				HasEnded:     false,
+			})
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+					Msg("Failed to unset giveaway as ended")
+			}
+
+		}
+	}()
+
 	prizes := welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)
 
-	_, err = welcomer.SandwichClient.RequestGuildChunk(ctx, &pb.RequestGuildChunkRequest{
+	_, err = welcomer.SandwichClient.RequestGuildChunk(eventCtx.Context, &pb.RequestGuildChunkRequest{
 		GuildId: giveaway.GuildID,
 	})
 	if err != nil {
@@ -146,7 +174,7 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 		return err
 	}
 
-	entries, err := welcomer.Queries.GetGiveawayEntryUsers(ctx, giveaway.GiveawayUuid)
+	entries, err := welcomer.Queries.GetGiveawayEntryUsers(eventCtx.Context, giveaway.GiveawayUuid)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -155,7 +183,20 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 		return err
 	}
 
-	members, err := welcomer.SandwichClient.FetchGuildMember(ctx, &pb.FetchGuildMemberRequest{
+	// Chunk guild
+	_, err = welcomer.SandwichClient.RequestGuildChunk(eventCtx, &pb.RequestGuildChunkRequest{
+		GuildId:     int64(eventCtx.Guild.ID),
+		AlwaysChunk: false,
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(eventCtx.Guild.ID)).
+			Msg("Failed to chunk guild")
+
+		return err
+	}
+
+	members, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
 		GuildId: giveaway.GuildID,
 		UserIds: entries,
 	})
@@ -167,14 +208,44 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 		return err
 	}
 
-	clear(entries)
+	entries = make([]int64, 0)
 
+	existingWinners, err := welcomer.Queries.GetGiveawayWinners(eventCtx.Context, giveaway.GiveawayUuid)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to get existing giveaway winners for giveaway end")
+	}
+
+	// Add entries for users still in server and is not an existing winner.
 	for _, member := range members.GetGuildMembers() {
-		entries = append(entries, member.GetUser().GetID())
+		if !slices.ContainsFunc(existingWinners, func(winner *database.GuildGiveawaysWinners) bool {
+			return winner.UserID == int64(member.GetUser().GetID())
+		}) {
+			entries = append(entries, member.GetUser().GetID())
+		}
+	}
+
+	wonPrizes := make(map[string]int)
+
+	// Remove prize count for existing winners.
+	for _, winner := range existingWinners {
+		_, ok := wonPrizes[winner.Prize]
+		if !ok {
+			wonPrizes[winner.Prize] = 0
+		}
+
+		wonPrizes[winner.Prize]++
+	}
+
+	for _, prize := range prizes {
+		count, ok := wonPrizes[prize.Title]
+		if ok {
+			prize.Count -= count
+		}
 	}
 
 	// Assign winners
-
 	for _, prize := range prizes {
 		for i := 0; i < prize.Count; i++ {
 			if len(entries) == 0 {
@@ -191,12 +262,12 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 					Msg("Failed to generate secure random index for giveaway winner selection")
 
-				continue
+				return err
 			}
 
 			winnerID := entries[randomIndex]
 
-			if _, err = welcomer.Queries.CreateGiveawayWinner(ctx, database.CreateGiveawayWinnerParams{
+			if _, err = welcomer.Queries.CreateGiveawayWinner(eventCtx.Context, database.CreateGiveawayWinnerParams{
 				GiveawayUuid: giveaway.GiveawayUuid,
 				UserID:       winnerID,
 				Prize:        prize.Title,
@@ -207,7 +278,7 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 					Int64("winner_id", winnerID).
 					Msg("Failed to add giveaway winner to database")
 
-				continue
+				return err
 			}
 
 			// Remove the selected winner from the entries slice
@@ -217,7 +288,7 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 
 	// Announce winners in giveaway channel
 
-	winners, err := welcomer.Queries.GetGiveawayWinners(ctx, giveaway.GiveawayUuid)
+	winners, err := welcomer.Queries.GetGiveawayWinners(eventCtx.Context, giveaway.GiveawayUuid)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -228,47 +299,78 @@ func (g *GiveawayCog) EndGiveaway(ctx context.Context, giveaway *database.GuildG
 
 	channel := discord.Channel{ID: discord.Snowflake(giveaway.ChannelID)}
 
-	for _, winner := range winners {
-		welcomer.Logger.Info().
-			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
-			Int64("user_id", winner.UserID).
-			Str("prize", winner.Prize).
-			Msg("Giveaway winner selected")
+	if giveaway.AnnounceWinners {
+		for _, winner := range winners {
+			if slices.ContainsFunc(existingWinners, func(value *database.GuildGiveawaysWinners) bool {
+				return value.UserID == winner.UserID && value.Prize == winner.Prize && value.MessageID != 0
+			}) {
+				// Winner has already been announced, skip announcing again.
+				continue
+			}
 
-		message, err := channel.Send(ctx, session, discord.MessageParams{
-			Content: fmt.Sprintf("Congratulations <@%d>, you won **%s**", winner.UserID, winner.Prize),
-		})
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
+			welcomer.Logger.Info().
 				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 				Int64("user_id", winner.UserID).
 				Str("prize", winner.Prize).
-				Msg("Failed to send giveaway winner message")
-		} else {
-			_, err = welcomer.Queries.UpdateGiveawayWinnerMessageID(ctx, database.UpdateGiveawayWinnerMessageIDParams{
-				GiveawayWinnerUuid: winner.GiveawayWinnerUuid,
-				MessageID:          int64(message.ID),
+				Msg("Giveaway winner selected")
+
+			message, err := channel.Send(eventCtx.Context, eventCtx.Session, discord.MessageParams{
+				Content: fmt.Sprintf("Congratulations <@%d>, you won **%s**", winner.UserID, winner.Prize),
+				MessageReference: &discord.MessageReference{
+					ID:              new(discord.Snowflake(giveaway.MessageID)),
+					ChannelID:       new(discord.Snowflake(giveaway.ChannelID)),
+					FailIfNotExists: false,
+				},
 			})
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 					Int64("user_id", winner.UserID).
 					Str("prize", winner.Prize).
-					Msg("Failed to update giveaway winner message ID")
+					Msg("Failed to send giveaway winner message")
+			} else {
+				_, err = welcomer.Queries.UpdateGiveawayWinnerMessageID(eventCtx.Context, database.UpdateGiveawayWinnerMessageIDParams{
+					GiveawayWinnerUuid: winner.GiveawayWinnerUuid,
+					MessageID:          int64(message.ID),
+				})
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+						Int64("user_id", winner.UserID).
+						Str("prize", winner.Prize).
+						Msg("Failed to update giveaway winner message ID")
+
+					return err
+				}
 			}
 		}
 	}
 
-	// Set giveaway as ended
+	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(giveaway.ChannelID), discord.Snowflake(giveaway.MessageID))
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+			Msg("Failed to fetch giveaway message for giveaway end")
 
-	giveaway, err = welcomer.Queries.SetGiveawayEnded(ctx, database.SetGiveawayEndedParams{
-		GiveawayUuid: giveaway.GiveawayUuid,
-		HasEnded:     true,
+		return err
+	}
+
+	for i := range msg.Components {
+		for j := range msg.Components[i].Components {
+			if msg.Components[i].Components[j].Type == discord.InteractionComponentTypeButton {
+				msg.Components[i].Components[j].Label = "This giveaway has ended"
+				msg.Components[i].Components[j].Disabled = true
+			}
+		}
+	}
+
+	_, err = msg.Edit(eventCtx.Context, eventCtx.Session, discord.MessageParams{
+		Components: msg.Components,
 	})
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
-			Msg("Failed to set giveaway as ended")
+			Msg("Failed to edit giveaway message to disable buttons for giveaway end")
 
 		return err
 	}

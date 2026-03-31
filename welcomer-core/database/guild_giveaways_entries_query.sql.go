@@ -7,8 +7,10 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jackc/pgtype"
 )
 
 const AddGiveawayEntry = `-- name: AddGiveawayEntry :one
@@ -40,6 +42,118 @@ func (q *Queries) CountGiveawayEntries(ctx context.Context, giveawayUuid uuid.UU
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const GetGiveawayEntries = `-- name: GetGiveawayEntries :many
+SELECT guild_giveaway_entry_uuid, giveaway_uuid, user_id, created_at FROM guild_giveaways_entries
+WHERE giveaway_uuid = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID) ([]*GuildGiveawaysEntries, error) {
+	rows, err := q.db.Query(ctx, GetGiveawayEntries, giveawayUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GuildGiveawaysEntries{}
+	for rows.Next() {
+		var i GuildGiveawaysEntries
+		if err := rows.Scan(
+			&i.GuildGiveawayEntryUuid,
+			&i.GiveawayUuid,
+			&i.UserID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGiveawayEntryFromMessageID = `-- name: GetGiveawayEntryFromMessageID :one
+SELECT
+    guild_giveaway_entry_uuid, guild_giveaways_entries.giveaway_uuid, user_id, guild_giveaways_entries.created_at, guild_giveaways.giveaway_uuid, guild_giveaways.created_at, guild_id, created_by, allow_entries, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, show_prizes, show_entries
+FROM
+    guild_giveaways_entries
+    JOIN guild_giveaways ON guild_giveaways.giveaway_uuid = guild_giveaways_entries.giveaway_uuid
+WHERE
+    guild_giveaways.guild_id = $1
+    AND guild_giveaways.channel_id = $2
+    AND guild_giveaways.message_id = $3
+`
+
+type GetGiveawayEntryFromMessageIDParams struct {
+	GuildID   int64 `json:"guild_id"`
+	ChannelID int64 `json:"channel_id"`
+	MessageID int64 `json:"message_id"`
+}
+
+type GetGiveawayEntryFromMessageIDRow struct {
+	GuildGiveawayEntryUuid uuid.UUID    `json:"guild_giveaway_entry_uuid"`
+	GiveawayUuid           uuid.UUID    `json:"giveaway_uuid"`
+	UserID                 int64        `json:"user_id"`
+	CreatedAt              time.Time    `json:"created_at"`
+	GiveawayUuid_2         uuid.UUID    `json:"giveaway_uuid_2"`
+	CreatedAt_2            time.Time    `json:"created_at_2"`
+	GuildID                int64        `json:"guild_id"`
+	CreatedBy              int64        `json:"created_by"`
+	AllowEntries           bool         `json:"allow_entries"`
+	HasEnded               bool         `json:"has_ended"`
+	IsSetup                bool         `json:"is_setup"`
+	Title                  string       `json:"title"`
+	Description            string       `json:"description"`
+	AccentColour           int64        `json:"accent_colour"`
+	ImageUrl               string       `json:"image_url"`
+	StartTime              time.Time    `json:"start_time"`
+	EndTime                time.Time    `json:"end_time"`
+	AnnounceWinners        bool         `json:"announce_winners"`
+	GiveawayPrizes         pgtype.JSONB `json:"giveaway_prizes"`
+	RolesAllowed           pgtype.JSONB `json:"roles_allowed"`
+	RolesExcluded          pgtype.JSONB `json:"roles_excluded"`
+	MinimumJoinDate        time.Time    `json:"minimum_join_date"`
+	MessageID              int64        `json:"message_id"`
+	ChannelID              int64        `json:"channel_id"`
+	ShowPrizes             bool         `json:"show_prizes"`
+	ShowEntries            bool         `json:"show_entries"`
+}
+
+func (q *Queries) GetGiveawayEntryFromMessageID(ctx context.Context, arg GetGiveawayEntryFromMessageIDParams) (*GetGiveawayEntryFromMessageIDRow, error) {
+	row := q.db.QueryRow(ctx, GetGiveawayEntryFromMessageID, arg.GuildID, arg.ChannelID, arg.MessageID)
+	var i GetGiveawayEntryFromMessageIDRow
+	err := row.Scan(
+		&i.GuildGiveawayEntryUuid,
+		&i.GiveawayUuid,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.GiveawayUuid_2,
+		&i.CreatedAt_2,
+		&i.GuildID,
+		&i.CreatedBy,
+		&i.AllowEntries,
+		&i.HasEnded,
+		&i.IsSetup,
+		&i.Title,
+		&i.Description,
+		&i.AccentColour,
+		&i.ImageUrl,
+		&i.StartTime,
+		&i.EndTime,
+		&i.AnnounceWinners,
+		&i.GiveawayPrizes,
+		&i.RolesAllowed,
+		&i.RolesExcluded,
+		&i.MinimumJoinDate,
+		&i.MessageID,
+		&i.ChannelID,
+		&i.ShowPrizes,
+		&i.ShowEntries,
+	)
+	return &i, err
 }
 
 const GetGiveawayEntryUsers = `-- name: GetGiveawayEntryUsers :many

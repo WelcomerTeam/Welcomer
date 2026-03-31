@@ -109,6 +109,53 @@ func (q *Queries) GetGiveaway(ctx context.Context, arg GetGiveawayParams) (*Guil
 	return &i, err
 }
 
+const GetGiveawayFromMessageID = `-- name: GetGiveawayFromMessageID :one
+SELECT
+    giveaway_uuid, created_at, guild_id, created_by, allow_entries, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, show_prizes, show_entries
+FROM
+    guild_giveaways
+WHERE
+    guild_id = $1
+    AND channel_id = $2
+    AND message_id = $3
+`
+
+type GetGiveawayFromMessageIDParams struct {
+	GuildID   int64 `json:"guild_id"`
+	ChannelID int64 `json:"channel_id"`
+	MessageID int64 `json:"message_id"`
+}
+
+func (q *Queries) GetGiveawayFromMessageID(ctx context.Context, arg GetGiveawayFromMessageIDParams) (*GuildGiveaways, error) {
+	row := q.db.QueryRow(ctx, GetGiveawayFromMessageID, arg.GuildID, arg.ChannelID, arg.MessageID)
+	var i GuildGiveaways
+	err := row.Scan(
+		&i.GiveawayUuid,
+		&i.CreatedAt,
+		&i.GuildID,
+		&i.CreatedBy,
+		&i.AllowEntries,
+		&i.HasEnded,
+		&i.IsSetup,
+		&i.Title,
+		&i.Description,
+		&i.AccentColour,
+		&i.ImageUrl,
+		&i.StartTime,
+		&i.EndTime,
+		&i.AnnounceWinners,
+		&i.GiveawayPrizes,
+		&i.RolesAllowed,
+		&i.RolesExcluded,
+		&i.MinimumJoinDate,
+		&i.MessageID,
+		&i.ChannelID,
+		&i.ShowPrizes,
+		&i.ShowEntries,
+	)
+	return &i, err
+}
+
 const SetGiveawayEnded = `-- name: SetGiveawayEnded :one
 UPDATE
     guild_giveaways

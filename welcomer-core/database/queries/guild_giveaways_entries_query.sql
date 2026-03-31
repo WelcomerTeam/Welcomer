@@ -15,3 +15,19 @@ WHERE giveaway_uuid = $1;
 -- name: GetGiveawayEntryUsers :many
 SELECT user_id FROM guild_giveaways_entries
 WHERE giveaway_uuid = $1;
+
+-- name: GetGiveawayEntries :many
+SELECT * FROM guild_giveaways_entries
+WHERE giveaway_uuid = $1
+ORDER BY created_at DESC;
+
+-- name: GetGiveawayEntryFromMessageID :one
+SELECT
+    *
+FROM
+    guild_giveaways_entries
+    JOIN guild_giveaways ON guild_giveaways.giveaway_uuid = guild_giveaways_entries.giveaway_uuid
+WHERE
+    guild_giveaways.guild_id = $1
+    AND guild_giveaways.channel_id = $2
+    AND guild_giveaways.message_id = $3;

@@ -38,6 +38,16 @@ WHERE
     guild_id = $1
     AND giveaway_uuid = $2;
 
+-- name: GetGiveawayFromMessageID :one
+SELECT
+    *
+FROM
+    guild_giveaways
+WHERE
+    guild_id = $1
+    AND channel_id = $2
+    AND message_id = $3;
+
 -- name: UpdateGiveawayMessage :one
 UPDATE
     guild_giveaways
