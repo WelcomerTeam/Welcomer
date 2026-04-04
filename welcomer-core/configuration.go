@@ -17,7 +17,7 @@ const (
 	EnvironmentTypeProductionOutsideDocker
 )
 
-func getEnvironmentType() EnvironmentType {
+func GetEnvironmentType() EnvironmentType {
 	environmentEnv := os.Getenv("ENVIRONMENT")
 
 	switch environmentEnv {
@@ -33,7 +33,7 @@ func getEnvironmentType() EnvironmentType {
 }
 
 func GetCustomBotEnvironmentType() string {
-	if getEnvironmentType() == EnvironmentTypeDevelopment {
+	if GetEnvironmentType() == EnvironmentTypeDevelopment {
 		return "beta"
 	}
 
@@ -45,7 +45,7 @@ type WelcomerDatabaseConfigProvider struct {
 }
 
 func GetConfigurationGatherer(ctx context.Context) sandwich_daemon.ConfigProvider {
-	environmentType := getEnvironmentType()
+	environmentType := GetEnvironmentType()
 
 	var fileConfigProvider sandwich_daemon.ConfigProvider
 

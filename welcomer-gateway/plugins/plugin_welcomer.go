@@ -33,6 +33,8 @@ const (
 	SendDMToUserTimeout = 10 * time.Second
 )
 
+var IsEasterEnabled = os.Getenv("EASTER_EGG_ENABLED") == "true"
+
 var (
 	white = &color.RGBA{255, 255, 255, 255}
 	black = &color.RGBA{0, 0, 0, 255}
@@ -978,6 +980,31 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			channel := discord.Channel{ID: discord.Snowflake(guildSettingsWelcomerText.Channel)}
 
 			var message *discord.Message
+
+			if IsEasterEnabled && !event.IgnoreDedupe {
+				claimed, err := welcomer.Queries.GetClaimedWM(eventCtx.Context, database.GetClaimedWMParams{
+					GuildID:  int64(eventCtx.Guild.ID),
+					WmUserID: event.Member.User.ID.String(),
+				})
+				if err == nil || claimed == 0 {
+					serverMessage.Components = []discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeActionRow,
+							Components: []discord.InteractionComponent{
+								{
+									CustomID: "catch_egg:" + event.Member.User.ID.String(),
+									Type:     discord.InteractionComponentTypeButton,
+									Style:    discord.InteractionComponentStylePrimary,
+									Label:    "Catch me!",
+									Emoji: &discord.Emoji{
+										Name: "🥚",
+									},
+								},
+							},
+						},
+					}
+				}
+			}
 
 			message, serr = channel.Send(eventCtx.Context, eventCtx.Session, serverMessage)
 

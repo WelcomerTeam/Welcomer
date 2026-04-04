@@ -69,6 +69,17 @@ type DiscordSubscriptions struct {
 	Consumed        bool          `json:"consumed"`
 }
 
+type EasterEggs struct {
+	EasterEggUuid uuid.UUID `json:"easter_egg_uuid"`
+	GuildID       int64     `json:"guild_id"`
+	ChannelID     int64     `json:"channel_id"`
+	MessageID     int64     `json:"message_id"`
+	UserID        int64     `json:"user_id"`
+	ClaimedEgg    string    `json:"claimed_egg"`
+	CreatedAt     time.Time `json:"created_at"`
+	WmUserID      string    `json:"wm_user_id"`
+}
+
 type GuildFeatures struct {
 	GuildID   int64     `json:"guild_id"`
 	CreatedAt time.Time `json:"created_at"`
