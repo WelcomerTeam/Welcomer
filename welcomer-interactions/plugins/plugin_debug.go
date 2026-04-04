@@ -176,57 +176,57 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "testjoin",
-		Description: "Relays an GUILD_MEMBER_ADD event to consumers",
+	// debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
+	// 	Name:        "testjoin",
+	// 	Description: "Relays an GUILD_MEMBER_ADD event to consumers",
 
-		Type: subway.InteractionCommandableTypeSubcommand,
+	// 	Type: subway.InteractionCommandableTypeSubcommand,
 
-		ArgumentParameter: []subway.ArgumentParameter{
-			{
-				Required:     false,
-				ArgumentType: subway.ArgumentTypeMember,
-				Name:         "user",
-				Description:  "The user to test",
-			},
-		},
+	// 	ArgumentParameter: []subway.ArgumentParameter{
+	// 		{
+	// 			Required:     false,
+	// 			ArgumentType: subway.ArgumentTypeMember,
+	// 			Name:         "user",
+	// 			Description:  "The user to test",
+	// 		},
+	// 	},
 
-		DMPermission:            new(false),
-		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
+	// 	DMPermission:            new(false),
+	// 	DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
-		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member.User == nil || member.User.ID.IsNil() {
-					member = *interaction.Member
-				}
+	// 	Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+	// 		return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+	// 			member := subway.MustGetArgument(ctx, "user").MustMember()
+	// 			if member.User == nil || member.User.ID.IsNil() {
+	// 				member = *interaction.Member
+	// 			}
 
-				// GuildID may be missing, fill it in.
-				member.GuildID = interaction.GuildID
+	// 			// GuildID may be missing, fill it in.
+	// 			member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(member)
-				if err != nil {
-					return nil, err
-				}
+	// 			data, err := json.Marshal(member)
+	// 			if err != nil {
+	// 				return nil, err
+	// 			}
 
-				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Identifier: welcomer.GetManagerNameFromContext(ctx),
-					Type:       discord.DiscordEventGuildMemberAdd,
-					Data:       data,
-				})
-				if err != nil {
-					return nil, err
-				}
+	// 			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+	// 				Identifier: welcomer.GetManagerNameFromContext(ctx),
+	// 				Type:       discord.DiscordEventGuildMemberAdd,
+	// 				Data:       data,
+	// 			})
+	// 			if err != nil {
+	// 				return nil, err
+	// 			}
 
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
-		},
-	})
+	// 			return &discord.InteractionResponse{
+	// 				Type: discord.InteractionCallbackTypeChannelMessageSource,
+	// 				Data: &discord.InteractionCallbackData{
+	// 					Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
+	// 				},
+	// 			}, nil
+	// 		})
+	// 	},
+	// })
 
 	debugGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "testleave",

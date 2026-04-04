@@ -982,21 +982,27 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			var message *discord.Message
 
 			if IsEasterEnabled && !event.IgnoreDedupe {
-				serverMessage.Components = []discord.InteractionComponent{
-					{
-						Type: discord.InteractionComponentTypeActionRow,
-						Components: []discord.InteractionComponent{
-							{
-								CustomID: "catch_egg:" + event.Member.User.ID.String(),
-								Type:     discord.InteractionComponentTypeButton,
-								Style:    discord.InteractionComponentStylePrimary,
-								Label:    "Catch me!",
-								Emoji: &discord.Emoji{
-									Name: "🥚",
+				claimed, err := welcomer.Queries.GetClaimedWM(eventCtx.Context, database.GetClaimedWMParams{
+					GuildID:  int64(eventCtx.Guild.ID),
+					WmUserID: event.Member.User.ID.String(),
+				})
+				if err == nil || claimed == 0 {
+					serverMessage.Components = []discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeActionRow,
+							Components: []discord.InteractionComponent{
+								{
+									CustomID: "catch_egg:" + event.Member.User.ID.String(),
+									Type:     discord.InteractionComponentTypeButton,
+									Style:    discord.InteractionComponentStylePrimary,
+									Label:    "Catch me!",
+									Emoji: &discord.Emoji{
+										Name: "🥚",
+									},
 								},
 							},
 						},
-					},
+					}
 				}
 			}
 

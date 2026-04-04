@@ -12,8 +12,60 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+const GetClaimedWM = `-- name: GetClaimedWM :one
+SELECT COUNT(*)::int
+FROM easter_eggs
+WHERE guild_id = $1 AND wm_user_id = $2
+`
+
+type GetClaimedWMParams struct {
+	GuildID  int64  `json:"guild_id"`
+	WmUserID string `json:"wm_user_id"`
+}
+
+func (q *Queries) GetClaimedWM(ctx context.Context, arg GetClaimedWMParams) (int32, error) {
+	row := q.db.QueryRow(ctx, GetClaimedWM, arg.GuildID, arg.WmUserID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const GetCollectedEasterEggs = `-- name: GetCollectedEasterEggs :many
+SELECT COUNT(*)::int AS count, user_id, SUM(COUNT(*)) OVER()::int AS total
+FROM easter_eggs
+GROUP BY user_id
+ORDER BY COUNT(*) DESC
+LIMIT 20
+`
+
+type GetCollectedEasterEggsRow struct {
+	Count  int32 `json:"count"`
+	UserID int64 `json:"user_id"`
+	Total  int32 `json:"total"`
+}
+
+func (q *Queries) GetCollectedEasterEggs(ctx context.Context) ([]*GetCollectedEasterEggsRow, error) {
+	rows, err := q.db.Query(ctx, GetCollectedEasterEggs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetCollectedEasterEggsRow{}
+	for rows.Next() {
+		var i GetCollectedEasterEggsRow
+		if err := rows.Scan(&i.Count, &i.UserID, &i.Total); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetCollectedEasterEggsByGuildID = `-- name: GetCollectedEasterEggsByGuildID :many
-SELECT COUNT(*)::int, user_id
+SELECT COUNT(*)::int AS count, user_id, SUM(COUNT(*)) OVER()::int AS total
 FROM easter_eggs
 WHERE guild_id = $1
 GROUP BY user_id
@@ -22,8 +74,9 @@ LIMIT 20
 `
 
 type GetCollectedEasterEggsByGuildIDRow struct {
-	Column1 int32 `json:"column_1"`
-	UserID  int64 `json:"user_id"`
+	Count  int32 `json:"count"`
+	UserID int64 `json:"user_id"`
+	Total  int32 `json:"total"`
 }
 
 func (q *Queries) GetCollectedEasterEggsByGuildID(ctx context.Context, guildID int64) ([]*GetCollectedEasterEggsByGuildIDRow, error) {
@@ -35,7 +88,7 @@ func (q *Queries) GetCollectedEasterEggsByGuildID(ctx context.Context, guildID i
 	items := []*GetCollectedEasterEggsByGuildIDRow{}
 	for rows.Next() {
 		var i GetCollectedEasterEggsByGuildIDRow
-		if err := rows.Scan(&i.Column1, &i.UserID); err != nil {
+		if err := rows.Scan(&i.Count, &i.UserID, &i.Total); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

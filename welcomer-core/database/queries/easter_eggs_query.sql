@@ -12,9 +12,21 @@ GROUP BY claimed_egg
 ORDER BY COUNT(*) DESC;
 
 -- name: GetCollectedEasterEggsByGuildID :many
-SELECT COUNT(*)::int, user_id
+SELECT COUNT(*)::int AS count, user_id, SUM(COUNT(*)) OVER()::int AS total
 FROM easter_eggs
 WHERE guild_id = $1
 GROUP BY user_id
 ORDER BY COUNT(*) DESC
 LIMIT 20;
+
+-- name: GetCollectedEasterEggs :many
+SELECT COUNT(*)::int AS count, user_id, SUM(COUNT(*)) OVER()::int AS total
+FROM easter_eggs
+GROUP BY user_id
+ORDER BY COUNT(*) DESC
+LIMIT 20;
+
+-- name: GetClaimedWM :one
+SELECT COUNT(*)::int
+FROM easter_eggs
+WHERE guild_id = $1 AND wm_user_id = $2;
