@@ -123,7 +123,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Data:       data,
 			})
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Str("identifier", locations[0].GetIdentifier()).Msg("Failed to relay end giveaway message")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Str("identifier", location.GetIdentifier()).Msg("Failed to relay end giveaway message")
 
 				continue
 			}
