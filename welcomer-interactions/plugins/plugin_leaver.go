@@ -313,7 +313,7 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 
 		ArgumentParameter: []subway.ArgumentParameter{
 			{
-				Required:     false,
+				Required:     true,
 				ArgumentType: subway.ArgumentTypeTextChannel,
 				Name:         "channel",
 				Description:  "The channel you would like to send the leave message to.",
@@ -345,15 +345,17 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				guildSettingsLeaver.Channel = welcomer.If(!channel.ID.IsNil(), int64(channel.ID), 0)
+				guildSettingsLeaver.Channel = int64(channel.ID)
 
 				err = welcomer.RetryWithFallback(
 					func() error {
 						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
-							Channel:       guildSettingsLeaver.Channel,
-							MessageFormat: guildSettingsLeaver.MessageFormat,
+							GuildID:                  int64(*interaction.GuildID),
+							ToggleEnabled:            guildSettingsLeaver.ToggleEnabled,
+							Channel:                  guildSettingsLeaver.Channel,
+							MessageFormat:            guildSettingsLeaver.MessageFormat,
+							AutoDeleteLeaverMessages: guildSettingsLeaver.AutoDeleteLeaverMessages,
+							LeaverMessageLifetime:    guildSettingsLeaver.LeaverMessageLifetime,
 						}, interaction.GetUser().ID)
 
 						return err
@@ -371,21 +373,12 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if !channel.ID.IsNil() {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set leaver channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				} else {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed leaver channel. Leaver will not work, if enabled.", welcomer.EmbedColourWarn),
-						},
-					}, nil
-				}
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("Set leaver channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
+					},
+				}, nil
 			})
 		},
 	})

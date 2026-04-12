@@ -340,7 +340,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 
 		ArgumentParameter: []subway.ArgumentParameter{
 			{
-				Required:     false,
+				Required:     true,
 				ArgumentType: subway.ArgumentTypeTextChannel,
 				Name:         "channel",
 				Description:  "The channel you would like to send the borderwall message to.",
@@ -376,22 +376,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				if !channel.ID.IsNil() {
-					guildSettingsBorderwall.Channel = int64(channel.ID)
-				} else {
-					guildSettingsBorderwall.Channel = 0
-				}
-
-				// A channel must be set if direct messages are disabled.
-				if guildSettingsBorderwall.Channel == 0 && guildSettingsBorderwall.ToggleEnabled && !guildSettingsBorderwall.ToggleSendDm {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("A channel must be selected if you are not sending borderwall messages via direct message.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
+				guildSettingsBorderwall.Channel = int64(channel.ID)
 
 				err = welcomer.RetryWithFallback(
 					func() error {
@@ -421,21 +406,12 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if !channel.ID.IsNil() {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set borderwall channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				} else {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed borderwall channel. Borderwall will only send direct messages to users.", welcomer.EmbedColourWarn),
-						},
-					}, nil
-				}
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("Set borderwall channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
+					},
+				}, nil
 			})
 		},
 	})
