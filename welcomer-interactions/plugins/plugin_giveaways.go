@@ -1728,11 +1728,11 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 					{
 						Type: discord.InteractionComponentTypeSeparator,
 					},
-					{
-						Type: discord.InteractionComponentTypeTextDisplay,
-						Content: "**Reroll Giveaway Winners**\n" +
-							"-# Want to reroll a giveaway winner? Right click the announced message and select \"Reroll Giveaway Winner\" to select a new winner.",
-					},
+					// {
+					// 	Type: discord.InteractionComponentTypeTextDisplay,
+					// 	Content: "**Reroll Giveaway Winners**\n" +
+					// 		"-# Want to reroll a giveaway winner? Right click the announced message and select \"Reroll Giveaway Winner\" to select a new winner.",
+					// },
 				},
 			},
 		},
