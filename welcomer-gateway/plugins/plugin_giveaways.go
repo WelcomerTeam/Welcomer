@@ -148,6 +148,10 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 		if err != nil {
 			// Unset giveaway as ended on error
 
+			welcomer.Logger.Error().Err(err).
+				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+				Msg("An error occurred during giveaway end processing, unsetting giveaway as ended")
+
 			giveaway, err = welcomer.Queries.SetGiveawayEnded(eventCtx.Context, database.SetGiveawayEndedParams{
 				GiveawayUuid: giveaway.GiveawayUuid,
 				HasEnded:     false,
@@ -238,10 +242,10 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 		wonPrizes[winner.Prize]++
 	}
 
-	for _, prize := range prizes {
-		count, ok := wonPrizes[prize.Title]
+	for i, prize := range prizes {
+		_, ok := wonPrizes[prize.Title]
 		if ok {
-			prize.Count -= count
+			prizes[i].Count -= prizes[i].Count
 		}
 	}
 

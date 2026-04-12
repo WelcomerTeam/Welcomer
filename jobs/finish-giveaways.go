@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -110,5 +111,28 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 			continue
 		}
 
+		data, _ := json.Marshal(welcomer.CustomEventInvokeEndGiveawayStructure{
+			GiveawayUUID: giveaway.GiveawayUuid,
+			GuildID:      discord.Snowflake(giveaway.GuildID),
+		})
+
+		for _, location := range locations {
+			_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich_protobuf.RelayMessageRequest{
+				Identifier: location.GetIdentifier(),
+				Type:       welcomer.CustomEventInvokeEndGiveaway,
+				Data:       data,
+			})
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Str("identifier", locations[0].GetIdentifier()).Msg("Failed to relay end giveaway message")
+
+				continue
+			}
+
+			if err == nil {
+				break
+			}
+		}
+
+		welcomer.Logger.Info().Int64("guild_id", giveaway.GuildID).Msg("Finished giveaway")
 	}
 }
