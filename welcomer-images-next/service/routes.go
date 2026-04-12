@@ -12,6 +12,8 @@ func (is *ImageService) generateHandler(ctx *gin.Context) {
 	var req welcomer.CustomWelcomerImageGenerateRequest
 
 	if err := ctx.BindJSON(&req); err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to parse request")
+
 		ctx.Data(http.StatusBadRequest, "text/plain", []byte("invalid request payload"))
 
 		return
@@ -27,6 +29,8 @@ func (is *ImageService) generateHandler(ctx *gin.Context) {
 
 	resp, elapsed, err := is.ScreenshotFromHTML(ctx, html)
 	if err != nil {
+		welcomer.Logger.Error().Err(err).Msg("Failed to generate image")
+
 		ctx.Data(http.StatusInternalServerError, "text/plain", []byte(err.Error()))
 
 		return
