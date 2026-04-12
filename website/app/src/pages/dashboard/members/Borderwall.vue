@@ -42,7 +42,7 @@
             </form-value>
 
 
-            <form-value title="Roles On Join" :type="FormTypeBlank" :hide-border="true" :validation="v$.roleson_join">
+            <form-value title="Roles On Join" :type="FormTypeBlank" :validation="v$.roleson_join">
               These roles will be given to users as soon as they join. Use this to identify users who have not yet
               verified.
               Any roles in this list will be removed when verifying, unless it is also in the <b>Roles On Verify</b> list.
@@ -50,7 +50,7 @@
                           @removeRole="onRemoveJoinRole" @selectRole="onSelectJoinRole" class="mt-4"></role-table>
             </form-value>
 
-            <form-value title="Roles On Verify" :type="FormTypeBlank" :hide-border="true" :validation="v$.roles_on_verify">
+            <form-value title="Roles On Verify" :type="FormTypeBlank" :validation="v$.roles_on_verify">
               These roles will be given to users once they verify. Use this to give users permissions to send messages in
               channels.
               Any roles in <b>Roles On Join</b> will be removed, unless it is also in this list.
