@@ -733,7 +733,6 @@
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.375rem;
-  color: var(--header-primary);
   display: inline;
   vertical-align: baseline;
   position: relative;
