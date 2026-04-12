@@ -243,9 +243,9 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 	}
 
 	for i, prize := range prizes {
-		_, ok := wonPrizes[prize.Title]
+		count, ok := wonPrizes[prize.Title]
 		if ok {
-			prizes[i].Count -= prizes[i].Count
+			prizes[i].Count -= count
 		}
 	}
 
