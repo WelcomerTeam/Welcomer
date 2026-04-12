@@ -156,6 +156,11 @@ const routes = [
             path: "timeroles",
             component: () => import("@/pages/dashboard/roles/Timeroles.vue"),
           },
+          {
+            name: "dashboard.guild.giveaways",
+            path: "giveaways",
+            component: () => import("@/pages/dashboard/engagement/Giveaways.vue"),
+          },
 
           {
             path: "example",

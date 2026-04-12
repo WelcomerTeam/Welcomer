@@ -24,7 +24,7 @@
               also receive the rules in their direct
               messages.</form-value>
 
-            <form-value title="Rules" :type="FormTypeBlank" :hide-border="true" :validation="v$.rules">
+            <form-value title="Rules" :type="FormTypeBlank" :validation="v$.rules">
               <table class="min-w-full border-spacing-2">
                 <tbody class="divide-y divide-gray-200 dark:divide-secondary-light">
                   <tr v-for="(rule, index) in this.rules" :key="index" :class="[

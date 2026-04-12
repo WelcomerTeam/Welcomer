@@ -259,6 +259,10 @@ const features = [
     name: "FreeRoles",
     description: "Allow users to easily give and remove certain roles from themselves through a command.",
   },
+  {
+    name: "Giveaways",
+    description: "Create giveaways for your users to enter and win prizes, with a variety of customisations.",
+  },
   // InviteRoles
   {
     name: "Leaver",

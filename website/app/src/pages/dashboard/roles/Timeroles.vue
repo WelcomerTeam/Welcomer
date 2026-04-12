@@ -17,7 +17,7 @@
             <form-value title="Enable TimeRoles" :type="FormTypeToggle" v-model="config.enabled"
                         @update:modelValue="onValueUpdate" :validation="v$.enabled">TimeRoles allow you to reward users for being in your server for a period of time, by giving them roles.</form-value>
 
-            <form-value title="Roles" :type="FormTypeBlank" :hide-border="true" :validation="v$.roles">
+            <form-value title="Roles" :type="FormTypeBlank" :validation="v$.roles">
               <role-table-time-roles :roles="$store.getters.getAssignableGuildRoles" :selectedRoles="config.roles"
                                      @removeRole="onRemoveRole" @selectRole="onSelectRole" @updateRole="onUpdateRole"></role-table-time-roles>
             </form-value>
