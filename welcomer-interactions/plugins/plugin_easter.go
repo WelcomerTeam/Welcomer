@@ -739,8 +739,8 @@ func getRandomEgg() EasterEgg {
 		randomNum -= egg.Rarity
 	}
 
-	// This should never happen, but return the first egg just in case.
-	return EasterEggs[0]
+	// This should never happen, but return the last egg just in case.
+	return EasterEggs[len(EasterEggs)-1]
 }
 
 func getEggByID(id string) (EasterEgg, bool) {
