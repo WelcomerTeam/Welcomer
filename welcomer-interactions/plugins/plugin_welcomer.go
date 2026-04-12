@@ -647,7 +647,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 
 		ArgumentParameter: []subway.ArgumentParameter{
 			{
-				Required:     false,
+				Required:     true,
 				ArgumentType: subway.ArgumentTypeTextChannel,
 				Name:         "channel",
 				Description:  "The channel you would like to send the welcome message to.",
@@ -679,11 +679,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				if !channel.ID.IsNil() {
-					guildSettingsWelcomerText.Channel = int64(channel.ID)
-				} else {
-					guildSettingsWelcomerText.Channel = 0
-				}
+				guildSettingsWelcomerText.Channel = int64(channel.ID)
 
 				err = welcomer.RetryWithFallback(
 					func() error {
@@ -709,21 +705,12 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					return nil, err
 				}
 
-				if !channel.ID.IsNil() {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Set welcomer channel to: <#"+channel.ID.String()+">.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				} else {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Removed welcomer channel. Welcomer text and image features will not work, if they are enabled.", welcomer.EmbedColourWarn),
-						},
-					}, nil
-				}
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed("Set welcomer channel to: <#"+channel.ID.String()+">.  Run `/welcomer test` to see the message that is sent.", welcomer.EmbedColourSuccess),
+					},
+				}, nil
 			})
 		},
 	})

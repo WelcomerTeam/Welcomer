@@ -94,7 +94,7 @@ func main() {
 				case eventsChannel <- msg.Data():
 				default:
 					welcomer.Logger.Warn().Msg("Channel is full!")
-
+					eventsChannel <- msg.Data()
 				}
 			}, jetstream.ConsumeErrHandler(func(consumeCtx jetstream.ConsumeContext, err error) {
 				welcomer.Logger.Warn().Err(err).Msg("Error consuming jetstream message. Attempting to reconnect...")

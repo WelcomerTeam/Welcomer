@@ -64,6 +64,61 @@ func (q *Queries) CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) 
 	return &i, err
 }
 
+const GetExpiredGiveaways = `-- name: GetExpiredGiveaways :many
+SELECT
+    giveaway_uuid, created_at, guild_id, created_by, allow_entries, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, show_prizes, show_entries
+FROM
+    guild_giveaways
+WHERE
+    has_ended = FALSE
+    AND is_setup = FALSE
+    AND end_time <= NOW()
+    AND end_time > 'epoch'
+`
+
+func (q *Queries) GetExpiredGiveaways(ctx context.Context) ([]*GuildGiveaways, error) {
+	rows, err := q.db.Query(ctx, GetExpiredGiveaways)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GuildGiveaways{}
+	for rows.Next() {
+		var i GuildGiveaways
+		if err := rows.Scan(
+			&i.GiveawayUuid,
+			&i.CreatedAt,
+			&i.GuildID,
+			&i.CreatedBy,
+			&i.AllowEntries,
+			&i.HasEnded,
+			&i.IsSetup,
+			&i.Title,
+			&i.Description,
+			&i.AccentColour,
+			&i.ImageUrl,
+			&i.StartTime,
+			&i.EndTime,
+			&i.AnnounceWinners,
+			&i.GiveawayPrizes,
+			&i.RolesAllowed,
+			&i.RolesExcluded,
+			&i.MinimumJoinDate,
+			&i.MessageID,
+			&i.ChannelID,
+			&i.ShowPrizes,
+			&i.ShowEntries,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetGiveaway = `-- name: GetGiveaway :one
 SELECT
     giveaway_uuid, created_at, guild_id, created_by, allow_entries, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, show_prizes, show_entries

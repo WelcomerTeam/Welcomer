@@ -68,3 +68,14 @@ WHERE
     giveaway_uuid = $1
 RETURNING
     *;
+
+-- name: GetExpiredGiveaways :many
+SELECT
+    *
+FROM
+    guild_giveaways
+WHERE
+    has_ended = FALSE
+    AND is_setup = FALSE
+    AND end_time <= NOW()
+    AND end_time > 'epoch';

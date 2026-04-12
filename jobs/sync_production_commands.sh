@@ -1,0 +1,1 @@
+export ENVIRONMENT="production-outside-docker"; go run sync-interaction-commands.go
