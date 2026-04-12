@@ -161,6 +161,16 @@ const navigation = [
       },
     ],
   },
+  {
+    items: [
+      {
+        name: "Giveaways",
+        linkname: "dashboard.guild.giveaways",
+        icon: "fa-gift",
+        headline: "New"
+      },
+    ],
+  }
   // {
   //   items: [
   //     {
