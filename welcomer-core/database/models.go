@@ -91,7 +91,6 @@ type GuildGiveaways struct {
 	CreatedAt       time.Time    `json:"created_at"`
 	GuildID         int64        `json:"guild_id"`
 	CreatedBy       int64        `json:"created_by"`
-	AllowEntries    bool         `json:"allow_entries"`
 	HasEnded        bool         `json:"has_ended"`
 	IsSetup         bool         `json:"is_setup"`
 	Title           string       `json:"title"`
@@ -100,15 +99,16 @@ type GuildGiveaways struct {
 	ImageUrl        string       `json:"image_url"`
 	StartTime       time.Time    `json:"start_time"`
 	EndTime         time.Time    `json:"end_time"`
-	AnnounceWinners bool         `json:"announce_winners"`
 	GiveawayPrizes  pgtype.JSONB `json:"giveaway_prizes"`
+	AllowEntries    bool         `json:"allow_entries"`
+	AnnounceWinners bool         `json:"announce_winners"`
+	ShowPrizes      bool         `json:"show_prizes"`
+	ShowEntries     bool         `json:"show_entries"`
 	RolesAllowed    pgtype.JSONB `json:"roles_allowed"`
 	RolesExcluded   pgtype.JSONB `json:"roles_excluded"`
 	MinimumJoinDate time.Time    `json:"minimum_join_date"`
 	MessageID       int64        `json:"message_id"`
 	ChannelID       int64        `json:"channel_id"`
-	ShowPrizes      bool         `json:"show_prizes"`
-	ShowEntries     bool         `json:"show_entries"`
 }
 
 type GuildGiveawaysEntries struct {
@@ -141,6 +141,39 @@ type GuildMessageCountsHour struct {
 	UserID       int64     `json:"user_id"`
 	MessageCount int32     `json:"message_count"`
 	MinTs        time.Time `json:"min_ts"`
+}
+
+type GuildPolls struct {
+	PollUuid          uuid.UUID    `json:"poll_uuid"`
+	CreatedAt         time.Time    `json:"created_at"`
+	GuildID           int64        `json:"guild_id"`
+	CreatedBy         int64        `json:"created_by"`
+	HasEnded          bool         `json:"has_ended"`
+	IsSetup           bool         `json:"is_setup"`
+	Title             string       `json:"title"`
+	Description       string       `json:"description"`
+	AccentColour      int64        `json:"accent_colour"`
+	ImageUrl          string       `json:"image_url"`
+	StartTime         time.Time    `json:"start_time"`
+	EndTime           time.Time    `json:"end_time"`
+	PollOptions       pgtype.JSONB `json:"poll_options"`
+	IsAnonymous       bool         `json:"is_anonymous"`
+	MaximumSelections int32        `json:"maximum_selections"`
+	Resubmissions     string       `json:"resubmissions"`
+	ResultsVisibility string       `json:"results_visibility"`
+	RolesAllowed      pgtype.JSONB `json:"roles_allowed"`
+	RolesExcluded     pgtype.JSONB `json:"roles_excluded"`
+	MinimumJoinDate   time.Time    `json:"minimum_join_date"`
+	MessageID         int64        `json:"message_id"`
+	ChannelID         int64        `json:"channel_id"`
+}
+
+type GuildPollsEntries struct {
+	GuildPollEntryUuid uuid.UUID `json:"guild_poll_entry_uuid"`
+	PollUuid           uuid.UUID `json:"poll_uuid"`
+	UserID             int64     `json:"user_id"`
+	OptionIndex        int32     `json:"option_index"`
+	CreatedAt          time.Time `json:"created_at"`
 }
 
 type GuildSettingsAutoroles struct {

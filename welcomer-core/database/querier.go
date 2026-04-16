@@ -16,8 +16,10 @@ import (
 type Querier interface {
 	AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) (uuid.UUID, error)
 	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
+	AddPollEntry(ctx context.Context, arg AddPollEntryParams) (uuid.UUID, error)
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
 	CountGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID) (int32, error)
+	CountPollEntriesByUniqueUsers(ctx context.Context, pollUuid uuid.UUID) (int32, error)
 	CreateAutoRolesGuildSettings(ctx context.Context, arg CreateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
 	CreateBorderwallRequest(ctx context.Context, arg CreateBorderwallRequestParams) (*BorderwallRequests, error)
@@ -56,6 +58,7 @@ type Querier interface {
 	CreateOrUpdateWelcomerImagesGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerImagesGuildSettingsParams) (*GuildSettingsWelcomerImages, error)
 	CreateOrUpdateWelcomerTextGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error)
 	CreatePatreonUser(ctx context.Context, arg CreatePatreonUserParams) (*PatreonUsers, error)
+	CreatePoll(ctx context.Context, arg CreatePollParams) (*GuildPolls, error)
 	CreateRulesGuildSettings(ctx context.Context, arg CreateRulesGuildSettingsParams) (*GuildSettingsRules, error)
 	CreateScienceEvent(ctx context.Context, arg CreateScienceEventParams) (*ScienceEvents, error)
 	CreateScienceGuildEvent(ctx context.Context, arg CreateScienceGuildEventParams) (*ScienceGuildEvents, error)
@@ -97,6 +100,7 @@ type Querier interface {
 	GetDiscordSubscriptionsByUserID(ctx context.Context, userID int64) ([]*DiscordSubscriptions, error)
 	GetEasterEggsByUserID(ctx context.Context, userID int64) ([]*GetEasterEggsByUserIDRow, error)
 	GetExpiredGiveaways(ctx context.Context) ([]*GuildGiveaways, error)
+	GetExpiredPolls(ctx context.Context) ([]*GuildPolls, error)
 	GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExpiredWelcomeMessageEventsParams) ([]*GetExpiredWelcomeMessageEventsRow, error)
 	GetExpiringUserMemberships(ctx context.Context, status int32) ([]*UserMemberships, error)
 	GetFreeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsFreeroles, error)
@@ -120,6 +124,12 @@ type Querier interface {
 	GetPatreonUsersByUserID(ctx context.Context, userID int64) ([]*PatreonUsers, error)
 	GetPaypalSubscriptionBySubscriptionID(ctx context.Context, subscriptionID string) (*PaypalSubscriptions, error)
 	GetPaypalSubscriptionsByUserID(ctx context.Context, userID int64) ([]*PaypalSubscriptions, error)
+	GetPoll(ctx context.Context, arg GetPollParams) (*GuildPolls, error)
+	GetPollEntries(ctx context.Context, pollUuid uuid.UUID) ([]*GuildPollsEntries, error)
+	GetPollEntriesForUser(ctx context.Context, arg GetPollEntriesForUserParams) ([]*GuildPollsEntries, error)
+	GetPollEntriesFromMessageID(ctx context.Context, arg GetPollEntriesFromMessageIDParams) ([]*GetPollEntriesFromMessageIDRow, error)
+	GetPollEntryUsers(ctx context.Context, pollUuid uuid.UUID) ([]int64, error)
+	GetPollFromMessageID(ctx context.Context, arg GetPollFromMessageIDParams) (*GuildPolls, error)
 	GetReactionRoleSettingByGuildId(ctx context.Context, guildID int64) ([]*GuildSettingsReactionRoles, error)
 	GetReactionRoleSettingById(ctx context.Context, arg GetReactionRoleSettingByIdParams) (*GuildSettingsReactionRoles, error)
 	GetReactionRoleSettingByMessageId(ctx context.Context, arg GetReactionRoleSettingByMessageIdParams) (*GuildSettingsReactionRoles, error)
@@ -152,9 +162,11 @@ type Querier interface {
 	InsertEasterEgg(ctx context.Context, arg InsertEasterEggParams) (uuid.UUID, error)
 	RemoveGiveawayEntry(ctx context.Context, arg RemoveGiveawayEntryParams) error
 	RemoveGuildFeature(ctx context.Context, arg RemoveGuildFeatureParams) error
+	RemovePollEntriesNotMatching(ctx context.Context, arg RemovePollEntriesNotMatchingParams) error
 	RemoveWelcomerArtifact(ctx context.Context, arg RemoveWelcomerArtifactParams) (int64, error)
 	SetGiveawayEnded(ctx context.Context, arg SetGiveawayEndedParams) (*GuildGiveaways, error)
 	SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error)
+	SetPollEnded(ctx context.Context, arg SetPollEndedParams) (*GuildPolls, error)
 	UpdateAutoRolesGuildSettings(ctx context.Context, arg UpdateAutoRolesGuildSettingsParams) (int64, error)
 	UpdateBorderwallGuildSettings(ctx context.Context, arg UpdateBorderwallGuildSettingsParams) (int64, error)
 	UpdateBorderwallRequest(ctx context.Context, arg UpdateBorderwallRequestParams) (int64, error)
@@ -170,6 +182,8 @@ type Querier interface {
 	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
+	UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildPolls, error)
+	UpdatePollMessage(ctx context.Context, arg UpdatePollMessageParams) (*GuildPolls, error)
 	UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (int64, error)
 	UpdateRuleGuildSettings(ctx context.Context, arg UpdateRuleGuildSettingsParams) (int64, error)
 	UpdateTempChannelsGuildSettings(ctx context.Context, arg UpdateTempChannelsGuildSettingsParams) (int64, error)

@@ -77,7 +77,7 @@ func (q *Queries) GetGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID
 
 const GetGiveawayEntryFromMessageID = `-- name: GetGiveawayEntryFromMessageID :one
 SELECT
-    guild_giveaway_entry_uuid, guild_giveaways_entries.giveaway_uuid, user_id, guild_giveaways_entries.created_at, guild_giveaways.giveaway_uuid, guild_giveaways.created_at, guild_id, created_by, allow_entries, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, show_prizes, show_entries
+    guild_giveaway_entry_uuid, guild_giveaways_entries.giveaway_uuid, user_id, guild_giveaways_entries.created_at, guild_giveaways.giveaway_uuid, guild_giveaways.created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, giveaway_prizes, allow_entries, announce_winners, show_prizes, show_entries, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 FROM
     guild_giveaways_entries
     JOIN guild_giveaways ON guild_giveaways.giveaway_uuid = guild_giveaways_entries.giveaway_uuid
@@ -102,7 +102,6 @@ type GetGiveawayEntryFromMessageIDRow struct {
 	CreatedAt_2            time.Time    `json:"created_at_2"`
 	GuildID                int64        `json:"guild_id"`
 	CreatedBy              int64        `json:"created_by"`
-	AllowEntries           bool         `json:"allow_entries"`
 	HasEnded               bool         `json:"has_ended"`
 	IsSetup                bool         `json:"is_setup"`
 	Title                  string       `json:"title"`
@@ -111,15 +110,16 @@ type GetGiveawayEntryFromMessageIDRow struct {
 	ImageUrl               string       `json:"image_url"`
 	StartTime              time.Time    `json:"start_time"`
 	EndTime                time.Time    `json:"end_time"`
-	AnnounceWinners        bool         `json:"announce_winners"`
 	GiveawayPrizes         pgtype.JSONB `json:"giveaway_prizes"`
+	AllowEntries           bool         `json:"allow_entries"`
+	AnnounceWinners        bool         `json:"announce_winners"`
+	ShowPrizes             bool         `json:"show_prizes"`
+	ShowEntries            bool         `json:"show_entries"`
 	RolesAllowed           pgtype.JSONB `json:"roles_allowed"`
 	RolesExcluded          pgtype.JSONB `json:"roles_excluded"`
 	MinimumJoinDate        time.Time    `json:"minimum_join_date"`
 	MessageID              int64        `json:"message_id"`
 	ChannelID              int64        `json:"channel_id"`
-	ShowPrizes             bool         `json:"show_prizes"`
-	ShowEntries            bool         `json:"show_entries"`
 }
 
 func (q *Queries) GetGiveawayEntryFromMessageID(ctx context.Context, arg GetGiveawayEntryFromMessageIDParams) (*GetGiveawayEntryFromMessageIDRow, error) {
@@ -134,7 +134,6 @@ func (q *Queries) GetGiveawayEntryFromMessageID(ctx context.Context, arg GetGive
 		&i.CreatedAt_2,
 		&i.GuildID,
 		&i.CreatedBy,
-		&i.AllowEntries,
 		&i.HasEnded,
 		&i.IsSetup,
 		&i.Title,
@@ -143,15 +142,16 @@ func (q *Queries) GetGiveawayEntryFromMessageID(ctx context.Context, arg GetGive
 		&i.ImageUrl,
 		&i.StartTime,
 		&i.EndTime,
-		&i.AnnounceWinners,
 		&i.GiveawayPrizes,
+		&i.AllowEntries,
+		&i.AnnounceWinners,
+		&i.ShowPrizes,
+		&i.ShowEntries,
 		&i.RolesAllowed,
 		&i.RolesExcluded,
 		&i.MinimumJoinDate,
 		&i.MessageID,
 		&i.ChannelID,
-		&i.ShowPrizes,
-		&i.ShowEntries,
 	)
 	return &i, err
 }
