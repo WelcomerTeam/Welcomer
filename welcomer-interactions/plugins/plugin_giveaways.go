@@ -1468,7 +1468,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 						Components: []discord.InteractionComponent{
 							{
 								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "Your giveaway has now started!\n\nYou can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".",
+								Content: "Your giveaway has now started!\n\nYou can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".\n\n-# How was your experience? Let us know in our feedback channel: https://discord.gg/t2Ye8jBfPh",
 							},
 							{
 								Type: discord.InteractionComponentTypeMediaGallery,
