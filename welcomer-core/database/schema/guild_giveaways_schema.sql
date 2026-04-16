@@ -4,24 +4,33 @@ CREATE TABLE IF NOT EXISTS guild_giveaways (
     guild_id bigint NOT NULL,
     created_by bigint NOT NULL,
 
-    allow_entries boolean NOT NULL,
+
     has_ended boolean NOT NULL,
     is_setup boolean NOT NULL,
+
     title text NOT NULL,
     description text NOT NULL,
     accent_colour bigint NOT NULL,
     image_url text NOT NULL,
+
     start_time timestamp NOT NULL,
     end_time timestamp NOT NULL,
-    announce_winners boolean NOT NULL,
+
     giveaway_prizes jsonb NOT NULL,
+
+    -- message configuration
+    allow_entries boolean NOT NULL,
+    announce_winners boolean NOT NULL,
+    show_prizes boolean NOT NULL,
+    show_entries boolean NOT NULL,
+
+    -- eligibility configuration
     roles_allowed jsonb NOT NULL,
     roles_excluded jsonb NOT NULL,
     minimum_join_date timestamp NOT NULL,
+
     message_id bigint NOT NULL,
     channel_id bigint NOT NULL,
-    show_prizes boolean NOT NULL,
-    show_entries boolean NOT NULL,
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
