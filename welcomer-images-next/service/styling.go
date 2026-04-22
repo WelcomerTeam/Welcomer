@@ -180,7 +180,14 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 	}
 
 	if value[0] == '#' {
-		return value
+		// Cut string to up to 9 characters and prevent non-hex characters.
+
+		i := 1
+		for i < 9 && ((value[i] >= '0' && value[i] <= '9') || (value[i] >= 'a' && value[i] <= 'f') || (value[i] >= 'A' && value[i] <= 'F')) {
+			i++
+		}
+
+		return value[:i]
 	}
 
 	if value == "solid:profile" {
