@@ -7,6 +7,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -199,14 +200,35 @@ func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx context.Context, par
 		old.CustomBuilderData = SetupJSONB(old.CustomBuilderData)
 	}
 
-	params.CustomBuilderData = SetupJSONB(params.CustomBuilderData)
-
 	newRow, err := Queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
+
+	return newRow, nil
+}
+
+func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context, guildID discord.Snowflake, useCustomBuilder bool, customBuilderData pgtype.JSONB, actor discord.Snowflake) (*database.GuildSettingsWelcomerImages, error) {
+	var old database.GuildSettingsWelcomerImages
+	if existing, err := Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID)); err == nil {
+		old = *existing
+		old.CustomBuilderData = SetupJSONB(old.CustomBuilderData)
+	}
+
+	customBuilderDataJSONB := SetupJSONB(customBuilderData)
+
+	newRow, err := Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+		GuildID:           int64(guildID),
+		UseCustomBuilder:  useCustomBuilder,
+		CustomBuilderData: customBuilderDataJSONB,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
 
 	return newRow, nil
 }

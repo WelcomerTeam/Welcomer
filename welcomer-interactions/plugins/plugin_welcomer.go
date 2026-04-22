@@ -355,8 +355,6 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					ImageTheme:             guildSettingsWelcomerImages.ImageTheme,
 					ImageMessage:           guildSettingsWelcomerImages.ImageMessage,
 					ImageProfileBorderType: guildSettingsWelcomerImages.ImageProfileBorderType,
-					UseCustomBuilder:       guildSettingsWelcomerImages.UseCustomBuilder,
-					CustomBuilderData:      guildSettingsWelcomerImages.CustomBuilderData,
 				}, interaction.GetUser().ID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
@@ -500,6 +498,8 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 							ImageTheme:             welcomer.DefaultWelcomerImages.ImageTheme,
 							ImageMessage:           welcomer.DefaultWelcomerImages.ImageMessage,
 							ImageProfileBorderType: welcomer.DefaultWelcomerImages.ImageProfileBorderType,
+							UseCustomBuilder:       welcomer.DefaultWelcomerImages.UseCustomBuilder,
+							CustomBuilderData:      welcomer.DefaultWelcomerImages.CustomBuilderData,
 						}
 					} else {
 						welcomer.Logger.Error().Err(err).

@@ -381,7 +381,21 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				return
 			}
 
-			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
+			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				GuildID:                welcomerImages.GuildID,
+				ToggleEnabled:          welcomerImages.ToggleEnabled,
+				ToggleImageBorder:      welcomerImages.ToggleImageBorder,
+				ToggleShowAvatar:       welcomerImages.ToggleShowAvatar,
+				BackgroundName:         welcomerImages.BackgroundName,
+				ColourText:             welcomerImages.ColourText,
+				ColourTextBorder:       welcomerImages.ColourTextBorder,
+				ColourImageBorder:      welcomerImages.ColourImageBorder,
+				ColourProfileBorder:    welcomerImages.ColourProfileBorder,
+				ImageAlignment:         welcomerImages.ImageAlignment,
+				ImageTheme:             welcomerImages.ImageTheme,
+				ImageMessage:           welcomerImages.ImageMessage,
+				ImageProfileBorderType: welcomerImages.ImageProfileBorderType,
+			})
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")
 
@@ -678,7 +692,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			welcomerImages.UseCustomBuilder = partial.UseCustomBuilder
 			welcomerImages.CustomBuilderData = welcomer.StringToJSONB(partial.CustomBuilderData)
 
-			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages), tryGetUser(ctx).ID)
+			_, err = welcomer.UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx, discord.Snowflake(guildID), partial.UseCustomBuilder, welcomerImages.CustomBuilderData, tryGetUser(ctx).ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild welcomer images settings")
 
