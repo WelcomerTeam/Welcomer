@@ -797,7 +797,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 	}, nil
 }
 
-func hasAnyRoles(roleList []discord.Snowflake, userRoles []discord.Snowflake) bool {
+func hasAnyRoles(roleList, userRoles []discord.Snowflake) bool {
 	for _, role := range roleList {
 		if slices.Contains(userRoles, role) {
 			return true
