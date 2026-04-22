@@ -118,7 +118,7 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 						return err
 					},
 					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
+						return welcomer.EnsureGuild(ctx, *interaction.GuildID)
 					},
 					nil,
 				)
@@ -802,7 +802,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 	}, nil
 }
 
-func hasAnyRoles(roleList []discord.Snowflake, userRoles []discord.Snowflake) bool {
+func hasAnyRoles(roleList, userRoles []discord.Snowflake) bool {
 	for _, role := range roleList {
 		if slices.Contains(userRoles, role) {
 			return true
@@ -1516,20 +1516,14 @@ func joinRolesList(roles []discord.Snowflake) string {
 }
 
 func getGiveawayPrizesAsString(giveawayPrizes []welcomer.GiveawayPrize) string {
-	result := "**Prizes:**\n"
-
 	if len(giveawayPrizes) == 0 {
-		result += "No Prizes Configured"
-
-		return result
+		return "No Prizes Configured"
 	}
 
-	for i, prize := range giveawayPrizes {
-		result += fmt.Sprintf("**%d** x **%s**", prize.Count, prize.Title)
+	result := ""
 
-		if i < len(giveawayPrizes)-1 {
-			result += "\n"
-		}
+	for _, prize := range giveawayPrizes {
+		result += fmt.Sprintf("**%d** x **%s**\n", prize.Count, prize.Title)
 	}
 
 	return result
@@ -1565,7 +1559,7 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 			},
 			{
 				Type:    discord.InteractionComponentTypeTextDisplay,
-				Content: getGiveawayPrizesAsString(giveawayPrizes),
+				Content: "**Prizes:**\n" + getGiveawayPrizesAsString(giveawayPrizes),
 			},
 		}...)
 	}
@@ -1798,7 +1792,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: getGiveawayPrizesAsString(giveawayPrizes),
+					Content: "**Prizes:**\n" + getGiveawayPrizesAsString(giveawayPrizes),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1817,7 +1811,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Duration**:\n" + welcomer.If(giveaway.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "No end time (runs indefinitely)") +
-						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually with `/giveaway end`.", ""),
+						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1837,7 +1831,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Announce Winners**:\n" +
 						welcomer.If(giveaway.AnnounceWinners, "True", "False") +
-						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be announced. You can use `/giveaway export` to get a list of entries and select winners manually.", ""),
+						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be announced.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1886,7 +1880,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 		},
 	}...)
 
-	message := discord.WebhookMessageParams{
+	return discord.WebhookMessageParams{
 		Flags: discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2,
 		Components: []discord.InteractionComponent{
 			{
@@ -1914,8 +1908,6 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			},
 		},
 	}
-
-	return message
 }
 
 func parsePrizesFromString(prizesString string) []welcomer.GiveawayPrize {

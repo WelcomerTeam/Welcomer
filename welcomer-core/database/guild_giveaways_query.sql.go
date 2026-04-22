@@ -15,27 +15,19 @@ import (
 
 const CreateGiveaway = `-- name: CreateGiveaway :one
 INSERT INTO guild_giveaways (giveaway_uuid, created_at, guild_id, created_by, allow_entries, has_ended, is_setup, title, description, end_time, start_time, announce_winners, giveaway_prizes, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id, accent_colour, image_url, show_prizes, show_entries)
-VALUES (uuid_generate_v7(), NOW(), $1, $2, TRUE, FALSE, TRUE, $3, $4, $5, NOW(), TRUE, '[]', '[]', '[]', 'epoch', 0, 0, -1, '', TRUE, TRUE)
+VALUES (uuid_generate_v7(), NOW(), $1, $2, TRUE, FALSE, TRUE, '', '', $3, NOW(), TRUE, '[]', '[]', '[]', 'epoch', 0, 0, -1, '', TRUE, TRUE)
 RETURNING
     giveaway_uuid, created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, giveaway_prizes, allow_entries, announce_winners, show_prizes, show_entries, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 `
 
 type CreateGiveawayParams struct {
-	GuildID     int64     `json:"guild_id"`
-	CreatedBy   int64     `json:"created_by"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	EndTime     time.Time `json:"end_time"`
+	GuildID   int64     `json:"guild_id"`
+	CreatedBy int64     `json:"created_by"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 func (q *Queries) CreateGiveaway(ctx context.Context, arg CreateGiveawayParams) (*GuildGiveaways, error) {
-	row := q.db.QueryRow(ctx, CreateGiveaway,
-		arg.GuildID,
-		arg.CreatedBy,
-		arg.Title,
-		arg.Description,
-		arg.EndTime,
-	)
+	row := q.db.QueryRow(ctx, CreateGiveaway, arg.GuildID, arg.CreatedBy, arg.EndTime)
 	var i GuildGiveaways
 	err := row.Scan(
 		&i.GiveawayUuid,
