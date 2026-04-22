@@ -50,8 +50,6 @@ func urlContainsPathEscape(endpoint string) (bool, error) {
 		return false, fmt.Errorf("failed to unescape url: %w", err)
 	}
 
-	println(escapedURL)
-
 	return strings.Contains(escapedURL, "/../") || strings.Contains(escapedURL, "/./") || strings.HasSuffix(escapedURL, "/..") || strings.HasSuffix(escapedURL, "/."), nil
 }
 

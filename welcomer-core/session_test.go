@@ -72,10 +72,10 @@ func TestURLContainsPathEscape_DetectionPatterns(t *testing.T) {
 			t.Parallel()
 
 			got, err := urlContainsPathEscape(tt.endpoint)
-			println(tt.endpoint, got)
 			if err != nil {
 				t.Fatalf("urlContainsPathEscape(%q) unexpected error: %v", tt.endpoint, err)
 			}
+
 			if got != tt.want {
 				t.Fatalf("urlContainsPathEscape(%q) = %v, want %v", tt.endpoint, got, tt.want)
 			}
