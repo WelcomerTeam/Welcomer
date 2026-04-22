@@ -107,7 +107,9 @@ func callback(ctx *gin.Context) {
 	}
 
 	queryPath, ok := GetPreviousPathSession(session)
-	if !ok || !strings.HasPrefix(queryPath, "/") {
+
+	// Prevent open redirection and same protocol redirection.
+	if !ok || !strings.HasPrefix(queryPath, "/") || strings.HasPrefix(queryPath, "//") {
 		queryPath = "/"
 	}
 
