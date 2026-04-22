@@ -39,9 +39,9 @@ func TestGetFillAsCSS(t *testing.T) {
 		},
 		{
 			name:         "hex value stops at first non-hex character",
-			value:        "#12gh",
+			value:        "#123gh",
 			defaultValue: "fallback",
-			want:         "#12",
+			want:         "#123",
 		},
 		{
 			name:         "invalid ref value returns default",
@@ -64,6 +64,48 @@ func TestGetFillAsCSS(t *testing.T) {
 		{
 			name:         "unknown value returns default",
 			value:        "not-a-background",
+			defaultValue: "fallback",
+			want:         "fallback",
+		},
+		{
+			name:         "regular hex value is returned as-is",
+			value:        "#abc123",
+			defaultValue: "fallback",
+			want:         "#abc123",
+		},
+		{
+			name:         "rgba hex value is returned as-is",
+			value:        "#abc12345",
+			defaultValue: "fallback",
+			want:         "#abc12345",
+		},
+		{
+			name:         "short hex value is returned as-is",
+			value:        "#abc",
+			defaultValue: "fallback",
+			want:         "#abc",
+		},
+		{
+			name:         "just hash returns default",
+			value:        "#",
+			defaultValue: "fallback",
+			want:         "fallback",
+		},
+		{
+			name:         "invalid 2 length hex value returns default",
+			value:        "#12",
+			defaultValue: "fallback",
+			want:         "fallback",
+		},
+		{
+			name:         "invalid 4 length hex value returns default",
+			value:        "#1234",
+			defaultValue: "fallback",
+			want:         "fallback",
+		},
+		{
+			name:         "invalid 5 length hex value returns default",
+			value:        "#12345",
 			defaultValue: "fallback",
 			want:         "fallback",
 		},
