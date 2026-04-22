@@ -3,6 +3,7 @@ set -euo pipefail
 
 # run vet
 go vet sandwich/sandwich.go &&
+go vet welcomer-core/*.go &&
 go vet welcomer-backend/cmd/main.go &&
 go vet welcomer-gateway/cmd/main.go &&
 go vet welcomer-images-next/cmd/main.go &&

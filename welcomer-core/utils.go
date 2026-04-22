@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -39,6 +40,8 @@ const (
 
 	UserAgent = "WelcomerService (https://github.com/WelcomerTeam/Welcomer)"
 )
+
+var uuidRegex = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 func CompareStrings(query string, targets ...string) bool {
 	query = norm.NFKD.String(query)
@@ -323,6 +326,10 @@ func IsValidHostname(host string) bool {
 	}
 
 	return true
+}
+
+func IsValidUUID(u string) bool {
+	return uuidRegex.MatchString(u)
 }
 
 // ParseColour parses a colour and returns RGBA.

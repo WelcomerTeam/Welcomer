@@ -702,144 +702,141 @@ func isValidEmoji(emoji string) bool {
 
 // Validate reaction role settings.
 func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, partial *GuildSettingsReactionRoles) *welcomer.ErrorGroup {
-	eg := welcomer.NewErrorGroup()
+	errorGroup := welcomer.NewErrorGroup()
 
+	// Pre-validate emojis, even if reaction role is disabled.
 	for i, rr := range partial.ReactionRoles {
-		if !rr.Enabled {
+		for j, option := range rr.Roles {
+			if option.Emoji != "" && !isValidEmoji(option.Emoji) {
+				errorGroup.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
+			}
+		}
+	}
+
+	for reactionRoleIndex, reactionRole := range partial.ReactionRoles {
+		if !reactionRole.Enabled {
 			continue
 		}
 
-		if rr.ChannelID != 0 {
-			validGuild, err := welcomer.CheckChannelGuild(ctx, welcomer.SandwichClient, guildID, rr.ChannelID)
+		if reactionRole.ChannelID != 0 {
+			validGuild, err := welcomer.CheckChannelGuild(ctx, welcomer.SandwichClient, guildID, reactionRole.ChannelID)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(rr.ChannelID)).Msg("Failed to check channel guild for reaction role settings validation")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(reactionRole.ChannelID)).Msg("Failed to check channel guild for reaction role settings validation")
 
-				eg.Add(fmt.Errorf("reaction role %d: failed to validate channel ID: %v", i+1, err))
+				errorGroup.Add(fmt.Errorf("reaction role %d: failed to validate channel ID: %v", reactionRoleIndex+1, err))
 
 				continue
 			}
 
 			if !validGuild {
-				welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Int64("channel_id", int64(rr.ChannelID)).Msg("Channel ID does not belong to this guild for reaction role settings validation")
+				welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Int64("channel_id", int64(reactionRole.ChannelID)).Msg("Channel ID does not belong to this guild for reaction role settings validation")
 
-				eg.Add(fmt.Errorf("reaction role %d: channel ID does not belong to this guild", i+1))
+				errorGroup.Add(fmt.Errorf("reaction role %d: channel ID does not belong to this guild", reactionRoleIndex+1))
 
 				continue
 			}
 		}
 
-		if rr.IsSystemMessage {
-			if rr.ChannelID == 0 {
-				eg.Add(fmt.Errorf("reaction role %d: channel ID must be specified for system message reaction roles", i+1))
+		if reactionRole.IsSystemMessage {
+			if reactionRole.ChannelID == 0 {
+				errorGroup.Add(fmt.Errorf("reaction role %d: channel ID must be specified for system message reaction roles", reactionRoleIndex+1))
 			}
 
-			if rr.Message == "" {
-				eg.Add(fmt.Errorf("reaction role %d: message must be specified for system message reaction roles", i+1))
+			if reactionRole.Message == "" {
+				errorGroup.Add(fmt.Errorf("reaction role %d: message must be specified for system message reaction roles", reactionRoleIndex+1))
 			} else {
 				var messageParams discord.MessageParams
 
-				if err := json.Unmarshal([]byte(rr.Message), &messageParams); err != nil {
-					eg.Add(fmt.Errorf("reaction role %d: message must be a valid JSON object: %v", i+1, err))
+				if err := json.Unmarshal([]byte(reactionRole.Message), &messageParams); err != nil {
+					errorGroup.Add(fmt.Errorf("reaction role %d: message must be a valid JSON object: %v", reactionRoleIndex+1, err))
 				} else if welcomer.IsMessageParamsEmpty(messageParams) {
-					eg.Add(fmt.Errorf("reaction role %d: message cannot be empty for system message reaction roles", i+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: message cannot be empty for system message reaction roles", reactionRoleIndex+1))
 				}
 			}
 		} else {
-			if rr.ChannelID == 0 {
-				eg.Add(fmt.Errorf("reaction role %d: channel ID must be specified for non-system message reaction roles", i+1))
+			if reactionRole.ChannelID == 0 {
+				errorGroup.Add(fmt.Errorf("reaction role %d: channel ID must be specified for non-system message reaction roles", reactionRoleIndex+1))
 			}
 
-			if rr.MessageID == 0 {
-				eg.Add(fmt.Errorf("reaction role %d: message ID must be specified for non-system message reaction roles", i+1))
+			if reactionRole.MessageID == 0 {
+				errorGroup.Add(fmt.Errorf("reaction role %d: message ID must be specified for non-system message reaction roles", reactionRoleIndex+1))
 			}
 		}
 
-		if len(rr.Roles) == 0 {
-			eg.Add(fmt.Errorf("reaction role %d: at least one role option must be specified for enabled reaction roles", i+1))
+		if len(reactionRole.Roles) == 0 {
+			errorGroup.Add(fmt.Errorf("reaction role %d: at least one role option must be specified for enabled reaction roles", reactionRoleIndex+1))
 		}
 
-		switch rr.Type {
+		switch reactionRole.Type {
 		case welcomer.ReactionRoleTypeButtons:
-			if len(rr.Roles) > MaximumOptionsButtons {
-				eg.Add(fmt.Errorf("reaction role %d: cannot have more than %d options for buttons type", i+1, MaximumOptionsButtons))
+			if len(reactionRole.Roles) > MaximumOptionsButtons {
+				errorGroup.Add(fmt.Errorf("reaction role %d: cannot have more than %d options for buttons type", reactionRoleIndex+1, MaximumOptionsButtons))
 			}
 
-			for j, option := range rr.Roles {
+			for j, option := range reactionRole.Roles {
 				if option.Name == "" {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: name is required", i+1, j+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: option %d: name is required", reactionRoleIndex+1, j+1))
 				}
 
 				if len(option.Name) > 50 {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: name cannot be longer than 50 characters", i+1, j+1))
-				}
-
-				if option.Emoji != "" && !isValidEmoji(option.Emoji) {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: option %d: name cannot be longer than 50 characters", reactionRoleIndex+1, j+1))
 				}
 			}
 		case welcomer.ReactionRoleTypeDropdown:
-			if len(rr.Roles) > MaximumOptionsDropdown {
-				eg.Add(fmt.Errorf("reaction role %d: cannot have more than %d options for dropdown type", i+1, MaximumOptionsDropdown))
+			if len(reactionRole.Roles) > MaximumOptionsDropdown {
+				errorGroup.Add(fmt.Errorf("reaction role %d: cannot have more than %d options for dropdown type", reactionRoleIndex+1, MaximumOptionsDropdown))
 			}
 
-			for j, option := range rr.Roles {
+			for j, option := range reactionRole.Roles {
 				if option.Name == "" {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: name is required for dropdown type", i+1, j+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: option %d: name is required for dropdown type", reactionRoleIndex+1, j+1))
 				}
 
 				if len(option.Name) > 50 {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: name cannot be longer than 50 characters", i+1, j+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: option %d: name cannot be longer than 50 characters", reactionRoleIndex+1, j+1))
 				}
 
 				if option.Description != "" && len(option.Description) > 100 {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: description cannot be longer than 100 characters", i+1, j+1))
-				}
-
-				if option.Emoji != "" && !isValidEmoji(option.Emoji) {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: option %d: description cannot be longer than 100 characters", reactionRoleIndex+1, j+1))
 				}
 			}
 		case welcomer.ReactionRoleTypeEmoji:
-			if len(rr.Roles) > MaximumOptionsEmojis {
-				eg.Add(fmt.Errorf("reaction role %d: cannot have more than %d options for emoji type", i+1, MaximumOptionsEmojis))
+			if len(reactionRole.Roles) > MaximumOptionsEmojis {
+				errorGroup.Add(fmt.Errorf("reaction role %d: cannot have more than %d options for emoji type", reactionRoleIndex+1, MaximumOptionsEmojis))
 			}
 
-			for j, option := range rr.Roles {
+			for j, option := range reactionRole.Roles {
 				if option.Emoji == "" {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is required for emoji type", i+1, j+1))
+					errorGroup.Add(fmt.Errorf("reaction role %d: option %d: emoji is required for emoji type", reactionRoleIndex+1, j+1))
 				}
 
 				// Check for duplicate emojis
-				for k := j + 1; k < len(rr.Roles); k++ {
-					if option.Emoji == rr.Roles[k].Emoji {
-						eg.Add(fmt.Errorf("reaction role %d: option %d: emoji has already been used", i+1, k))
+				for k := j + 1; k < len(reactionRole.Roles); k++ {
+					if option.Emoji == reactionRole.Roles[k].Emoji {
+						errorGroup.Add(fmt.Errorf("reaction role %d: option %d: emoji has already been used", reactionRoleIndex+1, k))
 						break
 					}
 				}
-
-				if option.Emoji != "" && !isValidEmoji(option.Emoji) {
-					eg.Add(fmt.Errorf("reaction role %d: option %d: emoji is not a valid unicode emoji or custom emoji ID", i+1, j+1))
-				}
 			}
 		default:
-			eg.Add(fmt.Errorf("reaction role %d: invalid reaction role type", i+1))
+			errorGroup.Add(fmt.Errorf("reaction role %d: invalid reaction role type", reactionRoleIndex+1))
 		}
 
 		// Check for duplicate roles
-		for i, option := range rr.Roles {
-			for j := i + 1; j < len(rr.Roles); j++ {
-				if option.RoleID == rr.Roles[j].RoleID {
-					eg.Add(fmt.Errorf("reaction role %d: options %d and %d: duplicate option name '%s'", i+1, i+1, j+1, option.Name))
+		for i, option := range reactionRole.Roles {
+			for j := i + 1; j < len(reactionRole.Roles); j++ {
+				if option.RoleID == reactionRole.Roles[j].RoleID {
+					errorGroup.Add(fmt.Errorf("reaction role %d: options %d and %d: duplicate option name '%s'", i+1, i+1, j+1, option.Name))
 				}
 			}
 		}
 	}
 
-	if eg.Empty() {
+	if errorGroup.Empty() {
 		return nil
 	}
 
-	return eg
+	return errorGroup
 }
 
 func registerGuildSettingsReactionRolesRoutes(g *gin.Engine) {
