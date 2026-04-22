@@ -1,6 +1,6 @@
 -- name: CreatePoll :one
 INSERT INTO guild_polls (poll_uuid, created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id)
-VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, TRUE, $3, $4, $5, $6, NOW(), NOW(), '[]', FALSE, 1, 'none', 'always', '[]', '[]', 'epoch', 0, 0)
+VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, TRUE, '', '', -1, '', NOW(), $3, '[]', FALSE, 1, $4, $5, '[]', '[]', 'epoch', 0, 0)
 RETURNING
     *;
 

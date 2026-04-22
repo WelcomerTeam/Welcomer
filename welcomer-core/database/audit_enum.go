@@ -55,11 +55,13 @@ const (
 	AuditTypeGuildSettingsReactionroles
 	// AuditTypeGiveaways is a AuditType of type Giveaways.
 	AuditTypeGiveaways
+	// AuditTypePolls is a AuditType of type Polls.
+	AuditTypePolls
 )
 
 var ErrInvalidAuditType = errors.New("not a valid AuditType")
 
-const _AuditTypeName = "unknownborderwall_requestscustom_botsguild_settings_autorolesguild_settings_borderwallguild_settings_freerolesguild_settings_leaverguild_settings_rulesguild_settings_tempchannelsguild_settings_timerolesguild_settings_welcomerguild_settings_welcomer_dmsguild_settings_welcomer_imagesguild_settings_welcomer_textguildsuserswelcomer_imagesguild_featuresbiobot_customisationguild_settings_reactionrolesgiveaways"
+const _AuditTypeName = "unknownborderwall_requestscustom_botsguild_settings_autorolesguild_settings_borderwallguild_settings_freerolesguild_settings_leaverguild_settings_rulesguild_settings_tempchannelsguild_settings_timerolesguild_settings_welcomerguild_settings_welcomer_dmsguild_settings_welcomer_imagesguild_settings_welcomer_textguildsuserswelcomer_imagesguild_featuresbiobot_customisationguild_settings_reactionrolesgiveawayspolls"
 
 var _AuditTypeMap = map[AuditType]string{
 	AuditTypeUnknown:                     _AuditTypeName[0:7],
@@ -84,6 +86,7 @@ var _AuditTypeMap = map[AuditType]string{
 	AuditTypeBotCustomisation:            _AuditTypeName[353:370],
 	AuditTypeGuildSettingsReactionroles:  _AuditTypeName[370:398],
 	AuditTypeGiveaways:                   _AuditTypeName[398:407],
+	AuditTypePolls:                       _AuditTypeName[407:412],
 }
 
 // String implements the Stringer interface.
@@ -124,6 +127,7 @@ var _AuditTypeValue = map[string]AuditType{
 	_AuditTypeName[353:370]: AuditTypeBotCustomisation,
 	_AuditTypeName[370:398]: AuditTypeGuildSettingsReactionroles,
 	_AuditTypeName[398:407]: AuditTypeGiveaways,
+	_AuditTypeName[407:412]: AuditTypePolls,
 }
 
 // ParseAuditType attempts to convert a string to a AuditType.

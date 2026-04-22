@@ -77,3 +77,7 @@ type GuildScienceReactionRoleGivenRemoved struct {
 type GuildScienceGiveawayEvents struct {
 	GiveawayUUID uuid.UUID `json:"giveaway_uuid"`
 }
+
+type GuildSciencePollEvents struct {
+	PollUUID uuid.UUID `json:"poll_uuid"`
+}

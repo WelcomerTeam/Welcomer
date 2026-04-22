@@ -481,3 +481,22 @@ func UpdateGiveawayGuildSettingsWithAudit(ctx context.Context, params database.U
 
 	return newRow, nil
 }
+
+func UpdatePollGuildSettingsWithAudit(ctx context.Context, params database.UpdatePollParams, actor, guildID discord.Snowflake) (*database.GuildPolls, error) {
+	var old database.GuildPolls
+	if existing, err := Queries.GetPoll(ctx, database.GetPollParams{
+		GuildID:  int64(guildID),
+		PollUuid: params.PollUuid,
+	}); err == nil {
+		old = *existing
+	}
+
+	newRow, err := Queries.UpdatePoll(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypePolls, params.PollUuid.String())
+
+	return newRow, nil
+}

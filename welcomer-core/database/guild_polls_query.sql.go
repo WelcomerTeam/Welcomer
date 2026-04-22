@@ -15,28 +15,26 @@ import (
 
 const CreatePoll = `-- name: CreatePoll :one
 INSERT INTO guild_polls (poll_uuid, created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id)
-VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, TRUE, $3, $4, $5, $6, NOW(), NOW(), '[]', FALSE, 1, 'none', 'always', '[]', '[]', 'epoch', 0, 0)
+VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, TRUE, '', '', -1, '', NOW(), $3, '[]', FALSE, 1, $4, $5, '[]', '[]', 'epoch', 0, 0)
 RETURNING
     poll_uuid, created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 `
 
 type CreatePollParams struct {
-	GuildID      int64  `json:"guild_id"`
-	CreatedBy    int64  `json:"created_by"`
-	Title        string `json:"title"`
-	Description  string `json:"description"`
-	AccentColour int64  `json:"accent_colour"`
-	ImageUrl     string `json:"image_url"`
+	GuildID           int64     `json:"guild_id"`
+	CreatedBy         int64     `json:"created_by"`
+	EndTime           time.Time `json:"end_time"`
+	Resubmissions     string    `json:"resubmissions"`
+	ResultsVisibility string    `json:"results_visibility"`
 }
 
 func (q *Queries) CreatePoll(ctx context.Context, arg CreatePollParams) (*GuildPolls, error) {
 	row := q.db.QueryRow(ctx, CreatePoll,
 		arg.GuildID,
 		arg.CreatedBy,
-		arg.Title,
-		arg.Description,
-		arg.AccentColour,
-		arg.ImageUrl,
+		arg.EndTime,
+		arg.Resubmissions,
+		arg.ResultsVisibility,
 	)
 	var i GuildPolls
 	err := row.Scan(

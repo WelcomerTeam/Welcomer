@@ -194,6 +194,7 @@ type Querier interface {
 	UpdateWelcomerDMsGuildSettings(ctx context.Context, arg UpdateWelcomerDMsGuildSettingsParams) (int64, error)
 	UpdateWelcomerGuildSettings(ctx context.Context, arg UpdateWelcomerGuildSettingsParams) (int64, error)
 	UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error)
+	UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsCustomBuilderParams) (*GuildSettingsWelcomerImages, error)
 	UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error)
 	UpsertJobCheckpoint(ctx context.Context, arg UpsertJobCheckpointParams) error
 }
