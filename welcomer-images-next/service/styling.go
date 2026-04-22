@@ -200,7 +200,8 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 		return defaultValue
 	}
 
-	if len(value) >= 4 && value[:4] == "ref:" {
+	// Validate ref value is a valid UUID
+	if len(value) >= 4 && value[:4] == "ref:" && welcomer.IsValidUUID(value[4:]) {
 		return "url(https://www.welcomer.gg/api/guild/" + ctx.Guild.ID.String() + "/welcomer/artifact/" + url.QueryEscape(value[4:]) + ")"
 	}
 
