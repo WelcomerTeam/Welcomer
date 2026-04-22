@@ -44,9 +44,22 @@ func NewTwilightProxy(u string) discord.RESTInterface {
 	}
 }
 
+func urlContainsPathEscape(endpoint string) (bool, error) {
+	escapedURL, err := url.PathUnescape(endpoint)
+	if err != nil {
+		return false, fmt.Errorf("failed to unescape url: %w", err)
+	}
+
+	println(escapedURL)
+
+	return strings.Contains(escapedURL, "/../") || strings.Contains(escapedURL, "/./") || strings.HasSuffix(escapedURL, "/..") || strings.HasSuffix(escapedURL, "/."), nil
+}
+
 func (tl *TwilightProxy) Fetch(ctx context.Context, session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header) ([]byte, error) {
-	if bytes.Contains(body, []byte("nigger")) {
-		return nil, fmt.Errorf("very bad request")
+	if escaped, err := urlContainsPathEscape(endpoint); err != nil {
+		return nil, fmt.Errorf("urlContainsPathEscape(%s): %w", endpoint, err)
+	} else if escaped {
+		return nil, fmt.Errorf("urlContainsPathEscape(%s): url contains path escapes", endpoint)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, endpoint, bytes.NewBuffer(body))
