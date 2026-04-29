@@ -247,6 +247,8 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
 				}
 
+				new.MessageID = message.ID
+
 				return
 			}
 		}
