@@ -188,12 +188,12 @@ func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSetting
 }
 
 func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
-	if old != nil && new == nil {
-		err := disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
-		if err != nil {
-			eg.Add(fmt.Errorf("failed to disable message for removed system message reaction role configuration: %v", err))
-		}
-	}
+	// if old != nil && new == nil {
+	// 	err := disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
+	// 	if err != nil {
+	// 		eg.Add(fmt.Errorf("failed to disable message for removed system message reaction role configuration: %v", err))
+	// 	}
+	// }
 
 	if !hasConfigurationChanged(old, new) {
 		return
@@ -218,7 +218,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			}
 		}
 
-		if old != nil {
+		if old != nil && !old.ChannelID.IsNil() && !old.MessageID.IsNil() {
 			// Disable old message.
 			err = disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
 			if err != nil {
