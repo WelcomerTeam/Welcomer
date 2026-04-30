@@ -284,11 +284,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	}
 }
 
-func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
-	if old == nil {
-		old = &welcomer.GuildSettingsReactionRole{}
-	}
-
+func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, _, new *welcomer.GuildSettingsReactionRole) {
 	if new == nil {
 		new = &welcomer.GuildSettingsReactionRole{}
 	}
