@@ -188,12 +188,13 @@ func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSetting
 }
 
 func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
-	// if old != nil && new == nil {
-	// 	err := disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
-	// 	if err != nil {
-	// 		eg.Add(fmt.Errorf("failed to disable message for removed system message reaction role configuration: %v", err))
-	// 	}
-	// }
+	if old != nil {
+		old = &welcomer.GuildSettingsReactionRole{}
+	}
+
+	if new != nil {
+		new = &welcomer.GuildSettingsReactionRole{}
+	}
 
 	if !hasConfigurationChanged(old, new) {
 		return
@@ -202,7 +203,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	var message *discord.Message
 	var err error
 
-	if hasConfigurationChangedMessage(old, new) && ((old == nil || new == nil) || old.ChannelID != new.ChannelID) {
+	if hasConfigurationChangedMessage(old, new) && (old.ChannelID != new.ChannelID) {
 		// If channel has changed, send new message.
 
 		if new != nil && new.Enabled {
@@ -280,6 +281,14 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 }
 
 func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
+	if old != nil {
+		old = &welcomer.GuildSettingsReactionRole{}
+	}
+
+	if new != nil {
+		new = &welcomer.GuildSettingsReactionRole{}
+	}
+
 	if !new.Enabled || new.ChannelID.IsNil() || new.MessageID.IsNil() {
 		return
 	}
