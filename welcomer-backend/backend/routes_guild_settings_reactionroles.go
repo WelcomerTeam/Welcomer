@@ -188,11 +188,12 @@ func processReactionRolesSettingsChange(ctx *gin.Context, old, new *GuildSetting
 }
 
 func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
-	if old != nil && new == nil {
-		err := disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
-		if err != nil {
-			eg.Add(fmt.Errorf("failed to disable message for removed system message reaction role configuration: %v", err))
-		}
+	if old == nil {
+		old = &welcomer.GuildSettingsReactionRole{}
+	}
+
+	if new == nil {
+		new = &welcomer.GuildSettingsReactionRole{}
 	}
 
 	if !hasConfigurationChanged(old, new) {
@@ -202,10 +203,10 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	var message *discord.Message
 	var err error
 
-	if hasConfigurationChangedMessage(old, new) && ((old == nil || new == nil) || old.ChannelID != new.ChannelID) {
+	if hasConfigurationChangedMessage(old, new) && (old.ChannelID != new.ChannelID) {
 		// If channel has changed, send new message.
 
-		if new != nil {
+		if new != nil && new.Enabled {
 			message, err = createReactionRoleMessage(ctx, eg, new)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
@@ -218,7 +219,7 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 			}
 		}
 
-		if old != nil {
+		if old != nil && !old.ChannelID.IsNil() && !old.MessageID.IsNil() {
 			// Disable old message.
 			err = disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
 			if err != nil {
@@ -228,8 +229,8 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	} else if hasConfigurationChangedRoles(old, new) || old.Message != new.Message || old.Enabled != new.Enabled {
 		// If roles, message or enabled has changed, update existing message.
 
-		if !new.Enabled {
-			err = disableReactionRoleMessage(ctx, new.ChannelID, new.MessageID)
+		if old != nil && !new.Enabled && !old.ChannelID.IsNil() && !old.MessageID.IsNil() {
+			err = disableReactionRoleMessage(ctx, old.ChannelID, old.MessageID)
 			if err != nil {
 				eg.Add(fmt.Errorf("failed to disable message for disabled system message reaction role configuration: %v", err))
 			}
@@ -245,6 +246,12 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 				message, err = createReactionRoleMessage(ctx, eg, new)
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Msg("Failed to create message for updated system message reaction role configuration")
+				}
+
+				if message != nil {
+					new.MessageID = message.ID
+				} else {
+					new.MessageID = 0
 				}
 
 				return
@@ -277,7 +284,15 @@ func processReactionRolesSettingsChangeSystemMessage(ctx *gin.Context, eg *welco
 	}
 }
 
-func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, old, new *welcomer.GuildSettingsReactionRole) {
+func processReactionRolesSettingsChangeNonSystemMessage(ctx *gin.Context, eg *welcomer.ErrorGroup, _, new *welcomer.GuildSettingsReactionRole) {
+	if new == nil {
+		new = &welcomer.GuildSettingsReactionRole{}
+	}
+
+	if !new.Enabled || new.ChannelID.IsNil() || new.MessageID.IsNil() {
+		return
+	}
+
 	message, err := discord.GetChannelMessage(ctx, backend.BotSession, new.ChannelID, new.MessageID)
 	if err != nil {
 		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(tryGetGuildID(ctx))).Int64("channel_id", int64(new.ChannelID)).Int64("message_id", int64(new.MessageID)).Msg("Failed to get message for updated system message reaction role configuration")
@@ -714,10 +729,6 @@ func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, par
 	}
 
 	for reactionRoleIndex, reactionRole := range partial.ReactionRoles {
-		if !reactionRole.Enabled {
-			continue
-		}
-
 		if reactionRole.ChannelID != 0 {
 			validGuild, err := welcomer.CheckChannelGuild(ctx, welcomer.SandwichClient, guildID, reactionRole.ChannelID)
 			if err != nil {
@@ -735,6 +746,10 @@ func doValidateReactionRoles(ctx context.Context, guildID discord.Snowflake, par
 
 				continue
 			}
+		}
+
+		if !reactionRole.Enabled {
+			continue
 		}
 
 		if reactionRole.IsSystemMessage {
