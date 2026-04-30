@@ -1628,7 +1628,7 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 						Components: []discord.InteractionComponent{
 							{
 								Type: discord.InteractionComponentTypeTextDisplay,
-								Content: "**Allow Giveaway Entries**:\n" +
+								Content: "**Allow Giveaway Entries:**\n" +
 									welcomer.If(giveaway.AllowEntries, "True", "False") +
 									welcomer.If(!giveaway.AllowEntries, "\n-# When disabled, users cannot enter the giveaway. This is useful to temporarily pause entries without ending the giveaway.", ""),
 							},
@@ -1810,7 +1810,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Duration**:\n" + welcomer.If(giveaway.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "No end time (runs indefinitely)") +
+					Content: "**Duration:**\n" + welcomer.If(giveaway.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "No end time (runs indefinitely)") +
 						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually.", ""),
 				},
 			},
@@ -1829,7 +1829,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Announce Winners**:\n" +
+					Content: "**Announce Winners:**\n" +
 						welcomer.If(giveaway.AnnounceWinners, "True", "False") +
 						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be announced.", ""),
 				},
@@ -1849,7 +1849,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: "**Roles Allowed to Enter**:\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering**:\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
+					Content: "**Roles Allowed to Enter:**\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering:**\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1867,7 +1867,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Minimum Join Date**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None") +
+					Content: "**Minimum Join Date:**\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None") +
 						welcomer.If(!giveaway.MinimumJoinDate.IsZero(), "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true)+" of the giveaway starting cannot enter the giveaway.", ""),
 				},
 			},

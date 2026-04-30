@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -269,8 +270,10 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 
 			if answersArgument, err := subway.GetArgument(ctx, pollsSetupMenuAnswersKey); err == nil {
 				answers := answersArgument.MustString()
+				answersList := strings.Split(answers, "\n")
+
 				poll.PollOptions = pgtype.JSONB{
-					Bytes:  welcomer.MarshalAnswersListJSON(strings.Split(answers, "\n")[:10]),
+					Bytes:  welcomer.MarshalAnswersListJSON(answersList[:min(len(answersList), 10)]),
 					Status: pgtype.Present,
 				}
 			}
@@ -440,7 +443,42 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Duration**:\n" + welcomer.If(poll.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(poll.EndTime.Unix()), true), "No end time (runs indefinitely)") +
+					Content: "**Poll Options:**\n\n" +
+						"**Allow Multiple Selections:** " + welcomer.If(poll.MaximumSelections == 1, "No\n", "Yes"+welcomer.If(poll.MaximumSelections == 0, "", " ("+strconv.Itoa(int(poll.MaximumSelections))+")")+"\n") +
+						"**Anonymous Poll:** " + welcomer.If(poll.IsAnonymous, "Yes\n", "No\n") +
+						"**Resubmissions:** " +
+						welcomer.If(poll.IsAnonymous, "Not Allowed (anonymous poll)\n",
+							welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionAlways), "Allowed\n",
+								welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionOnlyAdditions), "Allowed, but only for adding new answers\n",
+									welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionNever), "Not Allowed\n", ""),
+								),
+							)) +
+						"**Results Visibility:** " +
+						welcomer.If(poll.IsAnonymous, "Hidden until poll ends (anonymous poll)\n",
+							welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways), "Always Visible\n",
+								welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting), "Only visible after voting\n",
+									welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd), "Hidden until poll ends\n", ""),
+								),
+							),
+						),
+				},
+			},
+			Accessory: &discord.InteractionComponent{
+				Type:     discord.InteractionComponentTypeButton,
+				Style:    discord.InteractionComponentStyleSecondary,
+				Label:    "Edit",
+				CustomID: customIDPrefix + pollsSetupMenuOptionsKey,
+			},
+		},
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type: discord.InteractionComponentTypeSection,
+			Components: []discord.InteractionComponent{
+				{
+					Type: discord.InteractionComponentTypeTextDisplay,
+					Content: "**Duration:**\n" + welcomer.If(poll.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(poll.EndTime.Unix()), true), "No end time (runs indefinitely)") +
 						welcomer.If(poll.EndTime.IsZero(), "\n-# Poll will run until ended manually with `/poll end`.", ""),
 				},
 			},
@@ -459,7 +497,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 			Components: []discord.InteractionComponent{
 				{
 					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: "**Roles Allowed to Enter**:\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering**:\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
+					Content: "**Roles Allowed to Enter:**\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering:**\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -477,7 +515,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Minimum Join Date**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(poll.MinimumJoinDate.Unix()), true), "None") +
+					Content: "**Minimum Join Date:**\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(poll.MinimumJoinDate.Unix()), true), "None") +
 						welcomer.If(!poll.MinimumJoinDate.IsZero(), "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(poll.MinimumJoinDate.Unix()), true)+" of the poll starting cannot enter the poll.", ""),
 				},
 			},
