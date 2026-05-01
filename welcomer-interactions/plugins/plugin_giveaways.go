@@ -94,8 +94,8 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	giveawaysGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "new",
-		Description: "Makes a new giveaway",
+		Name:        "create",
+		Description: "Creates a new giveaway",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -708,7 +708,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 		}, nil
 	}
 
-	if !giveaway.MinimumJoinDate.IsZero() {
+	if giveaway.MinimumJoinDate.Unix() > 0 {
 		joinBefore := giveaway.StartTime.Add(-(time.Duration(giveaway.MinimumJoinDate.Unix()) * time.Second))
 		if interaction.Member.JoinedAt.After(joinBefore) {
 			return &discord.InteractionResponse{
@@ -1868,7 +1868,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Minimum Join Date:**\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None") +
-						welcomer.If(!giveaway.MinimumJoinDate.IsZero(), "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true)+" of the giveaway starting cannot enter the giveaway.", ""),
+						welcomer.If(giveaway.MinimumJoinDate.Unix() > 0, "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true)+" of the giveaway starting cannot enter the giveaway.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
