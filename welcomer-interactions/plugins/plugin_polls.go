@@ -16,45 +16,46 @@ import (
 )
 
 const (
-	pollsSetupMenuTitleKey        = "title"
-	pollsSetupMenuDescriptionKey  = "description"
-	pollsSetupMenuAccentColorKey  = "accent_color"
-	pollsSetupMenuThumbnailURLKey = "thumbnail_url"
+	pollSetupMenuTitleKey        = "title"
+	pollSetupMenuDescriptionKey  = "description"
+	pollSetupMenuAccentColorKey  = "accent_color"
+	pollSetupMenuThumbnailURLKey = "thumbnail_url"
 
-	pollsSetupMenuAnswersKey               = "answers"
-	pollsSetupMenuOptionsKey               = "options"
-	pollsSetupMenuDurationKey              = "duration"
-	pollsSetupMenuToggleAnonymousVotingKey = "toggle_anonymous_voting"
-	pollsSetupMenuMaximumAnswersKey        = "maximum_answers"
+	pollSetupMenuAnswersKey               = "answers"
+	pollSetupMenuOptionsKey               = "options"
+	pollSetupMenuDurationKey              = "duration"
+	pollSetupMenuToggleAnonymousVotingKey = "toggle_anonymous_voting"
+	pollSetupMenuMaximumAnswersKey        = "maximum_answers"
+	pollSetupMenuMaximumAnswersValueKey   = "maximum_answers_value"
 
 	// stub option during initial modal to set it to the maximum answers.
-	pollsSetupMenuAllowMultipleAnswersKey = "allow_multiple_answers"
+	pollSetupMenuAllowMultipleAnswersKey = "allow_multiple_answers"
 
-	pollsSetupMenuRolesAllowedKey         = "roles_allowed"
-	pollsSetupMenuRolesAllowedIncludedKey = "roles_allowed_included"
-	pollsSetupMenuRolesAllowedExcludedKey = "roles_allowed_excluded"
+	pollSetupMenuRolesAllowedKey         = "roles_allowed"
+	pollSetupMenuRolesAllowedIncludedKey = "roles_allowed_included"
+	pollSetupMenuRolesAllowedExcludedKey = "roles_allowed_excluded"
 
-	pollsSetupMenuManageResubmissionsKey = "manage_resubmissions"
-	pollsSetupMenuNoResubmissionsKey     = "no_resubmissions"
-	pollsSetupMenuAllowAdditionsOnlyKey  = "allow_additions_only"
-	pollsSetupMenuAllowResubmissionsKey  = "allow_resubmissions"
+	pollSetupMenuManageResubmissionsKey = "manage_resubmissions"
+	pollSetupMenuNoResubmissionsKey     = "no_resubmissions"
+	pollSetupMenuAllowAdditionsOnlyKey  = "allow_additions_only"
+	pollSetupMenuAllowResubmissionsKey  = "allow_resubmissions"
 
-	pollsSetupMenuShowResultsKey                   = "show_results"
-	pollsSetupMenuResultsAlwaysVisibleKey          = "results_always_visible"
-	pollsSetupMenuResultsVisibleAfterVotingKey     = "results_visible_after_voting"
-	pollsSetupMenuResultsVisibleAfterVotingEndsKey = "results_visible_after_voting_ends"
+	pollSetupMenuShowResultsKey                   = "show_results"
+	pollSetupMenuResultsAlwaysVisibleKey          = "results_always_visible"
+	pollSetupMenuResultsVisibleAfterVotingKey     = "results_visible_after_voting"
+	pollSetupMenuResultsVisibleAfterVotingEndsKey = "results_visible_after_voting_ends"
 
-	pollsSetupMenuMinimumJoinDateKey = "minimum_join_date"
-	pollsSetupMenuStartKey           = "start"
+	pollSetupMenuMinimumJoinDateKey = "minimum_join_date"
+	pollSetupMenuStartKey           = "start"
 
-	pollsSetupMenuPreviewOnKey  = "preview_on"
-	pollsSetupMenuPreviewOffKey = "preview_off"
+	pollSetupMenuPreviewOnKey  = "preview_on"
+	pollSetupMenuPreviewOffKey = "preview_off"
 
-	pollsSetupMenuPingKey                    = "ping"
-	pollsSetupMenuPingEveryoneKey            = "ping_everyone"
-	pollsSetupMenuPingHereKey                = "ping_here"
-	pollsSetupMenuPingRolesAllowedToEnterKey = "ping_roles_allowed_to_enter"
-	pollsSetupMenuPingAdditionalRolesKey     = "additional_roles_to_ping"
+	pollSetupMenuPingKey                    = "ping"
+	pollSetupMenuPingEveryoneKey            = "ping_everyone"
+	pollSetupMenuPingHereKey                = "ping_here"
+	pollSetupMenuPingRolesAllowedToEnterKey = "ping_roles_allowed_to_enter"
+	pollSetupMenuPingAdditionalRolesKey     = "additional_roles_to_ping"
 )
 
 func NewPollsCog() *PollsCog {
@@ -92,8 +93,8 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 	)
 
 	pollsGroup.MustAddInteractionCommand(&subway.InteractionCommandable{
-		Name:        "new",
-		Description: "Makes a new poll",
+		Name:        "create",
+		Description: "Creates a new poll",
 
 		Type: subway.InteractionCommandableTypeSubcommand,
 
@@ -150,7 +151,7 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 								Type:  discord.InteractionComponentTypeLabel,
 								Label: "Question",
 								Component: &discord.InteractionComponent{
-									CustomID: pollsSetupMenuTitleKey,
+									CustomID: pollSetupMenuTitleKey,
 									Type:     discord.InteractionComponentTypeTextInput,
 									Value:    poll.Title,
 									Style:    discord.InteractionComponentStyleShort,
@@ -162,7 +163,7 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 								Label:       "Answers",
 								Description: "One answer per line. Max of 10 answers is allowed.",
 								Component: &discord.InteractionComponent{
-									CustomID:    pollsSetupMenuAnswersKey,
+									CustomID:    pollSetupMenuAnswersKey,
 									Type:        discord.InteractionComponentTypeTextInput,
 									Style:       discord.InteractionComponentStyleParagraph,
 									Placeholder: "Answer 1\nAnswer 2\nAnswer 3",
@@ -173,7 +174,7 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 								Label:       "Duration",
 								Description: "e.g. 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
 								Component: &discord.InteractionComponent{
-									CustomID:    pollsSetupMenuDurationKey,
+									CustomID:    pollSetupMenuDurationKey,
 									Type:        discord.InteractionComponentTypeTextInput,
 									Placeholder: "7d 3h 60m",
 									Style:       discord.InteractionComponentStyleShort,
@@ -184,18 +185,18 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 								Type:  discord.InteractionComponentTypeLabel,
 								Label: "Poll Options",
 								Component: &discord.InteractionComponent{
-									CustomID: pollsSetupMenuOptionsKey,
+									CustomID: pollSetupMenuOptionsKey,
 									Type:     discord.InteractionComponentTypeCheckboxGroup,
 									Options: []discord.ApplicationSelectOption{
 										{
 											Label:       "Allow Multiple Selections",
 											Description: "You can limit the maximum number of answers a user can select in the next step.",
-											Value:       pollsSetupMenuAllowMultipleAnswersKey,
+											Value:       pollSetupMenuAllowMultipleAnswersKey,
 										},
 										{
 											Label:       "Anonymous Poll",
 											Description: "Resubmissions are not allowed and results will only be available when the poll ends.",
-											Value:       pollsSetupMenuToggleAnonymousVotingKey,
+											Value:       pollSetupMenuToggleAnonymousVotingKey,
 										},
 									},
 									Required: new(false),
@@ -254,6 +255,363 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 	switch interaction.Type {
 	case discord.InteractionTypeMessageComponent:
 		switch customIDSplit[2] {
+		case pollSetupMenuTitleKey:
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Customise Poll Message",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Title",
+							Component: &discord.InteractionComponent{
+								CustomID: pollSetupMenuTitleKey,
+								Type:     discord.InteractionComponentTypeTextInput,
+								Value:    poll.Title,
+								Style:    discord.InteractionComponentStyleShort,
+								Required: new(false),
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Description",
+							Component: &discord.InteractionComponent{
+								CustomID: pollSetupMenuDescriptionKey,
+								Type:     discord.InteractionComponentTypeTextInput,
+								Value:    poll.Description,
+								Style:    discord.InteractionComponentStyleParagraph,
+								Required: new(false),
+							},
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Accent Colour",
+							Description: "If specified, the left side of the poll message will be this colour. Accepts #HEX format.",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollSetupMenuAccentColorKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "#4CD787",
+								Value:       welcomer.If(poll.AccentColour < 0, "", fmt.Sprintf("#%06X", poll.AccentColour)),
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Image URL",
+							Description: "If specified, this image will show below your title and description.",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollSetupMenuThumbnailURLKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "https://example.com/image.png",
+								Value:       poll.ImageUrl,
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuAnswersKey:
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Edit Poll Answers",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Answers",
+							Description: "One answer per line. Max of 10 answers is allowed.",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollSetupMenuAnswersKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "Answer 1\nAnswer 2\nAnswer 3",
+								Value:       welcomer.Coalesce(strings.Join(welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes), "\n"), ""),
+								Style:       discord.InteractionComponentStyleParagraph,
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuOptionsKey:
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Edit Poll Options",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Anonymous Poll",
+							Description: "Resubmissions are not allowed and results will only be available when the poll ends.",
+							Component: &discord.InteractionComponent{
+								Type:     discord.InteractionComponentTypeCheckbox,
+								CustomID: pollSetupMenuToggleAnonymousVotingKey,
+								Required: new(false),
+								Default:  &poll.IsAnonymous,
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Selection Options",
+							Component: &discord.InteractionComponent{
+								CustomID: pollSetupMenuMaximumAnswersKey,
+								Type:     discord.InteractionComponentTypeRadioGroup,
+								Options: []discord.ApplicationSelectOption{
+									{
+										Label:   "Single Selection",
+										Value:   "1",
+										Default: poll.MaximumSelections == 1,
+									},
+									{
+										Label:   "Allow Multiple Selections",
+										Value:   "0",
+										Default: poll.MaximumSelections == 0,
+									},
+									{
+										Label:   "Custom",
+										Value:   "custom",
+										Default: poll.MaximumSelections > 1,
+									},
+								},
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Maximum Selection Count",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollSetupMenuMaximumAnswersValueKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "Enter a number",
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Resubmission Options",
+							Description: "Manage if users can resubmit answers or can only add additional options.",
+							Component: &discord.InteractionComponent{
+								CustomID: pollSetupMenuManageResubmissionsKey,
+								Type:     discord.InteractionComponentTypeRadioGroup,
+								Options: []discord.ApplicationSelectOption{
+									{
+										Label:   "Not Allowed",
+										Value:   string(welcomer.PollResubmissionOptionNever),
+										Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionNever) || poll.IsAnonymous,
+									},
+									{
+										Label:   "Allowed",
+										Value:   string(welcomer.PollResubmissionOptionAlways),
+										Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionAlways) && !poll.IsAnonymous,
+									},
+									{
+										Label:   "Allow Additions Only",
+										Value:   string(welcomer.PollResubmissionOptionOnlyAdditions),
+										Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionOnlyAdditions) && !poll.IsAnonymous,
+									},
+								},
+							},
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Results Visibility",
+							Description: "Manage when poll results are visible to voters in the poll message.",
+							Component: &discord.InteractionComponent{
+								CustomID: pollSetupMenuShowResultsKey,
+								Type:     discord.InteractionComponentTypeRadioGroup,
+								Options: []discord.ApplicationSelectOption{
+									{
+										Label:   "Always Visible",
+										Value:   string(welcomer.PollResultVisibilityOptionAlways),
+										Default: poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways) && !poll.IsAnonymous,
+									},
+									{
+										Label:   "Visible After Voting",
+										Value:   string(welcomer.PollResultVisibilityOptionAfterVoting),
+										Default: poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting) && !poll.IsAnonymous,
+									},
+									{
+										Label:   "Visible After Voting Ends",
+										Value:   string(welcomer.PollResultVisibilityOptionAfterEnd),
+										Default: poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) || poll.IsAnonymous,
+									},
+								},
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuDurationKey:
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Edit Poll Duration",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Duration",
+							Description: "e.g. 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollSetupMenuDurationKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "7d 3h 60m",
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuRolesAllowedKey:
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Edit Poll Entry Rules",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Roles Allowed to Enter",
+							Description: "Users must have at least one of these roles to enter. Ignored if empty.",
+							Component: &discord.InteractionComponent{
+								CustomID:  pollSetupMenuRolesAllowedIncludedKey,
+								Type:      discord.InteractionComponentTypeRoleSelect,
+								Required:  new(false),
+								MaxValues: new(int32(25)),
+							},
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Roles Excluded from Entering",
+							Description: "Users with any of these roles cannot enter. Ignored if empty.",
+							Component: &discord.InteractionComponent{
+								CustomID:  pollSetupMenuRolesAllowedExcludedKey,
+								Type:      discord.InteractionComponentTypeRoleSelect,
+								Required:  new(false),
+								MaxValues: new(int32(25)),
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuMinimumJoinDateKey:
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Edit Poll Minimum Join Date",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Minimum Join Date",
+							Description: "Users joined within the duration specified cannot enter. Ignored if empty. e.g. 1h, 30m, 2d. ",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollSetupMenuMinimumJoinDateKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "7d 3h 60m",
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuStartKey:
+			roles := welcomer.UnmarshalRolesListJSON(poll.RolesAllowed.Bytes)
+
+			var options []discord.ApplicationSelectOption
+
+			if len(roles) == 0 {
+				options = []discord.ApplicationSelectOption{
+					{
+						Label: "Ping @everyone",
+						Value: pollSetupMenuPingEveryoneKey,
+					},
+					{
+						Label: "Ping @here",
+						Value: pollSetupMenuPingHereKey,
+					},
+				}
+			} else {
+				options = []discord.ApplicationSelectOption{
+					{
+						Label:       "Ping Roles Allowed to Enter",
+						Value:       pollSetupMenuPingRolesAllowedToEnterKey,
+						Description: "Pings roles you have configured in \"roles allowed to enter\"",
+					},
+				}
+			}
+
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:    "Start Poll",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:    discord.InteractionComponentTypeTextDisplay,
+							Content: "Once started, the poll message will be sent and entries will be allowed. You can end or extend the poll at any time, but you cannot edit the poll settings.\n\nBelow you can configure who should be pinged when the poll starts.",
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Delivery Option",
+							Component: &discord.InteractionComponent{
+								Type:      discord.InteractionComponentTypeCheckboxGroup,
+								CustomID:  pollSetupMenuPingKey,
+								Required:  new(false),
+								MaxValues: new(int32(1)),
+								Options:   options,
+							},
+						},
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Additional Roles to Ping",
+							Component: &discord.InteractionComponent{
+								Type:      discord.InteractionComponentTypeRoleSelect,
+								CustomID:  pollSetupMenuPingAdditionalRolesKey,
+								Required:  new(false),
+								MaxValues: new(int32(25)),
+							},
+						},
+					},
+				},
+				Type: discord.InteractionCallbackTypeModal,
+			}, nil
+		case pollSetupMenuPreviewOnKey:
+			poll.StartTime = time.Now()
+
+			if poll.EndTime.Unix() > 0 {
+				poll.EndTime = time.Now().Add(time.Duration(poll.EndTime.Unix()) * time.Second)
+			}
+
+			message := pollSetupView(poll)
+
+			// Hack to disable poll button and add back button
+			message.Components[len(message.Components)-1].Components[0].Disabled = true
+			message.Components[len(message.Components)-1].Components = append(message.Components[len(message.Components)-1].Components, discord.InteractionComponent{
+				CustomID: "poll_edit:" + poll.PollUuid.String() + ":preview_off",
+				Type:     discord.InteractionComponentTypeButton,
+				Label:    "Back to Edit Menu",
+				Style:    discord.InteractionComponentStyleSecondary,
+			})
+
+			err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+				Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
+				Data: welcomer.WebhookMessageParamsToInteractionCallbackData(message, uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
+			})
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Str("poll_uuid", poll.PollUuid.String()).
+					Msg("Failed to edit poll message")
+
+				return nil, err
+			}
+
+			return nil, nil
 		default:
 			welcomer.Logger.Warn().
 				Int64("guild_id", int64(*interaction.GuildID)).
@@ -264,11 +622,11 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 	case discord.InteractionTypeModalSubmit:
 		switch customIDSplit[2] {
 		case "":
-			if titleArgument, err := subway.GetArgument(ctx, pollsSetupMenuTitleKey); err == nil {
+			if titleArgument, err := subway.GetArgument(ctx, pollSetupMenuTitleKey); err == nil {
 				poll.Title = titleArgument.MustString()
 			}
 
-			if answersArgument, err := subway.GetArgument(ctx, pollsSetupMenuAnswersKey); err == nil {
+			if answersArgument, err := subway.GetArgument(ctx, pollSetupMenuAnswersKey); err == nil {
 				answers := answersArgument.MustString()
 				answersList := strings.Split(answers, "\n")
 
@@ -278,7 +636,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				}
 			}
 
-			if durationArgument, err := subway.GetArgument(ctx, pollsSetupMenuDurationKey); err == nil {
+			if durationArgument, err := subway.GetArgument(ctx, pollSetupMenuDurationKey); err == nil {
 				seconds, err := welcomer.ParseDurationAsSeconds(durationArgument.MustString())
 				if err != nil || seconds < 0 {
 					welcomer.Logger.Error().Err(err).
@@ -292,14 +650,14 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				poll.EndTime = time.Unix(int64(seconds), 0)
 			}
 
-			if optionsArgument, err := subway.GetArgument(ctx, pollsSetupMenuOptionsKey); err == nil {
+			if optionsArgument, err := subway.GetArgument(ctx, pollSetupMenuOptionsKey); err == nil {
 				options := optionsArgument.MustStrings()
 
 				for _, option := range options {
 					switch option {
-					case pollsSetupMenuAllowMultipleAnswersKey:
+					case pollSetupMenuAllowMultipleAnswersKey:
 						poll.MaximumSelections = 0
-					case pollsSetupMenuToggleAnonymousVotingKey:
+					case pollSetupMenuToggleAnonymousVotingKey:
 						poll.IsAnonymous = true
 					}
 				}
@@ -398,7 +756,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				Type:     discord.InteractionComponentTypeButton,
 				Style:    discord.InteractionComponentStylePrimary,
 				Label:    "Customise Message",
-				CustomID: customIDPrefix + pollsSetupMenuTitleKey,
+				CustomID: customIDPrefix + pollSetupMenuTitleKey,
 			},
 		},
 	}
@@ -432,7 +790,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				Type:     discord.InteractionComponentTypeButton,
 				Style:    discord.InteractionComponentStyleSecondary,
 				Label:    "Edit",
-				CustomID: customIDPrefix + pollsSetupMenuAnswersKey,
+				CustomID: customIDPrefix + pollSetupMenuAnswersKey,
 			},
 		},
 		{
@@ -467,7 +825,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				Type:     discord.InteractionComponentTypeButton,
 				Style:    discord.InteractionComponentStyleSecondary,
 				Label:    "Edit",
-				CustomID: customIDPrefix + pollsSetupMenuOptionsKey,
+				CustomID: customIDPrefix + pollSetupMenuOptionsKey,
 			},
 		},
 		{
@@ -486,7 +844,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				Type:     discord.InteractionComponentTypeButton,
 				Style:    discord.InteractionComponentStyleSecondary,
 				Label:    "Edit",
-				CustomID: customIDPrefix + pollsSetupMenuDurationKey,
+				CustomID: customIDPrefix + pollSetupMenuDurationKey,
 			},
 		},
 		{
@@ -504,7 +862,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				Type:     discord.InteractionComponentTypeButton,
 				Style:    discord.InteractionComponentStyleSecondary,
 				Label:    "Edit",
-				CustomID: customIDPrefix + pollsSetupMenuRolesAllowedKey,
+				CustomID: customIDPrefix + pollSetupMenuRolesAllowedKey,
 			},
 		},
 		{
@@ -516,14 +874,14 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Minimum Join Date:**\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(poll.MinimumJoinDate.Unix()), true), "None") +
-						welcomer.If(!poll.MinimumJoinDate.IsZero(), "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(poll.MinimumJoinDate.Unix()), true)+" of the poll starting cannot enter the poll.", ""),
+						welcomer.If(poll.MinimumJoinDate.Unix() > 0, "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(poll.MinimumJoinDate.Unix()), true)+" of the poll starting cannot enter the poll.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
 				Type:     discord.InteractionComponentTypeButton,
 				Style:    discord.InteractionComponentStyleSecondary,
 				Label:    "Edit",
-				CustomID: customIDPrefix + pollsSetupMenuMinimumJoinDateKey,
+				CustomID: customIDPrefix + pollSetupMenuMinimumJoinDateKey,
 			},
 		},
 	}...)
@@ -543,14 +901,14 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 						Type:     discord.InteractionComponentTypeButton,
 						Style:    discord.InteractionComponentStyleSuccess,
 						Label:    "Start Poll",
-						CustomID: customIDPrefix + pollsSetupMenuStartKey,
+						CustomID: customIDPrefix + pollSetupMenuStartKey,
 						Disabled: len(pollAnswers) == 0,
 					},
 					{
 						Type:     discord.InteractionComponentTypeButton,
 						Style:    discord.InteractionComponentStyleSecondary,
 						Label:    "Preview",
-						CustomID: customIDPrefix + pollsSetupMenuPreviewOnKey,
+						CustomID: customIDPrefix + pollSetupMenuPreviewOnKey,
 					},
 				},
 			},
