@@ -78,12 +78,12 @@ const navigation = [
         icon: "fa-heart",
         class: "text-primary",
       },
-      {
-        name: "Custom Bots",
-        linkname: "dashboard.guild.custombots",
-        icon: "fa-robot",
-        class: "text-primary",
-      },
+      // {
+      //   name: "Custom Bots",
+      //   linkname: "dashboard.guild.custombots",
+      //   icon: "fa-robot",
+      //   class: "text-primary",
+      // },
       {
         name: "Bot Customisation",
         linkname: "dashboard.guild.customisation",
