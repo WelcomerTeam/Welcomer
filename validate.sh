@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+go build -o requiredcheck tools/requiredcheck.go
+
 # run vet
-go vet sandwich/sandwich.go &&
-go vet welcomer-backend/cmd/main.go &&
-go vet welcomer-gateway/cmd/main.go &&
-go vet welcomer-images-next/cmd/main.go &&
-go vet welcomer-images/cmd/main.go &&
-go vet welcomer-interactions/cmd/main.go &&
+go vet ./sandwich/... &&
+go vet ./welcomer-backend/... &&
+go vet ./welcomer-gateway/... &&
+go vet ./welcomer-images-next/... &&
+go vet ./welcomer-images/... &&
+go vet ./welcomer-interactions/... &&
+
+go vet -vettool=./tools/requiredcheck ./sandwich/... &&
+go vet -vettool=./tools/requiredcheck ./welcomer-backend/... &&
+go vet -vettool=./tools/requiredcheck ./welcomer-gateway/... &&
+go vet -vettool=./tools/requiredcheck ./welcomer-images-next/... &&
+go vet -vettool=./tools/requiredcheck ./welcomer-images/... &&
+go vet -vettool=./tools/requiredcheck ./welcomer-interactions/... &&
 
 # run tests only if there are *_test.go files in the folder
 dirs=(
