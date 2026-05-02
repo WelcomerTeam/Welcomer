@@ -120,9 +120,19 @@ func RandStringBytesRmndr(n int) string {
 	return string(b)
 }
 
+var stringToJSONLiteralReplacer = strings.NewReplacer(
+	`"`, `\"`,
+	`\`, `\\`,
+	"\b", `\b`,
+	"\f", `\f`,
+	"\n", `\n`,
+	"\r", `\r`,
+	"\t", `\t`,
+)
+
 // StringToJsonLiteral converts a string to a json.RawMessage.
 func StringToJsonLiteral(s string) json.RawMessage {
-	return json.RawMessage([]byte(`"` + s + `"`))
+	return json.RawMessage([]byte(`"` + stringToJSONLiteralReplacer.Replace(s) + `"`))
 }
 
 func FormatTextStroke(v bool) int {
