@@ -70,6 +70,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				}
 			}
 
+			// Ignore if no fields are provided, as this is likely intentional to use default values.
+			if len(provided) == 0 {
+				return true
+			}
+
 			// Check required fields
 			for i := 0; i < structType.NumFields(); i++ {
 				field := structType.Field(i)

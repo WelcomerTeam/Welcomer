@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-go build -o requiredcheck tools/requiredcheck.go
+go build -o tools/requiredcheck tools/requiredcheck.go
 
 # run vet
 go vet ./sandwich/... &&
