@@ -152,7 +152,7 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 								Component: &discord.InteractionComponent{
 									CustomID: giveawaySetupMenuTitleKey,
 									Type:     discord.InteractionComponentTypeTextInput,
-									Value:    giveaway.Title,
+									Value:    welcomer.StringToJsonLiteral(giveaway.Title),
 									Style:    discord.InteractionComponentStyleShort,
 									Required: new(false),
 								},
@@ -863,7 +863,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 							Component: &discord.InteractionComponent{
 								CustomID: giveawaySetupMenuTitleKey,
 								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    giveaway.Title,
+								Value:    welcomer.StringToJsonLiteral(giveaway.Title),
 								Style:    discord.InteractionComponentStyleShort,
 								Required: new(false),
 							},
@@ -874,7 +874,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 							Component: &discord.InteractionComponent{
 								CustomID: giveawaySetupMenuDescriptionKey,
 								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    giveaway.Description,
+								Value:    welcomer.StringToJsonLiteral(giveaway.Description),
 								Style:    discord.InteractionComponentStyleParagraph,
 								Required: new(false),
 							},
@@ -887,7 +887,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								CustomID:    giveawaySetupMenuAccentColourKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "#4CD787",
-								Value:       welcomer.If(giveaway.AccentColour < 0, "", fmt.Sprintf("#%06X", giveaway.AccentColour)),
+								Value:       welcomer.StringToJsonLiteral(welcomer.If(giveaway.AccentColour < 0, "", fmt.Sprintf("#%06X", giveaway.AccentColour))),
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
 							},
@@ -900,7 +900,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								CustomID:    giveawaySetupMenuThumbnailURLKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "https://example.com/image.png",
-								Value:       giveaway.ImageUrl,
+								Value:       welcomer.StringToJsonLiteral(giveaway.ImageUrl),
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
 							},
@@ -946,7 +946,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								CustomID:    giveawaySetupMenuPrizesKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "Welcomer Pro\n2x Discord Nitro",
-								Value:       formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)),
+								Value:       welcomer.StringToJsonLiteral(formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes))),
 								Style:       discord.InteractionComponentStyleParagraph,
 							},
 						},
@@ -1724,9 +1724,9 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 							Disabled: !giveaway.HasEnded,
 						},
 					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
+					// {
+					// 	Type: discord.InteractionComponentTypeSeparator,
+					// },
 					// {
 					// 	Type: discord.InteractionComponentTypeTextDisplay,
 					// 	Content: "**Reroll Giveaway Winners**\n" +
