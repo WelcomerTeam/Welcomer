@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"math/rand"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +21,7 @@ import (
 const (
 	pollSetupMenuTitleKey        = "title"
 	pollSetupMenuDescriptionKey  = "description"
-	pollSetupMenuAccentColorKey  = "accent_color"
+	pollSetupMenuAccentColourKey = "accent_colour"
 	pollSetupMenuThumbnailURLKey = "thumbnail_url"
 
 	pollSetupMenuAnswersKey               = "answers"
@@ -194,7 +196,7 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 								Component: &discord.InteractionComponent{
 									CustomID: pollSetupMenuTitleKey,
 									Type:     discord.InteractionComponentTypeTextInput,
-									Value:    poll.Title,
+									Value:    welcomer.StringToJsonLiteral(poll.Title),
 									Style:    discord.InteractionComponentStyleShort,
 									Required: new(false),
 								},
@@ -307,7 +309,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 							Component: &discord.InteractionComponent{
 								CustomID: pollSetupMenuTitleKey,
 								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    poll.Title,
+								Value:    welcomer.StringToJsonLiteral(poll.Title),
 								Style:    discord.InteractionComponentStyleShort,
 								Required: new(false),
 							},
@@ -318,7 +320,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 							Component: &discord.InteractionComponent{
 								CustomID: pollSetupMenuDescriptionKey,
 								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    poll.Description,
+								Value:    welcomer.StringToJsonLiteral(poll.Description),
 								Style:    discord.InteractionComponentStyleParagraph,
 								Required: new(false),
 							},
@@ -328,10 +330,10 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 							Label:       "Accent Colour",
 							Description: "If specified, the left side of the poll message will be this colour. Accepts #HEX format.",
 							Component: &discord.InteractionComponent{
-								CustomID:    pollSetupMenuAccentColorKey,
+								CustomID:    pollSetupMenuAccentColourKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "#4CD787",
-								Value:       welcomer.If(poll.AccentColour < 0, "", fmt.Sprintf("#%06X", poll.AccentColour)),
+								Value:       welcomer.StringToJsonLiteral(welcomer.If(poll.AccentColour < 0, "", fmt.Sprintf("#%06X", poll.AccentColour))),
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
 							},
@@ -344,7 +346,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 								CustomID:    pollSetupMenuThumbnailURLKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "https://example.com/image.png",
-								Value:       poll.ImageUrl,
+								Value:       welcomer.StringToJsonLiteral(poll.ImageUrl),
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
 							},
@@ -367,7 +369,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 								CustomID:    pollSetupMenuAnswersKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "Answer 1\nAnswer 2\nAnswer 3",
-								Value:       welcomer.Coalesce(strings.Join(welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes), "\n"), ""),
+								Value:       welcomer.StringToJsonLiteral(welcomer.Coalesce(strings.Join(welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes), "\n"), "")),
 								Style:       discord.InteractionComponentStyleParagraph,
 							},
 						},
@@ -461,7 +463,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 									Default:     poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting) && !poll.IsAnonymous,
 								},
 								{
-									Label:       "Visible After Voting Ends",
+									Label:       "Hidden Until Poll Ends",
 									Description: "Only updates the main poll message with results when ended.",
 									Value:       string(welcomer.PollResultVisibilityOptionAfterEnd),
 									Default:     poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) || poll.IsAnonymous,
@@ -624,7 +626,14 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				poll.EndTime = time.Now().Add(time.Duration(poll.EndTime.Unix()) * time.Second)
 			}
 
-			message := pollView(poll, 0)
+			answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
+			results := make([]int, len(answers))
+
+			for i := range results {
+				results[i] = rand.Intn(100)
+			}
+
+			message := pollView(poll, results)
 
 			// Hack to disable poll button and add back button
 			message.Components[len(message.Components)-1].Components[0].Disabled = true
@@ -699,6 +708,264 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 					}
 				}
 			}
+		case pollSetupMenuTitleKey:
+			if titleArgument, err := subway.GetArgument(ctx, pollSetupMenuTitleKey); err == nil {
+				poll.Title = titleArgument.MustString()
+			} else {
+				poll.Title = ""
+			}
+
+			if descriptionArgument, err := subway.GetArgument(ctx, pollSetupMenuDescriptionKey); err == nil {
+				poll.Description = descriptionArgument.MustString()
+			} else {
+				poll.Description = ""
+			}
+
+			if accentColourArgument, err := subway.GetArgument(ctx, pollSetupMenuAccentColourKey); err == nil {
+				rgba, err := welcomer.ParseColour(accentColourArgument.MustString(), "#000000")
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("accent_colour", accentColourArgument.MustString()).
+						Msg("Failed to parse accent colour")
+
+					poll.AccentColour = -1
+				} else {
+					poll.AccentColour = int64(int32(rgba.R)<<16 + int32(rgba.G)<<8 + int32(rgba.B))
+				}
+			} else {
+				poll.AccentColour = -1
+			}
+
+			if thumbnailURLArgument, err := subway.GetArgument(ctx, pollSetupMenuThumbnailURLKey); err == nil {
+				poll.ImageUrl = thumbnailURLArgument.MustString()
+
+				if _, ok := welcomer.IsValidURL(thumbnailURLArgument.MustString()); !ok {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("thumbnail_url", thumbnailURLArgument.MustString()).
+						Msg("Failed to parse thumbnail URL")
+
+					poll.ImageUrl = ""
+				}
+			} else {
+				poll.ImageUrl = ""
+			}
+		case pollSetupMenuAnswersKey:
+			if answersArgument, err := subway.GetArgument(ctx, pollSetupMenuAnswersKey); err == nil {
+				answers := strings.Split(answersArgument.MustString(), "\n")
+				poll.PollOptions = pgtype.JSONB{
+					Bytes:  welcomer.MarshalAnswersListJSON(answers[:min(len(answers), 10)]),
+					Status: pgtype.Present,
+				}
+			} else {
+				poll.PollOptions = pgtype.JSONB{
+					Bytes:  nil,
+					Status: pgtype.Null,
+				}
+			}
+		case pollSetupMenuOptionsKey:
+			if maximumAnswersKey, err := subway.GetArgument(ctx, pollSetupMenuMaximumAnswersKey); err == nil {
+				maximumAnswersValue := maximumAnswersKey.MustString()
+
+				if maximumAnswersValue == "1" {
+					poll.MaximumSelections = 1
+				} else {
+					poll.MaximumSelections = 0
+				}
+			}
+
+			if manageResubmissionsKey, err := subway.GetArgument(ctx, pollSetupMenuManageResubmissionsKey); err == nil {
+				manageResubmissionsValue := manageResubmissionsKey.MustString()
+				poll.Resubmissions = manageResubmissionsValue
+			}
+
+			if showResultsKey, err := subway.GetArgument(ctx, pollSetupMenuShowResultsKey); err == nil {
+				showResultsValue := showResultsKey.MustString()
+				poll.ResultsVisibility = showResultsValue
+			}
+
+			// Move toggle anonymous to the bottom so it can override show results and manage resubmissions options.
+			if toggleAnonymousVotingKey, err := subway.GetArgument(ctx, pollSetupMenuToggleAnonymousVotingKey); err == nil {
+				if toggleAnonymousVotingKey.MustBool() {
+					poll.IsAnonymous = true
+					poll.Resubmissions = welcomer.PollResubmissionOptionNever.String()
+					poll.ResultsVisibility = welcomer.PollResultVisibilityOptionAfterEnd.String()
+				} else {
+					poll.IsAnonymous = false
+				}
+			}
+		case pollSetupMenuDurationKey:
+			if durationArgument, err := subway.GetArgument(ctx, pollSetupMenuDurationKey); err == nil {
+				seconds, err := welcomer.ParseDurationAsSeconds(durationArgument.MustString())
+				if err != nil || seconds < 0 {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("duration", durationArgument.MustString()).
+						Msg("Failed to parse duration")
+
+					return nil, nil
+				}
+
+				poll.EndTime = time.Unix(int64(seconds), 0)
+			} else {
+				poll.EndTime = time.Time{}
+			}
+
+		case pollSetupMenuRolesAllowedKey:
+			if allowedRoles, err := subway.GetArgument(ctx, pollSetupMenuRolesAllowedIncludedKey); err == nil {
+				allowedRolesList := make([]discord.Snowflake, 0, len(allowedRoles.MustStrings()))
+
+				for _, roleString := range allowedRoles.MustStrings() {
+					roleSnowflake, err := welcomer.Atoi(roleString)
+					if err == nil {
+						allowedRolesList = append(allowedRolesList, discord.Snowflake(roleSnowflake))
+					}
+				}
+
+				poll.RolesAllowed = pgtype.JSONB{
+					Bytes:  welcomer.MarshalRolesListJSON(allowedRolesList),
+					Status: pgtype.Present,
+				}
+			} else {
+				poll.RolesAllowed = pgtype.JSONB{
+					Bytes:  []byte{123, 125}, // []
+					Status: pgtype.Present,
+				}
+			}
+
+			if excludedRoles, err := subway.GetArgument(ctx, pollSetupMenuRolesAllowedExcludedKey); err == nil {
+				excludedRolesList := make([]discord.Snowflake, 0, len(excludedRoles.MustStrings()))
+
+				for _, roleString := range excludedRoles.MustStrings() {
+					roleSnowflake, err := welcomer.Atoi(roleString)
+					if err == nil {
+						excludedRolesList = append(excludedRolesList, discord.Snowflake(roleSnowflake))
+					}
+				}
+
+				poll.RolesExcluded = pgtype.JSONB{
+					Bytes:  welcomer.MarshalRolesListJSON(excludedRolesList),
+					Status: pgtype.Present,
+				}
+			} else {
+				poll.RolesExcluded = pgtype.JSONB{
+					Bytes:  []byte{123, 125}, // []
+					Status: pgtype.Present,
+				}
+			}
+		case pollSetupMenuMinimumJoinDateKey:
+			if durationArgument, err := subway.GetArgument(ctx, pollSetupMenuMinimumJoinDateKey); err == nil {
+				seconds, err := welcomer.ParseDurationAsSeconds(durationArgument.MustString())
+				if err != nil || seconds < 0 {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("duration", durationArgument.MustString()).
+						Msg("Failed to parse duration")
+
+					return nil, nil
+				}
+
+				poll.MinimumJoinDate = time.Unix(int64(seconds), 0)
+			} else {
+				poll.MinimumJoinDate = time.Time{}
+			}
+		case pollSetupMenuStartKey:
+			var pingOptions []string
+
+			if pingOptionsArgument, err := subway.GetArgument(ctx, pollSetupMenuPingKey); err == nil {
+				pingOptions = pingOptionsArgument.MustStrings()
+			}
+
+			poll.StartTime = time.Now()
+
+			if poll.EndTime.Unix() > 0 {
+				poll.EndTime = time.Now().Add(time.Duration(poll.EndTime.Unix()) * time.Second)
+			}
+
+			poll.IsSetup = false
+
+			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+			if err != nil {
+				return nil, err
+			}
+
+			answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
+			results := make([]int, len(answers))
+
+			message, err := interaction.Channel.Send(ctx, session, welcomer.WebhookMessageParamsToMessageParams(pollView(poll, results)))
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Msg("Failed to send poll message")
+
+				return nil, err
+			}
+
+			pingMessage := ""
+
+			if len(pingOptions) > 0 {
+				switch {
+				case slices.Contains(pingOptions, pollSetupMenuPingEveryoneKey):
+					pingMessage += "@everyone"
+				case slices.Contains(pingOptions, pollSetupMenuPingHereKey):
+					pingMessage += "@here"
+				case slices.Contains(pingOptions, pollSetupMenuPingRolesAllowedToEnterKey):
+					rolesAllowedToEnter := welcomer.UnmarshalRolesListJSON(poll.RolesAllowed.Bytes)
+
+					if len(rolesAllowedToEnter) > 0 {
+						for _, role := range rolesAllowedToEnter {
+							pingMessage += fmt.Sprintf(" <@&%d>", role)
+						}
+					}
+				}
+			}
+
+			if additionalRolesArgument, err := subway.GetArgument(ctx, pollSetupMenuPingAdditionalRolesKey); err == nil {
+				additionalRoles := additionalRolesArgument.MustStrings()
+
+				for _, roleString := range additionalRoles {
+					roleSnowflake, err := welcomer.Atoi(roleString)
+					if err == nil {
+						pingMessage += fmt.Sprintf(" <@&%d>", roleSnowflake)
+					}
+				}
+			}
+
+			if pingMessage != "" {
+				_, err = interaction.Channel.Send(ctx, session, discord.MessageParams{
+					Content: pingMessage,
+				})
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to send poll ping message")
+				}
+			}
+
+			_, err = welcomer.Queries.UpdatePollMessage(ctx, database.UpdatePollMessageParams{
+				PollUuid:  pollUUID,
+				MessageID: int64(message.ID),
+				ChannelID: int64(message.ChannelID),
+			})
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Str("poll_uuid", poll.PollUuid.String()).
+					Msg("Failed to update poll message and channel")
+
+				return nil, err
+			}
+
+			welcomer.PusherGuildScience.Push(
+				ctx,
+				*interaction.GuildID,
+				interaction.GetUser().ID,
+				database.ScienceGuildEventTypePollStarted,
+				&welcomer.GuildSciencePollEvents{
+					PollUUID: poll.PollUuid,
+				},
+			)
 		default:
 			welcomer.Logger.Warn().
 				Int64("guild_id", int64(*interaction.GuildID)).
@@ -706,6 +973,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				Str("custom_id", interaction.Data.CustomID).
 				Msg("Unknown poll modal submit interaction")
 		}
+
 	default:
 		welcomer.Logger.Warn().
 			Int64("guild_id", int64(*interaction.GuildID)).
@@ -845,15 +1113,15 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 						"**Resubmissions:** " +
 						welcomer.If(poll.IsAnonymous, "Not Allowed (anonymous poll)\n",
 							welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionAlways), "Allowed\n",
-								welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionOnlyAdditions), "Allowed, but only for adding new answers\n",
+								welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionOnlyAdditions), "Allow Additions Only\n",
 									welcomer.If(poll.Resubmissions == string(welcomer.PollResubmissionOptionNever), "Not Allowed\n", ""),
 								),
 							)) +
 						"**Results Visibility:** " +
-						welcomer.If(poll.IsAnonymous, "Hidden until poll ends (anonymous poll)\n",
+						welcomer.If(poll.IsAnonymous, "Hidden Until Poll Ends (anonymous poll)\n",
 							welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways), "Always Visible\n",
 								welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting), "Only visible after voting\n",
-									welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd), "Hidden until poll ends\n", ""),
+									welcomer.If(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd), "Hidden Until Poll Ends\n", ""),
 								),
 							),
 						),
@@ -954,7 +1222,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 	}
 }
 
-func pollView(poll *database.GuildPolls, entries int) discord.WebhookMessageParams {
+func pollView(poll *database.GuildPolls, results []int) discord.WebhookMessageParams {
 	containerComponents := []discord.InteractionComponent{
 		{
 			Type:    discord.InteractionComponentTypeTextDisplay,
@@ -975,17 +1243,42 @@ func pollView(poll *database.GuildPolls, entries int) discord.WebhookMessagePara
 		})
 	}
 
-	// if poll.ShowPrizes {
-	// 	containerComponents = append(containerComponents, []discord.InteractionComponent{
-	// 		{
-	// 			Type: discord.InteractionComponentTypeSeparator,
-	// 		},
-	// 		{
-	// 			Type:    discord.InteractionComponentTypeTextDisplay,
-	// 			Content: "**Prizes:**\n" + getGiveawayPrizesAsString(giveawayPrizes),
-	// 		},
-	// 	}...)
-	// }
+	maxValue := 0
+	entries := 0
+
+	for _, result := range results {
+		entries += result
+		if result > maxValue {
+			maxValue = result
+		}
+	}
+
+	maxValue = int(math.Ceil(float64(maxValue)/4) * 4)
+
+	answersString := "**Answers:**\n"
+	answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
+
+	switch {
+	case poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways),
+		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && time.Now().Before(poll.EndTime):
+		// Show answers and percentages
+		for i, answer := range answers {
+			truePercentage := float64(results[i]) / float64(entries) * 100
+			resultPercentage := int(float64(results[i]) / float64(maxValue) * 100)
+
+			answersString += fmt.Sprintf("\n%s (**%d - %.1f**%%)\n%s\n", answer, results[i], truePercentage, getEmojiCombination(resultPercentage, 10))
+		}
+	case poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && time.Now().After(poll.EndTime),
+		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting):
+		// Show answers
+		for _, answer := range answers {
+			answersString += fmt.Sprintf("- %s\n", answer)
+		}
+	}
+
+	if !poll.IsAnonymous {
+		answersString += "\n**Total Entries:** " + strconv.Itoa(entries) + "\n"
+	}
 
 	containerComponents = append(containerComponents, []discord.InteractionComponent{
 		{
@@ -993,8 +1286,17 @@ func pollView(poll *database.GuildPolls, entries int) discord.WebhookMessagePara
 		},
 		{
 			Type:    discord.InteractionComponentTypeTextDisplay,
-			Content: "**Giveaway Ends:** " + welcomer.If(poll.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)", "No end time (runs indefinitely)"),
-			// "\n" + welcomer.If(poll.ShowEntries, fmt.Sprintf("**Entries:** %d", entries), ""),
+			Content: answersString,
+		},
+	}...)
+
+	containerComponents = append(containerComponents, []discord.InteractionComponent{
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type:    discord.InteractionComponentTypeTextDisplay,
+			Content: "**Poll Ends:** " + welcomer.If(poll.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)", "No end time (runs indefinitely)"),
 		},
 	}...)
 
@@ -1036,7 +1338,7 @@ func getPollAnswersAsString(pollAnswers []string) string {
 	result := ""
 
 	for i, answer := range pollAnswers {
-		result += fmt.Sprintf("**%d.** %s\n", i+1, answer)
+		result += fmt.Sprintf("- %s\n", i+1, answer)
 	}
 
 	return result

@@ -4,6 +4,8 @@ github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/WelcomerTeam/Discord v0.0.0-20260413141854-8f4d7eaa688d h1:GBxv6cLsehZMcZZp6VFzBFcWv3yijwxob3cro+82YqU=
 github.com/WelcomerTeam/Discord v0.0.0-20260413141854-8f4d7eaa688d/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
+github.com/WelcomerTeam/Discord v0.0.0-20260502095414-9ddb6029aaf7 h1:BPrF0QWMFhXX/fU8Ss/gDhS3tRxrhqSisCCRG79SJuI=
+github.com/WelcomerTeam/Discord v0.0.0-20260502095414-9ddb6029aaf7/go.mod h1:A3Pg/wPoP5r7TYMflf0dUVnBOoTi/liKFx/dFVFPfM8=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e h1:mW6YsjcG123ibe8s/dzJJ8bJv8ORr/IhPwJywYCYj90=
 github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e/go.mod h1:c/W03KVWDF5u14gvSsfS7pfK6BRth+09iidC57eoYZ0=
 github.com/WelcomerTeam/Sandwich v0.0.0-20260322170931-61406f17b909 h1:KcOTFz9hAvMtaKrsMvQa38vSJpAjpEJpc1dbiVU+Rqg=
@@ -12,6 +14,8 @@ github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260412131253-edad15fd4ca4 h1:qw
 github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260412131253-edad15fd4ca4/go.mod h1:Y+1tDkJsmhc3J7Nq1NWB9x2Dobahr+M1Te4c2QwmXVc=
 github.com/WelcomerTeam/Subway v0.0.0-20260413142226-43c4d30e63d1 h1:599zvLbCQ+v3dqS4Alr8S4Wm/c0/36ATvGAyYV/oqlM=
 github.com/WelcomerTeam/Subway v0.0.0-20260413142226-43c4d30e63d1/go.mod h1:NJ+GaoSyWZKCjixxNvbQPuiR2wc5Q4U/A6mnJWA3qVA=
+github.com/WelcomerTeam/Subway v0.0.0-20260502095912-9f9d1958b38e h1:QsN7Lr9/7oh7YJKxuUIEJ9asemWL0/G9miUCiS7ibbw=
+github.com/WelcomerTeam/Subway v0.0.0-20260502095912-9f9d1958b38e/go.mod h1:VIwC7FmouTS2hA5uxKx4xhR9nh5cM7PM/dIpBZEuWwE=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904 h1:WV4Ok6b0/kgczuLAgGTNtLVOB5JIqdfzJzgOpdlDM8Q=
 github.com/WelcomerTeam/czlib v0.0.0-20210907121728-d7ed7721c904/go.mod h1:rCfCrg0xPnEoVKPXk+GNyHgzTWMzJjhnPaAfDe7UPJE=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
