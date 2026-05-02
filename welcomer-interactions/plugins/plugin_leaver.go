@@ -88,10 +88,12 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsLeaver = &database.GuildSettingsLeaver{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
-							Channel:       welcomer.DefaultLeaver.Channel,
-							MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+							GuildID:                  int64(*interaction.GuildID),
+							ToggleEnabled:            welcomer.DefaultLeaver.ToggleEnabled,
+							Channel:                  welcomer.DefaultLeaver.Channel,
+							MessageFormat:            welcomer.DefaultLeaver.MessageFormat,
+							AutoDeleteLeaverMessages: welcomer.DefaultLeaver.AutoDeleteLeaverMessages,
+							LeaverMessageLifetime:    welcomer.DefaultLeaver.LeaverMessageLifetime,
 						}
 					} else {
 						welcomer.Logger.Error().Err(err).

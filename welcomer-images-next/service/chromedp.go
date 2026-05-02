@@ -144,7 +144,7 @@ func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString strin
 		chromedp.Tasks{
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				return emulation.SetDefaultBackgroundColorOverride().
-					WithColor(&cdp.RGBA{0, 0, 0, 0}).
+					WithColor(&cdp.RGBA{}).
 					Do(ctx)
 			}),
 
