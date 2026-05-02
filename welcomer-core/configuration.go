@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 )
 
@@ -67,35 +66,35 @@ func (p *WelcomerDatabaseConfigProvider) GetConfig(ctx context.Context) (*sandwi
 		return nil, fmt.Errorf("failed to get configuration: %w", err)
 	}
 
-	customBots, err := Queries.GetAllCustomBotsWithToken(ctx, GetCustomBotEnvironmentType())
-	if err != nil {
-		panic(fmt.Errorf("failed to get custom bots: %w", err))
-	}
+	// customBots, err := Queries.GetAllCustomBotsWithToken(ctx, GetCustomBotEnvironmentType())
+	// if err != nil {
+	// 	panic(fmt.Errorf("failed to get custom bots: %w", err))
+	// }
 
-	for _, customBot := range customBots {
-		if customBot.Token == "" {
-			Logger.Error().
-				Str("application_name", customBot.ApplicationName).
-				Int64("application_id", customBot.ApplicationID).
-				Msg("Custom bot token is empty, skipping configuration for this bot")
+	// for _, customBot := range customBots {
+	// 	if customBot.Token == "" {
+	// 		Logger.Error().
+	// 			Str("application_name", customBot.ApplicationName).
+	// 			Int64("application_id", customBot.ApplicationID).
+	// 			Msg("Custom bot token is empty, skipping configuration for this bot")
 
-			continue
-		}
+	// 		continue
+	// 	}
 
-		decryptedBotToken, err := DecryptBotToken(customBot.Token, customBot.CustomBotUuid)
-		if err != nil {
-			Logger.Error().
-				Err(err).
-				Str("application_name", customBot.ApplicationName).
-				Int64("application_id", customBot.ApplicationID).
-				Msgf("Failed to decrypt bot token for application")
+	// 	decryptedBotToken, err := DecryptBotToken(customBot.Token, customBot.CustomBotUuid)
+	// 	if err != nil {
+	// 		Logger.Error().
+	// 			Err(err).
+	// 			Str("application_name", customBot.ApplicationName).
+	// 			Int64("application_id", customBot.ApplicationID).
+	// 			Msgf("Failed to decrypt bot token for application")
 
-			continue
-		}
+	// 		continue
+	// 	}
 
-		applicationConfiguration := GetCustomBotConfiguration(customBot.CustomBotUuid, decryptedBotToken, customBot.IsActive, discord.Snowflake(customBot.GuildID))
-		config.Applications = append(config.Applications, &applicationConfiguration)
-	}
+	// 	applicationConfiguration := GetCustomBotConfiguration(customBot.CustomBotUuid, decryptedBotToken, customBot.IsActive, discord.Snowflake(customBot.GuildID))
+	// 	config.Applications = append(config.Applications, &applicationConfiguration)
+	// }
 
 	return config, nil
 }
