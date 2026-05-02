@@ -1104,7 +1104,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			// Hack to disable giveaway button and add back button
 			message.Components[len(message.Components)-1].Components[0].Disabled = true
 			message.Components[len(message.Components)-1].Components = append(message.Components[len(message.Components)-1].Components, discord.InteractionComponent{
-				CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String() + ":preview_off",
+				CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String() + ":" + giveawaySetupMenuPreviewOffKey,
 				Type:     discord.InteractionComponentTypeButton,
 				Label:    "Back to Edit Menu",
 				Style:    discord.InteractionComponentStyleSecondary,
@@ -1125,20 +1125,6 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 
 			return nil, nil
 		case giveawaySetupMenuPreviewOffKey:
-			err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
-				Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
-				Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawaySetupView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
-					Msg("Failed to edit giveaway message")
-
-				return nil, err
-			}
-
-			return nil, nil
 		default:
 			welcomer.Logger.Warn().
 				Int64("guild_id", int64(*interaction.GuildID)).

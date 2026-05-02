@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"math/rand"
+	"math/rand/v2"
 	"slices"
 	"strconv"
 	"strings"
@@ -29,7 +29,6 @@ const (
 	pollSetupMenuDurationKey              = "duration"
 	pollSetupMenuToggleAnonymousVotingKey = "toggle_anonymous_voting"
 	pollSetupMenuMaximumAnswersKey        = "maximum_answers"
-	pollSetupMenuMaximumAnswersValueKey   = "maximum_answers_value"
 
 	// stub option during initial modal to set it to the maximum answers.
 	pollSetupMenuAllowMultipleAnswersKey = "allow_multiple_answers"
@@ -39,14 +38,7 @@ const (
 	pollSetupMenuRolesAllowedExcludedKey = "roles_allowed_excluded"
 
 	pollSetupMenuManageResubmissionsKey = "manage_resubmissions"
-	pollSetupMenuNoResubmissionsKey     = "no_resubmissions"
-	pollSetupMenuAllowAdditionsOnlyKey  = "allow_additions_only"
-	pollSetupMenuAllowResubmissionsKey  = "allow_resubmissions"
-
-	pollSetupMenuShowResultsKey                   = "show_results"
-	pollSetupMenuResultsAlwaysVisibleKey          = "results_always_visible"
-	pollSetupMenuResultsVisibleAfterVotingKey     = "results_visible_after_voting"
-	pollSetupMenuResultsVisibleAfterVotingEndsKey = "results_visible_after_voting_ends"
+	pollSetupMenuShowResultsKey         = "show_results"
 
 	pollSetupMenuMinimumJoinDateKey = "minimum_join_date"
 	pollSetupMenuStartKey           = "start"
@@ -592,7 +584,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 					Components: []discord.InteractionComponent{
 						{
 							Type:    discord.InteractionComponentTypeTextDisplay,
-							Content: "Once started, the poll message will be sent and entries will be allowed. You can end or extend the poll at any time, but you cannot edit the poll settings.\n\nBelow you can configure who should be pinged when the poll starts.",
+							Content: "Once started, the poll message will be sent and votes will be allowed. You can end or extend the poll at any time, but you cannot edit the poll settings.\n\nBelow you can configure who should be pinged when the poll starts.",
 						},
 						{
 							Type:  discord.InteractionComponentTypeLabel,
@@ -630,15 +622,15 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 			results := make([]int, len(answers))
 
 			for i := range results {
-				results[i] = rand.Intn(100)
+				results[i] = rand.IntN(20)
 			}
 
-			message := pollView(poll, results)
+			message := pollView(poll, results, false, false)
 
 			// Hack to disable poll button and add back button
 			message.Components[len(message.Components)-1].Components[0].Disabled = true
 			message.Components[len(message.Components)-1].Components = append(message.Components[len(message.Components)-1].Components, discord.InteractionComponent{
-				CustomID: "poll_edit:" + poll.PollUuid.String() + ":preview_off",
+				CustomID: "poll_edit:" + poll.PollUuid.String() + ":" + pollSetupMenuPreviewOffKey,
 				Type:     discord.InteractionComponentTypeButton,
 				Label:    "Back to Edit Menu",
 				Style:    discord.InteractionComponentStyleSecondary,
@@ -658,6 +650,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 			}
 
 			return nil, nil
+		case pollSetupMenuPreviewOffKey:
 		default:
 			welcomer.Logger.Warn().
 				Int64("guild_id", int64(*interaction.GuildID)).
@@ -811,7 +804,6 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 			} else {
 				poll.EndTime = time.Time{}
 			}
-
 		case pollSetupMenuRolesAllowedKey:
 			if allowedRoles, err := subway.GetArgument(ctx, pollSetupMenuRolesAllowedIncludedKey); err == nil {
 				allowedRolesList := make([]discord.Snowflake, 0, len(allowedRoles.MustStrings()))
@@ -893,7 +885,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 			answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
 			results := make([]int, len(answers))
 
-			message, err := interaction.Channel.Send(ctx, session, welcomer.WebhookMessageParamsToMessageParams(pollView(poll, results)))
+			message, err := interaction.Channel.Send(ctx, session, welcomer.WebhookMessageParamsToMessageParams(pollView(poll, results, false, false)))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -1222,7 +1214,40 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 	}
 }
 
-func pollView(poll *database.GuildPolls, results []int) discord.WebhookMessageParams {
+func getPollResultString(poll *database.GuildPolls, answers []string, results []int, hasFinished bool) string {
+	maxValue := 0
+	entries := 0
+
+	for _, result := range results {
+		entries += result
+
+		if result > maxValue {
+			maxValue = result
+		}
+	}
+
+	answersString := "**Votes:**\n"
+
+	for i, answer := range answers {
+		truePercentage := float64(results[i]) / float64(entries) * 100
+		resultPercentage := int(float64(results[i]) / float64(maxValue) * 100)
+
+		answersString += fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)%s\n%s\n", answer, results[i], welcomer.If(results[i] == 1, "", "s"), truePercentage, welcomer.If(results[i] == maxValue && hasFinished, " ⭐", ""), getEmojiCombination(resultPercentage, 10))
+	}
+
+	return answersString
+}
+
+func getPollResultsMinimal(poll *database.GuildPolls, answers []string, results []int) string {
+	answersString := "**Votes:**\n"
+	for _, answer := range answers {
+		answersString += fmt.Sprintf("- %s\n", answer)
+	}
+
+	return answersString
+}
+
+func pollView(poll *database.GuildPolls, results []int, isUser, hasFinished bool) discord.WebhookMessageParams {
 	containerComponents := []discord.InteractionComponent{
 		{
 			Type:    discord.InteractionComponentTypeTextDisplay,
@@ -1243,41 +1268,27 @@ func pollView(poll *database.GuildPolls, results []int) discord.WebhookMessagePa
 		})
 	}
 
-	maxValue := 0
-	entries := 0
-
-	for _, result := range results {
-		entries += result
-		if result > maxValue {
-			maxValue = result
-		}
-	}
-
-	maxValue = int(math.Ceil(float64(maxValue)/4) * 4)
-
-	answersString := "**Answers:**\n"
 	answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
 
-	switch {
-	case poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways),
-		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && time.Now().Before(poll.EndTime):
-		// Show answers and percentages
-		for i, answer := range answers {
-			truePercentage := float64(results[i]) / float64(entries) * 100
-			resultPercentage := int(float64(results[i]) / float64(maxValue) * 100)
+	var votes int
+	for _, result := range results {
+		votes += result
+	}
 
-			answersString += fmt.Sprintf("\n%s (**%d - %.1f**%%)\n%s\n", answer, results[i], truePercentage, getEmojiCombination(resultPercentage, 10))
-		}
-	case poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && time.Now().After(poll.EndTime),
-		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting):
+	var answersString string
+
+	if (poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways) && !poll.IsAnonymous) ||
+		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && time.Now().After(poll.EndTime) ||
+		(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting) && isUser && !poll.IsAnonymous) {
+		// Show answers and percentages
+		answersString = getPollResultString(poll, answers, results, hasFinished)
+	} else {
 		// Show answers
-		for _, answer := range answers {
-			answersString += fmt.Sprintf("- %s\n", answer)
-		}
+		answersString = getPollResultsMinimal(poll, answers, results)
 	}
 
 	if !poll.IsAnonymous {
-		answersString += "\n**Total Entries:** " + strconv.Itoa(entries) + "\n"
+		answersString += "\n**Total Votes:** " + strconv.Itoa(votes) + "\n"
 	}
 
 	containerComponents = append(containerComponents, []discord.InteractionComponent{
@@ -1318,7 +1329,7 @@ func pollView(poll *database.GuildPolls, results []int) discord.WebhookMessagePa
 						Type:     discord.InteractionComponentTypeButton,
 						Style:    discord.InteractionComponentStyleSuccess,
 						CustomID: "poll_enter:" + poll.PollUuid.String(),
-						Label:    "Answer Poll",
+						Label:    "Vote",
 						Disabled: !poll.AllowEntries && !poll.IsSetup,
 					},
 				},
@@ -1337,8 +1348,8 @@ func getPollAnswersAsString(pollAnswers []string) string {
 
 	result := ""
 
-	for i, answer := range pollAnswers {
-		result += fmt.Sprintf("- %s\n", i+1, answer)
+	for _, answer := range pollAnswers {
+		result += fmt.Sprintf("- %s\n", answer)
 	}
 
 	return result
@@ -1348,12 +1359,12 @@ var sectionEmojiIDs = [][]string{}
 
 const maxSegmentsPerGroup = 4
 
-func getEmojiCombination(value_of_100 int, length int) string {
-	if value_of_100 <= 0 || length <= 0 {
+func getEmojiCombination(value int, length int) string {
+	if value <= 0 || length <= 0 {
 		return ""
 	}
 
-	segments := int(math.Ceil(float64(value_of_100) * float64(length) / 25))
+	segments := int(math.Ceil(float64(value) * float64(length) / 25))
 
 	if segments <= maxSegmentsPerGroup {
 		return "<:_:" + sectionEmojiIDs[0][segments-1] + ">"
