@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -87,6 +88,46 @@ func (cog *PollsCog) GetInteractionCommandable() *subway.InteractionCommandable 
 }
 
 func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
+	if welcomer.GetEnvironmentType() == welcomer.EnvironmentTypeDevelopment {
+		sectionEmojiIDs = [][]string{
+			{
+				"1499902373110354072",
+				"1499902374259462145",
+				"1499902371986280488",
+				"1499902375455096932",
+			},
+			{
+				"1499902377593929789",
+				"1499902376364998697",
+			},
+			{
+				"1499902365438967979",
+				"1499902367028744372",
+				"1499902364398653511",
+				"1499902370358755500",
+			},
+		}
+	} else {
+		sectionEmojiIDs = [][]string{
+			{
+				"1499921790414356654",
+				"1499921791483904041",
+				"1499921784995188836",
+				"1499921792805113886",
+			},
+			{
+				"1499921795954901032",
+				"1499921794994278601",
+			},
+			{
+				"1499921786035376268",
+				"1499921787130216519",
+				"1499921789067989062",
+				"1499921788048638014",
+			},
+		}
+	}
+
 	pollsGroup := subway.NewSubcommandGroup(
 		"polls",
 		"Poll commands",
@@ -189,9 +230,8 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 									Type:     discord.InteractionComponentTypeCheckboxGroup,
 									Options: []discord.ApplicationSelectOption{
 										{
-											Label:       "Allow Multiple Selections",
-											Description: "You can limit the maximum number of answers a user can select in the next step.",
-											Value:       pollSetupMenuAllowMultipleAnswersKey,
+											Label: "Allow Multiple Answers",
+											Value: pollSetupMenuAllowMultipleAnswersKey,
 										},
 										{
 											Label:       "Anonymous Poll",
@@ -336,111 +376,108 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				Type: discord.InteractionCallbackTypeModal,
 			}, nil
 		case pollSetupMenuOptionsKey:
-			return &discord.InteractionResponse{
-				Data: &discord.InteractionCallbackData{
-					Title:    "Edit Poll Options",
-					CustomID: interaction.Data.CustomID,
-					Components: []discord.InteractionComponent{
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Anonymous Poll",
-							Description: "Resubmissions are not allowed and results will only be available when the poll ends.",
-							Component: &discord.InteractionComponent{
-								Type:     discord.InteractionComponentTypeCheckbox,
-								CustomID: pollSetupMenuToggleAnonymousVotingKey,
-								Required: new(false),
-								Default:  &poll.IsAnonymous,
+			optionComponents := []discord.InteractionComponent{
+				{
+					Type:  discord.InteractionComponentTypeLabel,
+					Label: "Answers Options",
+					Component: &discord.InteractionComponent{
+						CustomID: pollSetupMenuMaximumAnswersKey,
+						Type:     discord.InteractionComponentTypeRadioGroup,
+						Options: []discord.ApplicationSelectOption{
+							{
+								Label:   "Single Answer",
+								Value:   "1",
+								Default: poll.MaximumSelections == 1,
 							},
-						},
-						{
-							Type:  discord.InteractionComponentTypeLabel,
-							Label: "Selection Options",
-							Component: &discord.InteractionComponent{
-								CustomID: pollSetupMenuMaximumAnswersKey,
-								Type:     discord.InteractionComponentTypeRadioGroup,
-								Options: []discord.ApplicationSelectOption{
-									{
-										Label:   "Single Selection",
-										Value:   "1",
-										Default: poll.MaximumSelections == 1,
-									},
-									{
-										Label:   "Allow Multiple Selections",
-										Value:   "0",
-										Default: poll.MaximumSelections == 0,
-									},
-									{
-										Label:   "Custom",
-										Value:   "custom",
-										Default: poll.MaximumSelections > 1,
-									},
-								},
-							},
-						},
-						{
-							Type:  discord.InteractionComponentTypeLabel,
-							Label: "Maximum Selection Count",
-							Component: &discord.InteractionComponent{
-								CustomID:    pollSetupMenuMaximumAnswersValueKey,
-								Type:        discord.InteractionComponentTypeTextInput,
-								Placeholder: "Enter a number",
-								Style:       discord.InteractionComponentStyleShort,
-								Required:    new(false),
-							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Resubmission Options",
-							Description: "Manage if users can resubmit answers or can only add additional options.",
-							Component: &discord.InteractionComponent{
-								CustomID: pollSetupMenuManageResubmissionsKey,
-								Type:     discord.InteractionComponentTypeRadioGroup,
-								Options: []discord.ApplicationSelectOption{
-									{
-										Label:   "Not Allowed",
-										Value:   string(welcomer.PollResubmissionOptionNever),
-										Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionNever) || poll.IsAnonymous,
-									},
-									{
-										Label:   "Allowed",
-										Value:   string(welcomer.PollResubmissionOptionAlways),
-										Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionAlways) && !poll.IsAnonymous,
-									},
-									{
-										Label:   "Allow Additions Only",
-										Value:   string(welcomer.PollResubmissionOptionOnlyAdditions),
-										Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionOnlyAdditions) && !poll.IsAnonymous,
-									},
-								},
-							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Results Visibility",
-							Description: "Manage when poll results are visible to voters in the poll message.",
-							Component: &discord.InteractionComponent{
-								CustomID: pollSetupMenuShowResultsKey,
-								Type:     discord.InteractionComponentTypeRadioGroup,
-								Options: []discord.ApplicationSelectOption{
-									{
-										Label:   "Always Visible",
-										Value:   string(welcomer.PollResultVisibilityOptionAlways),
-										Default: poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways) && !poll.IsAnonymous,
-									},
-									{
-										Label:   "Visible After Voting",
-										Value:   string(welcomer.PollResultVisibilityOptionAfterVoting),
-										Default: poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting) && !poll.IsAnonymous,
-									},
-									{
-										Label:   "Visible After Voting Ends",
-										Value:   string(welcomer.PollResultVisibilityOptionAfterEnd),
-										Default: poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) || poll.IsAnonymous,
-									},
-								},
+							{
+								Label:   "Allow Multiple Answers",
+								Value:   "0",
+								Default: poll.MaximumSelections == 0,
 							},
 						},
 					},
+				},
+				{
+					Type:        discord.InteractionComponentTypeLabel,
+					Label:       "Anonymous Poll",
+					Description: "Resubmissions are not allowed and results will only be available when the poll ends.",
+					Component: &discord.InteractionComponent{
+						Type:     discord.InteractionComponentTypeCheckbox,
+						CustomID: pollSetupMenuToggleAnonymousVotingKey,
+						Required: new(false),
+						Default:  &poll.IsAnonymous,
+					},
+				},
+			}
+
+			if !poll.IsAnonymous {
+				optionComponents = append(optionComponents, []discord.InteractionComponent{
+					{
+						Type:        discord.InteractionComponentTypeLabel,
+						Label:       "Resubmissions",
+						Description: "Manage if users can change answers or can only add additional answers.",
+						Component: &discord.InteractionComponent{
+							CustomID: pollSetupMenuManageResubmissionsKey,
+							Type:     discord.InteractionComponentTypeRadioGroup,
+							Options: []discord.ApplicationSelectOption{
+								{
+									Label:   "Not Allowed",
+									Value:   string(welcomer.PollResubmissionOptionNever),
+									Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionNever) || poll.IsAnonymous,
+								},
+								{
+									Label:   "Allowed",
+									Value:   string(welcomer.PollResubmissionOptionAlways),
+									Default: poll.Resubmissions == string(welcomer.PollResubmissionOptionAlways) && !poll.IsAnonymous,
+								},
+								{
+									Label:       "Allow Additions Only",
+									Description: "Only allows additional answers to be selected and existing options cannot be removed.",
+									Value:       string(welcomer.PollResubmissionOptionOnlyAdditions),
+									Default:     poll.Resubmissions == string(welcomer.PollResubmissionOptionOnlyAdditions) && !poll.IsAnonymous,
+								},
+							},
+						},
+						Disabled: poll.IsAnonymous,
+					},
+					{
+						Type:        discord.InteractionComponentTypeLabel,
+						Label:       "Results Visibility",
+						Description: "Manage when poll results are visible to voters in the poll message.",
+						Component: &discord.InteractionComponent{
+							CustomID: pollSetupMenuShowResultsKey,
+							Type:     discord.InteractionComponentTypeRadioGroup,
+							Options: []discord.ApplicationSelectOption{
+								{
+									Label:       "Always Visible",
+									Description: "Shows live poll results on the main poll message when submitted.",
+									Value:       string(welcomer.PollResultVisibilityOptionAlways),
+									Default:     poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways) && !poll.IsAnonymous,
+								},
+								{
+									Label:       "Visible After Voting",
+									Description: "Poll results will only be visible to a user after submitting.",
+									Value:       string(welcomer.PollResultVisibilityOptionAfterVoting),
+									Default:     poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting) && !poll.IsAnonymous,
+								},
+								{
+									Label:       "Visible After Voting Ends",
+									Description: "Only updates the main poll message with results when ended.",
+									Value:       string(welcomer.PollResultVisibilityOptionAfterEnd),
+									Default:     poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) || poll.IsAnonymous,
+								},
+							},
+						},
+						Disabled: poll.IsAnonymous,
+					},
+				}...)
+			}
+
+			return &discord.InteractionResponse{
+				Data: &discord.InteractionCallbackData{
+					Title:      "Edit Poll Options",
+					CustomID:   interaction.Data.CustomID,
+					Components: optionComponents,
 				},
 				Type: discord.InteractionCallbackTypeModal,
 			}, nil
@@ -587,7 +624,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				poll.EndTime = time.Now().Add(time.Duration(poll.EndTime.Unix()) * time.Second)
 			}
 
-			message := pollSetupView(poll)
+			message := pollView(poll, 0)
 
 			// Hack to disable poll button and add back button
 			message.Components[len(message.Components)-1].Components[0].Disabled = true
@@ -691,6 +728,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 		PollOptions:       poll.PollOptions,
 		IsAnonymous:       poll.IsAnonymous,
 		MaximumSelections: poll.MaximumSelections,
+		AllowEntries:      poll.AllowEntries,
 		Resubmissions:     poll.Resubmissions,
 		ResultsVisibility: poll.ResultsVisibility,
 		RolesAllowed:      poll.RolesAllowed,
@@ -802,7 +840,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Poll Options:**\n\n" +
-						"**Allow Multiple Selections:** " + welcomer.If(poll.MaximumSelections == 1, "No\n", "Yes"+welcomer.If(poll.MaximumSelections == 0, "", " ("+strconv.Itoa(int(poll.MaximumSelections))+")")+"\n") +
+						"**Allow Multiple Answers:** " + welcomer.If(poll.MaximumSelections == 1, "No\n\n", "Yes"+welcomer.If(poll.MaximumSelections == 0, "", " ("+strconv.Itoa(int(poll.MaximumSelections))+")")+"\n\n") +
 						"**Anonymous Poll:** " + welcomer.If(poll.IsAnonymous, "Yes\n", "No\n") +
 						"**Resubmissions:** " +
 						welcomer.If(poll.IsAnonymous, "Not Allowed (anonymous poll)\n",
@@ -837,7 +875,7 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
 					Content: "**Duration:**\n" + welcomer.If(poll.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(poll.EndTime.Unix()), true), "No end time (runs indefinitely)") +
-						welcomer.If(poll.EndTime.IsZero(), "\n-# Poll will run until ended manually with `/poll end`.", ""),
+						welcomer.If(poll.EndTime.IsZero(), "\n-# Poll will run until ended manually.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -916,6 +954,80 @@ func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
 	}
 }
 
+func pollView(poll *database.GuildPolls, entries int) discord.WebhookMessageParams {
+	containerComponents := []discord.InteractionComponent{
+		{
+			Type:    discord.InteractionComponentTypeTextDisplay,
+			Content: "**" + welcomer.Coalesce(poll.Title, "New Poll") + "**\n" + poll.Description,
+		},
+	}
+
+	if poll.ImageUrl != "" {
+		containerComponents = append(containerComponents, discord.InteractionComponent{
+			Type: discord.InteractionComponentTypeMediaGallery,
+			Items: []discord.InteractionComponentMediaGalleryItem{
+				{
+					Media: discord.MediaItem{
+						URL: poll.ImageUrl,
+					},
+				},
+			},
+		})
+	}
+
+	// if poll.ShowPrizes {
+	// 	containerComponents = append(containerComponents, []discord.InteractionComponent{
+	// 		{
+	// 			Type: discord.InteractionComponentTypeSeparator,
+	// 		},
+	// 		{
+	// 			Type:    discord.InteractionComponentTypeTextDisplay,
+	// 			Content: "**Prizes:**\n" + getGiveawayPrizesAsString(giveawayPrizes),
+	// 		},
+	// 	}...)
+	// }
+
+	containerComponents = append(containerComponents, []discord.InteractionComponent{
+		{
+			Type: discord.InteractionComponentTypeSeparator,
+		},
+		{
+			Type:    discord.InteractionComponentTypeTextDisplay,
+			Content: "**Giveaway Ends:** " + welcomer.If(poll.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)", "No end time (runs indefinitely)"),
+			// "\n" + welcomer.If(poll.ShowEntries, fmt.Sprintf("**Entries:** %d", entries), ""),
+		},
+	}...)
+
+	message := discord.WebhookMessageParams{
+		Components: []discord.InteractionComponent{
+			{
+				Type:    discord.InteractionComponentTypeTextDisplay,
+				Content: fmt.Sprintf("-# <@%d> has started a new poll!", poll.CreatedBy),
+			},
+			{
+				Type:        discord.InteractionComponentTypeContainer,
+				AccentColor: new(uint32(welcomer.If(poll.AccentColour >= 0, poll.AccentColour, welcomer.EmbedColourInfo))),
+				Components:  containerComponents,
+			},
+			{
+				Type: discord.InteractionComponentTypeActionRow,
+				Components: []discord.InteractionComponent{
+					{
+						Type:     discord.InteractionComponentTypeButton,
+						Style:    discord.InteractionComponentStyleSuccess,
+						CustomID: "poll_enter:" + poll.PollUuid.String(),
+						Label:    "Answer Poll",
+						Disabled: !poll.AllowEntries && !poll.IsSetup,
+					},
+				},
+			},
+		},
+		Flags: discord.MessageFlagIsComponentsV2,
+	}
+
+	return message
+}
+
 func getPollAnswersAsString(pollAnswers []string) string {
 	if len(pollAnswers) == 0 {
 		return "No Answers Configured"
@@ -928,4 +1040,38 @@ func getPollAnswersAsString(pollAnswers []string) string {
 	}
 
 	return result
+}
+
+var sectionEmojiIDs = [][]string{}
+
+const maxSegmentsPerGroup = 4
+
+func getEmojiCombination(value_of_100 int, length int) string {
+	if value_of_100 <= 0 || length <= 0 {
+		return ""
+	}
+
+	segments := int(math.Ceil(float64(value_of_100) * float64(length) / 25))
+
+	if segments <= maxSegmentsPerGroup {
+		return "<:_:" + sectionEmojiIDs[0][segments-1] + ">"
+	}
+
+	var out string
+
+	for {
+		if segments > maxSegmentsPerGroup {
+			if out == "" {
+				out += "<:_:" + sectionEmojiIDs[1][1] + ">"
+			} else {
+				out += "<:_:" + sectionEmojiIDs[1][0] + ">"
+			}
+
+			segments -= maxSegmentsPerGroup
+		} else {
+			out += "<:_:" + sectionEmojiIDs[2][segments-1] + ">"
+
+			return out
+		}
+	}
 }

@@ -116,7 +116,7 @@ func (q *Queries) GetPollEntriesForUser(ctx context.Context, arg GetPollEntriesF
 
 const GetPollEntriesFromMessageID = `-- name: GetPollEntriesFromMessageID :many
 SELECT
-    guild_poll_entry_uuid, guild_polls_entries.poll_uuid, user_id, option_index, guild_polls_entries.created_at, guild_polls.poll_uuid, guild_polls.created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
+    guild_poll_entry_uuid, guild_polls_entries.poll_uuid, user_id, option_index, guild_polls_entries.created_at, guild_polls.poll_uuid, guild_polls.created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, allow_entries, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id
 FROM
     guild_polls_entries
     JOIN guild_polls ON guild_polls.poll_uuid = guild_polls_entries.poll_uuid
@@ -153,6 +153,7 @@ type GetPollEntriesFromMessageIDRow struct {
 	PollOptions        pgtype.JSONB `json:"poll_options"`
 	IsAnonymous        bool         `json:"is_anonymous"`
 	MaximumSelections  int32        `json:"maximum_selections"`
+	AllowEntries       bool         `json:"allow_entries"`
 	Resubmissions      string       `json:"resubmissions"`
 	ResultsVisibility  string       `json:"results_visibility"`
 	RolesAllowed       pgtype.JSONB `json:"roles_allowed"`
@@ -192,6 +193,7 @@ func (q *Queries) GetPollEntriesFromMessageID(ctx context.Context, arg GetPollEn
 			&i.PollOptions,
 			&i.IsAnonymous,
 			&i.MaximumSelections,
+			&i.AllowEntries,
 			&i.Resubmissions,
 			&i.ResultsVisibility,
 			&i.RolesAllowed,

@@ -1,6 +1,6 @@
 -- name: CreatePoll :one
-INSERT INTO guild_polls (poll_uuid, created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id)
-VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, TRUE, '', '', -1, '', NOW(), $3, '[]', FALSE, 1, $4, $5, '[]', '[]', 'epoch', 0, 0)
+INSERT INTO guild_polls (poll_uuid, created_at, guild_id, created_by, has_ended, is_setup, title, description, accent_colour, image_url, start_time, end_time, poll_options, is_anonymous, maximum_selections, allow_entries, resubmissions, results_visibility, roles_allowed, roles_excluded, minimum_join_date, message_id, channel_id)
+VALUES (uuid_generate_v7(), NOW(), $1, $2, FALSE, TRUE, '', '', -1, '', NOW(), $3, '[]', FALSE, 1, TRUE, $4, $5, '[]', '[]', 'epoch', 0, 0)
 RETURNING
     *;
 
@@ -19,13 +19,14 @@ SET
     poll_options = $10,
     is_anonymous = $11,
     maximum_selections = $12,
-    resubmissions = $13,
-    results_visibility = $14,
-    roles_allowed = $15,
-    roles_excluded = $16,
-    minimum_join_date = $17,
-    message_id = $18,
-    channel_id = $19
+    allow_entries = $13,
+    resubmissions = $14,
+    results_visibility = $15,
+    roles_allowed = $16,
+    roles_excluded = $17,
+    minimum_join_date = $18,
+    message_id = $19,
+    channel_id = $20
 WHERE
     poll_uuid = $1
 RETURNING

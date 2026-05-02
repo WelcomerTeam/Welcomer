@@ -159,6 +159,7 @@ type GuildPolls struct {
 	PollOptions       pgtype.JSONB `json:"poll_options"`
 	IsAnonymous       bool         `json:"is_anonymous"`
 	MaximumSelections int32        `json:"maximum_selections"`
+	AllowEntries      bool         `json:"allow_entries"`
 	Resubmissions     string       `json:"resubmissions"`
 	ResultsVisibility string       `json:"results_visibility"`
 	RolesAllowed      pgtype.JSONB `json:"roles_allowed"`

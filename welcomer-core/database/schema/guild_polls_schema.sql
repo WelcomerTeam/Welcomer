@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS guild_polls (
     maximum_selections int NOT NULL,
 
     -- message configuration
+    allow_entries boolean NOT NULL,
     resubmissions text NOT NULL,
     results_visibility text NOT NULL,
 
