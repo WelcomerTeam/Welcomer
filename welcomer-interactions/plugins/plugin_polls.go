@@ -1011,6 +1011,33 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 			Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
 			Data: welcomer.WebhookMessageParamsToInteractionCallbackData(pollSetupView(poll), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
 		})
+	} else {
+		err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeUpdateMessage,
+			Data: &discord.InteractionCallbackData{
+				Components: []discord.InteractionComponent{
+					{
+						Type: discord.InteractionComponentTypeContainer,
+						Components: []discord.InteractionComponent{
+							{
+								Type:    discord.InteractionComponentTypeTextDisplay,
+								Content: "Your poll has now started!\n\nYou can manage your poll settings such as disabling entries, extending the duration or ending the poll early by right clicking the poll message and selecting \"Manage Poll\".\n\n-# How was your experience? Let us know in our feedback channel: https://discord.gg/t2Ye8jBfPh",
+							},
+							{
+								Type: discord.InteractionComponentTypeMediaGallery,
+								Items: []discord.InteractionComponentMediaGalleryItem{
+									{
+										Media: discord.MediaItem{
+											URL: "https://welcomer.gg/assets/manage_poll.png",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		})
 	}
 
 	if err != nil {
@@ -1228,9 +1255,14 @@ func getPollResultString(poll *database.GuildPolls, answers []string, results []
 
 	answersString := "**Votes:**\n"
 
+	var truePercentage float64
+	var resultPercentage int
+
 	for i, answer := range answers {
-		truePercentage := float64(results[i]) / float64(entries) * 100
-		resultPercentage := int(float64(results[i]) / float64(maxValue) * 100)
+		if results[i] > 0 {
+			truePercentage = float64(results[i]) / float64(entries) * 100
+			resultPercentage = int(float64(results[i]) / float64(maxValue) * 100)
+		}
 
 		answersString += fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)%s\n%s\n", answer, results[i], welcomer.If(results[i] == 1, "", "s"), truePercentage, welcomer.If(results[i] == maxValue && hasFinished, " ⭐", ""), getEmojiCombination(resultPercentage, 10))
 	}
