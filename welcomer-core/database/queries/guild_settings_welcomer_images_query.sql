@@ -5,8 +5,8 @@ RETURNING
     *;
 
 -- name: CreateOrUpdateWelcomerImagesGuildSettings :one
-INSERT INTO guild_settings_welcomer_images (guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+INSERT INTO guild_settings_welcomer_images (guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         toggle_image_border = EXCLUDED.toggle_image_border,

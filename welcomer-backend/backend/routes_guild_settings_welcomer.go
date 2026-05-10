@@ -102,6 +102,8 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 						ImageTheme:             welcomer.DefaultWelcomerImages.ImageTheme,
 						ImageMessage:           welcomer.DefaultWelcomerImages.ImageMessage,
 						ImageProfileBorderType: welcomer.DefaultWelcomerImages.ImageProfileBorderType,
+						UseCustomBuilder:       welcomer.DefaultWelcomerImages.UseCustomBuilder,
+						CustomBuilderData:      welcomer.DefaultWelcomerImages.CustomBuilderData,
 					}
 				}
 
@@ -395,6 +397,8 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				ImageTheme:             welcomerImages.ImageTheme,
 				ImageMessage:           welcomerImages.ImageMessage,
 				ImageProfileBorderType: welcomerImages.ImageProfileBorderType,
+				UseCustomBuilder:       welcomerImages.UseCustomBuilder,
+				CustomBuilderData:      welcomerImages.CustomBuilderData,
 			})
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")

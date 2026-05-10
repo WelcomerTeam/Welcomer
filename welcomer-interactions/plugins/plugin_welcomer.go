@@ -355,6 +355,8 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 					ImageTheme:             guildSettingsWelcomerImages.ImageTheme,
 					ImageMessage:           guildSettingsWelcomerImages.ImageMessage,
 					ImageProfileBorderType: guildSettingsWelcomerImages.ImageProfileBorderType,
+					UseCustomBuilder:       guildSettingsWelcomerImages.UseCustomBuilder,
+					CustomBuilderData:      guildSettingsWelcomerImages.CustomBuilderData,
 				}, interaction.GetUser().ID)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
