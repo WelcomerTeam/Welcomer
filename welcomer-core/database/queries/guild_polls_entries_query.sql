@@ -1,12 +1,11 @@
 -- name: AddPollEntry :one
 INSERT INTO guild_polls_entries (guild_poll_entry_uuid, poll_uuid, user_id, created_at, option_index)
 VALUES (uuid_generate_v7(), $1, $2, NOW(), $3)
-ON CONFLICT (poll_uuid, user_id) DO UPDATE SET option_index = EXCLUDED.option_index, created_at = NOW()
 RETURNING guild_poll_entry_uuid;
 
 -- name: RemovePollEntriesNotMatching :exec
 DELETE FROM guild_polls_entries
-WHERE poll_uuid = $1 AND user_id = $2 AND option_index NOT IN ($3);
+WHERE poll_uuid = $1 AND user_id = $2 AND option_index NOT IN (SELECT UNNEST(@options::int[]));
 
 -- name: CountPollEntriesByUniqueUsers :one
 SELECT COUNT(user_id)::int FROM guild_polls_entries

@@ -16,7 +16,6 @@ import (
 const AddPollEntry = `-- name: AddPollEntry :one
 INSERT INTO guild_polls_entries (guild_poll_entry_uuid, poll_uuid, user_id, created_at, option_index)
 VALUES (uuid_generate_v7(), $1, $2, NOW(), $3)
-ON CONFLICT (poll_uuid, user_id) DO UPDATE SET option_index = EXCLUDED.option_index, created_at = NOW()
 RETURNING guild_poll_entry_uuid
 `
 
@@ -239,16 +238,16 @@ func (q *Queries) GetPollEntryUsers(ctx context.Context, pollUuid uuid.UUID) ([]
 
 const RemovePollEntriesNotMatching = `-- name: RemovePollEntriesNotMatching :exec
 DELETE FROM guild_polls_entries
-WHERE poll_uuid = $1 AND user_id = $2 AND option_index NOT IN ($3)
+WHERE poll_uuid = $1 AND user_id = $2 AND option_index NOT IN (SELECT UNNEST($3::int[]))
 `
 
 type RemovePollEntriesNotMatchingParams struct {
-	PollUuid    uuid.UUID `json:"poll_uuid"`
-	UserID      int64     `json:"user_id"`
-	OptionIndex int32     `json:"option_index"`
+	PollUuid uuid.UUID `json:"poll_uuid"`
+	UserID   int64     `json:"user_id"`
+	Options  []int32   `json:"options"`
 }
 
 func (q *Queries) RemovePollEntriesNotMatching(ctx context.Context, arg RemovePollEntriesNotMatchingParams) error {
-	_, err := q.db.Exec(ctx, RemovePollEntriesNotMatching, arg.PollUuid, arg.UserID, arg.OptionIndex)
+	_, err := q.db.Exec(ctx, RemovePollEntriesNotMatching, arg.PollUuid, arg.UserID, arg.Options)
 	return err
 }

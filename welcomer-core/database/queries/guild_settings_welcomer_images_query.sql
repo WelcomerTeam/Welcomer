@@ -19,7 +19,8 @@ ON CONFLICT(guild_id) DO UPDATE
         image_alignment = EXCLUDED.image_alignment,
         image_theme = EXCLUDED.image_theme,
         image_message = EXCLUDED.image_message,
-        image_profile_border_type = EXCLUDED.image_profile_border_type
+        image_profile_border_type = EXCLUDED.image_profile_border_type,
+        use_custom_builder = EXCLUDED.use_custom_builder
 RETURNING
     *;
 
@@ -46,7 +47,8 @@ SET
     image_alignment = $10,
     image_theme = $11,
     image_message = $12,
-    image_profile_border_type = $13
+    image_profile_border_type = $13,
+    use_custom_builder = $14
 WHERE
     guild_id = $1;
 

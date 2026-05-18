@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand/v2"
@@ -16,6 +17,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 )
 
 const (
@@ -51,6 +53,8 @@ const (
 	pollSetupMenuPingHereKey                = "ping_here"
 	pollSetupMenuPingRolesAllowedToEnterKey = "ping_roles_allowed_to_enter"
 	pollSetupMenuPingAdditionalRolesKey     = "additional_roles_to_ping"
+
+	pollVoteSelectionKey = "poll_vote_selection"
 )
 
 func NewPollsCog() *PollsCog {
@@ -244,10 +248,319 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 	})
 
 	sub.RegisterComponentListener("poll_edit:*", handlePollEditComponent)
+	sub.RegisterComponentListener("poll_enter:*", handlePollVoteComponent)
 
 	cog.InteractionCommands.MustAddInteractionCommand(pollsGroup)
 
 	return nil
+}
+
+func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+	if interaction.GuildID == nil {
+		return nil, nil
+	}
+
+	if interaction.Data.CustomID == "" {
+		return nil, nil
+	}
+
+	customIDSplit := strings.Split(interaction.Data.CustomID, ":")
+	if len(customIDSplit) < 2 {
+		return nil, nil
+	}
+
+	pollUUID, err := uuid.FromString(customIDSplit[1])
+	if err != nil {
+		return nil, err
+	}
+
+	poll, err := welcomer.Queries.GetPoll(ctx, database.GetPollParams{
+		GuildID:  int64(*interaction.GuildID),
+		PollUuid: pollUUID,
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("poll_uuid", pollUUID.String()).
+			Msg("Failed to get poll settings")
+
+		return nil, err
+	} else if errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Warn().
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("poll_uuid", pollUUID.String()).
+			Msg("Poll not found for poll entry")
+
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("This poll no longer exists. It may have been deleted or ended.", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	if poll.HasEnded {
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("This poll has already ended.", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	if !poll.AllowEntries {
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("This poll does not have entries enabled. Please try again later.", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	rolesAllowed := welcomer.UnmarshalRolesListJSON(poll.RolesAllowed.Bytes)
+	rolesExcluded := welcomer.UnmarshalRolesListJSON(poll.RolesExcluded.Bytes)
+
+	if len(rolesAllowed) > 0 && !hasAnyRoles(rolesAllowed, interaction.Member.Roles) {
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("Sorry, you are missing a required role to vote on this poll.", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	if len(rolesExcluded) > 0 && hasAnyRoles(rolesExcluded, interaction.Member.Roles) {
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("Sorry, you have a role that disqualifies you from voting on this poll.", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	if poll.MinimumJoinDate.Unix() > 0 {
+		joinBefore := poll.StartTime.Add(-(time.Duration(poll.MinimumJoinDate.Unix()) * time.Second))
+		if interaction.Member.JoinedAt.After(joinBefore) {
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeChannelMessageSource,
+				Data: &discord.InteractionCallbackData{
+					Embeds: welcomer.NewEmbed(fmt.Sprintf("Sorry, you must have joined the server before <t:%d:f> to vote on this poll.", joinBefore.Unix()), welcomer.EmbedColourError),
+					Flags:  uint32(discord.MessageFlagEphemeral),
+				},
+			}, nil
+		}
+	}
+
+	pollEntries, err := welcomer.Queries.GetPollEntriesForUser(ctx, database.GetPollEntriesForUserParams{
+		PollUuid: pollUUID,
+		UserID:   int64(interaction.GetUser().ID),
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("poll_uuid", pollUUID.String()).
+			Int64("user_id", int64(interaction.GetUser().ID)).
+			Msg("Failed to get poll entries for user")
+
+		return nil, err
+	}
+
+	if len(pollEntries) > 0 && poll.Resubmissions == string(welcomer.PollResubmissionOptionNever) {
+		return &discord.InteractionResponse{
+			Type: discord.InteractionCallbackTypeChannelMessageSource,
+			Data: &discord.InteractionCallbackData{
+				Embeds: welcomer.NewEmbed("Sorry, you have already submitted an entry for this poll and resubmissions are not allowed.", welcomer.EmbedColourError),
+				Flags:  uint32(discord.MessageFlagEphemeral),
+			},
+		}, nil
+	}
+
+	options := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
+
+	componentOptions := make([]discord.ApplicationSelectOption, len(options))
+
+	switch interaction.Type {
+	case discord.InteractionTypeModalSubmit:
+		if pollOptionsArgument, err := subway.GetArgument(ctx, pollVoteSelectionKey); err == nil {
+			var pollOptions []int32
+
+			switch pollOptionsArgument.ArgumentType {
+			case subway.ArgumentTypeBool:
+				pollOptionsBool := pollOptionsArgument.MustBool()
+				if pollOptionsBool {
+					pollOptions = []int32{0}
+				}
+			case subway.ArgumentTypeStrings:
+				pollOptionsStrings := pollOptionsArgument.MustStrings()
+				for _, optionStr := range pollOptionsStrings {
+					optionIndex, err := strconv.Atoi(optionStr)
+					if err != nil {
+						welcomer.Logger.Warn().
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Str("poll_uuid", pollUUID.String()).
+							Str("option_str", optionStr).
+							Msg("Invalid option index submitted for poll entry")
+
+						continue
+					}
+
+					pollOptions = append(pollOptions, int32(optionIndex))
+				}
+			case subway.ArgumentTypeString:
+				optionIndex, err := strconv.Atoi(pollOptionsArgument.MustString())
+				if err != nil {
+					welcomer.Logger.Warn().
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("poll_uuid", pollUUID.String()).
+						Str("option_str", pollOptionsArgument.MustString()).
+						Msg("Invalid option index submitted for poll entry")
+				}
+
+				pollOptions = []int32{int32(optionIndex)}
+			default:
+				welcomer.Logger.Warn().
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Str("poll_uuid", pollUUID.String()).
+					Int("argument_type", int(pollOptionsArgument.ArgumentType)).
+					Msg("Invalid argument type for poll options in poll entry interaction")
+
+				return nil, nil
+			}
+
+			println(fmt.Sprintf("%v", pollOptions))
+
+			err := welcomer.Queries.RemovePollEntriesNotMatching(ctx, database.RemovePollEntriesNotMatchingParams{
+				PollUuid: pollUUID,
+				UserID:   int64(interaction.GetUser().ID),
+				Options:  pollOptions,
+			})
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Str("poll_uuid", pollUUID.String()).
+					Int64("user_id", int64(interaction.GetUser().ID)).
+					Msg("Failed to remove poll entries not matching options")
+
+				return nil, err
+			}
+
+			for _, pollOption := range pollOptions {
+				_, err = welcomer.Queries.AddPollEntry(ctx, database.AddPollEntryParams{
+					PollUuid:    pollUUID,
+					UserID:      int64(interaction.GetUser().ID),
+					OptionIndex: pollOption,
+				})
+				if err != nil {
+					welcomer.Logger.Warn().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("poll_uuid", pollUUID.String()).
+						Int64("user_id", int64(interaction.GetUser().ID)).
+						Int32("option_index", pollOption).
+						Msg("Failed to add poll entry")
+
+					continue
+				}
+
+				println(fmt.Sprintf("Added poll entry for option index %d", pollOption))
+			}
+
+			// TODO: handle results
+		} else {
+			welcomer.Logger.Warn().
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("poll_uuid", pollUUID.String()).
+				Msg("Poll options argument not found in poll entry interaction")
+
+			return nil, nil
+		}
+	case discord.InteractionTypeMessageComponent:
+		if len(options) == 1 {
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "Submit Vote",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: options[0],
+							Component: &discord.InteractionComponent{
+								CustomID: pollVoteSelectionKey,
+								Type:     discord.InteractionComponentTypeCheckbox,
+								Default:  new(len(pollEntries) > 0),
+							},
+						},
+					},
+				},
+			}, nil
+		}
+
+		for i, option := range options {
+			componentOptions[i] = discord.ApplicationSelectOption{
+				Label: option,
+				Value: strconv.Itoa(i),
+				Default: slices.ContainsFunc(pollEntries, func(e *database.GuildPollsEntries) bool {
+					return int(e.OptionIndex) == i
+				}),
+			}
+		}
+
+		switch poll.MaximumSelections {
+		case 1:
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "Submit Vote",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Select Your Vote",
+							Component: &discord.InteractionComponent{
+								CustomID: pollVoteSelectionKey,
+								Type:     discord.InteractionComponentTypeRadioGroup,
+								Options:  componentOptions,
+								Required: new(len(pollEntries) == 0 || poll.Resubmissions != string(welcomer.PollResubmissionOptionAlways)),
+							},
+						},
+					},
+				},
+			}, nil
+		default:
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "Submit Votes",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:  discord.InteractionComponentTypeLabel,
+							Label: "Select Your Votes",
+							Component: &discord.InteractionComponent{
+								CustomID:  pollVoteSelectionKey,
+								Type:      discord.InteractionComponentTypeCheckboxGroup,
+								Options:   componentOptions,
+								MaxValues: new(welcomer.If(poll.MaximumSelections == 0, int32(len(componentOptions)), poll.MaximumSelections)),
+								Required:  new(len(pollEntries) == 0 || poll.Resubmissions != string(welcomer.PollResubmissionOptionAlways)),
+							},
+						},
+					},
+				},
+			}, nil
+		}
+	default:
+		welcomer.Logger.Warn().
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Int("interaction_type", int(interaction.Type)).
+			Msg("Unknown poll entry interaction type")
+	}
+
+	return nil, nil
 }
 
 func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -1256,15 +1569,16 @@ func getPollResultString(poll *database.GuildPolls, answers []string, results []
 	answersString := "**Votes:**\n"
 
 	var truePercentage float64
+
 	var resultPercentage int
 
-	for i, answer := range answers {
-		if results[i] > 0 {
-			truePercentage = float64(results[i]) / float64(entries) * 100
-			resultPercentage = int(float64(results[i]) / float64(maxValue) * 100)
+	for answerIndex, answer := range answers {
+		if results[answerIndex] > 0 {
+			truePercentage = float64(results[answerIndex]) / float64(entries) * 100
+			resultPercentage = int(float64(results[answerIndex]) / float64(maxValue) * 100)
 		}
 
-		answersString += fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)%s\n%s\n", answer, results[i], welcomer.If(results[i] == 1, "", "s"), truePercentage, welcomer.If(results[i] == maxValue && hasFinished, " ⭐", ""), getEmojiCombination(resultPercentage, 10))
+		answersString += fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)%s\n%s\n", answer, results[answerIndex], welcomer.If(results[answerIndex] == 1, "", "s"), truePercentage, welcomer.If(results[answerIndex] == maxValue && hasFinished, " ⭐", ""), getEmojiCombination(resultPercentage, 10))
 	}
 
 	return answersString
