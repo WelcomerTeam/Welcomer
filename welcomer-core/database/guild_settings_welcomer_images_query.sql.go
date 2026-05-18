@@ -26,7 +26,8 @@ ON CONFLICT(guild_id) DO UPDATE
         image_alignment = EXCLUDED.image_alignment,
         image_theme = EXCLUDED.image_theme,
         image_message = EXCLUDED.image_message,
-        image_profile_border_type = EXCLUDED.image_profile_border_type
+        image_profile_border_type = EXCLUDED.image_profile_border_type,
+        use_custom_builder = EXCLUDED.use_custom_builder
 RETURNING
     guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
 `
@@ -199,7 +200,8 @@ SET
     image_alignment = $10,
     image_theme = $11,
     image_message = $12,
-    image_profile_border_type = $13
+    image_profile_border_type = $13,
+    use_custom_builder = $14
 WHERE
     guild_id = $1
 `
@@ -218,6 +220,7 @@ type UpdateWelcomerImagesGuildSettingsParams struct {
 	ImageTheme             int32  `json:"image_theme"`
 	ImageMessage           string `json:"image_message"`
 	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	UseCustomBuilder       bool   `json:"use_custom_builder"`
 }
 
 func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error) {
@@ -235,6 +238,7 @@ func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg Upd
 		arg.ImageTheme,
 		arg.ImageMessage,
 		arg.ImageProfileBorderType,
+		arg.UseCustomBuilder,
 	)
 	if err != nil {
 		return 0, err
