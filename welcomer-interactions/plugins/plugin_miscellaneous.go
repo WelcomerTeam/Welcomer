@@ -157,7 +157,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					Data: &discord.InteractionCallbackData{
 						Embeds: []discord.Embed{
 							{
-								Description: "### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships at " + welcomer.WebsiteURL + "/dashboard",
+								Description: "### **Configure your guild with the website dashboard**\n\nManage your guild settings and memberships on our dashboard [**here**](" + welcomer.WebsiteURL + "/dashboard).",
 								Color:       welcomer.EmbedColourInfo,
 							},
 						},
@@ -170,7 +170,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 						Data: &discord.InteractionCallbackData{
 							Embeds: []discord.Embed{
 								{
-									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships ib our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
+									Description: fmt.Sprintf("### **Configure your guild with the website dashboard**\n\nManage this guild's settings and memberships on our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()),
 									Color:       welcomer.EmbedColourInfo,
 								},
 							},
@@ -402,7 +402,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "newcreation",
-		Description: "Returns a list of newly created users on discord",
+		Description: "Returns a list of newly created users on Discord",
 
 		DMPermission: new(false),
 
@@ -896,7 +896,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				Data: &discord.InteractionCallbackData{
 					Embeds: []discord.Embed{
 						{
-							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).\n\nYour guild id is `%s`", welcomer.WebsiteURL+"/support", interaction.GuildID.String()),
+							Description: fmt.Sprintf("### **Welcomer Support Guild**\n\nGet support with using Welcomer on our support server [**here**](%s).\n\nYour guild ID is `%s`", welcomer.WebsiteURL+"/support", interaction.GuildID.String()),
 							Color:       welcomer.EmbedColourInfo,
 						},
 					},
@@ -992,7 +992,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 
 	m.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
 		Name:        "optin",
-		Description: "Opt-in to new welcomer features.",
+		Description: "Opt-in to new Welcomer features.",
 
 		DMPermission:            new(false),
 		DefaultMemberPermission: new(discord.Int64(discord.PermissionElevated)),
