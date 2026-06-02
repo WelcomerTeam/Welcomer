@@ -57,6 +57,8 @@ const (
 	giveawayManageMenuEndGiveawayKey        = "end_giveaway"
 	giveawayManageMenuExportEntriesKey      = "export_entries"
 	giveawayManageMenuExportWinnersKey      = "export_winners"
+
+	giveawayMessageUpdateRate = 1 * time.Second
 )
 
 func NewGiveawaysCog() *GiveawaysCog {
@@ -751,7 +753,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 	}
 
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(giveawayMessageUpdateRate)
 
 		newEntries, err := welcomer.Queries.CountGiveawayEntries(ctx, giveawayUUID)
 		if err != nil {
@@ -761,36 +763,38 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 				Msg("Failed to count giveaway entries")
 		}
 
-		if entries == newEntries {
-			message := discord.Message{
-				ID:        discord.Snowflake(giveaway.MessageID),
-				ChannelID: discord.Snowflake(giveaway.ChannelID),
-			}
+		if entries != newEntries {
+			return
+		}
 
-			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("giveaway_uuid", giveawayUUID.String()).
-					Msg("Failed to acquire session to edit giveaway message after entry")
+		message := discord.Message{
+			ID:        discord.Snowflake(giveaway.MessageID),
+			ChannelID: discord.Snowflake(giveaway.ChannelID),
+		}
 
-				return
-			}
-
-			_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(giveawayView(giveaway, newEntries)))
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("giveaway_uuid", giveawayUUID.String()).
-					Msg("Failed to edit giveaway message after entry")
-			}
-
-			welcomer.Logger.Info().
+		session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*interaction.GuildID)).
 				Str("giveaway_uuid", giveawayUUID.String()).
-				Int32("entries", newEntries).
-				Msg("Updated giveaway message after new entry")
+				Msg("Failed to acquire session to edit giveaway message after entry")
+
+			return
 		}
+
+		_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(giveawayView(giveaway, newEntries)))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("giveaway_uuid", giveawayUUID.String()).
+				Msg("Failed to edit giveaway message after entry")
+		}
+
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("giveaway_uuid", giveawayUUID.String()).
+			Int32("entries", newEntries).
+			Msg("Updated giveaway message after new entry")
 	}()
 
 	return &discord.InteractionResponse{

@@ -8,7 +8,7 @@ DELETE FROM guild_polls_entries
 WHERE poll_uuid = $1 AND user_id = $2 AND option_index NOT IN (SELECT UNNEST(@options::int[]));
 
 -- name: CountPollEntriesByUniqueUsers :one
-SELECT COUNT(user_id)::int FROM guild_polls_entries
+SELECT COUNT(DISTINCT user_id)::int AS users_count, COUNT(*)::int AS entries_count FROM guild_polls_entries
 WHERE poll_uuid = $1;
 
 -- name: GetPollEntryUsers :many
@@ -19,6 +19,12 @@ WHERE poll_uuid = $1;
 SELECT * FROM guild_polls_entries
 WHERE poll_uuid = $1
 ORDER BY created_at DESC;
+
+-- name: GetPollEntriesCounts :many
+SELECT option_index, COUNT(*)::int AS entry_count
+FROM guild_polls_entries
+WHERE poll_uuid = $1
+GROUP BY option_index;
 
 -- name: GetPollEntriesForUser :many
 SELECT * FROM guild_polls_entries

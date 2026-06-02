@@ -33,15 +33,20 @@ func (q *Queries) AddPollEntry(ctx context.Context, arg AddPollEntryParams) (uui
 }
 
 const CountPollEntriesByUniqueUsers = `-- name: CountPollEntriesByUniqueUsers :one
-SELECT COUNT(user_id)::int FROM guild_polls_entries
+SELECT COUNT(DISTINCT user_id)::int AS users_count, COUNT(*)::int AS entries_count FROM guild_polls_entries
 WHERE poll_uuid = $1
 `
 
-func (q *Queries) CountPollEntriesByUniqueUsers(ctx context.Context, pollUuid uuid.UUID) (int32, error) {
+type CountPollEntriesByUniqueUsersRow struct {
+	UsersCount   int32 `json:"users_count"`
+	EntriesCount int32 `json:"entries_count"`
+}
+
+func (q *Queries) CountPollEntriesByUniqueUsers(ctx context.Context, pollUuid uuid.UUID) (*CountPollEntriesByUniqueUsersRow, error) {
 	row := q.db.QueryRow(ctx, CountPollEntriesByUniqueUsers, pollUuid)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
+	var i CountPollEntriesByUniqueUsersRow
+	err := row.Scan(&i.UsersCount, &i.EntriesCount)
+	return &i, err
 }
 
 const GetPollEntries = `-- name: GetPollEntries :many
@@ -66,6 +71,38 @@ func (q *Queries) GetPollEntries(ctx context.Context, pollUuid uuid.UUID) ([]*Gu
 			&i.OptionIndex,
 			&i.CreatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetPollEntriesCounts = `-- name: GetPollEntriesCounts :many
+SELECT option_index, COUNT(*)::int AS entry_count
+FROM guild_polls_entries
+WHERE poll_uuid = $1
+GROUP BY option_index
+`
+
+type GetPollEntriesCountsRow struct {
+	OptionIndex int32 `json:"option_index"`
+	EntryCount  int32 `json:"entry_count"`
+}
+
+func (q *Queries) GetPollEntriesCounts(ctx context.Context, pollUuid uuid.UUID) ([]*GetPollEntriesCountsRow, error) {
+	rows, err := q.db.Query(ctx, GetPollEntriesCounts, pollUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetPollEntriesCountsRow{}
+	for rows.Next() {
+		var i GetPollEntriesCountsRow
+		if err := rows.Scan(&i.OptionIndex, &i.EntryCount); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

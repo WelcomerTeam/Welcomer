@@ -19,6 +19,7 @@ const (
 	CustomEventInvokeReactionRoles = "WELCOMER_INVOKE_REACTION_ROLES"
 
 	CustomEventInvokeEndGiveaway = "WELCOMER_INVOKE_END_GIVEAWAY"
+	CustomEventInvokeEndPoll     = "WELCOMER_INVOKE_END_POLL"
 )
 
 type OnInvokeWelcomerFuncType func(eventCtx *sandwich.EventContext, event CustomEventInvokeWelcomerStructure) error
@@ -79,4 +80,11 @@ type OnInvokeEndGiveawayFuncType func(eventCtx *sandwich.EventContext, event Cus
 type CustomEventInvokeEndGiveawayStructure struct {
 	GiveawayUUID uuid.UUID
 	GuildID      discord.Snowflake
+}
+
+type OnInvokeEndPollFuncType func(eventCtx *sandwich.EventContext, event CustomEventInvokeEndPollStructure) error
+
+type CustomEventInvokeEndPollStructure struct {
+	PollUUID uuid.UUID
+	GuildID  discord.Snowflake
 }

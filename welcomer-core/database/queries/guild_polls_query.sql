@@ -24,9 +24,7 @@ SET
     results_visibility = $15,
     roles_allowed = $16,
     roles_excluded = $17,
-    minimum_join_date = $18,
-    message_id = $19,
-    channel_id = $20
+    minimum_join_date = $18
 WHERE
     poll_uuid = $1
 RETURNING

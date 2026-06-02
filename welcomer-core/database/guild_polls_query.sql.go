@@ -282,9 +282,7 @@ SET
     results_visibility = $15,
     roles_allowed = $16,
     roles_excluded = $17,
-    minimum_join_date = $18,
-    message_id = $19,
-    channel_id = $20
+    minimum_join_date = $18
 WHERE
     poll_uuid = $1
 RETURNING
@@ -310,8 +308,6 @@ type UpdatePollParams struct {
 	RolesAllowed      pgtype.JSONB `json:"roles_allowed"`
 	RolesExcluded     pgtype.JSONB `json:"roles_excluded"`
 	MinimumJoinDate   time.Time    `json:"minimum_join_date"`
-	MessageID         int64        `json:"message_id"`
-	ChannelID         int64        `json:"channel_id"`
 }
 
 func (q *Queries) UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildPolls, error) {
@@ -334,8 +330,6 @@ func (q *Queries) UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildP
 		arg.RolesAllowed,
 		arg.RolesExcluded,
 		arg.MinimumJoinDate,
-		arg.MessageID,
-		arg.ChannelID,
 	)
 	var i GuildPolls
 	err := row.Scan(
