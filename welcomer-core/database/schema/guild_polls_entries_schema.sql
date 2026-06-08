@@ -7,5 +7,4 @@ CREATE TABLE IF NOT EXISTS guild_polls_entries (
     FOREIGN KEY (poll_uuid) REFERENCES guild_polls (poll_uuid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS guild_polls_entries_poll_uuid_user_id ON guild_polls_entries (poll_uuid, user_id);
-CREATE INDEX IF NOT EXISTS guild_polls_entries_poll_uuid ON guild_polls_entries (poll_uuid);
+CREATE INDEX IF NOT EXISTS guild_polls_entries_poll_uuid_user_id_option_index ON guild_polls_entries (guild_poll_entry_uuid, user_id, option_index);

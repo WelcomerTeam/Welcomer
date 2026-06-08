@@ -1375,6 +1375,9 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			}
 
+			giveaway.MessageID = int64(message.ID)
+			giveaway.ChannelID = int64(message.ChannelID)
+
 			_, err = welcomer.Queries.UpdateGiveawayMessage(ctx, database.UpdateGiveawayMessageParams{
 				GiveawayUuid: giveawayUUID,
 				MessageID:    int64(message.ID),
@@ -1608,7 +1611,7 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 				Components: []discord.InteractionComponent{
 					{
 						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: fmt.Sprintf("### Manage entries for giveaway **%s**", welcomer.Coalesce(giveaway.Title, "New Giveaway")),
+						Content: fmt.Sprintf("### Manage giveaway **%s**", welcomer.Coalesce(giveaway.Title, "New Giveaway")),
 					},
 					{
 						Type: discord.InteractionComponentTypeSeparator,

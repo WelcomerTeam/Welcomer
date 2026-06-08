@@ -1,7 +1,10 @@
 package plugins
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -12,6 +15,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
@@ -55,6 +59,11 @@ const (
 	pollSetupMenuPingAdditionalRolesKey     = "additional_roles_to_ping"
 
 	pollVoteSelectionKey = "poll_vote_selection"
+
+	pollManageMenuToggleAllowEntriesKey = "toggle_allow_entries"
+	pollManageMenuExtendDurationKey     = "extend_duration"
+	pollManageMenuEndPollKey            = "end_poll"
+	pollManageMenuExportEntriesKey      = "export_entries"
 
 	pollMessageUpdateRate = 1 * time.Second
 )
@@ -249,12 +258,357 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
+	cog.InteractionCommands.MustAddInteractionCommand(&subway.InteractionCommandable{
+		Name: "Manage Poll",
+
+		Type:        subway.InteractionCommandableTypeCommand,
+		CommandType: new(discord.ApplicationCommandTypeMessage),
+
+		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
+		DMPermission:            new(false),
+
+		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				if interaction.Data.TargetID == nil {
+					return nil, nil
+				}
+
+				message, ok := interaction.Data.Resolved.Messages[*interaction.Data.TargetID]
+				if !ok {
+					welcomer.Logger.Error().
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Int64("message_id", int64(*interaction.Data.TargetID)).
+						Msg("Failed to find message for poll manage command")
+
+					return nil, errors.New("failed to find message for poll manage command")
+				}
+
+				poll, err := welcomer.Queries.GetPollFromMessageID(ctx, database.GetPollFromMessageIDParams{
+					GuildID:   int64(*interaction.GuildID),
+					ChannelID: int64(message.ChannelID),
+					MessageID: int64(message.ID),
+				})
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Int64("channel_id", int64(message.ChannelID)).
+						Int64("message_id", int64(message.ID)).
+						Msg("Failed to get poll settings from message ID")
+
+					return nil, err
+				} else if errors.Is(err, pgx.ErrNoRows) {
+					welcomer.Logger.Warn().
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Int64("channel_id", int64(message.ChannelID)).
+						Int64("message_id", int64(message.ID)).
+						Msg("Poll not found for poll settings message")
+
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("This message is not associated with a poll. Please make sure you are using this command on the poll message.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: welcomer.WebhookMessageParamsToInteractionCallbackData(pollManageView(poll), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
+				}, nil
+			})
+		},
+	})
+
 	sub.RegisterComponentListener("poll_edit:*", handlePollEditComponent)
 	sub.RegisterComponentListener("poll_enter:*", handlePollVoteComponent)
+	sub.RegisterComponentListener("poll_manage:*", handlePollManageComponent)
 
 	cog.InteractionCommands.MustAddInteractionCommand(pollsGroup)
 
 	return nil
+}
+
+func handlePollManageComponent(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+	if interaction.GuildID == nil {
+		return nil, nil
+	}
+
+	if interaction.Data.CustomID == "" {
+		return nil, nil
+	}
+
+	customIDSplit := strings.Split(interaction.Data.CustomID, ":")
+	if len(customIDSplit) < 3 {
+		return nil, nil
+	}
+
+	pollUUID, err := uuid.FromString(customIDSplit[1])
+	if err != nil {
+		return nil, err
+	}
+
+	poll, err := welcomer.Queries.GetPoll(ctx, database.GetPollParams{
+		GuildID:  int64(*interaction.GuildID),
+		PollUuid: pollUUID,
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("poll_uuid", pollUUID.String()).
+			Msg("Failed to get poll settings")
+
+		return nil, err
+	}
+
+	switch interaction.Type {
+	case discord.InteractionTypeMessageComponent:
+		switch customIDSplit[2] {
+		case pollManageMenuToggleAllowEntriesKey:
+			poll.AllowEntries = !poll.AllowEntries
+		case pollManageMenuExtendDurationKey:
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "Extend Poll Duration",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeTextDisplay,
+							Content: "Enter the new poll duration from the current time. Leave empty if you want the poll to run indefinitely.\n\nIf you would like to remove time from the current duration, put a '-' before the duration." +
+								welcomer.If(poll.EndTime.IsZero(), "\n\nThis poll is currently set to run indefinitely so this will be the duration from the current time.", ""),
+						},
+						{
+							Type:        discord.InteractionComponentTypeLabel,
+							Label:       "Duration",
+							Description: "e.g. 1h, 30m, 2d, -5m. Only years, days, hours and minutes are supported.",
+							Component: &discord.InteractionComponent{
+								CustomID:    pollManageMenuExtendDurationKey,
+								Type:        discord.InteractionComponentTypeTextInput,
+								Placeholder: "7d 3h 60m -2d",
+								Style:       discord.InteractionComponentStyleShort,
+								Required:    new(false),
+							},
+						},
+					},
+				},
+			}, nil
+		case pollManageMenuEndPollKey:
+			return &discord.InteractionResponse{
+				Type: discord.InteractionCallbackTypeModal,
+				Data: &discord.InteractionCallbackData{
+					Title:    "End Poll",
+					CustomID: interaction.Data.CustomID,
+					Components: []discord.InteractionComponent{
+						{
+							Type:    discord.InteractionComponentTypeTextDisplay,
+							Content: "Are you sure you want to end the poll early? This cannot be undone.",
+						},
+					},
+				},
+			}, nil
+		case pollManageMenuExportEntriesKey:
+			return exportPollEntries(ctx, sub, interaction, poll)
+		default:
+			welcomer.Logger.Warn().
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("poll_uuid", pollUUID.String()).
+				Str("custom_id", interaction.Data.CustomID).
+				Msg("Unknown poll manage component interaction")
+		}
+	case discord.InteractionTypeModalSubmit:
+		switch customIDSplit[2] {
+		case pollManageMenuExtendDurationKey:
+			durationArgument, err := subway.GetArgument(ctx, pollManageMenuExtendDurationKey)
+
+			if err == nil {
+				durationString := durationArgument.MustString()
+				durationString, hasMinus := strings.CutPrefix(durationString, "-")
+
+				seconds, err := welcomer.ParseDurationAsSeconds(durationString)
+				if err != nil || seconds < 0 {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Str("duration", durationString).
+						Msg("Failed to parse duration")
+
+					return nil, nil
+				}
+
+				// If the duration is indefinite, reset to current time.
+				if poll.EndTime.IsZero() {
+					poll.EndTime = time.Now()
+				}
+
+				if hasMinus {
+					poll.EndTime = poll.EndTime.Add(-time.Duration(seconds) * time.Second)
+				} else {
+					poll.EndTime = poll.EndTime.Add(time.Duration(seconds) * time.Second)
+				}
+
+				if poll.EndTime.Before(time.Now()) {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("The new end time cannot be in the past. Please end the poll if you want to do this.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
+			} else {
+				// If no duration is passed, make the duration indefinite.
+				poll.EndTime = time.Time{}
+			}
+		case pollManageMenuEndPollKey:
+			poll.EndTime = time.Now()
+
+			data, _ := json.Marshal(welcomer.CustomEventInvokeEndPollStructure{
+				PollUUID: poll.PollUuid,
+				GuildID:  *interaction.GuildID,
+			})
+
+			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+				Identifier: welcomer.GetManagerNameFromContext(ctx),
+				Type:       welcomer.CustomEventInvokeEndPoll,
+				Data:       data,
+			})
+			if err != nil {
+				return nil, err
+			}
+		default:
+			welcomer.Logger.Warn().
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("poll_uuid", pollUUID.String()).
+				Str("custom_id", interaction.Data.CustomID).
+				Msg("Unknown poll manage modal submit interaction")
+		}
+	}
+
+	_, err = welcomer.UpdatePollGuildSettingsWithAudit(ctx, database.UpdatePollParams{
+		PollUuid:          poll.PollUuid,
+		IsSetup:           poll.IsSetup,
+		HasEnded:          poll.HasEnded,
+		Title:             poll.Title,
+		Description:       poll.Description,
+		AccentColour:      poll.AccentColour,
+		ImageUrl:          poll.ImageUrl,
+		StartTime:         poll.StartTime,
+		EndTime:           poll.EndTime,
+		PollOptions:       poll.PollOptions,
+		IsAnonymous:       poll.IsAnonymous,
+		MaximumSelections: poll.MaximumSelections,
+		AllowEntries:      poll.AllowEntries,
+		Resubmissions:     poll.Resubmissions,
+		ResultsVisibility: poll.ResultsVisibility,
+		RolesAllowed:      poll.RolesAllowed,
+		RolesExcluded:     poll.RolesExcluded,
+		MinimumJoinDate:   poll.MinimumJoinDate,
+	}, interaction.GetUser().ID, *interaction.GuildID)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Failed to update poll settings")
+
+		return nil, err
+	}
+
+	if customIDSplit[2] == pollManageMenuEndPollKey {
+		poll.HasEnded = true
+	}
+
+	err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+		Type: discord.InteractionCallbackTypeUpdateMessage,
+		Data: welcomer.WebhookMessageParamsToInteractionCallbackData(pollManageView(poll), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("poll_uuid", pollUUID.String()).
+			Str("custom_id", interaction.Data.CustomID).
+			Msg("Failed to create interaction response for poll manage component")
+	}
+
+	return nil, nil
+}
+
+func exportPollEntries(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, poll *database.GuildPolls) (*discord.InteractionResponse, error) {
+	pollAnswers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
+
+	entries, err := welcomer.Queries.GetPollEntries(ctx, poll.PollUuid)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		welcomer.Logger.Error().Err(err).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Failed to get poll entry users")
+
+		return nil, err
+	}
+
+	var file bytes.Buffer
+
+	writer := csv.NewWriter(&file)
+
+	totalEntries := map[int32]int{}
+
+	for i := range len(pollAnswers) {
+		totalEntries[int32(i)] = 0
+	}
+
+	for _, entry := range entries {
+		totalEntries[entry.OptionIndex]++
+	}
+
+	if poll.IsAnonymous {
+		writer.Write([]string{"option", "count"})
+
+		for entry_index, entry_count := range totalEntries {
+			writer.Write([]string{
+				pollAnswers[entry_index],
+				welcomer.Itoa(int64(entry_count)),
+			})
+		}
+	} else {
+		writer.Write([]string{"user_id", "option", "entered_at"})
+
+		for _, entry := range entries {
+			writer.Write([]string{
+				welcomer.Itoa(entry.UserID),
+				pollAnswers[entry.OptionIndex],
+				entry.CreatedAt.Format("2006-01-02 15:04:05"),
+			})
+		}
+	}
+
+	writer.Flush()
+
+	if err := writer.Error(); err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Failed to write poll entries to csv")
+
+		return nil, err
+	}
+
+	err = interaction.SendResponse(ctx, sub.EmptySession, discord.InteractionCallbackTypeChannelMessageSource, &discord.InteractionCallbackData{
+		Content: "Here are the entries for this poll:",
+		Files: []discord.File{
+			{
+				Reader:      &file,
+				Name:        fmt.Sprintf("poll_entries_%s.csv", poll.PollUuid.String()),
+				ContentType: "text/csv",
+			},
+		},
+		Flags: uint32(discord.MessageFlagEphemeral),
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Failed to send poll entries response")
+
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
@@ -539,7 +893,7 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 			UserID:      int64(interaction.GetUser().ID),
 			OptionIndex: pollOption,
 		})
-		if err != nil && !strings.Contains(err.Error(), "5unique constraint") {
+		if err != nil && !strings.Contains(err.Error(), "unique constraint") {
 			welcomer.Logger.Warn().Err(err).
 				Int64("guild_id", int64(*interaction.GuildID)).
 				Str("poll_uuid", pollUUID.String()).
@@ -552,6 +906,7 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 	}
 
 	var showResultsToUser bool
+
 	var updateMainMessage bool
 
 	switch welcomer.PollResultVisibilityOption(poll.ResultsVisibility) {
@@ -1334,6 +1689,9 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				}
 			}
 
+			poll.MessageID = int64(message.ID)
+			poll.ChannelID = int64(message.ChannelID)
+
 			_, err = welcomer.Queries.UpdatePollMessage(ctx, database.UpdatePollMessageParams{
 				PollUuid:  pollUUID,
 				MessageID: int64(message.ID),
@@ -1347,8 +1705,6 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 
 				return nil, err
 			}
-
-			println("Update " + pollUUID.String() + " with " + strconv.FormatInt(int64(message.ID), 10) + " " + strconv.FormatInt(int64(message.ChannelID), 10))
 
 			welcomer.PusherGuildScience.Push(
 				ctx,
@@ -1451,6 +1807,111 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 	return &discord.InteractionResponse{
 		Type: discord.InteractionCallbackTypeDeferredUpdateMessage,
 	}, nil
+}
+
+func pollManageView(poll *database.GuildPolls) discord.WebhookMessageParams {
+	customIDPrefix := "poll_manage:" + poll.PollUuid.String() + ":"
+
+	return discord.WebhookMessageParams{
+		Components: []discord.InteractionComponent{
+			{
+				Type: discord.InteractionComponentTypeContainer,
+				Components: []discord.InteractionComponent{
+					{
+						Type:    discord.InteractionComponentTypeTextDisplay,
+						Content: fmt.Sprintf("### Manage poll **%s**", welcomer.Coalesce(poll.Title, "New Poll")),
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Allow Poll Entries:**\n" +
+									welcomer.If(poll.AllowEntries, "True", "False") +
+									welcomer.If(!poll.AllowEntries, "\n-# When disabled, users cannot enter the poll. This is useful to temporarily pause entries without ending the poll.", ""),
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStyleSecondary,
+							Label:    welcomer.If(poll.AllowEntries, "Disable", "Enable"),
+							CustomID: customIDPrefix + pollManageMenuToggleAllowEntriesKey,
+							Disabled: poll.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Poll " + welcomer.If(poll.HasEnded, "Ended", "Ends") + ":**\n" +
+									welcomer.If(poll.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)", "No end time (runs indefinitely)") + "\n" +
+									welcomer.If(
+										poll.HasEnded,
+										"-# This poll has already ended, so the duration cannot be extended.",
+										"-# Extends the poll end time.",
+									),
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStyleSecondary,
+							Label:    "Extend",
+							CustomID: customIDPrefix + pollManageMenuExtendDurationKey,
+							Disabled: poll.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type:    discord.InteractionComponentTypeTextDisplay,
+								Content: "**End Poll**",
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStyleDanger,
+							Label:    "End Poll",
+							CustomID: customIDPrefix + pollManageMenuEndPollKey,
+							Disabled: poll.HasEnded,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+					{
+						Type: discord.InteractionComponentTypeSection,
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeTextDisplay,
+								Content: "**Export Poll Entries**\n" +
+									"-# Exports a CSV file of all poll entries.",
+							},
+						},
+						Accessory: &discord.InteractionComponent{
+							Type:     discord.InteractionComponentTypeButton,
+							Style:    discord.InteractionComponentStylePrimary,
+							Label:    "Export Entries",
+							CustomID: customIDPrefix + pollManageMenuExportEntriesKey,
+						},
+					},
+					{
+						Type: discord.InteractionComponentTypeSeparator,
+					},
+				},
+			},
+		},
+	}
 }
 
 func pollSetupView(poll *database.GuildPolls) discord.WebhookMessageParams {
