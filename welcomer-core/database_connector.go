@@ -219,11 +219,47 @@ func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context
 
 	customBuilderDataJSONB := SetupJSONB(customBuilderData)
 
-	newRow, err := Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+	var err error
+	var newRow *database.GuildSettingsWelcomerImages
+
+	newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
 		GuildID:           int64(guildID),
 		UseCustomBuilder:  useCustomBuilder,
 		CustomBuilderData: customBuilderDataJSONB,
 	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			_, err = CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				GuildID:                int64(guildID),
+				ToggleEnabled:          DefaultWelcomerImages.ToggleEnabled,
+				ToggleImageBorder:      DefaultWelcomerImages.ToggleImageBorder,
+				ToggleShowAvatar:       DefaultWelcomerImages.ToggleShowAvatar,
+				BackgroundName:         DefaultWelcomerImages.BackgroundName,
+				ColourText:             DefaultWelcomerImages.ColourText,
+				ColourTextBorder:       DefaultWelcomerImages.ColourTextBorder,
+				ColourImageBorder:      DefaultWelcomerImages.ColourImageBorder,
+				ColourProfileBorder:    DefaultWelcomerImages.ColourProfileBorder,
+				ImageAlignment:         DefaultWelcomerImages.ImageAlignment,
+				ImageTheme:             DefaultWelcomerImages.ImageTheme,
+				ImageMessage:           DefaultWelcomerImages.ImageMessage,
+				ImageProfileBorderType: DefaultWelcomerImages.ImageProfileBorderType,
+				UseCustomBuilder:       DefaultWelcomerImages.UseCustomBuilder,
+				CustomBuilderData:      DefaultWelcomerImages.CustomBuilderData,
+			}, actor)
+			if err != nil {
+				return nil, err
+			}
+
+			newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+				GuildID:           int64(guildID),
+				UseCustomBuilder:  useCustomBuilder,
+				CustomBuilderData: customBuilderDataJSONB,
+			})
+		} else {
+			return nil, err
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
