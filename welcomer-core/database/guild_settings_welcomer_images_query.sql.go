@@ -247,13 +247,11 @@ func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg Upd
 }
 
 const UpdateWelcomerImagesGuildSettingsCustomBuilder = `-- name: UpdateWelcomerImagesGuildSettingsCustomBuilder :one
-UPDATE
-    guild_settings_welcomer_images
-SET
-    use_custom_builder = $2,
-    custom_builder_data = $3
-WHERE
-    guild_id = $1
+INSERT INTO guild_settings_welcomer_images(guild_id, use_custom_builder, custom_builder_data)
+    VALUES ($1, $2, $3)
+ON CONFLICT(guild_id) DO UPDATE
+    SET use_custom_builder = EXCLUDED.use_custom_builder,
+        custom_builder_data = EXCLUDED.custom_builder_data
 RETURNING
     guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
 `
