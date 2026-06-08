@@ -693,6 +693,7 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 				return
 			}
 
+			welcomerImages.GuildID = int64(guildID)
 			welcomerImages.UseCustomBuilder = partial.UseCustomBuilder
 			welcomerImages.CustomBuilderData = welcomer.StringToJSONB(partial.CustomBuilderData)
 
