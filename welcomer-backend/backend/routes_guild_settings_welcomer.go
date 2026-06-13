@@ -18,6 +18,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HugoSmits86/nativewebp"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -753,7 +755,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 			buf := bytes.NewBuffer(nil)
 
 			switch mimeType {
-			case MIMEGIF, MIMEPNG, MIMEJPEG:
+			case MIMEGIF, MIMEPNG, MIMEJPEG, MIMEWEBP:
 				// Valid file types for builder artifacts.
 
 				// Validate file and get size
@@ -787,7 +789,9 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 					return
 				}
 
-				err = png.Encode(buf, img)
+				err = nativewebp.Encode(buf, img, &nativewebp.Options{
+					CompressionLevel: nativewebp.DefaultCompression,
+				})
 				if err != nil {
 					welcomer.Logger.Info().Err(err).Msg("Failed to encode image to png")
 
@@ -821,7 +825,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 				GuildID:      int64(tryGetGuildID(ctx)),
 				UserID:       int64(tryGetUser(ctx).ID),
 				CreatedAt:    time.Now(),
-				ImageType:    welcomer.ImageFileTypeImagePng.String(),
+				ImageType:    welcomer.ImageFileTypeImageWebp.String(),
 				Data:         buf.Bytes(),
 				Reference:    ref.String(),
 			})
