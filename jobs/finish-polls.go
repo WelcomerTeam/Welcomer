@@ -117,6 +117,8 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 		})
 
 		for _, location := range locations {
+			time.Sleep(time.Second)
+
 			_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich_protobuf.RelayMessageRequest{
 				Identifier: location.GetIdentifier(),
 				Type:       welcomer.CustomEventInvokeEndPoll,
@@ -133,6 +135,9 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 			}
 		}
 
-		welcomer.Logger.Info().Int64("guild_id", poll.GuildID).Msg("Finished poll")
+		welcomer.Logger.Info().
+			Int64("guild_id", poll.GuildID).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Finished poll")
 	}
 }

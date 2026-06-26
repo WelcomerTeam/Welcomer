@@ -117,6 +117,8 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 		})
 
 		for _, location := range locations {
+			time.Sleep(time.Second)
+
 			_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich_protobuf.RelayMessageRequest{
 				Identifier: location.GetIdentifier(),
 				Type:       welcomer.CustomEventInvokeEndGiveaway,
