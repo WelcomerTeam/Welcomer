@@ -1788,29 +1788,29 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 	}
 
 	if poll.IsSetup {
-		err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
+		return &discord.InteractionResponse{
 			Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
 			Data: welcomer.WebhookMessageParamsToInteractionCallbackData(pollSetupView(poll), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
-		})
-	} else {
-		err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
-			Type: discord.InteractionCallbackTypeUpdateMessage,
-			Data: &discord.InteractionCallbackData{
-				Components: []discord.InteractionComponent{
-					{
-						Type: discord.InteractionComponentTypeContainer,
-						Components: []discord.InteractionComponent{
-							{
-								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "Your poll has now started!\n\nYou can manage your poll settings such as disabling entries, extending the duration or ending the poll early by right clicking the poll message and selecting \"Manage Poll\".\n\n-# How was your experience? Let us know in our feedback channel: https://discord.gg/t2Ye8jBfPh",
-							},
-							{
-								Type: discord.InteractionComponentTypeMediaGallery,
-								Items: []discord.InteractionComponentMediaGalleryItem{
-									{
-										Media: discord.MediaItem{
-											URL: "https://welcomer.gg/assets/manage_poll.png",
-										},
+		}, nil
+	}
+
+	return &discord.InteractionResponse{
+		Type: discord.InteractionCallbackTypeUpdateMessage,
+		Data: &discord.InteractionCallbackData{
+			Components: []discord.InteractionComponent{
+				{
+					Type: discord.InteractionComponentTypeContainer,
+					Components: []discord.InteractionComponent{
+						{
+							Type:    discord.InteractionComponentTypeTextDisplay,
+							Content: "Your poll has now started!\n\nYou can manage your poll settings such as disabling entries, extending the duration or ending the poll early by right clicking the poll message and selecting \"Manage Poll\".\n\n-# How was your experience? Let us know in our feedback channel: https://discord.gg/t2Ye8jBfPh",
+						},
+						{
+							Type: discord.InteractionComponentTypeMediaGallery,
+							Items: []discord.InteractionComponentMediaGalleryItem{
+								{
+									Media: discord.MediaItem{
+										URL: "https://welcomer.gg/assets/manage_poll.png",
 									},
 								},
 							},
@@ -1818,20 +1818,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 					},
 				},
 			},
-		})
-	}
-
-	if err != nil {
-		welcomer.Logger.Error().Err(err).
-			Int64("guild_id", int64(*interaction.GuildID)).
-			Str("poll_uuid", poll.PollUuid.String()).
-			Msg("Failed to edit poll message")
-
-		return nil, err
-	}
-
-	return &discord.InteractionResponse{
-		Type: discord.InteractionCallbackTypeDeferredUpdateMessage,
+		},
 	}, nil
 }
 
