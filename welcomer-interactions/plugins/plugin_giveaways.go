@@ -1563,8 +1563,18 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 		},
 		{
 			Type: discord.InteractionComponentTypeTextDisplay,
-			Content: "**Giveaway Ends:** " + welcomer.If(giveaway.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)", "No end time (runs indefinitely)") +
-				"\n" + welcomer.If(giveaway.ShowEntries, fmt.Sprintf("**Entries:** %d", entries), ""),
+			Content: welcomer.If(
+				giveaway.HasEnded,
+				"**Giveaway Ended:** "+"<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)",
+				"**Giveaway Ends:** "+welcomer.If(
+					giveaway.EndTime.Unix() > 0,
+					"<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)",
+					"No end time (runs indefinitely)")) +
+				"\n" +
+				welcomer.If(
+					giveaway.ShowEntries,
+					fmt.Sprintf("**Entries:** %d", entries),
+					""),
 		},
 	}...)
 
