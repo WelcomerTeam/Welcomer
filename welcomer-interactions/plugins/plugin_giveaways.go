@@ -1264,7 +1264,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			} else {
 				giveaway.RolesAllowed = pgtype.JSONB{
-					Bytes:  []byte{123, 125}, // []
+					Bytes:  []byte{91, 93}, // []
 					Status: pgtype.Present,
 				}
 			}
@@ -1285,7 +1285,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			} else {
 				giveaway.RolesExcluded = pgtype.JSONB{
-					Bytes:  []byte{123, 125}, // []
+					Bytes:  []byte{91, 93}, // []
 					Status: pgtype.Present,
 				}
 			}

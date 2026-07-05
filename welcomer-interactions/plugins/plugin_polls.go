@@ -1601,7 +1601,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				}
 			} else {
 				poll.RolesAllowed = pgtype.JSONB{
-					Bytes:  []byte{123, 125}, // []
+					Bytes:  []byte{91, 93}, // []
 					Status: pgtype.Present,
 				}
 			}
@@ -1622,7 +1622,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				}
 			} else {
 				poll.RolesExcluded = pgtype.JSONB{
-					Bytes:  []byte{123, 125}, // []
+					Bytes:  []byte{91, 93}, // []
 					Status: pgtype.Present,
 				}
 			}
