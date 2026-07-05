@@ -458,16 +458,6 @@ export default {
               class: "text-red-500 bg-red-100",
             });
           });
-
-        if (event.target.files[0].size > 20000000) {
-          this.$store.dispatch("createToast", {
-            title: "Your file is too large. It must be 20MB or less!",
-            icon: "xmark",
-            class: "text-red-500 bg-red-100",
-          });
-
-          return;
-        }
       }
     },
 
