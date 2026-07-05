@@ -1,1 +1,1 @@
-go run cmd/main.go --proxyDebug
+export ENVIRONMENT=development; go run cmd/main.go --proxyDebug

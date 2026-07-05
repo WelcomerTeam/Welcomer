@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -9,6 +10,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	welcomer_interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions/plugins"
 )
 
 type PollCog struct {
@@ -40,6 +42,8 @@ func (g *PollCog) GetEventHandlers() *sandwich.Handlers {
 }
 
 func (g *PollCog) RegisterCog(bot *sandwich.Bot) error {
+	welcomer_interactions.SetupSectionEmojiIDs()
+
 	// Register poll end handler.
 
 	g.EventHandler.RegisterEventHandler(core.CustomEventInvokeEndPoll, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
@@ -152,6 +156,14 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 
 	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(poll.ChannelID), discord.Snowflake(poll.MessageID))
 	if err != nil {
+		if strings.Contains(err.Error(), "404 Not Found") {
+			welcomer.Logger.Warn().
+				Str("poll_uuid", poll.PollUuid.String()).
+				Msg("Poll message not found, skipping disabling buttons for poll end")
+
+			return nil
+		}
+
 		welcomer.Logger.Error().Err(err).
 			Str("poll_uuid", poll.PollUuid.String()).
 			Msg("Failed to fetch poll message for poll end")
@@ -159,18 +171,34 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 		return err
 	}
 
-	for i := range msg.Components {
-		for j := range msg.Components[i].Components {
-			if msg.Components[i].Components[j].Type == discord.InteractionComponentTypeButton {
-				msg.Components[i].Components[j].Label = "This poll has ended"
-				msg.Components[i].Components[j].Disabled = true
+	entriesCounts, err := welcomer.Queries.GetPollEntriesCounts(eventCtx.Context, poll.PollUuid)
+	if err != nil {
+		welcomer.Logger.Error().Err(err).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Failed to get poll entries counts")
+
+		return err
+	}
+
+	answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
+	results := make([]int, len(answers))
+
+	for _, entryCount := range entriesCounts {
+		results[entryCount.OptionIndex] = int(entryCount.EntryCount)
+	}
+
+	newMessage := welcomer_interactions.PollView(poll, results, false, true)
+
+	for i := range newMessage.Components {
+		for j := range newMessage.Components[i].Components {
+			if newMessage.Components[i].Components[j].Type == discord.InteractionComponentTypeButton {
+				newMessage.Components[i].Components[j].Label = "This poll has ended"
+				newMessage.Components[i].Components[j].Disabled = true
 			}
 		}
 	}
 
-	_, err = msg.Edit(eventCtx.Context, eventCtx.Session, discord.MessageParams{
-		Components: msg.Components,
-	})
+	_, err = msg.Edit(eventCtx.Context, eventCtx.Session, welcomer.WebhookMessageParamsToMessageParams(newMessage))
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("poll_uuid", poll.PollUuid.String()).

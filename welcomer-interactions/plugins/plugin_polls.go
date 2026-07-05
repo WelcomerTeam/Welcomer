@@ -96,7 +96,7 @@ func (cog *PollsCog) GetInteractionCommandable() *subway.InteractionCommandable 
 	return cog.InteractionCommands
 }
 
-func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
+func SetupSectionEmojiIDs() {
 	if welcomer.GetEnvironmentType() == welcomer.EnvironmentTypeDevelopment {
 		sectionEmojiIDs = [][]string{
 			{
@@ -136,6 +136,10 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 			},
 		}
 	}
+}
+
+func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
+	SetupSectionEmojiIDs()
 
 	pollsGroup := subway.NewSubcommandGroup(
 		"polls",
@@ -969,7 +973,7 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 				return
 			}
 
-			_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(pollView(poll, results, false, false)))
+			_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(PollView(poll, results, false, false)))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -986,7 +990,7 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 	}
 
 	if showResultsToUser {
-		view := pollView(poll, results, true, false)
+		view := PollView(poll, results, true, false)
 		view.Components[0].Content = "Your vote has been submitted! Here are the current results:"
 
 		return &discord.InteractionResponse{
@@ -1379,7 +1383,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 				results[i] = rand.IntN(20)
 			}
 
-			message := pollView(poll, results, false, false)
+			message := PollView(poll, results, false, false)
 
 			// Hack to disable poll button and add back button
 			message.Components[len(message.Components)-1].Components[0].Disabled = true
@@ -1452,6 +1456,8 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 						poll.MaximumSelections = 0
 					case pollSetupMenuToggleAnonymousVotingKey:
 						poll.IsAnonymous = true
+						poll.Resubmissions = welcomer.PollResubmissionOptionNever.String()
+						poll.ResultsVisibility = welcomer.PollResultVisibilityOptionAfterEnd.String()
 					}
 				}
 			}
@@ -1639,7 +1645,7 @@ func handlePollEditComponent(ctx context.Context, sub *subway.Subway, interactio
 			answers := welcomer.UnmarshalAnswersListJSON(poll.PollOptions.Bytes)
 			results := make([]int, len(answers))
 
-			message, err := interaction.Channel.Send(ctx, session, welcomer.WebhookMessageParamsToMessageParams(pollView(poll, results, false, false)))
+			message, err := interaction.Channel.Send(ctx, session, welcomer.WebhookMessageParamsToMessageParams(PollView(poll, results, false, false)))
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -2113,7 +2119,9 @@ func getPollResultString(poll *database.GuildPolls, answers []string, results []
 		}
 	}
 
-	answersString := "**Votes:**\n"
+	var answersString strings.Builder
+
+	answersString.WriteString("**Votes:**\n")
 
 	var truePercentage float64
 
@@ -2125,22 +2133,23 @@ func getPollResultString(poll *database.GuildPolls, answers []string, results []
 			resultPercentage = int(float64(results[answerIndex]) / float64(maxValue) * 100)
 		}
 
-		answersString += fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)%s\n%s\n", answer, results[answerIndex], welcomer.If(results[answerIndex] == 1, "", "s"), truePercentage, welcomer.If(results[answerIndex] == maxValue && hasFinished, " ⭐", ""), getEmojiCombination(resultPercentage, 10))
+		answersString.WriteString(fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)\n%s\n", welcomer.If(results[answerIndex] == maxValue && hasFinished, "**", "")+answer+welcomer.If(results[answerIndex] == maxValue && hasFinished, "**", ""), results[answerIndex], welcomer.If(results[answerIndex] == 1, "", "s"), truePercentage, getEmojiCombination(resultPercentage, 10)))
 	}
 
-	return answersString
+	return answersString.String()
 }
 
 func getPollResultsMinimal(poll *database.GuildPolls, answers []string, results []int) string {
-	answersString := "**Votes:**\n"
+	var answersString strings.Builder
+	answersString.WriteString("**Votes:**\n")
 	for _, answer := range answers {
-		answersString += fmt.Sprintf("- %s\n", answer)
+		answersString.WriteString(fmt.Sprintf("- %s\n", answer))
 	}
 
-	return answersString
+	return answersString.String()
 }
 
-func pollView(poll *database.GuildPolls, results []int, isUser, hasFinished bool) discord.WebhookMessageParams {
+func PollView(poll *database.GuildPolls, results []int, isUser, hasFinished bool) discord.WebhookMessageParams {
 	containerComponents := []discord.InteractionComponent{
 		{
 			Type:    discord.InteractionComponentTypeTextDisplay,
