@@ -207,6 +207,62 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 		return err
 	}
 
+	topResult := 0
+	totalVotes := 0
+
+	for _, count := range results {
+		if count > topResult {
+			topResult = count
+		}
+
+		totalVotes += count
+	}
+
+	wonAnswers := make([]string, 0)
+
+	for i, answer := range answers {
+		if results[i] == topResult {
+			wonAnswers = append(wonAnswers, answer)
+		}
+	}
+
+	resultPercentage := float64(float64(topResult) / float64(totalVotes) * 100)
+
+	if topResult > 0 {
+		if len(wonAnswers) == 1 {
+			_, err = msg.Reply(eventCtx.Context, eventCtx.Session, *discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! The winner is **%s** (**%s%%**)", poll.Title, wonAnswers[0], formatDecimal(resultPercentage))))
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Str("poll_uuid", poll.PollUuid.String()).
+					Msg("Failed to send poll end message")
+			}
+		} else {
+			wonAnswersStr := ""
+
+			for i, answer := range wonAnswers {
+				if i == len(wonAnswers)-1 {
+					wonAnswersStr += fmt.Sprintf("and **%s**", answer)
+				} else {
+					wonAnswersStr += fmt.Sprintf("**%s**, ", answer)
+				}
+			}
+
+			_, err = msg.Reply(eventCtx.Context, eventCtx.Session, *discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! The winners are %s (**%s%%**)", poll.Title, wonAnswersStr, formatDecimal(resultPercentage))))
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Str("poll_uuid", poll.PollUuid.String()).
+					Msg("Failed to send poll end message")
+			}
+		}
+	} else {
+		_, err = msg.Reply(eventCtx.Context, eventCtx.Session, *discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! There were no votes.", poll.Title)))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Str("poll_uuid", poll.PollUuid.String()).
+				Msg("Failed to send poll end message")
+		}
+	}
+
 	welcomer.PusherGuildScience.Push(
 		eventCtx.Context,
 		discord.Snowflake(poll.GuildID),
@@ -218,4 +274,12 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 	)
 
 	return nil
+}
+
+func formatDecimal(v float64) string {
+	s := fmt.Sprintf("%.1f", v)
+	s = strings.TrimRight(s, "0")
+	s = strings.TrimRight(s, ".")
+
+	return s
 }
