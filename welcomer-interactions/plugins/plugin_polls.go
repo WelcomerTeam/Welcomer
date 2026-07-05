@@ -842,6 +842,10 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 	case subway.ArgumentTypeStrings:
 		pollOptionsStrings := pollOptionsArgument.MustStrings()
 		for _, optionStr := range pollOptionsStrings {
+			if optionStr == "null" {
+				continue
+			}
+
 			optionIndex, err := strconv.ParseInt(optionStr, 10, 32)
 			if err != nil {
 				welcomer.Logger.Warn().
@@ -856,16 +860,22 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 			pollOptions = append(pollOptions, int32(optionIndex))
 		}
 	case subway.ArgumentTypeString:
-		optionIndex, err := strconv.ParseInt(pollOptionsArgument.MustString(), 10, 32)
-		if err != nil {
-			welcomer.Logger.Warn().
-				Int64("guild_id", int64(*interaction.GuildID)).
-				Str("poll_uuid", pollUUID.String()).
-				Str("option_str", pollOptionsArgument.MustString()).
-				Msg("Invalid option index submitted for poll entry")
+		pollOptionsStr := pollOptionsArgument.MustString()
+		if pollOptionsStr != "null" {
+			optionIndex, err := strconv.ParseInt(pollOptionsStr, 10, 32)
+			if err != nil {
+				welcomer.Logger.Warn().
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Str("poll_uuid", pollUUID.String()).
+					Str("option_str", pollOptionsStr).
+					Msg("Invalid option index submitted for poll entry")
+			}
+
+			pollOptions = []int32{int32(optionIndex)}
+		} else {
+			pollOptions = []int32{}
 		}
 
-		pollOptions = []int32{int32(optionIndex)}
 	default:
 		welcomer.Logger.Warn().
 			Int64("guild_id", int64(*interaction.GuildID)).
@@ -2129,19 +2139,37 @@ func getPollResultString(poll *database.GuildPolls, answers []string, results []
 
 	for answerIndex, answer := range answers {
 		if results[answerIndex] > 0 {
-			truePercentage = float64(results[answerIndex]) / float64(entries) * 100
-			resultPercentage = int(float64(results[answerIndex]) / float64(maxValue) * 100)
+			truePercentage = (float64(results[answerIndex]) / float64(entries)) * 100
+			resultPercentage = int((float64(results[answerIndex]) / float64(maxValue)) * 100)
+		} else {
+			truePercentage = 0
+			resultPercentage = 0
 		}
 
-		answersString.WriteString(fmt.Sprintf("\n%s (**%d vote%s - %.1f**%%)\n%s\n", welcomer.If(results[answerIndex] == maxValue && hasFinished, "**", "")+answer+welcomer.If(results[answerIndex] == maxValue && hasFinished, "**", ""), results[answerIndex], welcomer.If(results[answerIndex] == 1, "", "s"), truePercentage, getEmojiCombination(resultPercentage, 10)))
+		fmt.Fprintf(&answersString,
+			"\n%s (**%d vote%s - %s%%**)\n%s\n",
+			welcomer.If(results[answerIndex] == maxValue && hasFinished, "**", "")+answer+welcomer.If(results[answerIndex] == maxValue && hasFinished, "**", ""),
+			results[answerIndex], welcomer.If(results[answerIndex] == 1, "", "s"),
+			formatDecimal(truePercentage),
+			getEmojiCombination(resultPercentage, 10))
 	}
 
 	return answersString.String()
 }
 
+func formatDecimal(v float64) string {
+	s := fmt.Sprintf("%.1f", v)
+	s = strings.TrimRight(s, "0")
+	s = strings.TrimRight(s, ".")
+
+	return s
+}
+
 func getPollResultsMinimal(poll *database.GuildPolls, answers []string, results []int) string {
 	var answersString strings.Builder
+
 	answersString.WriteString("**Votes:**\n")
+
 	for _, answer := range answers {
 		answersString.WriteString(fmt.Sprintf("- %s\n", answer))
 	}
@@ -2189,7 +2217,7 @@ func PollView(poll *database.GuildPolls, results []int, isUser, hasFinished bool
 		answersString = getPollResultsMinimal(poll, answers, results)
 	}
 
-	if !poll.IsAnonymous {
+	if !poll.IsAnonymous && (poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways)) {
 		answersString += "\n**Total Votes:** " + strconv.Itoa(votes) + "\n"
 	}
 
@@ -2208,8 +2236,14 @@ func PollView(poll *database.GuildPolls, results []int, isUser, hasFinished bool
 			Type: discord.InteractionComponentTypeSeparator,
 		},
 		{
-			Type:    discord.InteractionComponentTypeTextDisplay,
-			Content: "**Poll Ends:** " + welcomer.If(poll.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)", "No end time (runs indefinitely)"),
+			Type: discord.InteractionComponentTypeTextDisplay,
+			Content: welcomer.If(
+				poll.HasEnded,
+				"**Poll Ended: **"+"<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)",
+				"**Poll Ends:** "+welcomer.If(
+					poll.EndTime.Unix() > 0,
+					"<t:"+welcomer.Itoa(poll.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(poll.EndTime.Unix())+":f>)",
+					"No end time (runs indefinitely)")),
 		},
 	}...)
 
