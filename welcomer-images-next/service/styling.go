@@ -180,7 +180,18 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 	}
 
 	if value[0] == '#' {
-		return value
+		// Cut string to up to 9 characters and prevent non-hex characters.
+
+		i := 1
+		for (i < 9 && i < len(value)) && ((value[i] >= '0' && value[i] <= '9') || (value[i] >= 'a' && value[i] <= 'f') || (value[i] >= 'A' && value[i] <= 'F')) {
+			i++
+		}
+
+		if i == 1 || !(i == 4 || i == 7 || i == 9) {
+			return defaultValue
+		}
+
+		return value[:i]
 	}
 
 	if value == "solid:profile" {
@@ -193,7 +204,8 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 		return defaultValue
 	}
 
-	if len(value) >= 4 && value[:4] == "ref:" {
+	// Validate ref value is a valid UUID
+	if len(value) >= 4 && value[:4] == "ref:" && welcomer.IsValidUUID(value[4:]) {
 		return "url(https://www.welcomer.gg/api/guild/" + ctx.Guild.ID.String() + "/welcomer/artifact/" + url.QueryEscape(value[4:]) + ")"
 	}
 
