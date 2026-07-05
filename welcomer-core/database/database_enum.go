@@ -447,11 +447,17 @@ const (
 	ScienceGuildEventTypeGiveawayStarted
 	// ScienceGuildEventTypeGiveawayEnded is a ScienceGuildEventType of type GiveawayEnded.
 	ScienceGuildEventTypeGiveawayEnded
+	// ScienceGuildEventTypePollCreated is a ScienceGuildEventType of type PollCreated.
+	ScienceGuildEventTypePollCreated
+	// ScienceGuildEventTypePollStarted is a ScienceGuildEventType of type PollStarted.
+	ScienceGuildEventTypePollStarted
+	// ScienceGuildEventTypePollEnded is a ScienceGuildEventType of type PollEnded.
+	ScienceGuildEventTypePollEnded
 )
 
 var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
 
-const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoveduserLeftMessageleaverMessageRemovedreactionRoleGivenreactionRoleRemovedgiveawayCreatedgiveawayStartedgiveawayEnded"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoveduserLeftMessageleaverMessageRemovedreactionRoleGivenreactionRoleRemovedgiveawayCreatedgiveawayStartedgiveawayEndedpollCreatedpollStartedpollEnded"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeUnknown:               _ScienceGuildEventTypeName[0:7],
@@ -476,6 +482,9 @@ var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeGiveawayCreated:       _ScienceGuildEventTypeName[283:298],
 	ScienceGuildEventTypeGiveawayStarted:       _ScienceGuildEventTypeName[298:313],
 	ScienceGuildEventTypeGiveawayEnded:         _ScienceGuildEventTypeName[313:326],
+	ScienceGuildEventTypePollCreated:           _ScienceGuildEventTypeName[326:337],
+	ScienceGuildEventTypePollStarted:           _ScienceGuildEventTypeName[337:348],
+	ScienceGuildEventTypePollEnded:             _ScienceGuildEventTypeName[348:357],
 }
 
 // String implements the Stringer interface.
@@ -516,6 +525,9 @@ var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[283:298]: ScienceGuildEventTypeGiveawayCreated,
 	_ScienceGuildEventTypeName[298:313]: ScienceGuildEventTypeGiveawayStarted,
 	_ScienceGuildEventTypeName[313:326]: ScienceGuildEventTypeGiveawayEnded,
+	_ScienceGuildEventTypeName[326:337]: ScienceGuildEventTypePollCreated,
+	_ScienceGuildEventTypeName[337:348]: ScienceGuildEventTypePollStarted,
+	_ScienceGuildEventTypeName[348:357]: ScienceGuildEventTypePollEnded,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.

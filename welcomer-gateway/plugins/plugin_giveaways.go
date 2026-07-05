@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"slices"
+	"strings"
 
 	"github.com/WelcomerTeam/Discord/discord"
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
@@ -352,6 +353,14 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(giveaway.ChannelID), discord.Snowflake(giveaway.MessageID))
 	if err != nil {
+		if strings.Contains(err.Error(), "404 Not Found") {
+			welcomer.Logger.Warn().
+				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
+				Msg("Giveaway message not found, skipping disabling buttons for giveaway end")
+
+			return nil
+		}
+
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 			Msg("Failed to fetch giveaway message for giveaway end")

@@ -18,6 +18,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HugoSmits86/nativewebp"
+
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -102,6 +104,8 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 						ImageTheme:             welcomer.DefaultWelcomerImages.ImageTheme,
 						ImageMessage:           welcomer.DefaultWelcomerImages.ImageMessage,
 						ImageProfileBorderType: welcomer.DefaultWelcomerImages.ImageProfileBorderType,
+						UseCustomBuilder:       welcomer.DefaultWelcomerImages.UseCustomBuilder,
+						CustomBuilderData:      welcomer.DefaultWelcomerImages.CustomBuilderData,
 					}
 				}
 
@@ -381,7 +385,23 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				return
 			}
 
-			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages)
+			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				GuildID:                welcomerImages.GuildID,
+				ToggleEnabled:          welcomerImages.ToggleEnabled,
+				ToggleImageBorder:      welcomerImages.ToggleImageBorder,
+				ToggleShowAvatar:       welcomerImages.ToggleShowAvatar,
+				BackgroundName:         welcomerImages.BackgroundName,
+				ColourText:             welcomerImages.ColourText,
+				ColourTextBorder:       welcomerImages.ColourTextBorder,
+				ColourImageBorder:      welcomerImages.ColourImageBorder,
+				ColourProfileBorder:    welcomerImages.ColourProfileBorder,
+				ImageAlignment:         welcomerImages.ImageAlignment,
+				ImageTheme:             welcomerImages.ImageTheme,
+				ImageMessage:           welcomerImages.ImageMessage,
+				ImageProfileBorderType: welcomerImages.ImageProfileBorderType,
+				UseCustomBuilder:       welcomerImages.UseCustomBuilder,
+				CustomBuilderData:      welcomerImages.CustomBuilderData,
+			})
 
 			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")
 
@@ -675,10 +695,11 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 				return
 			}
 
+			welcomerImages.GuildID = int64(guildID)
 			welcomerImages.UseCustomBuilder = partial.UseCustomBuilder
 			welcomerImages.CustomBuilderData = welcomer.StringToJSONB(partial.CustomBuilderData)
 
-			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams(*welcomerImages), tryGetUser(ctx).ID)
+			_, err = welcomer.UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx, discord.Snowflake(guildID), partial.UseCustomBuilder, welcomerImages.CustomBuilderData, tryGetUser(ctx).ID)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild welcomer images settings")
 
@@ -734,7 +755,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 			buf := bytes.NewBuffer(nil)
 
 			switch mimeType {
-			case MIMEGIF, MIMEPNG, MIMEJPEG:
+			case MIMEGIF, MIMEPNG, MIMEJPEG, MIMEWEBP:
 				// Valid file types for builder artifacts.
 
 				// Validate file and get size
@@ -768,7 +789,9 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 					return
 				}
 
-				err = png.Encode(buf, img)
+				err = nativewebp.Encode(buf, img, &nativewebp.Options{
+					CompressionLevel: nativewebp.DefaultCompression,
+				})
 				if err != nil {
 					welcomer.Logger.Info().Err(err).Msg("Failed to encode image to png")
 
@@ -802,7 +825,7 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 				GuildID:      int64(tryGetGuildID(ctx)),
 				UserID:       int64(tryGetUser(ctx).ID),
 				CreatedAt:    time.Now(),
-				ImageType:    welcomer.ImageFileTypeImagePng.String(),
+				ImageType:    welcomer.ImageFileTypeImageWebp.String(),
 				Data:         buf.Bytes(),
 				Reference:    ref.String(),
 			})

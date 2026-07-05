@@ -123,6 +123,7 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 
 	for _, membership := range paypalMemberships {
 		membership.ExpiresAt = membershipExpiration
+		membership.Status = int32(database.MembershipStatusActive)
 
 		_, err = Queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
 			MembershipUuid:  membership.MembershipUuid,

@@ -47,6 +47,7 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 	sub.MustRegisterCog(plugins.NewReactionRolesCog())
 	sub.MustRegisterCog(plugins.NewGiveawaysCog())
 	sub.MustRegisterCog(plugins.NewEasterCog())
+	sub.MustRegisterCog(plugins.NewPollsCog())
 
 	sub.OnAfterInteraction = func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction, resp *discord.InteractionResponse, interactionError error) error {
 		var guildID int64

@@ -395,21 +395,15 @@ const features = [
       "Sometimes you don't want to give users a role immediately. Use timeroles to give them roles automatically when the time comes, it could be 10 minutes or in a year.",
   },
   {
-    name: "Dedicated Pro Bot",
+    name: "Bot Customisation",
     icon: "plug-circle-bolt",
-    description: "Use Welcomer with its own pro-only bot account.",
-  },
-  {
-    name: "Custom Bot",
-    icon: "plug-circle-plus",
-    description:
-      "Run Welcomer with it's own unique account with a customizable username and avatar, all with the same reliability and uptime."
+    description: "Customise your bot's username and avatar, and make it fit your server's theme.",
   },
 ];
 
 const checklist = [
   "Custom Backgrounds",
-  "Dedicated Pro Bot",
+  "Bot Customisation",
   "Flexible plans",
   "No recurring payments*",
 ];

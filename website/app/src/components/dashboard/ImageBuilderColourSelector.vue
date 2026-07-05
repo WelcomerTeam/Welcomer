@@ -60,7 +60,7 @@
                   <p class="pl-1">or drag and drop</p>
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-100">
-                  a PNG or JPG up to 20MB
+                  a PNG, JPG or WEBP up to 20MB
                 </p>
               </div>
               <div class="space-y-1 text-center" v-else>
@@ -391,23 +391,81 @@ export default {
       this.updateValue("default");
     },
 
+    convertAndCompressToWebp(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+  
+          reader.onload = (event) => {
+            const img = new Image();
+  
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              const ctx = canvas.getContext("2d");
+  
+              canvas.width = img.width;
+              canvas.height = img.height;
+  
+              ctx.drawImage(img, 0, 0);
+  
+              canvas.toBlob(
+                (blob) => {
+                  resolve(blob);
+                },
+                "image/webp",
+                0.8
+              );
+            };
+  
+            img.onerror = (error) => {
+              reject(error);
+            };
+  
+            img.src = event.target.result;
+          };
+  
+          reader.onerror = (error) => {
+            reject(error);
+          };
+  
+          reader.readAsDataURL(file);
+        });
+    },
+
     onFileUpdate(event) {
       if (event.target.files.length > 0) {
-        if (event.target.files[0].size > 20000000) {
-          this.$store.dispatch("createToast", {
-            title: "Your file is too large. It must be 20MB or less!",
-            icon: "xmark",
-            class: "text-red-500 bg-red-100",
+        this.convertAndCompressToWebp(event.target.files[0])
+          .then((compressedBlob) => {
+            if (compressedBlob.size > 20000000) {
+              this.$store.dispatch("createToast", {
+                title: "Your file is too large even after compression. It must be 20MB or less!",
+                icon: "xmark",
+                class: "text-red-500 bg-red-100",
+              });
+
+              return;
+            }
+
+            const compressedFile = new File([compressedBlob], event.target.files[0].name.replace(/\.[^/.]+$/, ".webp"), {
+              type: "image/webp",
+            });
+
+            this.uploadFile(compressedFile);
+          })
+          .catch(() => {
+            this.$store.dispatch("createToast", {
+              title: "There was an error processing your image. Please try a different one.",
+              icon: "xmark",
+              class: "text-red-500 bg-red-100",
+            });
           });
-
-          return;
-        }
       }
+    },
 
+    uploadFile(file) {
       dashboardAPI.doPost(
         endpoints.EndpointGuildWelcomerBuilderArtifact(this.$store.getters.getSelectedGuildID),
         null,
-        [event.target.files[0]],
+        [file],
         ({ config }) => {
           this.$store.dispatch("createToast", getSuccessToast());
           this.updateValue("ref:" + config);
@@ -416,7 +474,6 @@ export default {
           this.$store.dispatch("createToast", getErrorToast(error));
         }
       );
-
     },
 
     SetRGBIntToRGB(color) {

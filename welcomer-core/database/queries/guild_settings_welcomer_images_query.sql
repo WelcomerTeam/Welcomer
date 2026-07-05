@@ -20,8 +20,7 @@ ON CONFLICT(guild_id) DO UPDATE
         image_theme = EXCLUDED.image_theme,
         image_message = EXCLUDED.image_message,
         image_profile_border_type = EXCLUDED.image_profile_border_type,
-        use_custom_builder = EXCLUDED.use_custom_builder,
-        custom_builder_data = EXCLUDED.custom_builder_data
+        use_custom_builder = EXCLUDED.use_custom_builder
 RETURNING
     *;
 
@@ -49,7 +48,15 @@ SET
     image_theme = $11,
     image_message = $12,
     image_profile_border_type = $13,
-    use_custom_builder = $14,
-    custom_builder_data = $15
+    use_custom_builder = $14
 WHERE
     guild_id = $1;
+
+-- name: UpdateWelcomerImagesGuildSettingsCustomBuilder :one
+INSERT INTO guild_settings_welcomer_images(guild_id, use_custom_builder, custom_builder_data)
+    VALUES ($1, $2, $3)
+ON CONFLICT(guild_id) DO UPDATE
+    SET use_custom_builder = EXCLUDED.use_custom_builder,
+        custom_builder_data = EXCLUDED.custom_builder_data
+RETURNING
+    *;

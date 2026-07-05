@@ -29,6 +29,7 @@ require (
 )
 
 require (
+	github.com/HugoSmits86/nativewebp v1.3.0 // indirect
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/WelcomerTeam/Mustachvulate v1.2.1-0.20231218130351-adad26f1e96e // indirect
 	github.com/WelcomerTeam/Sandwich v0.0.0-20260322170931-61406f17b909 // indirect

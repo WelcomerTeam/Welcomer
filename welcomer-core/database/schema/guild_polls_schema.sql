@@ -1,9 +1,8 @@
-CREATE TABLE IF NOT EXISTS guild_giveaways (
-    giveaway_uuid uuid NOT NULL UNIQUE PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS guild_polls (
+    poll_uuid uuid NOT NULL UNIQUE PRIMARY KEY,
     created_at timestamp NOT NULL,
     guild_id bigint NOT NULL,
     created_by bigint NOT NULL,
-
 
     has_ended boolean NOT NULL,
     is_setup boolean NOT NULL,
@@ -16,13 +15,14 @@ CREATE TABLE IF NOT EXISTS guild_giveaways (
     start_time timestamp NOT NULL,
     end_time timestamp NOT NULL,
 
-    giveaway_prizes jsonb NOT NULL,
+    poll_options jsonb NOT NULL,
+    is_anonymous boolean NOT NULL,
+    maximum_selections int NOT NULL,
 
     -- message configuration
     allow_entries boolean NOT NULL,
-    announce_winners boolean NOT NULL,
-    show_prizes boolean NOT NULL,
-    show_entries boolean NOT NULL,
+    resubmissions text NOT NULL,
+    results_visibility text NOT NULL,
 
     -- eligibility configuration
     roles_allowed jsonb NOT NULL,
@@ -34,4 +34,4 @@ CREATE TABLE IF NOT EXISTS guild_giveaways (
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS guild_giveaways_guild_id ON guild_giveaways (guild_id);  
+CREATE INDEX IF NOT EXISTS guild_polls_guild_id ON guild_polls (guild_id);

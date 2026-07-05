@@ -78,12 +78,12 @@ const navigation = [
         icon: "fa-heart",
         class: "text-primary",
       },
-      {
-        name: "Custom Bots",
-        linkname: "dashboard.guild.custombots",
-        icon: "fa-robot",
-        class: "text-primary",
-      },
+      // {
+      //   name: "Custom Bots",
+      //   linkname: "dashboard.guild.custombots",
+      //   icon: "fa-robot",
+      //   class: "text-primary",
+      // },
       {
         name: "Bot Customisation",
         linkname: "dashboard.guild.customisation",
@@ -167,6 +167,12 @@ const navigation = [
         name: "Giveaways",
         linkname: "dashboard.guild.giveaways",
         icon: "fa-gift",
+        headline: "New"
+      },
+      {
+        name: "Polls",
+        linkname: "dashboard.guild.polls",
+        icon: "fa-square-poll-horizontal",
         headline: "New"
       },
     ],

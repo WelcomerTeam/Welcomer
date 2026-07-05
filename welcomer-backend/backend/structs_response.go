@@ -3,11 +3,13 @@ package backend
 import "errors"
 
 // BaseResponse represents the base response sent to a client.
+
+//nolint:requiredcheck
 type BaseResponse struct {
 	Ok    bool   `json:"ok"`
-	Code  int    `json:"code,omitempty"`
-	Error string `json:"error,omitempty"`
-	Data  any    `json:"data,omitempty"`
+	Code  int    `json:"code,omitempty" requiredcheck:"ignore"`
+	Error string `json:"error,omitempty" requiredcheck:"ignore"`
+	Data  any    `json:"data,omitempty" requiredcheck:"ignore"`
 }
 
 func NewBaseResponse(err error, data any) BaseResponse {

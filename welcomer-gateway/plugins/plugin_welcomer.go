@@ -557,7 +557,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	for _, scienceEvent := range welcomer.PusherGuildScience.Buffer {
 		if discord.Snowflake(scienceEvent.GuildID) == eventCtx.Guild.ID && discord.Snowflake(scienceEvent.UserID.Int64) == event.Member.User.ID {
 			if scienceEvent.EventType == int32(database.ScienceGuildEventTypeUserJoin) {
-				joinEvent = &welcomer.GuildScienceUserJoined{false, false, "", 0, false}
+				joinEvent = &welcomer.GuildScienceUserJoined{}
 
 				err = json.Unmarshal(scienceEvent.Data.Bytes, joinEvent)
 				if err != nil {

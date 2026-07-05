@@ -184,7 +184,7 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 		if event.Interaction != nil {
 			_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 				discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("There was an issue assigning your reaction role. Please try again later.`", event.RoleID), welcomer.EmbedColourSuccess),
+					Embeds: welcomer.NewEmbed("There was an issue assigning your reaction role. Please try again later.", welcomer.EmbedColourSuccess),
 					Flags:  discord.MessageFlagEphemeral,
 				},
 			)

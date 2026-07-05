@@ -164,6 +164,12 @@ const formattingTags = [
     ]
   },
   {
+    name: "Borderwall",
+    values: [
+      { name: "{{Borderwall.Link}}", description: "The link to the borderwall", example: "https://welcomer.app/borderwall/1234567890" },
+    ]
+  },
+  {
     name: "Functions",
     values: [
       { name: "{{Ordinal(int)}}", description: "Returns the ordinal (st, nd, rd, th) for an integer passed in. You can do `{{Ordinal(Guild.Members)}}` or `{{Ordinal(Guild.MembersJoined)}}` to display the member count.", example: "7600th" },

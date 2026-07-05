@@ -48,7 +48,7 @@ func main() {
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Finish Giveaways Job",
+						Title:       "Finish Polls Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
 						Timestamp:   new(time.Now()),
@@ -77,7 +77,7 @@ func main() {
 	entrypoint(ctx, *webhookUrl)
 
 	if err := welcomer.Queries.UpsertJobCheckpoint(ctx, database.UpsertJobCheckpointParams{
-		JobName:         "finish-giveaways",
+		JobName:         "finish-polls",
 		LastProcessedTs: time.Now().UTC(),
 	}); err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to upsert job checkpoint")
@@ -87,33 +87,33 @@ func main() {
 }
 
 func entrypoint(ctx context.Context, webhookUrl string) {
-	expiredGiveaways, err := welcomer.Queries.GetExpiredGiveaways(ctx)
+	expiredPolls, err := welcomer.Queries.GetExpiredPolls(ctx)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Error().Err(err).Msg("Failed to fetch expired giveaways")
+		welcomer.Logger.Error().Err(err).Msg("Failed to fetch expired polls")
 
 		panic(err)
 	}
 
-	for _, giveaway := range expiredGiveaways {
+	for _, poll := range expiredPolls {
 		locationsPb, err := welcomer.SandwichClient.WhereIsGuild(ctx, &sandwich_protobuf.WhereIsGuildRequest{
-			GuildId: giveaway.GuildID,
+			GuildId: poll.GuildID,
 		})
 		if err != nil {
-			welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Msg("Failed to do guild lookup for giveaway")
+			welcomer.Logger.Warn().Err(err).Int64("guild_id", poll.GuildID).Msg("Failed to do guild lookup for poll")
 
 			continue
 		}
 
 		locations := locationsPb.GetLocations()
 		if len(locations) == 0 {
-			welcomer.Logger.Warn().Int64("guild_id", giveaway.GuildID).Msg("No applications found for guild in giveaway")
+			welcomer.Logger.Warn().Int64("guild_id", poll.GuildID).Msg("No applications found for guild in poll")
 
 			continue
 		}
 
-		data, _ := json.Marshal(welcomer.CustomEventInvokeEndGiveawayStructure{
-			GiveawayUUID: giveaway.GiveawayUuid,
-			GuildID:      discord.Snowflake(giveaway.GuildID),
+		data, _ := json.Marshal(welcomer.CustomEventInvokeEndPollStructure{
+			PollUUID: poll.PollUuid,
+			GuildID:  discord.Snowflake(poll.GuildID),
 		})
 
 		for _, location := range locations {
@@ -121,11 +121,11 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 
 			_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich_protobuf.RelayMessageRequest{
 				Identifier: location.GetIdentifier(),
-				Type:       welcomer.CustomEventInvokeEndGiveaway,
+				Type:       welcomer.CustomEventInvokeEndPoll,
 				Data:       data,
 			})
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Str("identifier", location.GetIdentifier()).Msg("Failed to relay end giveaway message")
+				welcomer.Logger.Warn().Err(err).Int64("guild_id", poll.GuildID).Str("identifier", location.GetIdentifier()).Msg("Failed to relay end poll message")
 
 				continue
 			}
@@ -135,6 +135,9 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 			}
 		}
 
-		welcomer.Logger.Info().Int64("guild_id", giveaway.GuildID).Msg("Finished giveaway")
+		welcomer.Logger.Info().
+			Int64("guild_id", poll.GuildID).
+			Str("poll_uuid", poll.PollUuid.String()).
+			Msg("Finished poll")
 	}
 }

@@ -27,8 +27,7 @@ ON CONFLICT(guild_id) DO UPDATE
         image_theme = EXCLUDED.image_theme,
         image_message = EXCLUDED.image_message,
         image_profile_border_type = EXCLUDED.image_profile_border_type,
-        use_custom_builder = EXCLUDED.use_custom_builder,
-        custom_builder_data = EXCLUDED.custom_builder_data
+        use_custom_builder = EXCLUDED.use_custom_builder
 RETURNING
     guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
 `
@@ -202,28 +201,26 @@ SET
     image_theme = $11,
     image_message = $12,
     image_profile_border_type = $13,
-    use_custom_builder = $14,
-    custom_builder_data = $15
+    use_custom_builder = $14
 WHERE
     guild_id = $1
 `
 
 type UpdateWelcomerImagesGuildSettingsParams struct {
-	GuildID                int64        `json:"guild_id"`
-	ToggleEnabled          bool         `json:"toggle_enabled"`
-	ToggleImageBorder      bool         `json:"toggle_image_border"`
-	ToggleShowAvatar       bool         `json:"toggle_show_avatar"`
-	BackgroundName         string       `json:"background_name"`
-	ColourText             string       `json:"colour_text"`
-	ColourTextBorder       string       `json:"colour_text_border"`
-	ColourImageBorder      string       `json:"colour_image_border"`
-	ColourProfileBorder    string       `json:"colour_profile_border"`
-	ImageAlignment         int32        `json:"image_alignment"`
-	ImageTheme             int32        `json:"image_theme"`
-	ImageMessage           string       `json:"image_message"`
-	ImageProfileBorderType int32        `json:"image_profile_border_type"`
-	UseCustomBuilder       bool         `json:"use_custom_builder"`
-	CustomBuilderData      pgtype.JSONB `json:"custom_builder_data"`
+	GuildID                int64  `json:"guild_id"`
+	ToggleEnabled          bool   `json:"toggle_enabled"`
+	ToggleImageBorder      bool   `json:"toggle_image_border"`
+	ToggleShowAvatar       bool   `json:"toggle_show_avatar"`
+	BackgroundName         string `json:"background_name"`
+	ColourText             string `json:"colour_text"`
+	ColourTextBorder       string `json:"colour_text_border"`
+	ColourImageBorder      string `json:"colour_image_border"`
+	ColourProfileBorder    string `json:"colour_profile_border"`
+	ImageAlignment         int32  `json:"image_alignment"`
+	ImageTheme             int32  `json:"image_theme"`
+	ImageMessage           string `json:"image_message"`
+	ImageProfileBorderType int32  `json:"image_profile_border_type"`
+	UseCustomBuilder       bool   `json:"use_custom_builder"`
 }
 
 func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error) {
@@ -242,10 +239,48 @@ func (q *Queries) UpdateWelcomerImagesGuildSettings(ctx context.Context, arg Upd
 		arg.ImageMessage,
 		arg.ImageProfileBorderType,
 		arg.UseCustomBuilder,
-		arg.CustomBuilderData,
 	)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const UpdateWelcomerImagesGuildSettingsCustomBuilder = `-- name: UpdateWelcomerImagesGuildSettingsCustomBuilder :one
+INSERT INTO guild_settings_welcomer_images(guild_id, use_custom_builder, custom_builder_data)
+    VALUES ($1, $2, $3)
+ON CONFLICT(guild_id) DO UPDATE
+    SET use_custom_builder = EXCLUDED.use_custom_builder,
+        custom_builder_data = EXCLUDED.custom_builder_data
+RETURNING
+    guild_id, toggle_enabled, toggle_image_border, toggle_show_avatar, background_name, colour_text, colour_text_border, colour_image_border, colour_profile_border, image_alignment, image_theme, image_message, image_profile_border_type, use_custom_builder, custom_builder_data
+`
+
+type UpdateWelcomerImagesGuildSettingsCustomBuilderParams struct {
+	GuildID           int64        `json:"guild_id"`
+	UseCustomBuilder  bool         `json:"use_custom_builder"`
+	CustomBuilderData pgtype.JSONB `json:"custom_builder_data"`
+}
+
+func (q *Queries) UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsCustomBuilderParams) (*GuildSettingsWelcomerImages, error) {
+	row := q.db.QueryRow(ctx, UpdateWelcomerImagesGuildSettingsCustomBuilder, arg.GuildID, arg.UseCustomBuilder, arg.CustomBuilderData)
+	var i GuildSettingsWelcomerImages
+	err := row.Scan(
+		&i.GuildID,
+		&i.ToggleEnabled,
+		&i.ToggleImageBorder,
+		&i.ToggleShowAvatar,
+		&i.BackgroundName,
+		&i.ColourText,
+		&i.ColourTextBorder,
+		&i.ColourImageBorder,
+		&i.ColourProfileBorder,
+		&i.ImageAlignment,
+		&i.ImageTheme,
+		&i.ImageMessage,
+		&i.ImageProfileBorderType,
+		&i.UseCustomBuilder,
+		&i.CustomBuilderData,
+	)
+	return &i, err
 }

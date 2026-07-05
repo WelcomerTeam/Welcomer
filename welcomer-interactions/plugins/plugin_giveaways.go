@@ -15,7 +15,6 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
@@ -58,6 +57,8 @@ const (
 	giveawayManageMenuEndGiveawayKey        = "end_giveaway"
 	giveawayManageMenuExportEntriesKey      = "export_entries"
 	giveawayManageMenuExportWinnersKey      = "export_winners"
+
+	giveawayMessageUpdateRate = 1 * time.Second
 )
 
 func NewGiveawaysCog() *GiveawaysCog {
@@ -104,85 +105,87 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			var giveaway *database.GuildGiveaways
-			var err error
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				var giveaway *database.GuildGiveaways
+				var err error
 
-			err = welcomer.RetryWithFallback(
-				func() error {
-					giveaway, err = welcomer.Queries.CreateGiveaway(ctx, database.CreateGiveawayParams{
-						GuildID:   int64(*interaction.GuildID),
-						CreatedBy: int64(interaction.GetUser().ID),
-						EndTime:   time.Time{},
-					})
+				err = welcomer.RetryWithFallback(
+					func() error {
+						giveaway, err = welcomer.Queries.CreateGiveaway(ctx, database.CreateGiveawayParams{
+							GuildID:   int64(*interaction.GuildID),
+							CreatedBy: int64(interaction.GetUser().ID),
+							EndTime:   time.Time{},
+						})
 
-					return err
-				},
-				func() error {
-					return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-				},
-				nil,
-			)
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Msg("Failed to create giveaway settings")
+						return err
+					},
+					func() error {
+						return welcomer.EnsureGuild(ctx, *interaction.GuildID)
+					},
+					nil,
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Msg("Failed to create giveaway settings")
 
-				return nil, err
-			}
+					return nil, err
+				}
 
-			welcomer.PusherGuildScience.Push(
-				ctx,
-				*interaction.GuildID,
-				interaction.GetUser().ID,
-				database.ScienceGuildEventTypeGiveawayCreated,
-				&welcomer.GuildScienceGiveawayEvents{
-					GiveawayUUID: giveaway.GiveawayUuid,
-				},
-			)
+				welcomer.PusherGuildScience.Push(
+					ctx,
+					*interaction.GuildID,
+					interaction.GetUser().ID,
+					database.ScienceGuildEventTypeGiveawayCreated,
+					&welcomer.GuildScienceGiveawayEvents{
+						GiveawayUUID: giveaway.GiveawayUuid,
+					},
+				)
 
-			return &discord.InteractionResponse{
-				Type: discord.InteractionCallbackTypeModal,
-				Data: &discord.InteractionCallbackData{
-					Title:    "Create Giveaway",
-					CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String(),
-					Components: []discord.InteractionComponent{
-						{
-							Type:  discord.InteractionComponentTypeLabel,
-							Label: "Title",
-							Component: &discord.InteractionComponent{
-								CustomID: giveawaySetupMenuTitleKey,
-								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    giveaway.Title,
-								Style:    discord.InteractionComponentStyleShort,
-								Required: new(false),
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeModal,
+					Data: &discord.InteractionCallbackData{
+						Title:    "Create Giveaway",
+						CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String(),
+						Components: []discord.InteractionComponent{
+							{
+								Type:  discord.InteractionComponentTypeLabel,
+								Label: "Title",
+								Component: &discord.InteractionComponent{
+									CustomID: giveawaySetupMenuTitleKey,
+									Type:     discord.InteractionComponentTypeTextInput,
+									Value:    welcomer.StringToJsonLiteral(giveaway.Title),
+									Style:    discord.InteractionComponentStyleShort,
+									Required: new(false),
+								},
 							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Prizes",
-							Description: "One prize per line, with optional count, e.g. 2x Discord Nitro",
-							Component: &discord.InteractionComponent{
-								CustomID:    giveawaySetupMenuPrizesKey,
-								Type:        discord.InteractionComponentTypeTextInput,
-								Style:       discord.InteractionComponentStyleParagraph,
-								Placeholder: "Welcomer Pro\n2x Discord Nitro",
+							{
+								Type:        discord.InteractionComponentTypeLabel,
+								Label:       "Prizes",
+								Description: "One prize per line, with optional count, e.g. 2x Discord Nitro",
+								Component: &discord.InteractionComponent{
+									CustomID:    giveawaySetupMenuPrizesKey,
+									Type:        discord.InteractionComponentTypeTextInput,
+									Style:       discord.InteractionComponentStyleParagraph,
+									Placeholder: "Welcomer Pro\n2x Discord Nitro",
+								},
 							},
-						},
-						{
-							Type:        discord.InteractionComponentTypeLabel,
-							Label:       "Duration",
-							Description: "e.g. 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
-							Component: &discord.InteractionComponent{
-								CustomID:    giveawaySetupMenuDurationKey,
-								Type:        discord.InteractionComponentTypeTextInput,
-								Placeholder: "7d 3h 60m",
-								Style:       discord.InteractionComponentStyleShort,
-								Required:    new(false),
+							{
+								Type:        discord.InteractionComponentTypeLabel,
+								Label:       "Duration",
+								Description: "e.g. 1h, 30m, 2d. Only years, days, hours and minutes are supported.",
+								Component: &discord.InteractionComponent{
+									CustomID:    giveawaySetupMenuDurationKey,
+									Type:        discord.InteractionComponentTypeTextInput,
+									Placeholder: "7d 3h 60m",
+									Style:       discord.InteractionComponentStyleShort,
+									Required:    new(false),
+								},
 							},
 						},
 					},
-				},
-			}, nil
+				}, nil
+			})
 		},
 	})
 
@@ -197,33 +200,35 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 		DMPermission:            new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return &discord.InteractionResponse{
-				Type: discord.InteractionCallbackTypeChannelMessageSource,
-				Data: &discord.InteractionCallbackData{
-					Components: []discord.InteractionComponent{
-						{
-							Type: discord.InteractionComponentTypeContainer,
-							Components: []discord.InteractionComponent{
-								{
-									Type:    discord.InteractionComponentTypeTextDisplay,
-									Content: "You can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".",
-								},
-								{
-									Type: discord.InteractionComponentTypeMediaGallery,
-									Items: []discord.InteractionComponentMediaGalleryItem{
-										{
-											Media: discord.MediaItem{
-												URL: "https://welcomer.gg/assets/manage_giveaway.png",
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Components: []discord.InteractionComponent{
+							{
+								Type: discord.InteractionComponentTypeContainer,
+								Components: []discord.InteractionComponent{
+									{
+										Type:    discord.InteractionComponentTypeTextDisplay,
+										Content: "You can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".",
+									},
+									{
+										Type: discord.InteractionComponentTypeMediaGallery,
+										Items: []discord.InteractionComponentMediaGalleryItem{
+											{
+												Media: discord.MediaItem{
+													URL: "https://welcomer.gg/assets/manage_giveaway.png",
+												},
 											},
 										},
 									},
 								},
 							},
 						},
+						Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
 					},
-					Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
-				},
-			}, nil
+				}, nil
+			})
 		},
 	})
 
@@ -237,53 +242,55 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 		DMPermission:            new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			if interaction.Data.TargetID == nil {
-				return nil, nil
-			}
+			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
+				if interaction.Data.TargetID == nil {
+					return nil, nil
+				}
 
-			message, ok := interaction.Data.Resolved.Messages[*interaction.Data.TargetID]
-			if !ok {
-				welcomer.Logger.Error().
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Int64("message_id", int64(*interaction.Data.TargetID)).
-					Msg("Failed to find message for giveaway manage command")
+				message, ok := interaction.Data.Resolved.Messages[*interaction.Data.TargetID]
+				if !ok {
+					welcomer.Logger.Error().
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Int64("message_id", int64(*interaction.Data.TargetID)).
+						Msg("Failed to find message for giveaway manage command")
 
-				return nil, errors.New("failed to find message for giveaway manage command")
-			}
+					return nil, errors.New("failed to find message for giveaway manage command")
+				}
 
-			giveaway, err := welcomer.Queries.GetGiveawayFromMessageID(ctx, database.GetGiveawayFromMessageIDParams{
-				GuildID:   int64(*interaction.GuildID),
-				ChannelID: int64(message.ChannelID),
-				MessageID: int64(message.ID),
-			})
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Int64("channel_id", int64(message.ChannelID)).
-					Int64("message_id", int64(message.ID)).
-					Msg("Failed to get giveaway settings from message ID")
+				giveaway, err := welcomer.Queries.GetGiveawayFromMessageID(ctx, database.GetGiveawayFromMessageIDParams{
+					GuildID:   int64(*interaction.GuildID),
+					ChannelID: int64(message.ChannelID),
+					MessageID: int64(message.ID),
+				})
+				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Int64("channel_id", int64(message.ChannelID)).
+						Int64("message_id", int64(message.ID)).
+						Msg("Failed to get giveaway settings from message ID")
 
-				return nil, err
-			} else if errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Int64("channel_id", int64(message.ChannelID)).
-					Int64("message_id", int64(message.ID)).
-					Msg("Giveaway not found for giveaway settings message")
+					return nil, err
+				} else if errors.Is(err, pgx.ErrNoRows) {
+					welcomer.Logger.Warn().
+						Int64("guild_id", int64(*interaction.GuildID)).
+						Int64("channel_id", int64(message.ChannelID)).
+						Int64("message_id", int64(message.ID)).
+						Msg("Giveaway not found for giveaway settings message")
+
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("This message is not associated with a giveaway. Please make sure you are using this command on the giveaway message.", welcomer.EmbedColourError),
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				}
 
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("This message is not associated with a giveaway. Please make sure you are using this command on the giveaway message.", welcomer.EmbedColourError),
-						Flags:  uint32(discord.MessageFlagEphemeral),
-					},
+					Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawayManageView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
 				}, nil
-			}
-
-			return &discord.InteractionResponse{
-				Type: discord.InteractionCallbackTypeChannelMessageSource,
-				Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawayManageView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
-			}, nil
+			})
 		},
 	})
 
@@ -434,14 +441,14 @@ func handleGiveawayManageComponent(ctx context.Context, sub *subway.Subway, inte
 		case giveawayManageMenuEndGiveawayKey:
 			giveaway.EndTime = time.Now()
 
-			data, _ := json.Marshal(core.CustomEventInvokeEndGiveawayStructure{
+			data, _ := json.Marshal(welcomer.CustomEventInvokeEndGiveawayStructure{
 				GiveawayUUID: giveaway.GiveawayUuid,
 				GuildID:      *interaction.GuildID,
 			})
 
 			_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-				Identifier: core.GetManagerNameFromContext(ctx),
-				Type:       core.CustomEventInvokeEndGiveaway,
+				Identifier: welcomer.GetManagerNameFromContext(ctx),
+				Type:       welcomer.CustomEventInvokeEndGiveaway,
 				Data:       data,
 			})
 			if err != nil {
@@ -703,7 +710,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 		}, nil
 	}
 
-	if !giveaway.MinimumJoinDate.IsZero() {
+	if giveaway.MinimumJoinDate.Unix() > 0 {
 		joinBefore := giveaway.StartTime.Add(-(time.Duration(giveaway.MinimumJoinDate.Unix()) * time.Second))
 		if interaction.Member.JoinedAt.After(joinBefore) {
 			return &discord.InteractionResponse{
@@ -746,7 +753,7 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 	}
 
 	go func() {
-		time.Sleep(5)
+		time.Sleep(giveawayMessageUpdateRate)
 
 		newEntries, err := welcomer.Queries.CountGiveawayEntries(ctx, giveawayUUID)
 		if err != nil {
@@ -756,36 +763,38 @@ func handleGiveawayEnterComponent(ctx context.Context, sub *subway.Subway, inter
 				Msg("Failed to count giveaway entries")
 		}
 
-		if entries == newEntries {
-			message := discord.Message{
-				ID:        discord.Snowflake(giveaway.MessageID),
-				ChannelID: discord.Snowflake(giveaway.ChannelID),
-			}
+		if entries != newEntries {
+			return
+		}
 
-			session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("giveaway_uuid", giveawayUUID.String()).
-					Msg("Failed to acquire session to edit giveaway message after entry")
+		message := discord.Message{
+			ID:        discord.Snowflake(giveaway.MessageID),
+			ChannelID: discord.Snowflake(giveaway.ChannelID),
+		}
 
-				return
-			}
-
-			_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(giveawayView(giveaway, newEntries)))
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("giveaway_uuid", giveawayUUID.String()).
-					Msg("Failed to edit giveaway message after entry")
-			}
-
-			welcomer.Logger.Info().
+		session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*interaction.GuildID)).
 				Str("giveaway_uuid", giveawayUUID.String()).
-				Int32("entries", newEntries).
-				Msg("Updated giveaway message after new entry")
+				Msg("Failed to acquire session to edit giveaway message after entry")
+
+			return
 		}
+
+		_, err = message.Edit(ctx, session, welcomer.WebhookMessageParamsToMessageParams(giveawayView(giveaway, newEntries)))
+		if err != nil {
+			welcomer.Logger.Error().Err(err).
+				Int64("guild_id", int64(*interaction.GuildID)).
+				Str("giveaway_uuid", giveawayUUID.String()).
+				Msg("Failed to edit giveaway message after entry")
+		}
+
+		welcomer.Logger.Info().
+			Int64("guild_id", int64(*interaction.GuildID)).
+			Str("giveaway_uuid", giveawayUUID.String()).
+			Int32("entries", newEntries).
+			Msg("Updated giveaway message after new entry")
 	}()
 
 	return &discord.InteractionResponse{
@@ -858,7 +867,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 							Component: &discord.InteractionComponent{
 								CustomID: giveawaySetupMenuTitleKey,
 								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    giveaway.Title,
+								Value:    welcomer.StringToJsonLiteral(giveaway.Title),
 								Style:    discord.InteractionComponentStyleShort,
 								Required: new(false),
 							},
@@ -869,7 +878,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 							Component: &discord.InteractionComponent{
 								CustomID: giveawaySetupMenuDescriptionKey,
 								Type:     discord.InteractionComponentTypeTextInput,
-								Value:    giveaway.Description,
+								Value:    welcomer.StringToJsonLiteral(giveaway.Description),
 								Style:    discord.InteractionComponentStyleParagraph,
 								Required: new(false),
 							},
@@ -882,7 +891,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								CustomID:    giveawaySetupMenuAccentColourKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "#4CD787",
-								Value:       welcomer.If(giveaway.AccentColour < 0, "", fmt.Sprintf("#%06X", giveaway.AccentColour)),
+								Value:       welcomer.StringToJsonLiteral(welcomer.If(giveaway.AccentColour < 0, "", fmt.Sprintf("#%06X", giveaway.AccentColour))),
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
 							},
@@ -895,7 +904,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								CustomID:    giveawaySetupMenuThumbnailURLKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "https://example.com/image.png",
-								Value:       giveaway.ImageUrl,
+								Value:       welcomer.StringToJsonLiteral(giveaway.ImageUrl),
 								Style:       discord.InteractionComponentStyleShort,
 								Required:    new(false),
 							},
@@ -941,7 +950,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 								CustomID:    giveawaySetupMenuPrizesKey,
 								Type:        discord.InteractionComponentTypeTextInput,
 								Placeholder: "Welcomer Pro\n2x Discord Nitro",
-								Value:       formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)),
+								Value:       welcomer.StringToJsonLiteral(formatGiveawayPrizesAsString(welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes))),
 								Style:       discord.InteractionComponentStyleParagraph,
 							},
 						},
@@ -1099,7 +1108,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 			// Hack to disable giveaway button and add back button
 			message.Components[len(message.Components)-1].Components[0].Disabled = true
 			message.Components[len(message.Components)-1].Components = append(message.Components[len(message.Components)-1].Components, discord.InteractionComponent{
-				CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String() + ":preview_off",
+				CustomID: "giveaway_edit:" + giveaway.GiveawayUuid.String() + ":" + giveawaySetupMenuPreviewOffKey,
 				Type:     discord.InteractionComponentTypeButton,
 				Label:    "Back to Edit Menu",
 				Style:    discord.InteractionComponentStyleSecondary,
@@ -1120,20 +1129,6 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 
 			return nil, nil
 		case giveawaySetupMenuPreviewOffKey:
-			err = discord.CreateInteractionResponse(ctx, sub.EmptySession, interaction.ID, interaction.Token, discord.InteractionResponse{
-				Type: welcomer.If(customIDSplit[2] == "", discord.InteractionCallbackTypeChannelMessageSource, discord.InteractionCallbackTypeUpdateMessage),
-				Data: welcomer.WebhookMessageParamsToInteractionCallbackData(giveawaySetupView(giveaway), uint32(discord.MessageFlagEphemeral+discord.MessageFlagIsComponentsV2)),
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).
-					Int64("guild_id", int64(*interaction.GuildID)).
-					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
-					Msg("Failed to edit giveaway message")
-
-				return nil, err
-			}
-
-			return nil, nil
 		default:
 			welcomer.Logger.Warn().
 				Int64("guild_id", int64(*interaction.GuildID)).
@@ -1269,7 +1264,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			} else {
 				giveaway.RolesAllowed = pgtype.JSONB{
-					Bytes:  []byte{123, 125}, // []
+					Bytes:  []byte{91, 93}, // []
 					Status: pgtype.Present,
 				}
 			}
@@ -1290,7 +1285,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			} else {
 				giveaway.RolesExcluded = pgtype.JSONB{
-					Bytes:  []byte{123, 125}, // []
+					Bytes:  []byte{91, 93}, // []
 					Status: pgtype.Present,
 				}
 			}
@@ -1380,6 +1375,9 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 				}
 			}
 
+			giveaway.MessageID = int64(message.ID)
+			giveaway.ChannelID = int64(message.ChannelID)
+
 			_, err = welcomer.Queries.UpdateGiveawayMessage(ctx, database.UpdateGiveawayMessageParams{
 				GiveawayUuid: giveawayUUID,
 				MessageID:    int64(message.ID),
@@ -1463,7 +1461,7 @@ func handleGiveawayEditComponent(ctx context.Context, sub *subway.Subway, intera
 						Components: []discord.InteractionComponent{
 							{
 								Type:    discord.InteractionComponentTypeTextDisplay,
-								Content: "Your giveaway has now started!\n\nYou can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".",
+								Content: "Your giveaway has now started!\n\nYou can manage your giveaways settings such as disabling entries, extending the duration or ending the giveaway early by right clicking the giveaway message and selecting \"Manage Giveaway\".\n\n-# How was your experience? Let us know in our feedback channel: https://discord.gg/t2Ye8jBfPh",
 							},
 							{
 								Type: discord.InteractionComponentTypeMediaGallery,
@@ -1511,20 +1509,14 @@ func joinRolesList(roles []discord.Snowflake) string {
 }
 
 func getGiveawayPrizesAsString(giveawayPrizes []welcomer.GiveawayPrize) string {
-	result := "**Prizes:**\n"
-
 	if len(giveawayPrizes) == 0 {
-		result += "No Prizes Configured"
-
-		return result
+		return "No Prizes Configured"
 	}
 
-	for i, prize := range giveawayPrizes {
-		result += fmt.Sprintf("**%d** x **%s**", prize.Count, prize.Title)
+	result := ""
 
-		if i < len(giveawayPrizes)-1 {
-			result += "\n"
-		}
+	for _, prize := range giveawayPrizes {
+		result += fmt.Sprintf("**%d** x **%s**\n", prize.Count, prize.Title)
 	}
 
 	return result
@@ -1560,7 +1552,7 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 			},
 			{
 				Type:    discord.InteractionComponentTypeTextDisplay,
-				Content: getGiveawayPrizesAsString(giveawayPrizes),
+				Content: "**Prizes:**\n" + getGiveawayPrizesAsString(giveawayPrizes),
 			},
 		}...)
 	}
@@ -1571,8 +1563,18 @@ func giveawayView(giveaway *database.GuildGiveaways, entries int32) discord.Webh
 		},
 		{
 			Type: discord.InteractionComponentTypeTextDisplay,
-			Content: "**Giveaway Ends:** " + welcomer.If(giveaway.EndTime.Unix() > 0, "<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)", "No end time (runs indefinitely)") +
-				"\n" + welcomer.If(giveaway.ShowEntries, fmt.Sprintf("**Entries:** %d", entries), ""),
+			Content: welcomer.If(
+				giveaway.HasEnded,
+				"**Giveaway Ended:** "+"<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)",
+				"**Giveaway Ends:** "+welcomer.If(
+					giveaway.EndTime.Unix() > 0,
+					"<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":R> (<t:"+welcomer.Itoa(giveaway.EndTime.Unix())+":f>)",
+					"No end time (runs indefinitely)")) +
+				"\n" +
+				welcomer.If(
+					giveaway.ShowEntries,
+					fmt.Sprintf("**Entries:** %d", entries),
+					""),
 		},
 	}...)
 
@@ -1619,7 +1621,7 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 				Components: []discord.InteractionComponent{
 					{
 						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: fmt.Sprintf("### Manage entries for giveaway **%s**", welcomer.Coalesce(giveaway.Title, "New Giveaway")),
+						Content: fmt.Sprintf("### Manage giveaway **%s**", welcomer.Coalesce(giveaway.Title, "New Giveaway")),
 					},
 					{
 						Type: discord.InteractionComponentTypeSeparator,
@@ -1629,7 +1631,7 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 						Components: []discord.InteractionComponent{
 							{
 								Type: discord.InteractionComponentTypeTextDisplay,
-								Content: "**Allow Giveaway Entries**:\n" +
+								Content: "**Allow Giveaway Entries:**\n" +
 									welcomer.If(giveaway.AllowEntries, "True", "False") +
 									welcomer.If(!giveaway.AllowEntries, "\n-# When disabled, users cannot enter the giveaway. This is useful to temporarily pause entries without ending the giveaway.", ""),
 							},
@@ -1725,9 +1727,9 @@ func giveawayManageView(giveaway *database.GuildGiveaways) discord.WebhookMessag
 							Disabled: !giveaway.HasEnded,
 						},
 					},
-					{
-						Type: discord.InteractionComponentTypeSeparator,
-					},
+					// {
+					// 	Type: discord.InteractionComponentTypeSeparator,
+					// },
 					// {
 					// 	Type: discord.InteractionComponentTypeTextDisplay,
 					// 	Content: "**Reroll Giveaway Winners**\n" +
@@ -1793,7 +1795,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: getGiveawayPrizesAsString(giveawayPrizes),
+					Content: "**Prizes:**\n" + getGiveawayPrizesAsString(giveawayPrizes),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1811,8 +1813,8 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Duration**:\n" + welcomer.If(giveaway.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "No end time (runs indefinitely)") +
-						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually with `/giveaway end`.", ""),
+					Content: "**Duration:**\n" + welcomer.If(giveaway.EndTime.Unix() > 0, welcomer.HumanizeDuration(int(giveaway.EndTime.Unix()), true), "No end time (runs indefinitely)") +
+						welcomer.If(giveaway.EndTime.IsZero(), "\n-# Giveaway will run until ended manually.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1830,9 +1832,9 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Announce Winners**:\n" +
+					Content: "**Announce Winners:**\n" +
 						welcomer.If(giveaway.AnnounceWinners, "True", "False") +
-						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be announced. You can use `/giveaway export` to get a list of entries and select winners manually.", ""),
+						welcomer.If(!giveaway.AnnounceWinners, "\n-# When disabled, winners will not be announced.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1850,7 +1852,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: "**Roles Allowed to Enter**:\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering**:\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
+					Content: "**Roles Allowed to Enter:**\n" + welcomer.Coalesce(joinRolesList(rolesAllowed), "All") + "\n\n**Roles Excluded from Entering:**\n" + welcomer.Coalesce(joinRolesList(rolesExcluded), "None"),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1868,8 +1870,8 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			Components: []discord.InteractionComponent{
 				{
 					Type: discord.InteractionComponentTypeTextDisplay,
-					Content: "**Minimum Join Date**:\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None") +
-						welcomer.If(!giveaway.MinimumJoinDate.IsZero(), "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true)+" of the giveaway starting cannot enter the giveaway.", ""),
+					Content: "**Minimum Join Date:**\n" + welcomer.Coalesce(welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true), "None") +
+						welcomer.If(giveaway.MinimumJoinDate.Unix() > 0, "\n-# Users who have joined the server within "+welcomer.HumanizeDuration(int(giveaway.MinimumJoinDate.Unix()), true)+" of the giveaway starting cannot enter the giveaway.", ""),
 				},
 			},
 			Accessory: &discord.InteractionComponent{
@@ -1881,7 +1883,7 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 		},
 	}...)
 
-	message := discord.WebhookMessageParams{
+	return discord.WebhookMessageParams{
 		Flags: discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2,
 		Components: []discord.InteractionComponent{
 			{
@@ -1909,8 +1911,6 @@ func giveawaySetupView(giveaway *database.GuildGiveaways) discord.WebhookMessage
 			},
 		},
 	}
-
-	return message
 }
 
 func parsePrizesFromString(prizesString string) []welcomer.GiveawayPrize {

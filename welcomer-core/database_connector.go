@@ -7,6 +7,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -199,14 +200,71 @@ func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx context.Context, par
 		old.CustomBuilderData = SetupJSONB(old.CustomBuilderData)
 	}
 
-	params.CustomBuilderData = SetupJSONB(params.CustomBuilderData)
-
 	newRow, err := Queries.CreateOrUpdateWelcomerImagesGuildSettings(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
+
+	return newRow, nil
+}
+
+func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context, guildID discord.Snowflake, useCustomBuilder bool, customBuilderData pgtype.JSONB, actor discord.Snowflake) (*database.GuildSettingsWelcomerImages, error) {
+	var old database.GuildSettingsWelcomerImages
+	if existing, err := Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID)); err == nil {
+		old = *existing
+		old.CustomBuilderData = SetupJSONB(old.CustomBuilderData)
+	}
+
+	customBuilderDataJSONB := SetupJSONB(customBuilderData)
+
+	var err error
+	var newRow *database.GuildSettingsWelcomerImages
+
+	newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+		GuildID:           int64(guildID),
+		UseCustomBuilder:  useCustomBuilder,
+		CustomBuilderData: customBuilderDataJSONB,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			_, err = CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+				GuildID:                int64(guildID),
+				ToggleEnabled:          DefaultWelcomerImages.ToggleEnabled,
+				ToggleImageBorder:      DefaultWelcomerImages.ToggleImageBorder,
+				ToggleShowAvatar:       DefaultWelcomerImages.ToggleShowAvatar,
+				BackgroundName:         DefaultWelcomerImages.BackgroundName,
+				ColourText:             DefaultWelcomerImages.ColourText,
+				ColourTextBorder:       DefaultWelcomerImages.ColourTextBorder,
+				ColourImageBorder:      DefaultWelcomerImages.ColourImageBorder,
+				ColourProfileBorder:    DefaultWelcomerImages.ColourProfileBorder,
+				ImageAlignment:         DefaultWelcomerImages.ImageAlignment,
+				ImageTheme:             DefaultWelcomerImages.ImageTheme,
+				ImageMessage:           DefaultWelcomerImages.ImageMessage,
+				ImageProfileBorderType: DefaultWelcomerImages.ImageProfileBorderType,
+				UseCustomBuilder:       DefaultWelcomerImages.UseCustomBuilder,
+				CustomBuilderData:      DefaultWelcomerImages.CustomBuilderData,
+			}, actor)
+			if err != nil {
+				return nil, err
+			}
+
+			newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+				GuildID:           int64(guildID),
+				UseCustomBuilder:  useCustomBuilder,
+				CustomBuilderData: customBuilderDataJSONB,
+			})
+		} else {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
 
 	return newRow, nil
 }
@@ -456,6 +514,25 @@ func UpdateGiveawayGuildSettingsWithAudit(ctx context.Context, params database.U
 	}
 
 	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGiveaways, params.GiveawayUuid.String())
+
+	return newRow, nil
+}
+
+func UpdatePollGuildSettingsWithAudit(ctx context.Context, params database.UpdatePollParams, actor, guildID discord.Snowflake) (*database.GuildPolls, error) {
+	var old database.GuildPolls
+	if existing, err := Queries.GetPoll(ctx, database.GetPollParams{
+		GuildID:  int64(guildID),
+		PollUuid: params.PollUuid,
+	}); err == nil {
+		old = *existing
+	}
+
+	newRow, err := Queries.UpdatePoll(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypePolls, params.PollUuid.String())
 
 	return newRow, nil
 }
