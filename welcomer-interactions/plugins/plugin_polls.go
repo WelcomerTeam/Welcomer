@@ -954,6 +954,14 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 			time.Sleep(pollMessageUpdateRate)
 
 			newEntries, err := welcomer.Queries.GetPollEntriesCounts(ctx, poll.PollUuid)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(*interaction.GuildID)).
+					Str("poll_uuid", pollUUID.String()).
+					Msg("Failed to get poll entries counts for message update")
+
+				return
+			}
 
 			totalOldEntries := 0
 			totalNewEntries := 0
