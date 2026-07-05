@@ -263,6 +263,10 @@ const features = [
     name: "Giveaways",
     description: "Create giveaways for your users to enter and win prizes, with a variety of customisations.",
   },
+  {
+    name: "Polls",
+    description: "Create and manage polls for your users to participate in, with various customization options.",
+  },
   // InviteRoles
   {
     name: "Leaver",

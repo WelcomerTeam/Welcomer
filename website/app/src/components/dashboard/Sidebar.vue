@@ -169,6 +169,12 @@ const navigation = [
         icon: "fa-gift",
         headline: "New"
       },
+      {
+        name: "Polls",
+        linkname: "dashboard.guild.polls",
+        icon: "fa-square-poll-horizontal",
+        headline: "New"
+      },
     ],
   }
   // {

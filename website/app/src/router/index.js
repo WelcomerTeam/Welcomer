@@ -161,6 +161,11 @@ const routes = [
             path: "giveaways",
             component: () => import("@/pages/dashboard/engagement/Giveaways.vue"),
           },
+          {
+            name: "dashboard.guild.polls",
+            path: "polls",
+            component: () => import("@/pages/dashboard/engagement/Polls.vue"),
+          },
 
           {
             path: "example",
