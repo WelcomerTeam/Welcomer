@@ -869,6 +869,8 @@ func handlePollVoteComponent(ctx context.Context, sub *subway.Subway, interactio
 					Str("poll_uuid", pollUUID.String()).
 					Str("option_str", pollOptionsStr).
 					Msg("Invalid option index submitted for poll entry")
+
+				return nil, err
 			}
 
 			pollOptions = []int32{int32(optionIndex)}
@@ -2208,7 +2210,7 @@ func PollView(poll *database.GuildPolls, results []int, isUser, hasFinished bool
 	var answersString string
 
 	if (poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAlways) && !poll.IsAnonymous) ||
-		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && time.Now().After(poll.EndTime) ||
+		poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterEnd) && (!poll.EndTime.IsZero() && time.Now().After(poll.EndTime)) ||
 		(poll.ResultsVisibility == string(welcomer.PollResultVisibilityOptionAfterVoting) && isUser && !poll.IsAnonymous) {
 		// Show answers and percentages
 		answersString = getPollResultString(poll, answers, results, hasFinished)

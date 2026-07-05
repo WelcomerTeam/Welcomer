@@ -8,7 +8,6 @@ import (
 	sandwich_daemon "github.com/WelcomerTeam/Sandwich-Daemon"
 	sandwich "github.com/WelcomerTeam/Sandwich/sandwich"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
-	core "github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	welcomer_interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions/plugins"
 )
@@ -46,8 +45,8 @@ func (g *PollCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register poll end handler.
 
-	g.EventHandler.RegisterEventHandler(core.CustomEventInvokeEndPoll, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokePollEndPayload core.CustomEventInvokeEndPollStructure
+	g.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeEndPoll, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
+		var invokePollEndPayload welcomer.CustomEventInvokeEndPollStructure
 		if err := eventCtx.DecodeContent(payload, &invokePollEndPayload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
@@ -67,12 +66,12 @@ func (g *PollCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	// Call OnInvokeEndPoll when CustomEventInvokeEndPoll is triggered.
-	g.EventHandler.RegisterEvent(core.CustomEventInvokeEndPoll, nil, (welcomer.OnInvokeEndPollFuncType)(g.OnInvokeEndPoll))
+	g.EventHandler.RegisterEvent(welcomer.CustomEventInvokeEndPoll, nil, (welcomer.OnInvokeEndPollFuncType)(g.OnInvokeEndPoll))
 
 	return nil
 }
 
-func (g *PollCog) OnInvokeEndPoll(eventCtx *sandwich.EventContext, event core.CustomEventInvokeEndPollStructure) error {
+func (g *PollCog) OnInvokeEndPoll(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeEndPollStructure) error {
 	welcomer.Logger.Info().
 		Str("poll_uuid", event.PollUUID.String()).
 		Msg("Received poll end event, processing poll end")
