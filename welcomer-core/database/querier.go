@@ -36,6 +36,8 @@ type Querier interface {
 	CreateManyIngestMessageEvents(ctx context.Context, arg []CreateManyIngestMessageEventsParams) (int64, error)
 	CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error)
 	CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error)
+	CreateModerationCheckup(ctx context.Context, arg CreateModerationCheckupParams) (*CreateModerationCheckupRow, error)
+	CreateModerationCheckupQueue(ctx context.Context, arg CreateModerationCheckupQueueParams) (*ModerationCheckupQueue, error)
 	CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error)
 	CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
@@ -83,6 +85,7 @@ type Querier interface {
 	DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error)
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)
 	DisableReactionRoleSettingByMessageId(ctx context.Context, arg DisableReactionRoleSettingByMessageIdParams) (int64, error)
+	FetchModerationCheckupQueue(ctx context.Context, limit int32) ([]*ModerationCheckupQueue, error)
 	GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error)
 	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error)
@@ -161,6 +164,7 @@ type Querier interface {
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error)
 	InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error)
 	InsertEasterEgg(ctx context.Context, arg InsertEasterEggParams) (uuid.UUID, error)
+	RemoveFromModerationCheckupQueue(ctx context.Context, checkupQueueUuid uuid.UUID) error
 	RemoveGiveawayEntry(ctx context.Context, arg RemoveGiveawayEntryParams) error
 	RemoveGuildFeature(ctx context.Context, arg RemoveGuildFeatureParams) error
 	RemovePollEntriesNotMatching(ctx context.Context, arg RemovePollEntriesNotMatchingParams) error
@@ -182,6 +186,7 @@ type Querier interface {
 	UpdateGuildBio(ctx context.Context, arg UpdateGuildBioParams) (*Guilds, error)
 	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
+	UpdateModerationCheckup(ctx context.Context, arg UpdateModerationCheckupParams) error
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
 	UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildPolls, error)
 	UpdatePollMessage(ctx context.Context, arg UpdatePollMessageParams) (*GuildPolls, error)
