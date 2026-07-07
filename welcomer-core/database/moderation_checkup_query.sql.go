@@ -15,23 +15,23 @@ import (
 )
 
 const CreateModerationCheckup = `-- name: CreateModerationCheckup :one
-INSERT INTO moderation_checkup (checkup_uuid, guild_id, user_id, audit_type, started_at)
+INSERT INTO moderation_checkup (checkup_uuid, guild_id, user_id, data_type, started_at)
 VALUES ($1, $2, $3, $4, now())
-RETURNING checkup_uuid, guild_id, user_id, audit_type, started_at
+RETURNING checkup_uuid, guild_id, user_id, data_type, started_at
 `
 
 type CreateModerationCheckupParams struct {
 	CheckupUuid uuid.UUID `json:"checkup_uuid"`
 	GuildID     int64     `json:"guild_id"`
 	UserID      int64     `json:"user_id"`
-	AuditType   int32     `json:"audit_type"`
+	DataType    int32     `json:"data_type"`
 }
 
 type CreateModerationCheckupRow struct {
 	CheckupUuid uuid.UUID `json:"checkup_uuid"`
 	GuildID     int64     `json:"guild_id"`
 	UserID      int64     `json:"user_id"`
-	AuditType   int32     `json:"audit_type"`
+	DataType    int32     `json:"data_type"`
 	StartedAt   time.Time `json:"started_at"`
 }
 
@@ -40,14 +40,14 @@ func (q *Queries) CreateModerationCheckup(ctx context.Context, arg CreateModerat
 		arg.CheckupUuid,
 		arg.GuildID,
 		arg.UserID,
-		arg.AuditType,
+		arg.DataType,
 	)
 	var i CreateModerationCheckupRow
 	err := row.Scan(
 		&i.CheckupUuid,
 		&i.GuildID,
 		&i.UserID,
-		&i.AuditType,
+		&i.DataType,
 		&i.StartedAt,
 	)
 	return &i, err

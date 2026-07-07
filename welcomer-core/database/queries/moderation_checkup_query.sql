@@ -1,7 +1,7 @@
 -- name: CreateModerationCheckup :one
-INSERT INTO moderation_checkup (checkup_uuid, guild_id, user_id, audit_type, started_at)
+INSERT INTO moderation_checkup (checkup_uuid, guild_id, user_id, data_type, started_at)
 VALUES ($1, $2, $3, $4, now())
-RETURNING checkup_uuid, guild_id, user_id, audit_type, started_at;
+RETURNING checkup_uuid, guild_id, user_id, data_type, started_at;
 
 -- name: UpdateModerationCheckup :exec
 UPDATE moderation_checkup

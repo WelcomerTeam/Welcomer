@@ -12,25 +12,23 @@ import (
 )
 
 const CreateModerationCheckupQueue = `-- name: CreateModerationCheckupQueue :one
-INSERT INTO moderation_checkup_queue (checkup_queue_uuid, guild_id, user_id, audit_type, created_at, value)
-VALUES ($1, $2, $3, $4, now(), $5)
-RETURNING checkup_queue_uuid, guild_id, user_id, audit_type, created_at, value
+INSERT INTO moderation_checkup_queue (checkup_queue_uuid, guild_id, user_id, data_type, created_at, value)
+VALUES (uuid_generate_v7(), $1, $2, $3, now(), $4)
+RETURNING checkup_queue_uuid, guild_id, user_id, data_type, created_at, value
 `
 
 type CreateModerationCheckupQueueParams struct {
-	CheckupQueueUuid uuid.UUID   `json:"checkup_queue_uuid"`
-	GuildID          int64       `json:"guild_id"`
-	UserID           int64       `json:"user_id"`
-	AuditType        int32       `json:"audit_type"`
-	Value            interface{} `json:"value"`
+	GuildID  int64  `json:"guild_id"`
+	UserID   int64  `json:"user_id"`
+	DataType int32  `json:"data_type"`
+	Value    string `json:"value"`
 }
 
 func (q *Queries) CreateModerationCheckupQueue(ctx context.Context, arg CreateModerationCheckupQueueParams) (*ModerationCheckupQueue, error) {
 	row := q.db.QueryRow(ctx, CreateModerationCheckupQueue,
-		arg.CheckupQueueUuid,
 		arg.GuildID,
 		arg.UserID,
-		arg.AuditType,
+		arg.DataType,
 		arg.Value,
 	)
 	var i ModerationCheckupQueue
@@ -38,7 +36,7 @@ func (q *Queries) CreateModerationCheckupQueue(ctx context.Context, arg CreateMo
 		&i.CheckupQueueUuid,
 		&i.GuildID,
 		&i.UserID,
-		&i.AuditType,
+		&i.DataType,
 		&i.CreatedAt,
 		&i.Value,
 	)
@@ -46,7 +44,7 @@ func (q *Queries) CreateModerationCheckupQueue(ctx context.Context, arg CreateMo
 }
 
 const FetchModerationCheckupQueue = `-- name: FetchModerationCheckupQueue :many
-SELECT checkup_queue_uuid, guild_id, user_id, audit_type, created_at, value
+SELECT checkup_queue_uuid, guild_id, user_id, data_type, created_at, value
 FROM moderation_checkup_queue
 ORDER BY created_at ASC
 LIMIT $1
@@ -65,7 +63,7 @@ func (q *Queries) FetchModerationCheckupQueue(ctx context.Context, limit int32) 
 			&i.CheckupQueueUuid,
 			&i.GuildID,
 			&i.UserID,
-			&i.AuditType,
+			&i.DataType,
 			&i.CreatedAt,
 			&i.Value,
 		); err != nil {

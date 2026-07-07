@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 
-	
+	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 )
 
@@ -88,7 +88,7 @@ func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg CreateRulesG
 
 const GetRulesGuildSettings = `-- name: GetRulesGuildSettings :one
 SELECT
-    guild_settings_rules.guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid, checkup_uuid, moderation_checkup.guild_id, user_id, audit_type, started_at, completed_at, dom, inv, score_change, score_safe, score_question, score_explicit, is_blocked
+    guild_settings_rules.guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid, checkup_uuid, moderation_checkup.guild_id, user_id, data_type, started_at, completed_at, dom, inv, score_change, score_safe, score_question, score_explicit, is_blocked
 FROM
     guild_settings_rules
     LEFT JOIN moderation_checkup ON guild_settings_rules.moderation_checkup_uuid = moderation_checkup.checkup_uuid
@@ -105,7 +105,7 @@ type GetRulesGuildSettingsRow struct {
 	CheckupUuid           uuid.NullUUID   `json:"checkup_uuid"`
 	GuildID_2             sql.NullInt64   `json:"guild_id_2"`
 	UserID                sql.NullInt64   `json:"user_id"`
-	AuditType             sql.NullInt32   `json:"audit_type"`
+	DataType              sql.NullInt32   `json:"data_type"`
 	StartedAt             sql.NullTime    `json:"started_at"`
 	CompletedAt           sql.NullTime    `json:"completed_at"`
 	Dom                   pgtype.JSONB    `json:"dom"`
@@ -129,7 +129,7 @@ func (q *Queries) GetRulesGuildSettings(ctx context.Context, guildID int64) (*Ge
 		&i.CheckupUuid,
 		&i.GuildID_2,
 		&i.UserID,
-		&i.AuditType,
+		&i.DataType,
 		&i.StartedAt,
 		&i.CompletedAt,
 		&i.Dom,

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS moderation_checkup (
     checkup_uuid uuid NOT NULL UNIQUE PRIMARY KEY,
     guild_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    audit_type INT NOT NULL,
+    data_type INT NOT NULL,
     started_at timestamp NOT NULL,
     completed_at timestamp,
     

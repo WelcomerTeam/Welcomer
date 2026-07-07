@@ -347,7 +347,7 @@ type ModerationCheckup struct {
 	CheckupUuid   uuid.UUID       `json:"checkup_uuid"`
 	GuildID       int64           `json:"guild_id"`
 	UserID        int64           `json:"user_id"`
-	AuditType     int32           `json:"audit_type"`
+	DataType      int32           `json:"data_type"`
 	StartedAt     time.Time       `json:"started_at"`
 	CompletedAt   sql.NullTime    `json:"completed_at"`
 	Dom           pgtype.JSONB    `json:"dom"`
@@ -360,12 +360,12 @@ type ModerationCheckup struct {
 }
 
 type ModerationCheckupQueue struct {
-	CheckupQueueUuid uuid.UUID   `json:"checkup_queue_uuid"`
-	GuildID          int64       `json:"guild_id"`
-	UserID           int64       `json:"user_id"`
-	AuditType        int32       `json:"audit_type"`
-	CreatedAt        time.Time   `json:"created_at"`
-	Value            interface{} `json:"value"`
+	CheckupQueueUuid uuid.UUID `json:"checkup_queue_uuid"`
+	GuildID          int64     `json:"guild_id"`
+	UserID           int64     `json:"user_id"`
+	DataType         int32     `json:"data_type"`
+	CreatedAt        time.Time `json:"created_at"`
+	Value            string    `json:"value"`
 }
 
 type PatreonUsers struct {
