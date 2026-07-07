@@ -11,7 +11,7 @@ type GuildSettingsRules struct {
 }
 
 func GuildSettingsRulesSettingsToPartial(
-	rules *database.GuildSettingsRules,
+	rules *database.GetRulesGuildSettingsRow,
 ) *GuildSettingsRules {
 	partial := &GuildSettingsRules{
 		ToggleEnabled:    rules.ToggleEnabled,

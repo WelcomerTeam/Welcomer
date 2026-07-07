@@ -88,7 +88,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
@@ -222,7 +222,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
@@ -357,7 +357,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
@@ -446,7 +446,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
@@ -603,7 +603,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
@@ -734,7 +734,7 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 							GuildID:         int64(*interaction.GuildID),
 							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,

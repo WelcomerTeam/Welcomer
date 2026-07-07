@@ -58,7 +58,7 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 	guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			guildSettingsRules = &database.GuildSettingsRules{
+			guildSettingsRules = &database.GetRulesGuildSettingsRow{
 				GuildID:          int64(eventCtx.Guild.ID),
 				ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 				ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,

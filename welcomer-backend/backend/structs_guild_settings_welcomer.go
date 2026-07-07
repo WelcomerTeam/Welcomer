@@ -60,7 +60,7 @@ type GuildSettingsWelcomerCustomBuilder struct {
 	References        map[string]string `json:"references"`
 }
 
-func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GuildSettingsWelcomerText, images database.GuildSettingsWelcomerImages, dms database.GuildSettingsWelcomerDms, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
+func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GetWelcomerTextGuildSettingsRow, images database.GuildSettingsWelcomerImages, dms database.GetWelcomerDMsGuildSettingsRow, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
 		Config: &GuildSettingsWelcomerConfig{
 			AutoDeleteWelcomeMessages:        config.AutoDeleteWelcomeMessages,

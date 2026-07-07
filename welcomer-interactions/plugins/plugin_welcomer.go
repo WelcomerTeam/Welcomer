@@ -88,7 +88,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+						guildSettingsWelcomerText = &database.GetWelcomerTextGuildSettingsRow{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: welcomer.DefaultWelcomerText.ToggleEnabled,
 							Channel:       welcomer.DefaultWelcomerText.Channel,
@@ -133,7 +133,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+						guildSettingsWelcomerDMs = &database.GetWelcomerDMsGuildSettingsRow{
 							GuildID:             int64(*interaction.GuildID),
 							ToggleEnabled:       welcomer.DefaultWelcomerDms.ToggleEnabled,
 							ToggleUseTextFormat: welcomer.DefaultWelcomerDms.ToggleUseTextFormat,
@@ -231,7 +231,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+						guildSettingsWelcomerText = &database.GetWelcomerTextGuildSettingsRow{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: welcomer.DefaultWelcomerText.ToggleEnabled,
 							Channel:       welcomer.DefaultWelcomerText.Channel,
@@ -249,7 +249,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+						guildSettingsWelcomerDMs = &database.GetWelcomerDMsGuildSettingsRow{
 							GuildID:             int64(*interaction.GuildID),
 							ToggleEnabled:       welcomer.DefaultWelcomerDms.ToggleEnabled,
 							ToggleUseTextFormat: welcomer.DefaultWelcomerDms.ToggleUseTextFormat,
@@ -449,7 +449,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+						guildSettingsWelcomerText = &database.GetWelcomerTextGuildSettingsRow{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: welcomer.DefaultWelcomerText.ToggleEnabled,
 							Channel:       welcomer.DefaultWelcomerText.Channel,
@@ -467,7 +467,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+						guildSettingsWelcomerDMs = &database.GetWelcomerDMsGuildSettingsRow{
 							GuildID:             int64(*interaction.GuildID),
 							ToggleEnabled:       welcomer.DefaultWelcomerDms.ToggleEnabled,
 							ToggleUseTextFormat: welcomer.DefaultWelcomerDms.ToggleUseTextFormat,
@@ -668,7 +668,7 @@ func (w *WelcomerCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsWelcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+						guildSettingsWelcomerText = &database.GetWelcomerTextGuildSettingsRow{
 							GuildID:       int64(*interaction.GuildID),
 							ToggleEnabled: welcomer.DefaultWelcomerText.ToggleEnabled,
 							Channel:       welcomer.DefaultWelcomerText.Channel,

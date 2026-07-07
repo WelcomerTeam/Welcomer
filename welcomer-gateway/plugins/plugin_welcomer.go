@@ -313,15 +313,15 @@ func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID disc
 	return potentialInvite, nil
 }
 
-func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GuildSettingsWelcomerText, *database.GuildSettingsWelcomerImages, *database.GuildSettingsWelcomerDms, error) {
+func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GetWelcomerTextGuildSettingsRow, *database.GuildSettingsWelcomerImages, *database.GetWelcomerDMsGuildSettingsRow, error) {
 	var err error
 
-	var guildSettingsWelcomerText *database.GuildSettingsWelcomerText
+	var guildSettingsWelcomerText *database.GetWelcomerTextGuildSettingsRow
 
 	guildSettingsWelcomerText, err = welcomer.Queries.GetWelcomerTextGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			guildSettingsWelcomerText = &database.GuildSettingsWelcomerText{
+			guildSettingsWelcomerText = &database.GetWelcomerTextGuildSettingsRow{
 				GuildID:       int64(eventCtx.Guild.ID),
 				ToggleEnabled: welcomer.DefaultWelcomerText.ToggleEnabled,
 				Channel:       welcomer.DefaultWelcomerText.Channel,
@@ -365,12 +365,12 @@ func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GuildSettin
 		}
 	}
 
-	var guildSettingsWelcomerDMs *database.GuildSettingsWelcomerDms
+	var guildSettingsWelcomerDMs *database.GetWelcomerDMsGuildSettingsRow
 
 	guildSettingsWelcomerDMs, err = welcomer.Queries.GetWelcomerDMsGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			guildSettingsWelcomerDMs = &database.GuildSettingsWelcomerDms{
+			guildSettingsWelcomerDMs = &database.GetWelcomerDMsGuildSettingsRow{
 				GuildID:             int64(eventCtx.Guild.ID),
 				ToggleEnabled:       welcomer.DefaultWelcomerDms.ToggleEnabled,
 				ToggleUseTextFormat: welcomer.DefaultWelcomerDms.ToggleUseTextFormat,
@@ -404,7 +404,7 @@ func ShouldTrackInvites(eventCtx *sandwich.EventContext, event core.CustomEventI
 	return HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs), nil
 }
 
-func HasInviteVariable(guildSettingsWelcomerText *database.GuildSettingsWelcomerText, guildSettingsWelcomerImages *database.GuildSettingsWelcomerImages, guildSettingsWelcomerDMs *database.GuildSettingsWelcomerDms) bool {
+func HasInviteVariable(guildSettingsWelcomerText *database.GetWelcomerTextGuildSettingsRow, guildSettingsWelcomerImages *database.GuildSettingsWelcomerImages, guildSettingsWelcomerDMs *database.GetWelcomerDMsGuildSettingsRow) bool {
 	// Check if the welcomer text, dms or images possibly has an invite variable. This also checks if the module is enabled or not.
 	hasInviteVariable := ((guildSettingsWelcomerText.ToggleEnabled || (guildSettingsWelcomerDMs.ToggleEnabled && guildSettingsWelcomerDMs.ToggleUseTextFormat)) && strings.Contains(string(guildSettingsWelcomerText.MessageFormat.Bytes), "{{Invite")) ||
 		((guildSettingsWelcomerDMs.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleUseTextFormat) && strings.Contains(string(guildSettingsWelcomerDMs.MessageFormat.Bytes), "{{Invite")) ||

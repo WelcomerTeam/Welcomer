@@ -91,7 +91,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+			guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 				GuildID:         int64(eventCtx.Guild.ID),
 				ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 				ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
@@ -368,7 +368,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			guildSettingsBorderwall = &database.GuildSettingsBorderwall{
+			guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
 				GuildID:         int64(eventCtx.Guild.ID),
 				ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 				ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,

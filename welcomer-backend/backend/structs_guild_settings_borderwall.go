@@ -3,6 +3,7 @@ package backend
 import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/gofrs/uuid"
 )
 
 type GuildSettingsBorderwall struct {
@@ -15,7 +16,7 @@ type GuildSettingsBorderwall struct {
 	ToggleSendDm    bool     `json:"send_dm"`
 }
 
-func GuildSettingsBorderwallSettingsToPartial(borderwall database.GuildSettingsBorderwall) *GuildSettingsBorderwall {
+func GuildSettingsBorderwallSettingsToPartial(borderwall database.GetBorderwallGuildSettingsRow) *GuildSettingsBorderwall {
 	partial := &GuildSettingsBorderwall{
 		ToggleEnabled:   borderwall.ToggleEnabled,
 		ToggleSendDm:    borderwall.ToggleSendDm,
@@ -37,15 +38,16 @@ func GuildSettingsBorderwallSettingsToPartial(borderwall database.GuildSettingsB
 	return partial
 }
 
-func PartialToGuildSettingsBorderwallSettings(guildID int64, guildSettings *GuildSettingsBorderwall) *database.GuildSettingsBorderwall {
-	return &database.GuildSettingsBorderwall{
-		GuildID:         guildID,
-		ToggleEnabled:   guildSettings.ToggleEnabled,
-		ToggleSendDm:    guildSettings.ToggleSendDm,
-		Channel:         welcomer.StringPointerToInt64(guildSettings.Channel),
-		MessageVerify:   welcomer.StringToJSONB(guildSettings.MessageVerify),
-		MessageVerified: welcomer.StringToJSONB(guildSettings.MessageVerified),
-		RolesOnJoin:     welcomer.StringSliceToInt64(guildSettings.RolesOnJoin),
-		RolesOnVerify:   welcomer.StringSliceToInt64(guildSettings.RolesOnVerify),
+func PartialToGuildSettingsBorderwallSettings(guildID int64, guildSettings *GuildSettingsBorderwall) *database.CreateOrUpdateBorderwallGuildSettingsParams {
+	return &database.CreateOrUpdateBorderwallGuildSettingsParams{
+		GuildID:               guildID,
+		ToggleEnabled:         guildSettings.ToggleEnabled,
+		ToggleSendDm:          guildSettings.ToggleSendDm,
+		Channel:               welcomer.StringPointerToInt64(guildSettings.Channel),
+		MessageVerify:         welcomer.StringToJSONB(guildSettings.MessageVerify),
+		MessageVerified:       welcomer.StringToJSONB(guildSettings.MessageVerified),
+		RolesOnJoin:           welcomer.StringSliceToInt64(guildSettings.RolesOnJoin),
+		RolesOnVerify:         welcomer.StringSliceToInt64(guildSettings.RolesOnVerify),
+		ModerationCheckupUuid: uuid.NullUUID{},
 	}
 }
