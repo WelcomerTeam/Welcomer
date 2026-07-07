@@ -7,26 +7,30 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
+	
 	"github.com/jackc/pgtype"
 )
 
 const CreateOrUpdateWelcomerTextGuildSettings = `-- name: CreateOrUpdateWelcomerTextGuildSettings :one
-INSERT INTO guild_settings_welcomer_text (guild_id, toggle_enabled, channel, message_format)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO guild_settings_welcomer_text (guild_id, toggle_enabled, channel, message_format, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         channel = EXCLUDED.channel,
-        message_format = EXCLUDED.message_format
+        message_format = EXCLUDED.message_format,
+        moderation_checkup_uuid = EXCLUDED.moderation_checkup_uuid
 RETURNING
-    guild_id, toggle_enabled, channel, message_format
+    guild_id, toggle_enabled, channel, message_format, moderation_checkup_uuid
 `
 
 type CreateOrUpdateWelcomerTextGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	Channel               int64         `json:"channel"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateOrUpdateWelcomerTextGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error) {
@@ -35,6 +39,7 @@ func (q *Queries) CreateOrUpdateWelcomerTextGuildSettings(ctx context.Context, a
 		arg.ToggleEnabled,
 		arg.Channel,
 		arg.MessageFormat,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsWelcomerText
 	err := row.Scan(
@@ -42,22 +47,24 @@ func (q *Queries) CreateOrUpdateWelcomerTextGuildSettings(ctx context.Context, a
 		&i.ToggleEnabled,
 		&i.Channel,
 		&i.MessageFormat,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const CreateWelcomerTextGuildSettings = `-- name: CreateWelcomerTextGuildSettings :one
-INSERT INTO guild_settings_welcomer_text (guild_id, toggle_enabled, channel, message_format)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO guild_settings_welcomer_text (guild_id, toggle_enabled, channel, message_format, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5)
 RETURNING
-    guild_id, toggle_enabled, channel, message_format
+    guild_id, toggle_enabled, channel, message_format, moderation_checkup_uuid
 `
 
 type CreateWelcomerTextGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	Channel               int64         `json:"channel"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateWelcomerTextGuildSettings(ctx context.Context, arg CreateWelcomerTextGuildSettingsParams) (*GuildSettingsWelcomerText, error) {
@@ -66,6 +73,7 @@ func (q *Queries) CreateWelcomerTextGuildSettings(ctx context.Context, arg Creat
 		arg.ToggleEnabled,
 		arg.Channel,
 		arg.MessageFormat,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsWelcomerText
 	err := row.Scan(
@@ -73,27 +81,64 @@ func (q *Queries) CreateWelcomerTextGuildSettings(ctx context.Context, arg Creat
 		&i.ToggleEnabled,
 		&i.Channel,
 		&i.MessageFormat,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const GetWelcomerTextGuildSettings = `-- name: GetWelcomerTextGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, channel, message_format
+    guild_settings_welcomer_text.guild_id, toggle_enabled, channel, message_format, moderation_checkup_uuid, checkup_uuid, moderation_checkup.guild_id, user_id, audit_type, started_at, completed_at, dom, inv, score_change, score_safe, score_question, score_explicit, is_blocked
 FROM
     guild_settings_welcomer_text
+    LEFT JOIN moderation_checkup ON guild_settings_welcomer_text.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1
+    guild_settings_welcomer_text.guild_id = $1
 `
 
-func (q *Queries) GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error) {
+type GetWelcomerTextGuildSettingsRow struct {
+	GuildID               int64           `json:"guild_id"`
+	ToggleEnabled         bool            `json:"toggle_enabled"`
+	Channel               int64           `json:"channel"`
+	MessageFormat         pgtype.JSONB    `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID   `json:"moderation_checkup_uuid"`
+	CheckupUuid           uuid.NullUUID   `json:"checkup_uuid"`
+	GuildID_2             sql.NullInt64   `json:"guild_id_2"`
+	UserID                sql.NullInt64   `json:"user_id"`
+	AuditType             sql.NullInt32   `json:"audit_type"`
+	StartedAt             sql.NullTime    `json:"started_at"`
+	CompletedAt           sql.NullTime    `json:"completed_at"`
+	Dom                   pgtype.JSONB    `json:"dom"`
+	Inv                   pgtype.JSONB    `json:"inv"`
+	ScoreChange           sql.NullFloat64 `json:"score_change"`
+	ScoreSafe             sql.NullFloat64 `json:"score_safe"`
+	ScoreQuestion         sql.NullFloat64 `json:"score_question"`
+	ScoreExplicit         sql.NullFloat64 `json:"score_explicit"`
+	IsBlocked             sql.NullBool    `json:"is_blocked"`
+}
+
+func (q *Queries) GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GetWelcomerTextGuildSettingsRow, error) {
 	row := q.db.QueryRow(ctx, GetWelcomerTextGuildSettings, guildID)
-	var i GuildSettingsWelcomerText
+	var i GetWelcomerTextGuildSettingsRow
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
 		&i.Channel,
 		&i.MessageFormat,
+		&i.ModerationCheckupUuid,
+		&i.CheckupUuid,
+		&i.GuildID_2,
+		&i.UserID,
+		&i.AuditType,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.Dom,
+		&i.Inv,
+		&i.ScoreChange,
+		&i.ScoreSafe,
+		&i.ScoreQuestion,
+		&i.ScoreExplicit,
+		&i.IsBlocked,
 	)
 	return &i, err
 }
@@ -104,16 +149,18 @@ UPDATE
 SET
     toggle_enabled = $2,
     channel = $3,
-    message_format = $4
+    message_format = $4,
+    moderation_checkup_uuid = $5
 WHERE
     guild_id = $1
 `
 
 type UpdateWelcomerTextGuildSettingsParams struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	Channel               int64         `json:"channel"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error) {
@@ -122,6 +169,7 @@ func (q *Queries) UpdateWelcomerTextGuildSettings(ctx context.Context, arg Updat
 		arg.ToggleEnabled,
 		arg.Channel,
 		arg.MessageFormat,
+		arg.ModerationCheckupUuid,
 	)
 	if err != nil {
 		return 0, err

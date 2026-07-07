@@ -26,7 +26,7 @@ FROM
     guild_settings_borderwall
     LEFT JOIN moderation_checkup ON guild_settings_borderwall.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1;
+    guild_settings_borderwall.guild_id = $1;
 
 -- name: UpdateBorderwallGuildSettings :execrows
 UPDATE

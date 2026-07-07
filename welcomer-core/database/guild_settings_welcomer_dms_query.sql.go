@@ -7,28 +7,32 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
+	
 	"github.com/jackc/pgtype"
 )
 
 const CreateOrUpdateWelcomerDMsGuildSettings = `-- name: CreateOrUpdateWelcomerDMsGuildSettings :one
-INSERT INTO guild_settings_welcomer_dms (guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format)
-    VALUES ($1, $2, $3, $4, $5)
+INSERT INTO guild_settings_welcomer_dms (guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled, 
         toggle_use_text_format = EXCLUDED.toggle_use_text_format, 
         toggle_include_image = EXCLUDED.toggle_include_image, 
-        message_format = EXCLUDED.message_format
+        message_format = EXCLUDED.message_format,
+        moderation_checkup_uuid = EXCLUDED.moderation_checkup_uuid
 RETURNING
-    guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format
+    guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format, moderation_checkup_uuid
 `
 
 type CreateOrUpdateWelcomerDMsGuildSettingsParams struct {
-	GuildID             int64        `json:"guild_id"`
-	ToggleEnabled       bool         `json:"toggle_enabled"`
-	ToggleUseTextFormat bool         `json:"toggle_use_text_format"`
-	ToggleIncludeImage  bool         `json:"toggle_include_image"`
-	MessageFormat       pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleUseTextFormat   bool          `json:"toggle_use_text_format"`
+	ToggleIncludeImage    bool          `json:"toggle_include_image"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateOrUpdateWelcomerDMsGuildSettings(ctx context.Context, arg CreateOrUpdateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error) {
@@ -38,6 +42,7 @@ func (q *Queries) CreateOrUpdateWelcomerDMsGuildSettings(ctx context.Context, ar
 		arg.ToggleUseTextFormat,
 		arg.ToggleIncludeImage,
 		arg.MessageFormat,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsWelcomerDms
 	err := row.Scan(
@@ -46,23 +51,25 @@ func (q *Queries) CreateOrUpdateWelcomerDMsGuildSettings(ctx context.Context, ar
 		&i.ToggleUseTextFormat,
 		&i.ToggleIncludeImage,
 		&i.MessageFormat,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const CreateWelcomerDMsGuildSettings = `-- name: CreateWelcomerDMsGuildSettings :one
-INSERT INTO guild_settings_welcomer_dms (guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format)
-    VALUES ($1, $2, $3, $4, $5)
+INSERT INTO guild_settings_welcomer_dms (guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING
-    guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format
+    guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format, moderation_checkup_uuid
 `
 
 type CreateWelcomerDMsGuildSettingsParams struct {
-	GuildID             int64        `json:"guild_id"`
-	ToggleEnabled       bool         `json:"toggle_enabled"`
-	ToggleUseTextFormat bool         `json:"toggle_use_text_format"`
-	ToggleIncludeImage  bool         `json:"toggle_include_image"`
-	MessageFormat       pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleUseTextFormat   bool          `json:"toggle_use_text_format"`
+	ToggleIncludeImage    bool          `json:"toggle_include_image"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateWelcomerDMsGuildSettings(ctx context.Context, arg CreateWelcomerDMsGuildSettingsParams) (*GuildSettingsWelcomerDms, error) {
@@ -72,6 +79,7 @@ func (q *Queries) CreateWelcomerDMsGuildSettings(ctx context.Context, arg Create
 		arg.ToggleUseTextFormat,
 		arg.ToggleIncludeImage,
 		arg.MessageFormat,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsWelcomerDms
 	err := row.Scan(
@@ -80,28 +88,66 @@ func (q *Queries) CreateWelcomerDMsGuildSettings(ctx context.Context, arg Create
 		&i.ToggleUseTextFormat,
 		&i.ToggleIncludeImage,
 		&i.MessageFormat,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const GetWelcomerDMsGuildSettings = `-- name: GetWelcomerDMsGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format
+    guild_settings_welcomer_dms.guild_id, toggle_enabled, toggle_use_text_format, toggle_include_image, message_format, moderation_checkup_uuid, checkup_uuid, moderation_checkup.guild_id, user_id, audit_type, started_at, completed_at, dom, inv, score_change, score_safe, score_question, score_explicit, is_blocked
 FROM
     guild_settings_welcomer_dms
+    LEFT JOIN moderation_checkup ON guild_settings_welcomer_dms.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1
+    guild_settings_welcomer_dms.guild_id = $1
 `
 
-func (q *Queries) GetWelcomerDMsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerDms, error) {
+type GetWelcomerDMsGuildSettingsRow struct {
+	GuildID               int64           `json:"guild_id"`
+	ToggleEnabled         bool            `json:"toggle_enabled"`
+	ToggleUseTextFormat   bool            `json:"toggle_use_text_format"`
+	ToggleIncludeImage    bool            `json:"toggle_include_image"`
+	MessageFormat         pgtype.JSONB    `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID   `json:"moderation_checkup_uuid"`
+	CheckupUuid           uuid.NullUUID   `json:"checkup_uuid"`
+	GuildID_2             sql.NullInt64   `json:"guild_id_2"`
+	UserID                sql.NullInt64   `json:"user_id"`
+	AuditType             sql.NullInt32   `json:"audit_type"`
+	StartedAt             sql.NullTime    `json:"started_at"`
+	CompletedAt           sql.NullTime    `json:"completed_at"`
+	Dom                   pgtype.JSONB    `json:"dom"`
+	Inv                   pgtype.JSONB    `json:"inv"`
+	ScoreChange           sql.NullFloat64 `json:"score_change"`
+	ScoreSafe             sql.NullFloat64 `json:"score_safe"`
+	ScoreQuestion         sql.NullFloat64 `json:"score_question"`
+	ScoreExplicit         sql.NullFloat64 `json:"score_explicit"`
+	IsBlocked             sql.NullBool    `json:"is_blocked"`
+}
+
+func (q *Queries) GetWelcomerDMsGuildSettings(ctx context.Context, guildID int64) (*GetWelcomerDMsGuildSettingsRow, error) {
 	row := q.db.QueryRow(ctx, GetWelcomerDMsGuildSettings, guildID)
-	var i GuildSettingsWelcomerDms
+	var i GetWelcomerDMsGuildSettingsRow
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
 		&i.ToggleUseTextFormat,
 		&i.ToggleIncludeImage,
 		&i.MessageFormat,
+		&i.ModerationCheckupUuid,
+		&i.CheckupUuid,
+		&i.GuildID_2,
+		&i.UserID,
+		&i.AuditType,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.Dom,
+		&i.Inv,
+		&i.ScoreChange,
+		&i.ScoreSafe,
+		&i.ScoreQuestion,
+		&i.ScoreExplicit,
+		&i.IsBlocked,
 	)
 	return &i, err
 }
@@ -113,17 +159,19 @@ SET
     toggle_enabled = $2,
     toggle_use_text_format = $3,
     toggle_include_image = $4,
-    message_format = $5
+    message_format = $5,
+    moderation_checkup_uuid = $6
 WHERE
     guild_id = $1
 `
 
 type UpdateWelcomerDMsGuildSettingsParams struct {
-	GuildID             int64        `json:"guild_id"`
-	ToggleEnabled       bool         `json:"toggle_enabled"`
-	ToggleUseTextFormat bool         `json:"toggle_use_text_format"`
-	ToggleIncludeImage  bool         `json:"toggle_include_image"`
-	MessageFormat       pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleUseTextFormat   bool          `json:"toggle_use_text_format"`
+	ToggleIncludeImage    bool          `json:"toggle_include_image"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) UpdateWelcomerDMsGuildSettings(ctx context.Context, arg UpdateWelcomerDMsGuildSettingsParams) (int64, error) {
@@ -133,6 +181,7 @@ func (q *Queries) UpdateWelcomerDMsGuildSettings(ctx context.Context, arg Update
 		arg.ToggleUseTextFormat,
 		arg.ToggleIncludeImage,
 		arg.MessageFormat,
+		arg.ModerationCheckupUuid,
 	)
 	if err != nil {
 		return 0, err

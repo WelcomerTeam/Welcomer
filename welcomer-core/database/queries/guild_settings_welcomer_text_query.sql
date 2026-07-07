@@ -22,7 +22,7 @@ FROM
     guild_settings_welcomer_text
     LEFT JOIN moderation_checkup ON guild_settings_welcomer_text.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1;
+    guild_settings_welcomer_text.guild_id = $1;
 
 -- name: UpdateWelcomerTextGuildSettings :execrows
 UPDATE

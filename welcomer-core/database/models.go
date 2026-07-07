@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	
 	"github.com/jackc/pgtype"
 )
 
@@ -184,14 +185,15 @@ type GuildSettingsAutoroles struct {
 }
 
 type GuildSettingsBorderwall struct {
-	GuildID         int64        `json:"guild_id"`
-	ToggleEnabled   bool         `json:"toggle_enabled"`
-	ToggleSendDm    bool         `json:"toggle_send_dm"`
-	Channel         int64        `json:"channel"`
-	MessageVerify   pgtype.JSONB `json:"message_verify"`
-	MessageVerified pgtype.JSONB `json:"message_verified"`
-	RolesOnJoin     []int64      `json:"roles_on_join"`
-	RolesOnVerify   []int64      `json:"roles_on_verify"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleSendDm          bool          `json:"toggle_send_dm"`
+	Channel               int64         `json:"channel"`
+	MessageVerify         pgtype.JSONB  `json:"message_verify"`
+	MessageVerified       pgtype.JSONB  `json:"message_verified"`
+	RolesOnJoin           []int64       `json:"roles_on_join"`
+	RolesOnVerify         []int64       `json:"roles_on_verify"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 type GuildSettingsFreeroles struct {
@@ -222,10 +224,11 @@ type GuildSettingsReactionRoles struct {
 }
 
 type GuildSettingsRules struct {
-	GuildID          int64    `json:"guild_id"`
-	ToggleEnabled    bool     `json:"toggle_enabled"`
-	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
-	Rules            []string `json:"rules"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleDmsEnabled      bool          `json:"toggle_dms_enabled"`
+	Rules                 []string      `json:"rules"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 type GuildSettingsTempchannels struct {
@@ -251,11 +254,12 @@ type GuildSettingsWelcomer struct {
 }
 
 type GuildSettingsWelcomerDms struct {
-	GuildID             int64        `json:"guild_id"`
-	ToggleEnabled       bool         `json:"toggle_enabled"`
-	ToggleUseTextFormat bool         `json:"toggle_use_text_format"`
-	ToggleIncludeImage  bool         `json:"toggle_include_image"`
-	MessageFormat       pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleUseTextFormat   bool          `json:"toggle_use_text_format"`
+	ToggleIncludeImage    bool          `json:"toggle_include_image"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 type GuildSettingsWelcomerImages struct {
@@ -277,10 +281,11 @@ type GuildSettingsWelcomerImages struct {
 }
 
 type GuildSettingsWelcomerText struct {
-	GuildID       int64        `json:"guild_id"`
-	ToggleEnabled bool         `json:"toggle_enabled"`
-	Channel       int64        `json:"channel"`
-	MessageFormat pgtype.JSONB `json:"message_format"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	Channel               int64         `json:"channel"`
+	MessageFormat         pgtype.JSONB  `json:"message_format"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 type GuildVoiceChannelOpenSessions struct {

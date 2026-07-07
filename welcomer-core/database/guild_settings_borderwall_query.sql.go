@@ -7,26 +7,29 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
+	
 	"github.com/jackc/pgtype"
 )
 
 const CreateBorderwallGuildSettings = `-- name: CreateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING
-    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify
+    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid
 `
 
 type CreateBorderwallGuildSettingsParams struct {
-	GuildID         int64        `json:"guild_id"`
-	ToggleEnabled   bool         `json:"toggle_enabled"`
-	ToggleSendDm    bool         `json:"toggle_send_dm"`
-	Channel         int64        `json:"channel"`
-	MessageVerify   pgtype.JSONB `json:"message_verify"`
-	MessageVerified pgtype.JSONB `json:"message_verified"`
-	RolesOnJoin     []int64      `json:"roles_on_join"`
-	RolesOnVerify   []int64      `json:"roles_on_verify"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleSendDm          bool          `json:"toggle_send_dm"`
+	Channel               int64         `json:"channel"`
+	MessageVerify         pgtype.JSONB  `json:"message_verify"`
+	MessageVerified       pgtype.JSONB  `json:"message_verified"`
+	RolesOnJoin           []int64       `json:"roles_on_join"`
+	RolesOnVerify         []int64       `json:"roles_on_verify"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg CreateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
@@ -39,6 +42,7 @@ func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg CreateB
 		arg.MessageVerified,
 		arg.RolesOnJoin,
 		arg.RolesOnVerify,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsBorderwall
 	err := row.Scan(
@@ -50,13 +54,14 @@ func (q *Queries) CreateBorderwallGuildSettings(ctx context.Context, arg CreateB
 		&i.MessageVerified,
 		&i.RolesOnJoin,
 		&i.RolesOnVerify,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const CreateOrUpdateBorderwallGuildSettings = `-- name: CreateOrUpdateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled, 
         toggle_send_dm = EXCLUDED.toggle_send_dm, 
@@ -64,20 +69,22 @@ ON CONFLICT(guild_id) DO UPDATE
         message_verify = EXCLUDED.message_verify, 
         message_verified = EXCLUDED.message_verified, 
         roles_on_join = EXCLUDED.roles_on_join, 
-        roles_on_verify = EXCLUDED.roles_on_verify
+        roles_on_verify = EXCLUDED.roles_on_verify,
+        moderation_checkup_uuid = EXCLUDED.moderation_checkup_uuid
 RETURNING
-    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify
+    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid
 `
 
 type CreateOrUpdateBorderwallGuildSettingsParams struct {
-	GuildID         int64        `json:"guild_id"`
-	ToggleEnabled   bool         `json:"toggle_enabled"`
-	ToggleSendDm    bool         `json:"toggle_send_dm"`
-	Channel         int64        `json:"channel"`
-	MessageVerify   pgtype.JSONB `json:"message_verify"`
-	MessageVerified pgtype.JSONB `json:"message_verified"`
-	RolesOnJoin     []int64      `json:"roles_on_join"`
-	RolesOnVerify   []int64      `json:"roles_on_verify"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleSendDm          bool          `json:"toggle_send_dm"`
+	Channel               int64         `json:"channel"`
+	MessageVerify         pgtype.JSONB  `json:"message_verify"`
+	MessageVerified       pgtype.JSONB  `json:"message_verified"`
+	RolesOnJoin           []int64       `json:"roles_on_join"`
+	RolesOnVerify         []int64       `json:"roles_on_verify"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error) {
@@ -90,6 +97,7 @@ func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg
 		arg.MessageVerified,
 		arg.RolesOnJoin,
 		arg.RolesOnVerify,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsBorderwall
 	err := row.Scan(
@@ -101,22 +109,49 @@ func (q *Queries) CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg
 		&i.MessageVerified,
 		&i.RolesOnJoin,
 		&i.RolesOnVerify,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const GetBorderwallGuildSettings = `-- name: GetBorderwallGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify
+    guild_settings_borderwall.guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid, checkup_uuid, moderation_checkup.guild_id, user_id, audit_type, started_at, completed_at, dom, inv, score_change, score_safe, score_question, score_explicit, is_blocked
 FROM
     guild_settings_borderwall
+    LEFT JOIN moderation_checkup ON guild_settings_borderwall.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1
+    guild_settings_borderwall.guild_id = $1
 `
 
-func (q *Queries) GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error) {
+type GetBorderwallGuildSettingsRow struct {
+	GuildID               int64           `json:"guild_id"`
+	ToggleEnabled         bool            `json:"toggle_enabled"`
+	ToggleSendDm          bool            `json:"toggle_send_dm"`
+	Channel               int64           `json:"channel"`
+	MessageVerify         pgtype.JSONB    `json:"message_verify"`
+	MessageVerified       pgtype.JSONB    `json:"message_verified"`
+	RolesOnJoin           []int64         `json:"roles_on_join"`
+	RolesOnVerify         []int64         `json:"roles_on_verify"`
+	ModerationCheckupUuid uuid.NullUUID   `json:"moderation_checkup_uuid"`
+	CheckupUuid           uuid.NullUUID   `json:"checkup_uuid"`
+	GuildID_2             sql.NullInt64   `json:"guild_id_2"`
+	UserID                sql.NullInt64   `json:"user_id"`
+	AuditType             sql.NullInt32   `json:"audit_type"`
+	StartedAt             sql.NullTime    `json:"started_at"`
+	CompletedAt           sql.NullTime    `json:"completed_at"`
+	Dom                   pgtype.JSONB    `json:"dom"`
+	Inv                   pgtype.JSONB    `json:"inv"`
+	ScoreChange           sql.NullFloat64 `json:"score_change"`
+	ScoreSafe             sql.NullFloat64 `json:"score_safe"`
+	ScoreQuestion         sql.NullFloat64 `json:"score_question"`
+	ScoreExplicit         sql.NullFloat64 `json:"score_explicit"`
+	IsBlocked             sql.NullBool    `json:"is_blocked"`
+}
+
+func (q *Queries) GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GetBorderwallGuildSettingsRow, error) {
 	row := q.db.QueryRow(ctx, GetBorderwallGuildSettings, guildID)
-	var i GuildSettingsBorderwall
+	var i GetBorderwallGuildSettingsRow
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
@@ -126,6 +161,20 @@ func (q *Queries) GetBorderwallGuildSettings(ctx context.Context, guildID int64)
 		&i.MessageVerified,
 		&i.RolesOnJoin,
 		&i.RolesOnVerify,
+		&i.ModerationCheckupUuid,
+		&i.CheckupUuid,
+		&i.GuildID_2,
+		&i.UserID,
+		&i.AuditType,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.Dom,
+		&i.Inv,
+		&i.ScoreChange,
+		&i.ScoreSafe,
+		&i.ScoreQuestion,
+		&i.ScoreExplicit,
+		&i.IsBlocked,
 	)
 	return &i, err
 }
@@ -140,20 +189,22 @@ SET
     message_verify = $5,
     message_verified = $6,
     roles_on_join = $7,
-    roles_on_verify = $8
+    roles_on_verify = $8,
+    moderation_checkup_uuid = $9
 WHERE
     guild_id = $1
 `
 
 type UpdateBorderwallGuildSettingsParams struct {
-	GuildID         int64        `json:"guild_id"`
-	ToggleEnabled   bool         `json:"toggle_enabled"`
-	ToggleSendDm    bool         `json:"toggle_send_dm"`
-	Channel         int64        `json:"channel"`
-	MessageVerify   pgtype.JSONB `json:"message_verify"`
-	MessageVerified pgtype.JSONB `json:"message_verified"`
-	RolesOnJoin     []int64      `json:"roles_on_join"`
-	RolesOnVerify   []int64      `json:"roles_on_verify"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleSendDm          bool          `json:"toggle_send_dm"`
+	Channel               int64         `json:"channel"`
+	MessageVerify         pgtype.JSONB  `json:"message_verify"`
+	MessageVerified       pgtype.JSONB  `json:"message_verified"`
+	RolesOnJoin           []int64       `json:"roles_on_join"`
+	RolesOnVerify         []int64       `json:"roles_on_verify"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) UpdateBorderwallGuildSettings(ctx context.Context, arg UpdateBorderwallGuildSettingsParams) (int64, error) {
@@ -166,6 +217,7 @@ func (q *Queries) UpdateBorderwallGuildSettings(ctx context.Context, arg UpdateB
 		arg.MessageVerified,
 		arg.RolesOnJoin,
 		arg.RolesOnVerify,
+		arg.ModerationCheckupUuid,
 	)
 	if err != nil {
 		return 0, err

@@ -22,7 +22,7 @@ FROM
     guild_settings_rules
     LEFT JOIN moderation_checkup ON guild_settings_rules.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1;
+    guild_settings_rules.guild_id = $1;
 
 -- name: UpdateRuleGuildSettings :execrows
 UPDATE
