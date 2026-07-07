@@ -1,12 +1,12 @@
 -- name: CreateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING
     *;
 
 -- name: CreateOrUpdateBorderwallGuildSettings :one
-INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO guild_settings_borderwall (guild_id, toggle_enabled, toggle_send_dm, channel, message_verify, message_verified, roles_on_join, roles_on_verify, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled, 
         toggle_send_dm = EXCLUDED.toggle_send_dm, 
@@ -14,7 +14,8 @@ ON CONFLICT(guild_id) DO UPDATE
         message_verify = EXCLUDED.message_verify, 
         message_verified = EXCLUDED.message_verified, 
         roles_on_join = EXCLUDED.roles_on_join, 
-        roles_on_verify = EXCLUDED.roles_on_verify
+        roles_on_verify = EXCLUDED.roles_on_verify,
+        moderation_checkup_uuid = EXCLUDED.moderation_checkup_uuid
 RETURNING
     *;
 
@@ -23,6 +24,7 @@ SELECT
     *
 FROM
     guild_settings_borderwall
+    LEFT JOIN moderation_checkup ON guild_settings_borderwall.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
     guild_id = $1;
 
@@ -36,7 +38,8 @@ SET
     message_verify = $5,
     message_verified = $6,
     roles_on_join = $7,
-    roles_on_verify = $8
+    roles_on_verify = $8,
+    moderation_checkup_uuid = $9
 WHERE
     guild_id = $1;
 
