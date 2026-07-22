@@ -728,37 +728,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// If welcomer images are enabled, prepare an image.
 	if guildSettingsWelcomerImages.ToggleEnabled {
-		var messageFormat string
-
-		messageFormat, err = welcomer.FormatString(functions, variables, guildSettingsWelcomerImages.ImageMessage)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Int64("user_id", int64(event.Member.User.ID)).
-				Str("message_format", messageFormat).
-				Msg("Failed to format welcomer text payload")
-
-			return err
-		}
-
-		var borderWidth int32
-		if guildSettingsWelcomerImages.ToggleImageBorder {
-			borderWidth = DefaultImageBorderWidth
-		} else {
-			borderWidth = 0
-		}
-
-		var profileFloat welcomer.ImageAlignment
-
-		switch guildSettingsWelcomerImages.ImageTheme {
-		case int32(welcomer.ImageThemeDefault):
-			profileFloat = welcomer.ImageAlignmentLeft
-		case int32(welcomer.ImageThemeVertical):
-			profileFloat = welcomer.ImageAlignmentCenter
-		case int32(welcomer.ImageThemeCard):
-			profileFloat = welcomer.ImageAlignmentLeft
-		}
-
 		user, err := welcomer.Queries.GetUser(eventCtx.Context, int64(event.Member.User.ID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			welcomer.Logger.Warn().Err(err).
@@ -767,15 +736,6 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				Msg("Failed to get user from database")
 
 			return err
-		}
-
-		var backgroundName string
-
-		// If user has a custom background, use that.
-		if user.Background != "" {
-			backgroundName = user.Background
-		} else {
-			backgroundName = guildSettingsWelcomerImages.BackgroundName
 		}
 
 		var imageReaderCloser io.ReadCloser
@@ -807,6 +767,46 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Msg("Failed to get welcomer images (next)")
 			}
 		} else {
+			var messageFormat string
+
+			messageFormat, err = welcomer.FormatString(functions, variables, guildSettingsWelcomerImages.ImageMessage)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("user_id", int64(event.Member.User.ID)).
+					Str("message_format", messageFormat).
+					Msg("Failed to format welcomer image text")
+
+				return err
+			}
+
+			var borderWidth int32
+			if guildSettingsWelcomerImages.ToggleImageBorder {
+				borderWidth = DefaultImageBorderWidth
+			} else {
+				borderWidth = 0
+			}
+
+			var profileFloat welcomer.ImageAlignment
+
+			switch guildSettingsWelcomerImages.ImageTheme {
+			case int32(welcomer.ImageThemeDefault):
+				profileFloat = welcomer.ImageAlignmentLeft
+			case int32(welcomer.ImageThemeVertical):
+				profileFloat = welcomer.ImageAlignmentCenter
+			case int32(welcomer.ImageThemeCard):
+				profileFloat = welcomer.ImageAlignmentLeft
+			}
+
+			var backgroundName string
+
+			// If user has a custom background, use that.
+			if user.Background != "" {
+				backgroundName = user.Background
+			} else {
+				backgroundName = guildSettingsWelcomerImages.BackgroundName
+			}
+
 			// Fetch the welcomer.image.
 			imageReaderCloser, contentType, err = p.FetchWelcomerImage(welcomer.GenerateImageOptionsRaw{
 				ShowAvatar:         guildSettingsWelcomerImages.ToggleShowAvatar,
