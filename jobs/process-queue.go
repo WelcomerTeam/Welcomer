@@ -39,11 +39,11 @@ func main() {
 
 	modCoreUrl := flag.String("modCoreUrl", os.Getenv("MOD_CORE_URL"), "URL for the moderation core service")
 
-	modCoreMaximumChangeScore := flag.Float64("maxChangeScore", 0.5, "Maximum change score for moderation rules")
-	modCoreMinimumSafeScore := flag.Float64("minSafeScore", 0.4, "Minimum safe score for moderation rules")
-	modCoreMaximumQuestionableScore := flag.Float64("maxQuestionableScore", 0.7, "Maximum questionable score for moderation rules")
-	modCoreMaximumExplicitScore := flag.Float64("maxExplicitScore", 0.5, "Maximum explicit score for moderation rules")
-	modCoreMaximumInvites := flag.Int("maxInvites", 2, "Maximum invites for moderation rules")
+	modCoreMaximumChangeScore := flag.Float64("maxChangeScore", 0.6, "Values above threshold for change will be blocked for moderation rules")
+	modCoreMinimumSafeScore := flag.Float64("minSafeScore", -1, "Values below threshold for safe score will be blocked for moderation rules")
+	modCoreMaximumQuestionableScore := flag.Float64("maxQuestionableScore", 0.9, "Values above threshold for questionable score will be blocked for moderation rules")
+	modCoreMaximumExplicitScore := flag.Float64("maxExplicitScore", 0.6, "Values above threshold for explicit score will be blocked for moderation rules")
+	modCoreMaximumInvites := flag.Int("maxInvites", 3, "Maximum invites for moderation rules")
 	modCoreMaximumUrls := flag.Int("maxUrls", -1, "Maximum URLs for moderation rules")
 
 	flag.Parse()
@@ -76,14 +76,18 @@ func main() {
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	entrypoint(ctx, *webhookUrl, *modCoreUrl, ModerationRules{
-		MaximumChangeScore:       *modCoreMaximumChangeScore,
-		MinimumSafeScore:         *modCoreMinimumSafeScore,
-		MaximumQuestionableScore: *modCoreMaximumQuestionableScore,
-		MaximumExplicitScore:     *modCoreMaximumExplicitScore,
-		MaximumInvites:           *modCoreMaximumInvites,
-		MaximumUrls:              *modCoreMaximumUrls,
-	})
+	for {
+		entrypoint(ctx, *webhookUrl, *modCoreUrl, ModerationRules{
+			MaximumChangeScore:       *modCoreMaximumChangeScore,
+			MinimumSafeScore:         *modCoreMinimumSafeScore,
+			MaximumQuestionableScore: *modCoreMaximumQuestionableScore,
+			MaximumExplicitScore:     *modCoreMaximumExplicitScore,
+			MaximumInvites:           *modCoreMaximumInvites,
+			MaximumUrls:              *modCoreMaximumUrls,
+		})
+
+		time.Sleep(time.Second * 10)
+	}
 
 	cancel()
 }
@@ -116,6 +120,10 @@ func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCo
 			panic(err)
 		}
 
+		if len(queueValues) > 30 {
+			queueValues = queueValues[:30]
+		}
+
 		if len(queueValues) == 0 {
 			welcomer.Logger.Info().Msg("No moderation checkup queue values found")
 
@@ -135,6 +143,8 @@ func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCo
 			panic(err)
 		}
 
+		start := time.Now()
+
 		welcomer.Logger.Info().Int("count", len(chunk)).Msg("Sending request to moderation core")
 
 		req, err := http.Post(modCoreUrl, "application/json", bytes.NewBuffer(body))
@@ -144,7 +154,7 @@ func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCo
 			panic(err)
 		}
 
-		welcomer.Logger.Info().Int("status", req.StatusCode).Msg("Received response from moderation core")
+		welcomer.Logger.Info().Int("status", req.StatusCode).Dur("elapsed", time.Now().Sub(start)).Msg("Received response from moderation core")
 
 		defer req.Body.Close()
 
@@ -160,6 +170,18 @@ func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCo
 		for i, result := range moderationCoreResponse.Results {
 			queue := queueValues[i]
 
+			blocked := isBlocked(database.AuditType(queue.DataType), result, modCoreRules)
+
+			welcomer.Logger.Info().
+				Str("checkup_uuid", queue.CheckupQueueUuid.String()).
+				Int64("guild_id", int64(queue.GuildID)).
+				Float64("change_score", result.ChangeScore).
+				Float64("safe_score", result.SafeScore).
+				Float64("questionable_score", result.QuestionableScore).
+				Float64("explicit_score", result.ExplicitScore).
+				Bool("is_blocked", blocked).
+				Msg("Updating moderation checkup")
+
 			err = welcomer.Queries.UpdateModerationCheckup(ctx, database.UpdateModerationCheckupParams{
 				CheckupUuid:   queue.CheckupQueueUuid,
 				Dom:           marshalList(result.URLs),
@@ -168,7 +190,7 @@ func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCo
 				ScoreSafe:     sql.NullFloat64{Float64: result.SafeScore, Valid: true},
 				ScoreQuestion: sql.NullFloat64{Float64: result.QuestionableScore, Valid: true},
 				ScoreExplicit: sql.NullFloat64{Float64: result.ExplicitScore, Valid: true},
-				IsBlocked:     sql.NullBool{Bool: isBlocked(database.AuditType(queue.DataType), result, modCoreRules), Valid: true},
+				IsBlocked:     sql.NullBool{Bool: blocked, Valid: true},
 			})
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to update moderation checkup")
