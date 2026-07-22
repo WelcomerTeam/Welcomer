@@ -246,7 +246,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
 
-	if guildSettingsBorderwall.Channel != 0 || guildSettingsBorderwall.ToggleSendDm {
+	if (guildSettingsBorderwall.Channel != 0 || guildSettingsBorderwall.ToggleSendDm) && !guildSettingsBorderwall.IsBlocked.Bool {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerify.Bytes))
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
@@ -568,7 +568,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
 
-	if !welcomer.IsJSONBEmpty(guildSettingsBorderwall.MessageVerified.Bytes) {
+	if !welcomer.IsJSONBEmpty(guildSettingsBorderwall.MessageVerified.Bytes) && !guildSettingsBorderwall.IsBlocked.Bool {
 		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerified.Bytes))
 		if err != nil {
 			welcomer.Logger.Error().Err(err).

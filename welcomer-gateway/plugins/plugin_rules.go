@@ -78,6 +78,10 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 		return nil
 	}
 
+	if guildSettingsRules.IsBlocked.Bool {
+		return nil
+	}
+
 	embeds := []discord.Embed{}
 	embed := discord.Embed{Title: "Rules", Color: welcomer.EmbedColourInfo}
 

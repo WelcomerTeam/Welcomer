@@ -863,7 +863,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				return welcomer.ErrMissingChannel
 			}
 		} else {
-			if guildSettingsWelcomerText.ToggleEnabled && !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) {
+			if guildSettingsWelcomerText.ToggleEnabled && !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) && !guildSettingsWelcomerText.IsBlocked.Bool {
 				var messageFormat string
 
 				messageFormat, err = welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
@@ -904,7 +904,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	if guildSettingsWelcomerDMs.ToggleEnabled {
 		if guildSettingsWelcomerDMs.ToggleUseTextFormat {
-			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) {
+			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) && !guildSettingsWelcomerText.IsBlocked.Bool {
 				var messageFormat string
 
 				messageFormat, err = welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
