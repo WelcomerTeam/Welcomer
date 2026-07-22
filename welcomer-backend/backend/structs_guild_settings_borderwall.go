@@ -7,13 +7,14 @@ import (
 )
 
 type GuildSettingsBorderwall struct {
-	Channel         *string  `json:"channel"`
-	MessageVerify   string   `json:"message_verify"`
-	MessageVerified string   `json:"message_verified"`
-	RolesOnJoin     []string `json:"roles_on_join"`
-	RolesOnVerify   []string `json:"roles_on_verify"`
-	ToggleEnabled   bool     `json:"enabled"`
-	ToggleSendDm    bool     `json:"send_dm"`
+	Channel                 *string                 `json:"channel"`
+	MessageVerify           string                  `json:"message_verify"`
+	MessageVerified         string                  `json:"message_verified"`
+	RolesOnJoin             []string                `json:"roles_on_join"`
+	RolesOnVerify           []string                `json:"roles_on_verify"`
+	ToggleEnabled           bool                    `json:"enabled"`
+	ToggleSendDm            bool                    `json:"send_dm"`
+	ModerationCheckupStatus ModerationCheckupStatus `json:"moderation_checkup_status"`
 }
 
 func GuildSettingsBorderwallSettingsToPartial(borderwall database.GetBorderwallGuildSettingsRow) *GuildSettingsBorderwall {
@@ -25,6 +26,19 @@ func GuildSettingsBorderwallSettingsToPartial(borderwall database.GetBorderwallG
 		MessageVerified: welcomer.JSONBToString(borderwall.MessageVerified),
 		RolesOnJoin:     welcomer.Int64SliceToString(borderwall.RolesOnJoin),
 		RolesOnVerify:   welcomer.Int64SliceToString(borderwall.RolesOnVerify),
+		ModerationCheckupStatus: welcomer.If(
+			borderwall.ModerationCheckupUuid.UUID.IsNil(),
+			ModerationCheckupStatusUnknown,
+			welcomer.If(
+				borderwall.CompletedAt.Time.IsZero(),
+				ModerationCheckupStatusPending,
+				welcomer.If(
+					borderwall.IsBlocked.Bool,
+					ModerationCheckupStatusRejected,
+					ModerationCheckupStatusApproved,
+				),
+			),
+		),
 	}
 
 	if len(partial.RolesOnJoin) == 0 {

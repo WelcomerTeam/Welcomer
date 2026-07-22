@@ -1,13 +1,15 @@
 package backend
 
 import (
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
 type GuildSettingsRules struct {
-	Rules            []string `json:"rules"`
-	ToggleEnabled    bool     `json:"enabled"`
-	ToggleDmsEnabled bool     `json:"dms_enabled"`
+	Rules                   []string                `json:"rules"`
+	ToggleEnabled           bool                    `json:"enabled"`
+	ToggleDmsEnabled        bool                    `json:"dms_enabled"`
+	ModerationCheckupStatus ModerationCheckupStatus `json:"moderation_checkup_status"`
 }
 
 func GuildSettingsRulesSettingsToPartial(
@@ -17,6 +19,19 @@ func GuildSettingsRulesSettingsToPartial(
 		ToggleEnabled:    rules.ToggleEnabled,
 		ToggleDmsEnabled: rules.ToggleDmsEnabled,
 		Rules:            rules.Rules,
+		ModerationCheckupStatus: welcomer.If(
+			rules.ModerationCheckupUuid.UUID.IsNil(),
+			ModerationCheckupStatusUnknown,
+			welcomer.If(
+				rules.CompletedAt.Time.IsZero(),
+				ModerationCheckupStatusPending,
+				welcomer.If(
+					rules.IsBlocked.Bool,
+					ModerationCheckupStatusRejected,
+					ModerationCheckupStatusApproved,
+				),
+			),
+		),
 	}
 
 	if len(partial.Rules) == 0 {
