@@ -97,7 +97,7 @@ type ModerationCoreRequest struct {
 }
 
 type ModerationCoreResponse struct {
-	Results []ModerationCoreResponseItems `json:"results`
+	Results []ModerationCoreResponseItems `json:"results"`
 }
 
 type ModerationCoreResponseItems struct {
@@ -110,6 +110,28 @@ type ModerationCoreResponseItems struct {
 }
 
 func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCoreRules ModerationRules) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic:", r)
+			println(string(debug.Stack()))
+
+			err := welcomer.SendWebhookMessage(ctx, webhookUrl, discord.WebhookMessageParams{
+				Content: "<@143090142360371200>",
+				Embeds: []discord.Embed{
+					{
+						Title:       "Process Queue",
+						Description: fmt.Sprintf("Recovered from panic: %v", r),
+						Color:       int32(16760839),
+						Timestamp:   new(time.Now()),
+					},
+				},
+			})
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).Msg("Failed to send webhook message")
+			}
+		}
+	}()
+
 	chunkSize := 10
 
 	for {
