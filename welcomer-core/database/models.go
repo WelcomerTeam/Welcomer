@@ -297,7 +297,6 @@ type GuildVoiceChannelOpenSessions struct {
 }
 
 type GuildVoiceChannelStats struct {
-	StatID      int64     `json:"stat_id"`
 	GuildID     int64     `json:"guild_id"`
 	ChannelID   int64     `json:"channel_id"`
 	UserID      int64     `json:"user_id"`
