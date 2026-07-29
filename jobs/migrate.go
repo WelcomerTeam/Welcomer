@@ -121,16 +121,16 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				panic(err)
 			}
 
-			// print("Deleting...")
+			print("Deleting...")
 
-			// _, err = welcomer.Pool.Exec(ctx, fmt.Sprintf(
-			// 	"DELETE FROM %s WHERE %s BETWEEN $1 AND $2", tableName+"_original", timestampColumn),
-			// 	start_date,
-			// 	to_date,
-			// )
-			// if err != nil {
-			// 	welcomer.Logger.Error().Err(err).Msgf("Failed to select data from table %s", tableName)
-			// }
+			_, err = welcomer.Pool.Exec(ctx, fmt.Sprintf(
+				"DELETE FROM %s WHERE %s BETWEEN $1 AND $2", tableName+"_original", timestampColumn),
+				start_date,
+				to_date,
+			)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Msgf("Failed to select data from table %s", tableName)
+			}
 
 			welcomer.Logger.Info().Msgf("Migrated data for table %s from %s to %s", tableName, start_date.Format("2006-01-02"), to_date.Format("2006-01-02"))
 			start_date = to_date

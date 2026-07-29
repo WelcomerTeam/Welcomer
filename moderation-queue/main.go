@@ -35,7 +35,7 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_WEBHOOK_URL"), "Webhook URL for logging")
 
 	modCoreUrl := flag.String("modCoreUrl", os.Getenv("MOD_CORE_URL"), "URL for the moderation core service")
 
