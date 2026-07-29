@@ -358,6 +358,8 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 				Msg("Giveaway message not found, skipping disabling buttons for giveaway end")
 
+			err = nil
+
 			return nil
 		}
 
