@@ -164,6 +164,11 @@ func closeSession(ctx context.Context, guildID, channelID, userID discord.Snowfl
 	}
 
 	totalTime := time.Since(session.StartTs)
+	totalTimeMs := totalTime.Milliseconds()
+
+	if totalTimeMs <= 0 {
+		return nil
+	}
 
 	err = welcomer.Queries.CreateVoiceChannelStat(ctx, database.CreateVoiceChannelStatParams{
 		GuildID:     int64(guildID),
@@ -171,7 +176,7 @@ func closeSession(ctx context.Context, guildID, channelID, userID discord.Snowfl
 		UserID:      int64(userID),
 		StartTs:     session.StartTs,
 		EndTs:       time.Now(),
-		TotalTimeMs: totalTime.Milliseconds(),
+		TotalTimeMs: totalTimeMs,
 		Inferred:    false,
 	})
 	if err != nil {
