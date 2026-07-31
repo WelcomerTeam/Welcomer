@@ -356,7 +356,8 @@ func GetUserAvatar(user *discord.User) string {
 
 	if strings.HasPrefix(user.Avatar, "a_") {
 		// If the avatar has the prefix a_, it is animated.
-		return discord.EndpointCDN + discord.EndpointUserAvatarAnimated(user.ID.String(), user.Avatar)
+		return discord.EndpointCDN + discord.EndpointCDNIcons + user.ID.String() + "/" + user.Avatar + ".webp?animated=true"
+		// return discord.EndpointCDN + discord.EndpointUserAvatarAnimated(user.ID.String(), user.Avatar)
 	}
 
 	return discord.EndpointCDN + discord.EndpointUserAvatar(user.ID.String(), user.Avatar)
