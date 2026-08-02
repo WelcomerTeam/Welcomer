@@ -247,12 +247,14 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 	var directMessage discord.MessageParams
 
 	if (guildSettingsBorderwall.Channel != 0 || guildSettingsBorderwall.ToggleSendDm) && !guildSettingsBorderwall.IsBlocked.Bool {
-		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerify.Bytes))
+		originalMessageFormat := strconv.B2S(guildSettingsBorderwall.MessageVerify.Bytes)
+
+		messageFormat, err := welcomer.FormatString(functions, variables, originalMessageFormat)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
-				Str("message_format", messageFormat).
+				Str("message_format", originalMessageFormat).
 				Msg("Failed to format borderwall text payload")
 
 			return err
@@ -265,6 +267,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("user_id", int64(event.Member.User.ID)).
+					Str("message_format", originalMessageFormat).
 					Msg("Failed to unmarshal borderwall verify messageFormat")
 
 				return err
@@ -274,6 +277,8 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 			if welcomer.IsMessageParamsEmpty(serverMessage) {
 				serverMessage.Content, _ = welcomer.FormatString(functions, variables, FallbackBorderwallMessage)
 			}
+
+			serverMessage.AllowedMentions = welcomer.InferAllowedMentions(originalMessageFormat, &event.Member.User.ID)
 		}
 
 		if guildSettingsBorderwall.ToggleSendDm {
@@ -569,12 +574,14 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 	var directMessage discord.MessageParams
 
 	if !welcomer.IsJSONBEmpty(guildSettingsBorderwall.MessageVerified.Bytes) && !guildSettingsBorderwall.IsBlocked.Bool {
-		messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsBorderwall.MessageVerified.Bytes))
+		originalMessageFormat := strconv.B2S(guildSettingsBorderwall.MessageVerified.Bytes)
+
+		messageFormat, err := welcomer.FormatString(functions, variables, originalMessageFormat)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
 				Int64("user_id", int64(event.Member.User.ID)).
-				Str("message_format", messageFormat).
+				Str("message_format", originalMessageFormat).
 				Msg("Failed to format borderwall text payload")
 
 			return err
@@ -587,10 +594,13 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
 					Int64("user_id", int64(event.Member.User.ID)).
+					Str("message_format", originalMessageFormat).
 					Msg("Failed to unmarshal borderwall verified messageFormat")
 
 				return err
 			}
+
+			serverMessage.AllowedMentions = welcomer.InferAllowedMentions(originalMessageFormat, &event.Member.User.ID)
 		}
 
 		if guildSettingsBorderwall.ToggleSendDm {

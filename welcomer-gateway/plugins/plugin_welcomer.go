@@ -866,12 +866,14 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			if guildSettingsWelcomerText.ToggleEnabled && !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) && !guildSettingsWelcomerText.IsBlocked.Bool {
 				var messageFormat string
 
-				messageFormat, err = welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
+				originalMessageFormat := strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes)
+
+				messageFormat, err = welcomer.FormatString(functions, variables, originalMessageFormat)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Str("message_format", messageFormat).
+						Str("message_format", originalMessageFormat).
 						Msg("Failed to format welcomer DMs payload")
 
 					return err
@@ -883,11 +885,13 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Str("message_format", messageFormat).
+						Str("message_format", originalMessageFormat).
 						Msg("Failed to unmarshal welcomer messageFormat")
 
 					return err
 				}
+
+				serverMessage.AllowedMentions = welcomer.InferAllowedMentions(originalMessageFormat, &event.Member.User.ID)
 			}
 
 			if file != nil {
@@ -907,12 +911,14 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) && !guildSettingsWelcomerText.IsBlocked.Bool {
 				var messageFormat string
 
-				messageFormat, err = welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes))
+				originalMessageFormat := strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes)
+
+				messageFormat, err = welcomer.FormatString(functions, variables, originalMessageFormat)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Str("message_format", messageFormat).
+						Str("message_format", originalMessageFormat).
 						Msg("Failed to format welcomer DMs payload")
 
 					return err
@@ -924,7 +930,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Str("message_format", messageFormat).
+						Str("message_format", originalMessageFormat).
 						Msg("Failed to unmarshal welcomer messageFormat")
 
 					return err
@@ -934,12 +940,14 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerDMs.MessageFormat.Bytes) {
 				var messageFormat string
 
-				messageFormat, err = welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes))
+				originalMessageFormat := strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes)
+
+				messageFormat, err = welcomer.FormatString(functions, variables, originalMessageFormat)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Str("message_format", messageFormat).
+						Str("message_format", originalMessageFormat).
 						Msg("Failed to format welcomer DMs payload")
 
 					return err
@@ -951,7 +959,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
 						Int64("user_id", int64(event.Member.User.ID)).
-						Str("message_format", messageFormat).
+						Str("message_format", originalMessageFormat).
 						Msg("Failed to unmarshal welcomer dms messageFormat")
 
 					return err

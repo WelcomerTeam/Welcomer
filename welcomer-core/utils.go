@@ -848,3 +848,49 @@ func WebhookMessageParamsToInteractionCallbackData(params discord.WebhookMessage
 		Flags:           flags,
 	}
 }
+
+var (
+	roleMentionRegex = regexp.MustCompile(`<@&(\d+)>`)
+	userMentionRegex = regexp.MustCompile(`<@!?(\d+)>`)
+)
+
+func InferAllowedMentions(message string, userID *discord.Snowflake) *discord.MessageAllowedMentions {
+	// If the message contains @everyone or @here, allow all mentions.
+	if strings.Contains(message, "@everyone") || strings.Contains(message, "@here") {
+		return nil
+	}
+
+	roleMentions := roleMentionRegex.FindAllStringSubmatch(message, -1)
+	roleMentionSnowflakes := make([]discord.Snowflake, 0, len(roleMentions))
+
+	for _, match := range roleMentions {
+		if len(match) > 1 {
+			integer, err := strconv.ParseInt(match[1], int64Base, int64BitSize)
+			if err == nil {
+				roleMentionSnowflakes = append(roleMentionSnowflakes, discord.Snowflake(integer))
+			}
+		}
+	}
+
+	userMentions := userMentionRegex.FindAllStringSubmatch(message, -1)
+	userMentionSnowflakes := make([]discord.Snowflake, 0, len(userMentions))
+
+	for _, match := range userMentions {
+		if len(match) > 1 {
+			integer, err := strconv.ParseInt(match[1], int64Base, int64BitSize)
+			if err == nil {
+				userMentionSnowflakes = append(userMentionSnowflakes, discord.Snowflake(integer))
+			}
+		}
+	}
+
+	if userID != nil {
+		userMentionSnowflakes = append(userMentionSnowflakes, *userID)
+	}
+
+	return &discord.MessageAllowedMentions{
+		Roles:       roleMentionSnowflakes,
+		Users:       userMentionSnowflakes,
+		RepliedUser: true,
+	}
+}

@@ -3,6 +3,7 @@ package welcomer
 import (
 	"testing"
 
+	"github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
@@ -126,6 +127,148 @@ func TestDurationToSeconds(t *testing.T) {
 			secondsDuration := SecondsToDurationString(seconds)
 			if secondsDuration != test {
 				t.Errorf("SecondsToDurationString(%d) = %q, want %q", seconds, secondsDuration, test)
+			}
+		})
+	}
+}
+
+func TestInferAllowedMentions(t *testing.T) {
+	tests := []struct {
+		name          string
+		message       string
+		expectNil     bool
+		expectedUsers []discord.Snowflake
+		expectedRoles []discord.Snowflake
+	}{
+		{
+			name:          "Message with @everyone should return nil",
+			message:       "Hello @everyone",
+			expectNil:     true,
+			expectedUsers: nil,
+			expectedRoles: nil,
+		},
+		{
+			name:          "Message with @here should return nil",
+			message:       "Hello @here",
+			expectNil:     true,
+			expectedUsers: nil,
+			expectedRoles: nil,
+		},
+		{
+			name:          "Message with role mentions should extract role IDs",
+			message:       "Check <@&123456789>",
+			expectNil:     false,
+			expectedUsers: []discord.Snowflake{},
+			expectedRoles: []discord.Snowflake{123456789},
+		},
+		{
+			name:          "Message with user mentions <@id> should extract user IDs",
+			message:       "Hello <@456789012>",
+			expectNil:     false,
+			expectedUsers: []discord.Snowflake{456789012},
+			expectedRoles: []discord.Snowflake{},
+		},
+		{
+			name:          "Message with user mentions <@!id> should extract user IDs",
+			message:       "Hello <@!789012345>",
+			expectNil:     false,
+			expectedUsers: []discord.Snowflake{789012345},
+			expectedRoles: []discord.Snowflake{},
+		},
+		{
+			name:          "Message with multiple mentions should extract all",
+			message:       "Hey <@123> <@!456> <@&789>",
+			expectNil:     false,
+			expectedUsers: []discord.Snowflake{123, 456},
+			expectedRoles: []discord.Snowflake{789},
+		},
+		{
+			name:          "Message with no mentions should return empty slices",
+			message:       "Just a regular message",
+			expectNil:     false,
+			expectedUsers: []discord.Snowflake{},
+			expectedRoles: []discord.Snowflake{},
+		},
+		{
+			name:          "Message with invalid snowflakes should be skipped",
+			message:       "<@invalid> <@123> <@&abc>",
+			expectNil:     false,
+			expectedUsers: []discord.Snowflake{123},
+			expectedRoles: []discord.Snowflake{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			allowedMentions := InferAllowedMentions(test.message, nil)
+
+			if test.expectNil {
+				if allowedMentions != nil {
+					t.Errorf("expected nil, got object")
+				}
+				return
+			}
+
+			if len(allowedMentions.Users) != len(test.expectedUsers) {
+				t.Errorf("expected users: %v, got: %v", test.expectedUsers, allowedMentions.Users)
+			}
+
+			for i, u := range test.expectedUsers {
+				if allowedMentions.Users[i] != u {
+					t.Errorf("expected users[%d]: %d, got: %d", i, u, allowedMentions.Users[i])
+				}
+			}
+
+			if len(allowedMentions.Roles) != len(test.expectedRoles) {
+				t.Errorf("expected roles: %v, got: %v", test.expectedRoles, allowedMentions.Roles)
+			}
+
+			for i, r := range test.expectedRoles {
+				if allowedMentions.Roles[i] != r {
+					t.Errorf("expected roles[%d]: %d, got: %d", i, r, allowedMentions.Roles[i])
+				}
+			}
+		})
+	}
+
+	// step 2: test with userID parameter
+
+	for _, test := range tests {
+		t.Run(test.name+" with userID", func(t *testing.T) {
+			t.Parallel()
+
+			userID := discord.Snowflake(143090142360371200)
+			allowedMentions := InferAllowedMentions(test.message, &userID)
+
+			if test.expectNil {
+				if allowedMentions != nil {
+					t.Errorf("expected nil, got object")
+				}
+				return
+			}
+
+			test.expectedUsers = append(test.expectedUsers, userID)
+
+			if len(allowedMentions.Users) != len(test.expectedUsers) {
+				t.Errorf("expected users: %v, got: %v", test.expectedUsers, allowedMentions.Users)
+			}
+
+			for i, u := range test.expectedUsers {
+				if allowedMentions.Users[i] != u {
+					t.Errorf("expected users[%d]: %d, got: %d", i, u, allowedMentions.Users[i])
+				}
+			}
+
+			if len(allowedMentions.Roles) != len(test.expectedRoles) {
+				t.Errorf("expected roles: %v, got: %v", test.expectedRoles, allowedMentions.Roles)
+			}
+
+			for i, r := range test.expectedRoles {
+				if allowedMentions.Roles[i] != r {
+					t.Errorf("expected roles[%d]: %d, got: %d", i, r, allowedMentions.Roles[i])
+				}
 			}
 		})
 	}
