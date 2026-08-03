@@ -50,6 +50,6 @@ WHERE
     AND science_guild_events.event_type = @science_guild_event_type_user_welcomed
     AND science_guild_events.data ->> 'message_id' IS NOT NULL
     AND science_guild_events.created_at < @welcome_message_lifetime
-    AND science_guild_events.created_at < @welcome_message_lifetime_lookback
+    AND science_guild_events.created_at > @welcome_message_lifetime_lookback
     AND message_deleted.guild_event_uuid IS NULL
 LIMIT @event_limit;
