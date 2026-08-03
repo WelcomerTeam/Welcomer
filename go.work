@@ -9,4 +9,6 @@ use (
 	./welcomer-images-next
 	./welcomer-ingest
 	./welcomer-interactions
+	./jobs
+	./jobs/job-runner
 )

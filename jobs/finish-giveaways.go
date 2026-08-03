@@ -106,7 +106,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 
 		locations := locationsPb.GetLocations()
 		if len(locations) == 0 {
-			welcomer.Logger.Warn().Int64("guild_id", giveaway.GuildID).Msg("No applications found for guild in giveaway")
+			// welcomer.Logger.Warn().Int64("guild_id", giveaway.GuildID).Msg("No applications found for guild in giveaway")
 
 			continue
 		}
