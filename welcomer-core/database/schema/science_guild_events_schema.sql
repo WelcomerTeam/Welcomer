@@ -8,4 +8,6 @@ CREATE TABLE IF NOT EXISTS science_guild_events (
     PRIMARY KEY (guild_event_uuid, created_at)
 ) PARTITION BY RANGE (created_at);
 
+CREATE INDEX IF NOT EXISTS idx_science_guild_events_guild_id_user_id_created_at ON science_guild_events (guild_id, user_id, created_at);
+
 ALTER TABLE science_guild_events ALTER COLUMN data SET STORAGE PLAIN;

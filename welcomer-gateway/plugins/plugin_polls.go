@@ -160,6 +160,8 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 				Str("poll_uuid", poll.PollUuid.String()).
 				Msg("Poll message not found, skipping disabling buttons for poll end")
 
+			err = nil
+
 			return nil
 		}
 

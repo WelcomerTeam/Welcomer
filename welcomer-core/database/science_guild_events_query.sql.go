@@ -71,22 +71,23 @@ FROM
         AND message_deleted.user_id = science_guild_events.user_id
         AND message_deleted.event_type = $1
         AND message_deleted.data ->> 'message_id' = science_guild_events.data ->> 'message_id'
+        AND message_deleted.created_at > $2
 WHERE
-    science_guild_events.guild_id = $2
-    AND science_guild_events.event_type = $3
+    science_guild_events.guild_id = $3
+    AND science_guild_events.event_type = $4
     AND science_guild_events.data ->> 'message_id' IS NOT NULL
-    AND science_guild_events.created_at < $4
     AND science_guild_events.created_at < $5
+    AND science_guild_events.created_at > $2
     AND message_deleted.guild_event_uuid IS NULL
 LIMIT $6
 `
 
 type GetExpiredWelcomeMessageEventsParams struct {
 	ScienceGuildEventTypeWelcomeMessageRemoved int32     `json:"science_guild_event_type_welcome_message_removed"`
+	WelcomeMessageLifetimeLookback             time.Time `json:"welcome_message_lifetime_lookback"`
 	GuildID                                    int64     `json:"guild_id"`
 	ScienceGuildEventTypeUserWelcomed          int32     `json:"science_guild_event_type_user_welcomed"`
 	WelcomeMessageLifetime                     time.Time `json:"welcome_message_lifetime"`
-	WelcomeMessageLifetimeLookback             time.Time `json:"welcome_message_lifetime_lookback"`
 	EventLimit                                 int32     `json:"event_limit"`
 }
 
@@ -100,10 +101,10 @@ type GetExpiredWelcomeMessageEventsRow struct {
 func (q *Queries) GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExpiredWelcomeMessageEventsParams) ([]*GetExpiredWelcomeMessageEventsRow, error) {
 	rows, err := q.db.Query(ctx, GetExpiredWelcomeMessageEvents,
 		arg.ScienceGuildEventTypeWelcomeMessageRemoved,
+		arg.WelcomeMessageLifetimeLookback,
 		arg.GuildID,
 		arg.ScienceGuildEventTypeUserWelcomed,
 		arg.WelcomeMessageLifetime,
-		arg.WelcomeMessageLifetimeLookback,
 		arg.EventLimit,
 	)
 	if err != nil {
