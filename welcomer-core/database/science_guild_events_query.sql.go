@@ -76,8 +76,9 @@ WHERE
     AND science_guild_events.event_type = $3
     AND science_guild_events.data ->> 'message_id' IS NOT NULL
     AND science_guild_events.created_at < $4
+    AND science_guild_events.created_at < $5
     AND message_deleted.guild_event_uuid IS NULL
-LIMIT $5
+LIMIT $6
 `
 
 type GetExpiredWelcomeMessageEventsParams struct {
@@ -85,6 +86,7 @@ type GetExpiredWelcomeMessageEventsParams struct {
 	GuildID                                    int64     `json:"guild_id"`
 	ScienceGuildEventTypeUserWelcomed          int32     `json:"science_guild_event_type_user_welcomed"`
 	WelcomeMessageLifetime                     time.Time `json:"welcome_message_lifetime"`
+	WelcomeMessageLifetimeLookback             time.Time `json:"welcome_message_lifetime_lookback"`
 	EventLimit                                 int32     `json:"event_limit"`
 }
 
@@ -101,6 +103,7 @@ func (q *Queries) GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExp
 		arg.GuildID,
 		arg.ScienceGuildEventTypeUserWelcomed,
 		arg.WelcomeMessageLifetime,
+		arg.WelcomeMessageLifetimeLookback,
 		arg.EventLimit,
 	)
 	if err != nil {

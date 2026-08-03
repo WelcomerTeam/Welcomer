@@ -221,12 +221,15 @@ func cleanupWelcomeMessagesForGuild(ctx context.Context, guildID discord.Snowfla
 
 	session := discord.NewSession("Bot "+botToken, welcomer.RESTInterface)
 
+	lifetime := time.Now().Add(time.Second * time.Duration(-welcomeMessageLifetime))
+
 	messagesToDelete, err := welcomer.Queries.GetExpiredWelcomeMessageEvents(ctx, database.GetExpiredWelcomeMessageEventsParams{
 		ScienceGuildEventTypeUserWelcomed:          int32(database.ScienceGuildEventTypeUserWelcomed),
 		ScienceGuildEventTypeWelcomeMessageRemoved: int32(database.ScienceGuildEventTypeWelcomeMessageRemoved),
-		GuildID:                int64(guildID),
-		EventLimit:             50,
-		WelcomeMessageLifetime: time.Now().Add(time.Second * time.Duration(-welcomeMessageLifetime)),
+		GuildID:                        int64(guildID),
+		EventLimit:                     50,
+		WelcomeMessageLifetime:         lifetime,
+		WelcomeMessageLifetimeLookback: lifetime.Add(time.Hour * (-24 * 7)), // Look back only 7 days for performance reasons.
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to get expired welcome message events: %w", err)
