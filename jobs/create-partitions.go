@@ -110,7 +110,7 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 	}
 }
 
-func createPartitions(ctx context.Context, tableName string, timestampColumn string, partitionTime time.Time) error {
+func createPartitions(ctx context.Context, tableName, timestampColumn string, partitionTime time.Time) error {
 	start := partitionTime
 	end := partitionTime.AddDate(0, 1, 0)
 

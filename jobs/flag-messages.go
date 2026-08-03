@@ -11,7 +11,7 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 	"github.com/jackc/pgtype"
-	_ "github.com/joho/godotenv/autoload"	
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type moderationTarget struct {

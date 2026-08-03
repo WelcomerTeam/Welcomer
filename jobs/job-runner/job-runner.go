@@ -15,7 +15,7 @@ var c = cron.New(cron.WithChain(
 	cron.DelayIfStillRunning(cron.DefaultLogger),
 ))
 
-func addJob(name string, spec string, cmd string) {
+func addJob(name, spec, cmd string) {
 	welcomer.Logger.Info().Str("job", name).Str("spec", spec).Msg("Adding job")
 
 	_, err := c.AddFunc(spec, func() {

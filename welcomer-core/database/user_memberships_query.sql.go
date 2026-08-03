@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	
 )
 
 const CreateNewMembership = `-- name: CreateNewMembership :one

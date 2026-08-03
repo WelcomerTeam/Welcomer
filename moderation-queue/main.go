@@ -109,7 +109,7 @@ type ModerationCoreResponseItems struct {
 	ExplicitScore     float64  `json:"explicit_score"`
 }
 
-func entrypoint(ctx context.Context, webhookUrl string, modCoreUrl string, modCoreRules ModerationRules) {
+func entrypoint(ctx context.Context, webhookUrl, modCoreUrl string, modCoreRules ModerationRules) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from panic:", r)

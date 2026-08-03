@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/HugoSmits86/nativewebp"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
