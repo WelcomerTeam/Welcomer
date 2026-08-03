@@ -249,13 +249,14 @@ func TestInferAllowedMentions(t *testing.T) {
 				return
 			}
 
-			test.expectedUsers = append(test.expectedUsers, userID)
+			expectedUsers := append([]discord.Snowflake{}, test.expectedUsers...)
+			expectedUsers = append(expectedUsers, userID)
 
-			if len(allowedMentions.Users) != len(test.expectedUsers) {
-				t.Errorf("expected users: %v, got: %v", test.expectedUsers, allowedMentions.Users)
+			if len(allowedMentions.Users) != len(expectedUsers) {
+				t.Errorf("expected users: %v, got: %v", expectedUsers, allowedMentions.Users)
 			}
 
-			for i, u := range test.expectedUsers {
+			for i, u := range expectedUsers {
 				if allowedMentions.Users[i] != u {
 					t.Errorf("expected users[%d]: %d, got: %d", i, u, allowedMentions.Users[i])
 				}
