@@ -12,7 +12,7 @@ import (
 )
 
 var c = cron.New(cron.WithChain(
-	cron.DelayIfStillRunning(cron.DefaultLogger),
+	cron.SkipIfStillRunning(cron.DefaultLogger),
 ))
 
 func addJob(name, spec, cmd string) {
