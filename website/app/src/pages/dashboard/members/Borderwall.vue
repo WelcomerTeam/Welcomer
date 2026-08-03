@@ -40,6 +40,7 @@
               <a target="_blank" href="/formatting#borderwall" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.
             </form-value>
+            <ModerationCheckupStatus :moderationCheckupStatus="config.moderation_checkup_status" />
 
 
             <form-value title="Roles On Join" :type="FormTypeBlank" :validation="v$.roleson_join">
@@ -92,6 +93,7 @@ import {
   navigateToErrors,
   isValidJson
 } from "@/utilities";
+import ModerationCheckupStatus from "../../../components/dashboard/ModerationCheckupStatus.vue";
 
 export default {
   components: {
@@ -100,6 +102,7 @@ export default {
     UnsavedChanges,
     LoadingIcon,
     RoleTable,
+    ModerationCheckupStatus,
   },
   setup() {
     let isDataFetched = ref(false);

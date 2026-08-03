@@ -86,7 +86,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsRules = &database.GuildSettingsRules{
+						guildSettingsRules = &database.GetRulesGuildSettingsRow{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
@@ -201,7 +201,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsRules = &database.GuildSettingsRules{
+						guildSettingsRules = &database.GetRulesGuildSettingsRow{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
@@ -290,7 +290,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsRules = &database.GuildSettingsRules{
+						guildSettingsRules = &database.GetRulesGuildSettingsRow{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
@@ -380,7 +380,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						rules = &database.GuildSettingsRules{
+						rules = &database.GetRulesGuildSettingsRow{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
@@ -461,7 +461,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 			rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					rules = &database.GuildSettingsRules{
+					rules = &database.GetRulesGuildSettingsRow{
 						GuildID:          int64(*interaction.GuildID),
 						ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 						ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
@@ -530,7 +530,7 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 				rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
-						rules = &database.GuildSettingsRules{
+						rules = &database.GetRulesGuildSettingsRow{
 							GuildID:          int64(*interaction.GuildID),
 							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,

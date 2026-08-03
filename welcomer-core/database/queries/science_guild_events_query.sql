@@ -45,10 +45,12 @@ FROM
         AND message_deleted.user_id = science_guild_events.user_id
         AND message_deleted.event_type = @science_guild_event_type_welcome_message_removed
         AND message_deleted.data ->> 'message_id' = science_guild_events.data ->> 'message_id'
+        AND message_deleted.created_at > @welcome_message_lifetime_lookback
 WHERE
     science_guild_events.guild_id = @guild_id
     AND science_guild_events.event_type = @science_guild_event_type_user_welcomed
     AND science_guild_events.data ->> 'message_id' IS NOT NULL
     AND science_guild_events.created_at < @welcome_message_lifetime
+    AND science_guild_events.created_at > @welcome_message_lifetime_lookback
     AND message_deleted.guild_event_uuid IS NULL
 LIMIT @event_limit;

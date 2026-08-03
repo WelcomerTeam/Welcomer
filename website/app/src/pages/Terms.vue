@@ -13,7 +13,7 @@
 
       <div class="bg-white text-gray-900 hero-preview prose-lg text-justify rounded-lg">
         <p><strong>TERMS AND CONDITIONS</strong></p>
-        <p><strong>Last updated November 21, 2022</strong></p>
+        <p><strong>Last updated July 7, 2026</strong></p>
         <p>
           Please read these terms and conditions carefully before using
           Our Service.
@@ -146,12 +146,47 @@
           privacy policies of any third-party web sites or services that
           You visit.
         </p>
+        <h2 id="acceptable-use">Acceptable Use and Fair Use</h2>
+        <p>
+        You agree to use the Service only for lawful purposes and in accordance with these Terms.
+        </p>
+        <p>
+        You must not use the Service, or permit others to use the Service on Your behalf, to:
+        </p>
+
+        <p>
+        You must not use the Service, or permit others to use the Service on Your behalf, to:
+        </p>
+        <ul>
+          <li>send, distribute, or facilitate spam, unsolicited messages, or excessive automated messaging;</li>
+          <li>send messages that are sexually explicit, obscene, pornographic, or otherwise inappropriate for the intended audience;</li>
+          <li>send messages that promote, encourage, threaten, or incite violence, hatred, harassment, discrimination, or abuse against any individual or group;</li>
+          <li>send messages that are defamatory, fraudulent, deceptive, misleading, or intended to impersonate another person or organisation;</li>
+          <li>send malicious content, including malware, phishing attempts, scams, or other harmful material;</li>
+          <li>violate the rights, privacy, or intellectual property of any person or organisation;</li>
+          <li>violate any applicable law, regulation, or the terms of service of Discord or any other third-party platform used in connection with the Service;</li>
+          <li>interfere with, disrupt, overload, or otherwise negatively affect the operation, security, or availability of the Service.</li>
+        </ul>
+
+        <p>
+        The Company reserves the right to determine, in its sole but reasonable discretion, whether any use of the Service violates these Terms or is otherwise abusive or harmful.
+        </p>
+        <p>
+          We may suspend, limit, or terminate access to the Service immediately if We reasonably believe that Your use violates this section or creates legal, operational, reputational, or security risks for the Company, Discord, or other users.
+        </p>
+        <p>
+          We may also impose reasonable usage limits, including limits on the number of messages sent, rate of requests, or other technical restrictions, in order to ensure the fair and reliable operation of the Service for all users. These limits may be changed from time to time without prior notice where reasonably necessary for operational or security purposes.
+        </p>
         <h2 id="termination">Termination</h2>
         <p>
-          We may terminate or suspend Your access immediately, without
-          prior notice or liability, for any reason whatsoever,
-          including without limitation if You breach these Terms and
-          Conditions.
+          We may suspend, restrict, or terminate Your access to all or part of the Service at any time, with or without notice, if We reasonably believe that:
+
+          You have breached these Terms;
+          Your use of the Service is unlawful, abusive, or harmful;
+          Your use creates a security, operational, or legal risk;
+          We are required to do so by law or by a third-party platform on which the Service operates, including Discord.
+
+          Termination or suspension does not limit any other rights or remedies available to the Company.
         </p>
         <p>
           Upon termination, Your right to use the Service will cease

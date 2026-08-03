@@ -2292,7 +2292,7 @@ var sectionEmojiIDs = [][]string{}
 
 const maxSegmentsPerGroup = 4
 
-func getEmojiCombination(value int, length int) string {
+func getEmojiCombination(value, length int) string {
 	if value <= 0 || length <= 0 {
 		return ""
 	}

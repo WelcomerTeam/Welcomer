@@ -1,15 +1,46 @@
 package welcomer
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"slices"
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
+	"github.com/savsgio/gotils/strconv"
 )
+
+func EnqueueModerationCheckup(ctx context.Context, guildID, userID discord.Snowflake, dataType database.AuditType, value string) (*database.ModerationCheckupQueue, error) {
+	queue, err := Queries.CreateModerationCheckupQueue(ctx, database.CreateModerationCheckupQueueParams{
+		GuildID:  int64(guildID),
+		UserID:   int64(userID),
+		DataType: int32(dataType),
+		Value:    value,
+	})
+	if err != nil {
+		return queue, nil
+	}
+
+	_, err = Queries.CreateModerationCheckup(ctx, database.CreateModerationCheckupParams{
+		CheckupUuid: queue.CheckupQueueUuid,
+		GuildID:     queue.GuildID,
+		UserID:      queue.UserID,
+		DataType:    queue.DataType,
+	})
+
+	return queue, err
+}
+
+// CheckupQueueUuid uuid.UUID   `json:"checkup_queue_uuid"`
+// GuildID          int64       `json:"guild_id"`
+// UserID           int64       `json:"user_id"`
+// AuditType        int32       `json:"audit_type"`
+// Value            interface{} `json:"value"`
 
 // CreateOrUpdateUserWithAudit wraps Queries.CreateOrUpdateUser and logs an audit
 // entry when changes are detected. It will attempt to fetch the existing user
@@ -71,15 +102,33 @@ func CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx context.Context, params d
 }
 
 func CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateBorderwallGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsBorderwall, error) {
-	var old database.GuildSettingsBorderwall
+	var old database.GetBorderwallGuildSettingsRow
 	if existing, err := Queries.GetBorderwallGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
 		old.MessageVerify = SetupJSONB(old.MessageVerify)
 		old.MessageVerified = SetupJSONB(old.MessageVerified)
 	}
 
+	params.ModerationCheckupUuid = old.ModerationCheckupUuid
 	params.MessageVerify = SetupJSONB(params.MessageVerify)
 	params.MessageVerified = SetupJSONB(params.MessageVerified)
+
+	if !bytes.EqualFold(old.MessageVerify.Bytes, params.MessageVerify.Bytes) || !bytes.EqualFold(old.MessageVerified.Bytes, params.MessageVerified.Bytes) {
+		jsonBytes, err := json.Marshal([]json.RawMessage{params.MessageVerify.Bytes, params.MessageVerified.Bytes})
+		if err != nil {
+			// failed to marshal
+		} else {
+			modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsBorderwall, strconv.B2S(jsonBytes))
+			if err != nil {
+				// failed to enqueue
+			} else {
+				params.ModerationCheckupUuid = uuid.NullUUID{
+					UUID:  modCheck.CheckupQueueUuid,
+					Valid: true,
+				}
+			}
+		}
+	}
 
 	newRow, err := Queries.CreateOrUpdateBorderwallGuildSettings(ctx, params)
 	if err != nil {
@@ -127,9 +176,26 @@ func CreateOrUpdateLeaverGuildSettingsWithAudit(ctx context.Context, params data
 }
 
 func CreateOrUpdateRulesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateRulesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsRules, error) {
-	var old database.GuildSettingsRules
+	var old database.GetRulesGuildSettingsRow
 	if existing, err := Queries.GetRulesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
+	}
+
+	params.ModerationCheckupUuid = old.ModerationCheckupUuid
+
+	oldRulesBytes, _ := json.Marshal(old.Rules)
+	paramsRulesBytes, _ := json.Marshal(params.Rules)
+
+	if !bytes.EqualFold(oldRulesBytes, paramsRulesBytes) {
+		modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsRules, strconv.B2S(paramsRulesBytes))
+		if err != nil {
+			// failed to enqueue
+		} else {
+			params.ModerationCheckupUuid = uuid.NullUUID{
+				UUID:  modCheck.CheckupQueueUuid,
+				Valid: true,
+			}
+		}
 	}
 
 	newRow, err := Queries.CreateOrUpdateRulesGuildSettings(ctx, params)
@@ -175,13 +241,26 @@ func CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx context.Context, params d
 }
 
 func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateWelcomerTextGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsWelcomerText, error) {
-	var old database.GuildSettingsWelcomerText
+	var old database.GetWelcomerTextGuildSettingsRow
 	if existing, err := Queries.GetWelcomerTextGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
 		old.MessageFormat = SetupJSONB(old.MessageFormat)
 	}
 
+	params.ModerationCheckupUuid = old.ModerationCheckupUuid
 	params.MessageFormat = SetupJSONB(params.MessageFormat)
+
+	if !bytes.EqualFold(old.MessageFormat.Bytes, params.MessageFormat.Bytes) {
+		modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsWelcomerText, strconv.B2S(params.MessageFormat.Bytes))
+		if err != nil {
+			// failed to enqueue
+		} else {
+			params.ModerationCheckupUuid = uuid.NullUUID{
+				UUID:  modCheck.CheckupQueueUuid,
+				Valid: true,
+			}
+		}
+	}
 
 	newRow, err := Queries.CreateOrUpdateWelcomerTextGuildSettings(ctx, params)
 	if err != nil {
@@ -270,14 +349,27 @@ func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context
 }
 
 func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateWelcomerDMsGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsWelcomerDms, error) {
-	var old database.GuildSettingsWelcomerDms
+	var old database.GetWelcomerDMsGuildSettingsRow
 
 	if existing, err := Queries.GetWelcomerDMsGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
 		old.MessageFormat = SetupJSONB(old.MessageFormat)
 	}
 
+	params.ModerationCheckupUuid = old.ModerationCheckupUuid
 	params.MessageFormat = SetupJSONB(params.MessageFormat)
+
+	if !bytes.EqualFold(old.MessageFormat.Bytes, params.MessageFormat.Bytes) {
+		modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsWelcomerDms, strconv.B2S(params.MessageFormat.Bytes))
+		if err != nil {
+			// failed to enqueue
+		} else {
+			params.ModerationCheckupUuid = uuid.NullUUID{
+				UUID:  modCheck.CheckupQueueUuid,
+				Valid: true,
+			}
+		}
+	}
 
 	newRow, err := Queries.CreateOrUpdateWelcomerDMsGuildSettings(ctx, params)
 	if err != nil {

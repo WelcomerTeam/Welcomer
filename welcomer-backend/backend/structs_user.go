@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gofrs/uuid"
 )
 
@@ -34,7 +35,7 @@ func SessionUserToMinimal(sessionUser *SessionUser) *MinimalUser {
 		ID:            sessionUser.ID,
 		Username:      sessionUser.Username,
 		Discriminator: sessionUser.Discriminator,
-		GlobalName:    sessionUser.GlobalName,
+		GlobalName:    welcomer.Coalesce(sessionUser.GlobalName, sessionUser.Username),
 		Avatar:        sessionUser.Avatar,
 		Memberships:   sessionUser.Memberships,
 	}

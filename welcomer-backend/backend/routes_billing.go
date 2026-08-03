@@ -253,7 +253,7 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 		PlanID:   paypalSubscriptionID,
 		Quantity: "1",
 		Subscriber: &paypal.Subscriber{
-			PayerID: user.ID.String(),
+			// PayerID: user.ID.String(),
 			Name: paypal.CreateOrderPayerName{
 				GivenName: name,
 			},

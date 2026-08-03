@@ -36,6 +36,8 @@ type Querier interface {
 	CreateManyIngestMessageEvents(ctx context.Context, arg []CreateManyIngestMessageEventsParams) (int64, error)
 	CreateManyInteractionCommands(ctx context.Context, arg []CreateManyInteractionCommandsParams) (int64, error)
 	CreateManyScienceGuildEvents(ctx context.Context, arg []CreateManyScienceGuildEventsParams) (int64, error)
+	CreateModerationCheckup(ctx context.Context, arg CreateModerationCheckupParams) (*CreateModerationCheckupRow, error)
+	CreateModerationCheckupQueue(ctx context.Context, arg CreateModerationCheckupQueueParams) (*ModerationCheckupQueue, error)
 	CreateNewMembership(ctx context.Context, arg CreateNewMembershipParams) (*UserMemberships, error)
 	CreateOrUpdateAutoRolesGuildSettings(ctx context.Context, arg CreateOrUpdateAutoRolesGuildSettingsParams) (*GuildSettingsAutoroles, error)
 	CreateOrUpdateBorderwallGuildSettings(ctx context.Context, arg CreateOrUpdateBorderwallGuildSettingsParams) (*GuildSettingsBorderwall, error)
@@ -83,9 +85,10 @@ type Querier interface {
 	DeleteUserTransaction(ctx context.Context, transactionUuid uuid.UUID) (int64, error)
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)
 	DisableReactionRoleSettingByMessageId(ctx context.Context, arg DisableReactionRoleSettingByMessageIdParams) (int64, error)
+	FetchModerationCheckupQueue(ctx context.Context, limit int32) ([]*ModerationCheckupQueue, error)
 	GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error)
 	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
-	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsBorderwall, error)
+	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GetBorderwallGuildSettingsRow, error)
 	GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUID) (*BorderwallRequests, error)
 	GetBorderwallRequestsByGuildIDUserID(ctx context.Context, arg GetBorderwallRequestsByGuildIDUserIDParams) ([]*BorderwallRequests, error)
 	GetBorderwallRequestsByIPAddress(ctx context.Context, ipAddress pgtype.Inet) ([]*BorderwallRequests, error)
@@ -134,7 +137,7 @@ type Querier interface {
 	GetReactionRoleSettingByGuildId(ctx context.Context, guildID int64) ([]*GuildSettingsReactionRoles, error)
 	GetReactionRoleSettingById(ctx context.Context, arg GetReactionRoleSettingByIdParams) (*GuildSettingsReactionRoles, error)
 	GetReactionRoleSettingByMessageId(ctx context.Context, arg GetReactionRoleSettingByMessageIdParams) (*GuildSettingsReactionRoles, error)
-	GetRulesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsRules, error)
+	GetRulesGuildSettings(ctx context.Context, guildID int64) (*GetRulesGuildSettingsRow, error)
 	GetScienceEvent(ctx context.Context, eventUuid uuid.UUID) (*ScienceEvents, error)
 	GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.UUID) (*ScienceGuildEvents, error)
 	GetScienceGuildJoinLeaveEventForUser(ctx context.Context, arg GetScienceGuildJoinLeaveEventForUserParams) (*GetScienceGuildJoinLeaveEventForUserRow, error)
@@ -150,17 +153,18 @@ type Querier interface {
 	GetUserTransactionsByUserID(ctx context.Context, userID int64) ([]*UserTransactions, error)
 	GetWelcomerBuilderArtifactByArtifactUUID(ctx context.Context, artifactUuid uuid.UUID) (*WelcomerBuilderArtifacts, error)
 	GetWelcomerBuilderArtifactsByGuildId(ctx context.Context, guildID int64) ([]*WelcomerBuilderArtifacts, error)
-	GetWelcomerDMsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerDms, error)
+	GetWelcomerDMsGuildSettings(ctx context.Context, guildID int64) (*GetWelcomerDMsGuildSettingsRow, error)
 	GetWelcomerGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomer, error)
 	GetWelcomerImages(ctx context.Context, imageUuid uuid.UUID) (*WelcomerImages, error)
 	GetWelcomerImagesByGuildId(ctx context.Context, guildID int64) ([]*WelcomerImages, error)
 	GetWelcomerImagesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerImages, error)
-	GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsWelcomerText, error)
+	GetWelcomerTextGuildSettings(ctx context.Context, guildID int64) (*GetWelcomerTextGuildSettingsRow, error)
 	HasGuildFeature(ctx context.Context, arg HasGuildFeatureParams) (int32, error)
 	IncrementGuildMemberCount(ctx context.Context, arg IncrementGuildMemberCountParams) (int32, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) (*AuditLogs, error)
 	InsertBorderwallRequest(ctx context.Context, arg InsertBorderwallRequestParams) (*BorderwallRequests, error)
 	InsertEasterEgg(ctx context.Context, arg InsertEasterEggParams) (uuid.UUID, error)
+	RemoveFromModerationCheckupQueue(ctx context.Context, checkupQueueUuid uuid.UUID) error
 	RemoveGiveawayEntry(ctx context.Context, arg RemoveGiveawayEntryParams) error
 	RemoveGuildFeature(ctx context.Context, arg RemoveGuildFeatureParams) error
 	RemovePollEntriesNotMatching(ctx context.Context, arg RemovePollEntriesNotMatchingParams) error
@@ -182,6 +186,7 @@ type Querier interface {
 	UpdateGuildBio(ctx context.Context, arg UpdateGuildBioParams) (*Guilds, error)
 	UpdateGuildVoiceChannelOpenSessionLastSeen(ctx context.Context, arg UpdateGuildVoiceChannelOpenSessionLastSeenParams) error
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
+	UpdateModerationCheckup(ctx context.Context, arg UpdateModerationCheckupParams) error
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
 	UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildPolls, error)
 	UpdatePollMessage(ctx context.Context, arg UpdatePollMessageParams) (*GuildPolls, error)

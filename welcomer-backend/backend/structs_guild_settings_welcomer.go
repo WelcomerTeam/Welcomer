@@ -20,9 +20,10 @@ type GuildSettingsWelcomerConfig struct {
 }
 
 type GuildSettingsWelcomerText struct {
-	Channel       *string `json:"channel"`
-	MessageFormat string  `json:"message_json"`
-	ToggleEnabled bool    `json:"enabled"`
+	Channel                 *string                 `json:"channel"`
+	MessageFormat           string                  `json:"message_json"`
+	ToggleEnabled           bool                    `json:"enabled"`
+	ModerationCheckupStatus ModerationCheckupStatus `json:"moderation_checkup_status"`
 }
 
 type GuildSettingsWelcomerImages struct {
@@ -44,10 +45,11 @@ type GuildSettingsWelcomerImages struct {
 }
 
 type GuildSettingsWelcomerDms struct {
-	MessageFormat       string `json:"message_json"`
-	ToggleEnabled       bool   `json:"enabled"`
-	ToggleUseTextFormat bool   `json:"reuse_message"`
-	ToggleIncludeImage  bool   `json:"include_image"`
+	MessageFormat           string                  `json:"message_json"`
+	ToggleEnabled           bool                    `json:"enabled"`
+	ToggleUseTextFormat     bool                    `json:"reuse_message"`
+	ToggleIncludeImage      bool                    `json:"include_image"`
+	ModerationCheckupStatus ModerationCheckupStatus `json:"moderation_checkup_status"`
 }
 
 type GuildSettingsWelcomerCustom struct {
@@ -60,7 +62,7 @@ type GuildSettingsWelcomerCustomBuilder struct {
 	References        map[string]string `json:"references"`
 }
 
-func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GuildSettingsWelcomerText, images database.GuildSettingsWelcomerImages, dms database.GuildSettingsWelcomerDms, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
+func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GetWelcomerTextGuildSettingsRow, images database.GuildSettingsWelcomerImages, dms database.GetWelcomerDMsGuildSettingsRow, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
 		Config: &GuildSettingsWelcomerConfig{
 			AutoDeleteWelcomeMessages:        config.AutoDeleteWelcomeMessages,
@@ -71,6 +73,19 @@ func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcome
 			ToggleEnabled: text.ToggleEnabled,
 			Channel:       welcomer.Int64ToStringPointer(text.Channel),
 			MessageFormat: welcomer.JSONBToString(text.MessageFormat),
+			ModerationCheckupStatus: welcomer.If(
+				text.ModerationCheckupUuid.UUID.IsNil(),
+				ModerationCheckupStatusUnknown,
+				welcomer.If(
+					text.CompletedAt.Time.IsZero(),
+					ModerationCheckupStatusPending,
+					welcomer.If(
+						text.IsBlocked.Bool,
+						ModerationCheckupStatusRejected,
+						ModerationCheckupStatusApproved,
+					),
+				),
+			),
 		},
 		Images: &GuildSettingsWelcomerImages{
 			ToggleEnabled:          images.ToggleEnabled,
@@ -93,6 +108,19 @@ func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcome
 			ToggleUseTextFormat: dms.ToggleUseTextFormat,
 			ToggleIncludeImage:  dms.ToggleIncludeImage,
 			MessageFormat:       welcomer.JSONBToString(dms.MessageFormat),
+			ModerationCheckupStatus: welcomer.If(
+				dms.ModerationCheckupUuid.UUID.IsNil(),
+				ModerationCheckupStatusUnknown,
+				welcomer.If(
+					dms.CompletedAt.Time.IsZero(),
+					ModerationCheckupStatusPending,
+					welcomer.If(
+						dms.IsBlocked.Bool,
+						ModerationCheckupStatusRejected,
+						ModerationCheckupStatusApproved,
+					),
+				),
+			),
 		},
 		Custom: custom,
 	}

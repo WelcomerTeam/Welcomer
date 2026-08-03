@@ -180,12 +180,14 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
 	}, nil, nil)
 
-	messageFormat, err := welcomer.FormatString(functions, variables, strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes))
+	originalMessageFormat := strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes)
+
+	messageFormat, err := welcomer.FormatString(functions, variables, originalMessageFormat)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
-			Str("message_format", messageFormat).
+			Str("message_format", originalMessageFormat).
 			Msg("Failed to format leaver text payload")
 
 		return err
@@ -199,13 +201,16 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
 			Int64("user_id", int64(event.User.ID)).
-			Str("message_format", messageFormat).
+			Str("message_format", originalMessageFormat).
 			Msg("Failed to unmarshal leaver messageFormat")
 
 		return err
 	}
 
+	serverMessage.AllowedMentions = welcomer.InferAllowedMentions(originalMessageFormat, &event.User.ID)
+
 	var messageID discord.Snowflake
+
 	var channelID discord.Snowflake
 
 	// Send the message if it's not empty.

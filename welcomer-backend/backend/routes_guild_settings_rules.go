@@ -20,7 +20,7 @@ func getGuildSettingsRules(ctx *gin.Context) {
 			rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					rules = &database.GuildSettingsRules{
+					rules = &database.GetRulesGuildSettingsRow{
 						GuildID:          int64(guildID),
 						ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
 						ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,

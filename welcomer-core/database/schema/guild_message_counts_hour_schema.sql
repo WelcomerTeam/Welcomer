@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS guild_message_counts_hour (
     message_count INTEGER NOT NULL,
     min_ts TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (hour_ts, guild_id, channel_id, user_id)
-);
+) PARTITION BY RANGE (hour_ts);
 
 CREATE INDEX IF NOT EXISTS guild_message_counts_hour_guild_id ON guild_message_counts_hour (guild_id);
 CREATE INDEX IF NOT EXISTS guild_message_counts_hour_channel_id ON guild_message_counts_hour (channel_id);

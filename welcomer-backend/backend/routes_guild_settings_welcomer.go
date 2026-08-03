@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/HugoSmits86/nativewebp"
-
 	discord "github.com/WelcomerTeam/Discord/discord"
 	recoder "github.com/WelcomerTeam/Recoder"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
@@ -76,7 +75,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 			welcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					welcomerText = &database.GuildSettingsWelcomerText{
+					welcomerText = &database.GetWelcomerTextGuildSettingsRow{
 						GuildID:       int64(guildID),
 						ToggleEnabled: welcomer.DefaultWelcomerText.ToggleEnabled,
 						Channel:       welcomer.DefaultWelcomerText.Channel,
@@ -115,7 +114,7 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 			welcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					welcomerDMs = &database.GuildSettingsWelcomerDms{
+					welcomerDMs = &database.GetWelcomerDMsGuildSettingsRow{
 						GuildID:             int64(guildID),
 						ToggleEnabled:       welcomer.DefaultWelcomerDms.ToggleEnabled,
 						ToggleUseTextFormat: welcomer.DefaultWelcomerDms.ToggleUseTextFormat,

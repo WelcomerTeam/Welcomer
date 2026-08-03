@@ -1,6 +1,8 @@
-go 1.26
+go 1.26.0
 
 use (
+	./jobs
+	./jobs/job-runner
 	./sandwich
 	./welcomer-backend
 	./welcomer-core

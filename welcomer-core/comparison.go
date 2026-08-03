@@ -57,6 +57,10 @@ func CompareStructs[T comparable](oldStruct, newStruct T) (CompareStructResult, 
 			jsonTag = jsonTag[:comma]
 		}
 
+		if fieldIndex >= oldValue.NumField() || fieldIndex >= newValue.NumField() {
+			break
+		}
+
 		oldField := oldValue.Field(fieldIndex).Interface()
 		newField := newValue.Field(fieldIndex).Interface()
 

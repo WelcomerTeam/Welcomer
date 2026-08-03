@@ -53,6 +53,7 @@
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.
             </form-value>
+            <ModerationCheckupStatus :moderationCheckupStatus="config.text.moderation_checkup_status" />
           </div>
           <div class="dashboard-inputs">
             <div class="dashboard-heading">Welcomer Images</div>
@@ -186,6 +187,7 @@
               <a target="_blank" href="/formatting" class="text-primary hover:text-primary-dark">Click here</a>
               to view all the formatting tags you can use for custom text.
             </form-value>
+            <ModerationCheckupStatus :moderationCheckupStatus="config.dms.moderation_checkup_status" />
           </div>
 
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
@@ -226,6 +228,7 @@ import {
   navigateToErrors,
   isValidJson,
 } from "@/utilities";
+import ModerationCheckupStatus from "../../../components/dashboard/ModerationCheckupStatus.vue";
 
 var imageAlignmentTypes = [
   { key: "Left", value: "left" },
@@ -258,6 +261,7 @@ export default {
     EmbedBuilder,
     UnsavedChanges,
     LoadingIcon,
+    ModerationCheckupStatus,
   },
   setup() {
     let isDataFetched = ref(false);

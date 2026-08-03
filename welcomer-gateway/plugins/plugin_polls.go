@@ -155,10 +155,12 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 
 	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(poll.ChannelID), discord.Snowflake(poll.MessageID))
 	if err != nil {
-		if strings.Contains(err.Error(), "404 Not Found") {
+		if strings.Contains(err.Error(), "404 Not Found") || strings.Contains(err.Error(), "403 Forbidden") {
 			welcomer.Logger.Warn().
 				Str("poll_uuid", poll.PollUuid.String()).
 				Msg("Poll message not found, skipping disabling buttons for poll end")
+
+			err = nil
 
 			return nil
 		}
@@ -234,6 +236,8 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 				welcomer.Logger.Error().Err(err).
 					Str("poll_uuid", poll.PollUuid.String()).
 					Msg("Failed to send poll end message")
+
+				err = nil
 			}
 		} else {
 			wonAnswersStr := ""
@@ -251,6 +255,8 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 				welcomer.Logger.Error().Err(err).
 					Str("poll_uuid", poll.PollUuid.String()).
 					Msg("Failed to send poll end message")
+
+				err = nil
 			}
 		}
 	} else {
@@ -259,6 +265,8 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 			welcomer.Logger.Error().Err(err).
 				Str("poll_uuid", poll.PollUuid.String()).
 				Msg("Failed to send poll end message")
+
+			err = nil
 		}
 	}
 

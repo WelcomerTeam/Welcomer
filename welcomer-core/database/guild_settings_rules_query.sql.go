@@ -7,24 +7,30 @@ package database
 
 import (
 	"context"
+	"database/sql"
+
+	"github.com/gofrs/uuid"
+	"github.com/jackc/pgtype"
 )
 
 const CreateOrUpdateRulesGuildSettings = `-- name: CreateOrUpdateRulesGuildSettings :one
-INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT(guild_id) DO UPDATE
     SET toggle_enabled = EXCLUDED.toggle_enabled,
         toggle_dms_enabled = EXCLUDED.toggle_dms_enabled,
-        rules = EXCLUDED.rules
+        rules = EXCLUDED.rules,
+        moderation_checkup_uuid = EXCLUDED.moderation_checkup_uuid
 RETURNING
-    guild_id, toggle_enabled, toggle_dms_enabled, rules
+    guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid
 `
 
 type CreateOrUpdateRulesGuildSettingsParams struct {
-	GuildID          int64    `json:"guild_id"`
-	ToggleEnabled    bool     `json:"toggle_enabled"`
-	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
-	Rules            []string `json:"rules"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleDmsEnabled      bool          `json:"toggle_dms_enabled"`
+	Rules                 []string      `json:"rules"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateOrUpdateRulesGuildSettings(ctx context.Context, arg CreateOrUpdateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
@@ -33,6 +39,7 @@ func (q *Queries) CreateOrUpdateRulesGuildSettings(ctx context.Context, arg Crea
 		arg.ToggleEnabled,
 		arg.ToggleDmsEnabled,
 		arg.Rules,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsRules
 	err := row.Scan(
@@ -40,22 +47,24 @@ func (q *Queries) CreateOrUpdateRulesGuildSettings(ctx context.Context, arg Crea
 		&i.ToggleEnabled,
 		&i.ToggleDmsEnabled,
 		&i.Rules,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const CreateRulesGuildSettings = `-- name: CreateRulesGuildSettings :one
-INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO guild_settings_rules (guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid)
+    VALUES ($1, $2, $3, $4, $5)
 RETURNING
-    guild_id, toggle_enabled, toggle_dms_enabled, rules
+    guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid
 `
 
 type CreateRulesGuildSettingsParams struct {
-	GuildID          int64    `json:"guild_id"`
-	ToggleEnabled    bool     `json:"toggle_enabled"`
-	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
-	Rules            []string `json:"rules"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleDmsEnabled      bool          `json:"toggle_dms_enabled"`
+	Rules                 []string      `json:"rules"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg CreateRulesGuildSettingsParams) (*GuildSettingsRules, error) {
@@ -64,6 +73,7 @@ func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg CreateRulesG
 		arg.ToggleEnabled,
 		arg.ToggleDmsEnabled,
 		arg.Rules,
+		arg.ModerationCheckupUuid,
 	)
 	var i GuildSettingsRules
 	err := row.Scan(
@@ -71,27 +81,64 @@ func (q *Queries) CreateRulesGuildSettings(ctx context.Context, arg CreateRulesG
 		&i.ToggleEnabled,
 		&i.ToggleDmsEnabled,
 		&i.Rules,
+		&i.ModerationCheckupUuid,
 	)
 	return &i, err
 }
 
 const GetRulesGuildSettings = `-- name: GetRulesGuildSettings :one
 SELECT
-    guild_id, toggle_enabled, toggle_dms_enabled, rules
+    guild_settings_rules.guild_id, toggle_enabled, toggle_dms_enabled, rules, moderation_checkup_uuid, checkup_uuid, moderation_checkup.guild_id, user_id, data_type, started_at, completed_at, dom, inv, score_change, score_safe, score_question, score_explicit, is_blocked
 FROM
     guild_settings_rules
+    LEFT JOIN moderation_checkup ON guild_settings_rules.moderation_checkup_uuid = moderation_checkup.checkup_uuid
 WHERE
-    guild_id = $1
+    guild_settings_rules.guild_id = $1
 `
 
-func (q *Queries) GetRulesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsRules, error) {
+type GetRulesGuildSettingsRow struct {
+	GuildID               int64           `json:"guild_id"`
+	ToggleEnabled         bool            `json:"toggle_enabled"`
+	ToggleDmsEnabled      bool            `json:"toggle_dms_enabled"`
+	Rules                 []string        `json:"rules"`
+	ModerationCheckupUuid uuid.NullUUID   `json:"moderation_checkup_uuid"`
+	CheckupUuid           uuid.NullUUID   `json:"checkup_uuid"`
+	GuildID_2             sql.NullInt64   `json:"guild_id_2"`
+	UserID                sql.NullInt64   `json:"user_id"`
+	DataType              sql.NullInt32   `json:"data_type"`
+	StartedAt             sql.NullTime    `json:"started_at"`
+	CompletedAt           sql.NullTime    `json:"completed_at"`
+	Dom                   pgtype.JSONB    `json:"dom"`
+	Inv                   pgtype.JSONB    `json:"inv"`
+	ScoreChange           sql.NullFloat64 `json:"score_change"`
+	ScoreSafe             sql.NullFloat64 `json:"score_safe"`
+	ScoreQuestion         sql.NullFloat64 `json:"score_question"`
+	ScoreExplicit         sql.NullFloat64 `json:"score_explicit"`
+	IsBlocked             sql.NullBool    `json:"is_blocked"`
+}
+
+func (q *Queries) GetRulesGuildSettings(ctx context.Context, guildID int64) (*GetRulesGuildSettingsRow, error) {
 	row := q.db.QueryRow(ctx, GetRulesGuildSettings, guildID)
-	var i GuildSettingsRules
+	var i GetRulesGuildSettingsRow
 	err := row.Scan(
 		&i.GuildID,
 		&i.ToggleEnabled,
 		&i.ToggleDmsEnabled,
 		&i.Rules,
+		&i.ModerationCheckupUuid,
+		&i.CheckupUuid,
+		&i.GuildID_2,
+		&i.UserID,
+		&i.DataType,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.Dom,
+		&i.Inv,
+		&i.ScoreChange,
+		&i.ScoreSafe,
+		&i.ScoreQuestion,
+		&i.ScoreExplicit,
+		&i.IsBlocked,
 	)
 	return &i, err
 }
@@ -102,16 +149,18 @@ UPDATE
 SET
     toggle_enabled = $2,
     toggle_dms_enabled = $3,
-    rules = $4
+    rules = $4,
+    moderation_checkup_uuid = $5
 WHERE
     guild_id = $1
 `
 
 type UpdateRuleGuildSettingsParams struct {
-	GuildID          int64    `json:"guild_id"`
-	ToggleEnabled    bool     `json:"toggle_enabled"`
-	ToggleDmsEnabled bool     `json:"toggle_dms_enabled"`
-	Rules            []string `json:"rules"`
+	GuildID               int64         `json:"guild_id"`
+	ToggleEnabled         bool          `json:"toggle_enabled"`
+	ToggleDmsEnabled      bool          `json:"toggle_dms_enabled"`
+	Rules                 []string      `json:"rules"`
+	ModerationCheckupUuid uuid.NullUUID `json:"moderation_checkup_uuid"`
 }
 
 func (q *Queries) UpdateRuleGuildSettings(ctx context.Context, arg UpdateRuleGuildSettingsParams) (int64, error) {
@@ -120,6 +169,7 @@ func (q *Queries) UpdateRuleGuildSettings(ctx context.Context, arg UpdateRuleGui
 		arg.ToggleEnabled,
 		arg.ToggleDmsEnabled,
 		arg.Rules,
+		arg.ModerationCheckupUuid,
 	)
 	if err != nil {
 		return 0, err

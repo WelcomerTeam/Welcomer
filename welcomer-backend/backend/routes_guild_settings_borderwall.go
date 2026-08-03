@@ -21,7 +21,7 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 			borderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(guildID))
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					borderwall = &database.GuildSettingsBorderwall{
+					borderwall = &database.GetBorderwallGuildSettingsRow{
 						GuildID:         int64(guildID),
 						ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
 						ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,

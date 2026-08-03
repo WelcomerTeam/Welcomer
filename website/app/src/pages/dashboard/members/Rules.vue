@@ -79,6 +79,7 @@
                 </tbody>
               </table>
             </form-value>
+            <ModerationCheckupStatus :moderationCheckupStatus="config.moderation_checkup_status" />
           </div>
 
           <unsaved-changes :unsavedChanges="unsavedChanges" :isChangeInProgress="isChangeInProgress"
@@ -112,6 +113,7 @@ import {
   navigateToErrors,
   marked,
 } from "@/utilities";
+import ModerationCheckupStatus from "../../../components/dashboard/ModerationCheckupStatus.vue";
 
 const maxRuleCount = 25;
 const maxRuleLength = 250;
@@ -122,6 +124,7 @@ export default {
     UnsavedChanges,
     LoadingIcon,
     AutocompleteInput,
+    ModerationCheckupStatus,
   },
   setup() {
     let isDataFetched = ref(false);
