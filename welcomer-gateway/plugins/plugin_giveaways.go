@@ -333,6 +333,8 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 					Int64("user_id", winner.UserID).
 					Str("prize", winner.Prize).
 					Msg("Failed to send giveaway winner message")
+
+				err = nil
 			} else {
 				_, err = welcomer.Queries.UpdateGiveawayWinnerMessageID(eventCtx.Context, database.UpdateGiveawayWinnerMessageIDParams{
 					GiveawayWinnerUuid: winner.GiveawayWinnerUuid,
@@ -353,7 +355,7 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(giveaway.ChannelID), discord.Snowflake(giveaway.MessageID))
 	if err != nil {
-		if strings.Contains(err.Error(), "404 Not Found") {
+		if strings.Contains(err.Error(), "404 Not Found") || strings.Contains(err.Error(), "403 Forbidden") {
 			welcomer.Logger.Warn().
 				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 				Msg("Giveaway message not found, skipping disabling buttons for giveaway end")
