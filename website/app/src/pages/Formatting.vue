@@ -132,6 +132,7 @@ const formattingTags = [
       { name: "{{User.Mention}}", description: "Mentions the user", example: "<@143090142360371200>" },
       { name: "{{User.CreatedAt}}", description: "The user's creation date as relative time", example: "`8 years ago`" },
       { name: "{{User.JoinedAt}}", description: "The user's join date as relative time", example: "`7 years ago`" },
+      { name: "{{User.LeftAt}}", description: "The user's leave date as relative time", example: "`5 minutes ago`" },
       { name: "{{User.Avatar}}", description: "The user's avatar as a URL", example: "https://cdn.discordapp.com/avatars/143090142360371200/a73420b217a77a77b17fb42fa7ecfbcc.png" },
       { name: "{{User.Bot}}", description: "Boolean to indicate the user is a bot", example: "false" },
       { name: "{{User.Pending}}", description: "Boolean to indicate the user is pending membership screening", example: "false" },
@@ -166,16 +167,44 @@ const formattingTags = [
   {
     name: "Borderwall",
     values: [
-      { name: "{{Borderwall.Link}}", description: "The link to the borderwall", example: "https://welcomer.app/borderwall/1234567890" },
+      { name: "{{Borderwall.Link}}", description: "The link to the borderwall", example: "https://welcomer.gg/borderwall/..." },
     ]
   },
   {
     name: "Functions",
     values: [
       { name: "{{Ordinal(int)}}", description: "Returns the ordinal (st, nd, rd, th) for an integer passed in. You can do `{{Ordinal(Guild.Members)}}` or `{{Ordinal(Guild.MembersJoined)}}` to display the member count.", example: "7600th" },
+      { name: "{{FormatNumber(int, locale)}}", description: "Formats an integer depending on the locale passed. Supported locales: default, dots, commas, indian, arabic.", example: "7.600" },
+      { name: "{{SinceTime(time)}}", description: "Returns the time since the time passed in as a relative time as a string. This will not update automatically unlike using times regularly, this is only recommended for images.", example: "`7 years`" },
+      { name: "{{FormatTime(time, format)}}", description: `Formats a time depending on the format passed.
+      
+      Accepted tags in date formatting:
+
+      yyyy (year, 4 digits)
+      yy (year, 2 digits)
+      MMMM (month, full name)
+      MMM (month, short name)
+      MM (month, leading zero)
+      M (month, without leading zero)
+      dddd (day of the week, full name)
+      ddd (day of the week, short name)
+      dd (day, leading zero)
+      d (day, without leading zero)
+      HH (hour 24, without leading zero)
+      hh (hour 12, leading zero)
+      h (hour 12, without leading zero)
+      mm (minute, leading zero)
+      m (minute, without leading zero)
+      ss (second, leading zero)
+      s (second, without leading zero)`, example: "January 01, 2025" },
+      { name: "{{Upper(string)}}", description: "Returns the string passed in as uppercase.", example: "WELCOME" },
+      { name: "{{Lower(string)}}", description: "Returns the string passed in as lowercase.", example: "welcome" },
+      { name: "{{Title(string)}}", description: "Returns the string passed in as title case.", example: "Welcome" },
     ]
   }
 ]
+
+// TODO: Add functions
 
 const textExamples = [
   { example: "Welcome {{User.Mention}} to **{{Guild.Name}}**! You are the {{Ordinal(Guild.Members)}} member!", result: "Welcome <@143090142360371200> to **Welcomer Support Guild**! You are the 7600th member!" },

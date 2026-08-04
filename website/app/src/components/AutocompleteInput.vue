@@ -56,6 +56,7 @@ var formattingTags = [
   "{{User.Mention}}",
   "{{User.CreatedAt}}",
   "{{User.JoinedAt}}",
+  "{{User.LeftAt}}",
   "{{User.Avatar}}",
   "{{User.Bot}}",
   "{{User.Pending}}",
@@ -92,15 +93,43 @@ const numberLocales = [
   "arabic",
 ];
 
+const timeTags = [
+  "User.CreatedAt",
+  "User.JoinedAt",
+  "User.LeftAt",
+  "Invite.CreatedAt",
+  "Invite.ExpiresAt",
+]
+
 for (const tag of integerTags) {
   formattingTags.push(`{{FormatNumber(${tag})}}`);
   formattingTags.push(`{{Ordinal(${tag})}}`);
 
-  // for (const locale of numberLocales) {
-  //   formattingTags.push(`{{FormatNumber(${tag}, "${locale}")}}`);
-  //   formattingTags.push(`{{Ordinal(${tag}, "${locale}")}}`);
-  // }
+  // formattingTags.push(`{{FormatNumber(${tag}, "default/dots/commas/indian/arabic")}}`);
+  // formattingTags.push(`{{Ordinal(${tag}, "default/dots/commas/indian/arabic")}}`);
 }
+
+for (const tag of timeTags) {
+  formattingTags.push(`{{SinceTime(${tag})}}`);
+  formattingTags.push(`{{FormatTime(${tag}, "dd/MM/yyyy")}}`);
+}
+
+// template functions
+
+formattingTags.push(`{{Ordinal(int)}}`);
+formattingTags.push(`{{FormatNumber(int)}}`);
+
+formattingTags.push(`{{Upper(string)}}`);
+formattingTags.push(`{{Lower(string)}}`);
+formattingTags.push(`{{Title(string)}}`);
+
+formattingTags.push(`{{FormatTime(time, "dd/MM/yyyy")}}`);
+formattingTags.push(`{{FormatTime(time, "MM/dd/yyyy")}}`);
+formattingTags.push(`{{FormatTime(time, "MMMM dd, yyyy")}}`);
+formattingTags.push(`{{FormatTime(time, "dd/MM/yyyy HH:mm:ss")}}`);
+formattingTags.push(`{{FormatTime(time, "MM/dd/yyyy HH:mm:ss")}}`);
+
+formattingTags.push(`{{SinceTime(time)}}`);
 
 formattingTags.sort((a, b) => a.length - b.length || a.localeCompare(b));
 
