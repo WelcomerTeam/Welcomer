@@ -104,7 +104,7 @@ LEFT JOIN moderation_checkup mc3 ON mc3.checkup_uuid = guild_settings_welcomer_t
 LEFT JOIN guild_settings_welcomer_dms ON guild_settings_welcomer_dms.guild_id = guilds.guild_id
 LEFT JOIN moderation_checkup mc4 ON mc4.checkup_uuid = guild_settings_welcomer_dms.moderation_checkup_uuid
 
-WHERE mc1.is_blocked = TRUE or mc2.is_blocked = TRUE or mc3.is_blocked = TRUE or mc4.is_blocked
+WHERE mc1.is_blocked = TRUE or mc2.is_blocked = TRUE or mc3.is_blocked = TRUE or mc4.is_blocked = TRUE
 ORDER BY guilds.guild_id DESC
 `
 
@@ -143,10 +143,6 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 	}
 
 	for _, checkup := range checkups {
-		if checkup.GuildID >= 613856329064513536 {
-			continue
-		}
-
 		guilds, err := welcomer.SandwichClient.FetchGuild(ctx, &sandwich.FetchGuildRequest{
 			GuildIds: []int64{int64(checkup.GuildID)},
 		})

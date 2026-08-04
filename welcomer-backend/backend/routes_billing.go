@@ -15,6 +15,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -28,7 +29,10 @@ import (
 // ISO 3166-1 alpha-2 country codes for the Eurozone.
 var euroZone = []string{"AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"}
 
-var certificateCache map[string][]byte = make(map[string][]byte)
+var (
+	certificateCache   map[string][]byte = make(map[string][]byte)
+	certificateCacheMu sync.RWMutex      = sync.RWMutex{}
+)
 
 func getAvailableCurrencies(ipintelResponse welcomer.IPIntelResponse) []welcomer.Currency {
 	return welcomer.GlobalCurrencies
@@ -787,7 +791,11 @@ func paymentCallback(ctx *gin.Context) {
 }
 
 func downloadAndCache(url string) ([]byte, error) {
-	if body, ok := certificateCache[url]; ok {
+	certificateCacheMu.RLock()
+	body, ok := certificateCache[url]
+	certificateCacheMu.RUnlock()
+
+	if ok {
 		return body, nil
 	}
 
@@ -799,12 +807,14 @@ func downloadAndCache(url string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
+	certificateCacheMu.Lock()
 	certificateCache[url] = body
+	certificateCacheMu.Unlock()
 
 	return body, nil
 }
