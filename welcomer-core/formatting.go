@@ -176,6 +176,37 @@ func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]goval
 		return strings.Title(argument), nil
 	}
 
+	funcs["SinceTime"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("SinceTime", 1, arguments...); err != nil {
+			return nil, err
+		}
+
+		argumentTime, ok := arguments[0].(StubTime)
+		if !ok {
+			return nil, fmt.Errorf("sinceTime argument 1 is not supported")
+		}
+
+		return SinceTime(argumentTime.Time), nil
+	}
+
+	funcs["FormatTime"] = func(arguments ...any) (any, error) {
+		if err := AssertLength("FormatTime", 2, arguments...); err != nil {
+			return nil, err
+		}
+
+		argumentTime, ok := arguments[0].(StubTime)
+		if !ok {
+			return nil, fmt.Errorf("formatTime argument 1 is not supported")
+		}
+
+		argumentFormat, ok := arguments[1].(string)
+		if !ok {
+			return nil, fmt.Errorf("formatTime argument 2 is not supported")
+		}
+
+		return FormatTime(argumentTime.Time, argumentFormat), nil
+	}
+
 	return funcs
 }
 
@@ -203,6 +234,8 @@ type GuildVariables struct {
 func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
 	vars = make(map[string]any)
 
+	leftAt, _ := extraValues["User.LeftAt"].(StubTime)
+
 	vars["User"] = StubUser{
 		ID:            member.User.ID,
 		Name:          EscapeStringForJSON(GetUserDisplayName(member.User)),
@@ -210,8 +243,9 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		Discriminator: EscapeStringForJSON(member.User.Discriminator),
 		GlobalName:    EscapeStringForJSON(member.User.GlobalName),
 		Mention:       "<@" + member.User.ID.String() + ">",
-		CreatedAt:     StubTime(member.User.ID.Time()),
-		JoinedAt:      StubTime(member.JoinedAt),
+		CreatedAt:     NewStubTime(member.User.ID.Time(), true),
+		JoinedAt:      NewStubTime(member.JoinedAt, true),
+		LeftAt:        leftAt,
 		Avatar:        GetUserAvatar(member.User) + "?size=256",
 		Bot:           member.User.Bot,
 		Pending:       member.Pending,
@@ -250,7 +284,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 
 		stubInvite := StubInvite{
-			CreatedAt: StubTime(invite.CreatedAt),
+			CreatedAt: NewStubTime(invite.CreatedAt, true),
 			Inviter:   inviter,
 			ChannelID: channelID,
 			Code:      invite.Code,
@@ -261,17 +295,17 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 
 		if invite.ExpiresAt != nil {
-			stubInvite.ExpiresAt = StubTime(*invite.ExpiresAt)
+			stubInvite.ExpiresAt = NewStubTime(*invite.ExpiresAt, true)
 		}
 
 		vars["Invite"] = stubInvite
 	} else {
 		vars["Invite"] = StubInvite{
-			ExpiresAt: StubTime(time.Time{}),
-			CreatedAt: StubTime(time.Time{}),
+			ExpiresAt: NewStubTime(time.Time{}, true),
+			CreatedAt: NewStubTime(time.Time{}, true),
 			Inviter: StubUser{
-				CreatedAt:     StubTime{},
-				JoinedAt:      StubTime{},
+				CreatedAt:     NewStubTime(time.Time{}, true),
+				JoinedAt:      NewStubTime(time.Time{}, true),
 				Name:          "Unknown",
 				Username:      "unknown",
 				Discriminator: "",
@@ -391,6 +425,7 @@ func GetUserDisplayName(user *discord.User) string {
 type StubUser struct {
 	CreatedAt     StubTime          `json:"created_at"`
 	JoinedAt      StubTime          `json:"joined_at"`
+	LeftAt        StubTime          `json:"left_at"`
 	Name          string            `json:"name"`
 	Username      string            `json:"username"`
 	Discriminator string            `json:"discriminator"`
@@ -429,14 +464,137 @@ func (s StubGuild) String() string {
 	return s.Name
 }
 
-type StubTime time.Time
+func NewStubTime(t time.Time, useDiscordFormat bool) StubTime {
+	return StubTime{
+		Time:             t,
+		UseDiscordFormat: useDiscordFormat,
+	}
+}
+
+type StubTime struct {
+	Time             time.Time
+	UseDiscordFormat bool `json:"use_discord_format"`
+}
 
 func (s StubTime) String() string {
-	return s.Relative()
+	if s.UseDiscordFormat {
+		return s.Relative()
+	}
+
+	return SinceTime(s.Time)
 }
 
 func (s StubTime) Relative() string {
-	return "<t:" + Itoa(time.Time(s).Unix()) + ":R>"
+	return "<t:" + Itoa(time.Time(s.Time).Unix()) + ":R>"
+}
+
+var timeFormatReplacer = strings.NewReplacer(
+	"yyyy", "2006",
+	"yy", "06",
+	"MMMM", "January",
+	"MMM", "Jan",
+	"MM", "01",
+	"M", "1",
+	"dddd", "Monday",
+	"ddd", "Mon",
+	"dd", "02",
+	"d", "2",
+	"HH", "15",
+	"hh", "03",
+	"h", "3",
+	"mm", "04",
+	"m", "4",
+	"ss", "05",
+	"s", "5",
+)
+
+func FormatTime(t time.Time, format string) string {
+	return time.Time(t).Format(timeFormatReplacer.Replace(format))
+}
+
+func SinceTime(t time.Time) string {
+	seconds := int(time.Since(t).Seconds())
+
+	resp := strings.Builder{}
+
+	years := seconds / (365 * 24 * 60 * 60)
+	if years > 0 {
+		resp.WriteString(strconv.Itoa(years))
+		resp.WriteString(" year")
+
+		if years > 1 {
+			resp.WriteString("s")
+		}
+
+		seconds %= (365 * 24 * 60 * 60)
+	}
+
+	days := seconds / (24 * 60 * 60)
+	if days > 0 && years == 0 {
+		if resp.Len() > 0 {
+			resp.WriteString(", ")
+		}
+
+		resp.WriteString(strconv.Itoa(days))
+		resp.WriteString(" day")
+
+		if days > 1 {
+			resp.WriteString("s")
+		}
+
+		seconds %= (24 * 60 * 60)
+	}
+
+	hours := seconds / (60 * 60)
+	if hours > 0 && (years+days) == 0 {
+		if resp.Len() > 0 {
+			resp.WriteString(", ")
+		}
+
+		resp.WriteString(strconv.Itoa(hours))
+		resp.WriteString(" hour")
+
+		if hours > 1 {
+			resp.WriteString("s")
+		}
+
+		seconds %= (60 * 60)
+	}
+
+	minutes := seconds / 60
+	if minutes > 0 && (years+days+hours) == 0 {
+		if resp.Len() > 0 {
+			resp.WriteString(", ")
+		}
+
+		resp.WriteString(strconv.Itoa(minutes))
+		resp.WriteString(" minute")
+
+		if minutes > 1 {
+			resp.WriteString("s")
+		}
+
+		seconds %= 60
+	}
+
+	if seconds > 0 && (years+days+hours+minutes) == 0 {
+		if resp.Len() > 0 {
+			resp.WriteString(", ")
+		}
+
+		resp.WriteString(strconv.Itoa(seconds))
+		resp.WriteString(" second")
+
+		if seconds > 1 {
+			resp.WriteString("s")
+		}
+	}
+
+	if resp.Len() == 0 {
+		resp.WriteString("now")
+	}
+
+	return resp.String()
 }
 
 // Invite represents the invite used on discord.
