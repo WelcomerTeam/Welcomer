@@ -719,7 +719,9 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
-	variables := welcomer.GatherVariables(eventCtx, &event.Member, guildVariables, usedInvite, nil)
+
+	textVariables := welcomer.GatherVariables(eventCtx, &event.Member, guildVariables, usedInvite, nil, true)
+	imageVariables := welcomer.GatherVariables(eventCtx, &event.Member, guildVariables, usedInvite, nil, false)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
@@ -769,7 +771,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			var messageFormat string
 
-			messageFormat, err = welcomer.FormatString(functions, variables, guildSettingsWelcomerImages.ImageMessage)
+			messageFormat, err = welcomer.FormatString(functions, imageVariables, guildSettingsWelcomerImages.ImageMessage)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -868,7 +870,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				originalMessageFormat := strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes)
 
-				messageFormat, err = welcomer.FormatString(functions, variables, originalMessageFormat)
+				messageFormat, err = welcomer.FormatString(functions, textVariables, originalMessageFormat)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -913,7 +915,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				originalMessageFormat := strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes)
 
-				messageFormat, err = welcomer.FormatString(functions, variables, originalMessageFormat)
+				messageFormat, err = welcomer.FormatString(functions, textVariables, originalMessageFormat)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -942,7 +944,7 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				originalMessageFormat := strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes)
 
-				messageFormat, err = welcomer.FormatString(functions, variables, originalMessageFormat)
+				messageFormat, err = welcomer.FormatString(functions, textVariables, originalMessageFormat)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -1061,6 +1063,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	} else if dmerr != nil {
 		err = dmerr
 	}
+
+	println(imageVariables["User"].(welcomer.StubUser).CreatedAt.UseDiscordFormat)
 
 	welcomer.PusherGuildScience.Push(
 		eventCtx.Context,

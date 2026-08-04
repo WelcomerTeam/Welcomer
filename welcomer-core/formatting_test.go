@@ -33,7 +33,7 @@ func TestFormatString(t *testing.T) {
 		},
 		MembersJoined: 123456,
 		NumberLocale:  database.NumberLocaleDefault,
-	}, nil, nil)
+	}, nil, nil, true)
 
 	testCases := map[string]string{
 		"{{User.CreatedAt}}":     "<t:1420070400:R>",

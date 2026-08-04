@@ -241,7 +241,7 @@ func (p *BorderwallCog) OnInvokeBorderwallEvent(eventCtx *sandwich.EventContext,
 		"Borderwall": BorderwallVariables{
 			Link: borderwallLink,
 		},
-	})
+	}, true)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
@@ -568,7 +568,7 @@ func (p *BorderwallCog) OnInvokeBorderwallCompletionEvent(eventCtx *sandwich.Eve
 		Guild:         guild,
 		MembersJoined: guildSettings.MemberCount, // Approximate, as this is not real-time.
 		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
-	}, nil, nil)
+	}, nil, nil, true)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams

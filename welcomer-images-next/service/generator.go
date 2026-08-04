@@ -22,7 +22,7 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 		Guild:         &ctx.Guild,
 		MembersJoined: ctx.MembersJoined,
 		NumberLocale:  ctx.NumberLocale,
-	}, ctx.Invite, nil)
+	}, ctx.Invite, nil, false)
 
 	for index, layer := range ctx.CustomWelcomerImage.Layers {
 		builder.WriteString(`<div style="`)

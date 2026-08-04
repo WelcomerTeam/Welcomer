@@ -231,7 +231,7 @@ type GuildVariables struct {
 	NumberLocale  database.NumberLocale
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any) (vars map[string]any) {
+func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any, useDiscordFormat bool) (vars map[string]any) {
 	vars = make(map[string]any)
 
 	leftAt, _ := extraValues["User.LeftAt"].(StubTime)
@@ -243,8 +243,8 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		Discriminator: EscapeStringForJSON(member.User.Discriminator),
 		GlobalName:    EscapeStringForJSON(member.User.GlobalName),
 		Mention:       "<@" + member.User.ID.String() + ">",
-		CreatedAt:     NewStubTime(member.User.ID.Time(), true),
-		JoinedAt:      NewStubTime(member.JoinedAt, true),
+		CreatedAt:     NewStubTime(member.User.ID.Time(), useDiscordFormat),
+		JoinedAt:      NewStubTime(member.JoinedAt, useDiscordFormat),
 		LeftAt:        leftAt,
 		Avatar:        GetUserAvatar(member.User) + "?size=256",
 		Bot:           member.User.Bot,
@@ -284,7 +284,7 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 
 		stubInvite := StubInvite{
-			CreatedAt: NewStubTime(invite.CreatedAt, true),
+			CreatedAt: NewStubTime(invite.CreatedAt, useDiscordFormat),
 			Inviter:   inviter,
 			ChannelID: channelID,
 			Code:      invite.Code,
@@ -295,17 +295,17 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 		}
 
 		if invite.ExpiresAt != nil {
-			stubInvite.ExpiresAt = NewStubTime(*invite.ExpiresAt, true)
+			stubInvite.ExpiresAt = NewStubTime(*invite.ExpiresAt, useDiscordFormat)
 		}
 
 		vars["Invite"] = stubInvite
 	} else {
 		vars["Invite"] = StubInvite{
-			ExpiresAt: NewStubTime(time.Time{}, true),
-			CreatedAt: NewStubTime(time.Time{}, true),
+			ExpiresAt: NewStubTime(time.Time{}, useDiscordFormat),
+			CreatedAt: NewStubTime(time.Time{}, useDiscordFormat),
 			Inviter: StubUser{
-				CreatedAt:     NewStubTime(time.Time{}, true),
-				JoinedAt:      NewStubTime(time.Time{}, true),
+				CreatedAt:     NewStubTime(time.Time{}, useDiscordFormat),
+				JoinedAt:      NewStubTime(time.Time{}, useDiscordFormat),
 				Name:          "Unknown",
 				Username:      "unknown",
 				Discriminator: "",
@@ -477,6 +477,7 @@ type StubTime struct {
 }
 
 func (s StubTime) String() string {
+	println(s.UseDiscordFormat)
 	if s.UseDiscordFormat {
 		return s.Relative()
 	}
@@ -592,6 +593,8 @@ func SinceTime(t time.Time) string {
 
 	if resp.Len() == 0 {
 		resp.WriteString("now")
+	} else {
+		resp.WriteString(" ago")
 	}
 
 	return resp.String()

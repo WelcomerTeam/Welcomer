@@ -180,7 +180,7 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		NumberLocale:  database.NumberLocale(guildSettings.NumberLocale.Int32),
 	}, nil, map[string]any{
 		"User.LeftAt": welcomer.NewStubTime(time.Now(), true),
-	})
+	}, true)
 
 	originalMessageFormat := strconv.B2S(guildSettingsLeaver.MessageFormat.Bytes)
 
