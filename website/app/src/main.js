@@ -19,6 +19,8 @@ library.add(faDiscord, faPatreon, faPaypal, faUnsplash, faYoutube);
 
 import {
   faArrowsRotate as fasArrowsRotate,
+  faArrowTrendDown as fasArrowTrendDown,
+  faArrowTrendUp as fasArrowTrendUp,
   faAt as fasAt,
   faBook as fasBook,
   faBoxesPacking as fasBoxesPacking,
@@ -41,6 +43,7 @@ import {
   faHashtag as fasHashtag,
   faHeart as fasHeart,
   faHeartPulse as fasHeartPulse,
+  faHouseBlank as fasHouseBlank,
   faImage as fasImage,
   faImages as fasImages,
   faInfo as fasInfo,
@@ -87,6 +90,7 @@ import {
   faDoorClosed as farDoorClosed,
   faGift as farGift,
   faHeart as farHeart,
+  faHouseBlank as farHouseBlank,
   faListCheck as farListCheck,
   faListOl as farListOl,
   faMicrophoneLines as farMicrophoneLines,
@@ -113,6 +117,8 @@ import App from "./App.vue";
 
 library.add(
   fasArrowsRotate,
+  fasArrowTrendDown,
+  fasArrowTrendUp,
   fasAt,
   fasBook,
   fasBoxesPacking,
@@ -135,6 +141,7 @@ library.add(
   fasHashtag,
   fasHeart,
   fasHeartPulse,
+  fasHouseBlank,
   fasImage,
   fasImages,
   fasInfo,
@@ -180,6 +187,7 @@ library.add(
   farDoorClosed,
   farGift,
   farHeart,
+  farHouseBlank,
   farListCheck,
   farListOl,
   farMicrophoneLines,

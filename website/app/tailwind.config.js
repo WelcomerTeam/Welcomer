@@ -25,6 +25,8 @@ module.exports = {
           dark: "#E82E39",
         },
         dace: "#72DACE",
+        trendUp: "#BEC2FF",
+        trendDown: "#FFB2B7",
       },
     },
   },

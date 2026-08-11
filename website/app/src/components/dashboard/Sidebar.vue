@@ -97,7 +97,13 @@ const navigation = [
       {
         name: "Server Overview",
         linkname: "dashboard.guild.overview",
+        icon: "fa-house-blank",
+      },
+      {
+        name: "Server Analytics",
+        linkname: "dashboard.guild.analytics",
         icon: "fa-chart-line",
+        headline: "New"
       },
       {
         name: "Bot Settings",
@@ -127,7 +133,6 @@ const navigation = [
         name: "Welcomer",
         linkname: "dashboard.guild.welcomer",
         icon: "fa-user-plus",
-        headline: "New"
       },
     ],
   },
@@ -147,7 +152,6 @@ const navigation = [
         name: "Reaction Roles",
         linkname: "dashboard.guild.reactionroles",
         icon: "fa-face-smile-plus",
-        headline: "New"
       },
       {
         name: "TimeRoles",
@@ -167,13 +171,11 @@ const navigation = [
         name: "Giveaways",
         linkname: "dashboard.guild.giveaways",
         icon: "fa-gift",
-        headline: "New"
       },
       {
         name: "Polls",
         linkname: "dashboard.guild.polls",
         icon: "fa-square-poll-horizontal",
-        headline: "New"
       },
     ],
   }

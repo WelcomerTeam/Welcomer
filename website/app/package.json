@@ -45,6 +45,7 @@
     "unicode-emoji-json": "^0.4.0",
     "volar-service-vetur": "^0.0.30",
     "vue": "^3.3.4",
+    "vue-chartjs": "^5.3.4",
     "vue-color-kit": "^1.0.6",
     "vue-markdown": "git+https://github.com/miaolz123/vue-markdown.git",
     "vue-router": "^4.2.4",
@@ -71,5 +72,13 @@
     "vite": "^7.1.11",
     "vue-eslint-parser": "^10.2.0",
     "webpack-bundle-analyzer": "^4.9.1"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "vue-demi@0.13.11": true,
+    "core-js@2.6.12": true,
+    "esbuild@0.28.2": true,
+    "highlight.js@9.18.5": true,
+    "yarn@1.22.22": true
   }
 }

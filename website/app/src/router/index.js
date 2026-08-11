@@ -89,6 +89,11 @@ const routes = [
             component: () => import("@/pages/dashboard/Home.vue"),
           },
           {
+            name: "dashboard.guild.analytics",
+            path: "analytics",
+            component: () => import("@/pages/dashboard/Analytics.vue"),
+          },
+          {
             name: "dashboard.guild.memberships",
             path: "memberships",
             component: () => import("@/pages/dashboard/Memberships.vue"),

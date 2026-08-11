@@ -17,7 +17,7 @@ export const PlatformTypePaypalSubscription = "paypal_subscription";
 export const PlatformTypeDiscord = "discord";
 
 export const GetBotInvite = (bot_id, guild_id) => {
-    return `https://discord.com/oauth2/authorize?client_id=${bot_id}&scope=bot%20applications.commands&permissions=${BotPermissions}${guild_id ? '&guild_id='+guild_id : ''}`
+    return `https://discord.com/oauth2/authorize?client_id=${bot_id}&scope=bot%20applications.commands&permissions=${BotPermissions}${guild_id ? '&guild_id=' + guild_id : ''}`
 }
 
 export const OpenBotInvite = (bot_id, guild_id, callback) => {
@@ -31,8 +31,8 @@ export const OpenPatreonLink = (callback) => {
 export const TryOpenURLInPopup = (url, callback) => {
     const padding = 64
 
-    const width = Math.min(550, window.outerWidth-(padding*2));
-    const height = Math.min(800, window.outerHeight-(padding*2));
+    const width = Math.min(550, window.outerWidth - (padding * 2));
+    const height = Math.min(800, window.outerHeight - (padding * 2));
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
@@ -172,3 +172,126 @@ export const FAQs = [
         }
     }
 ]
+
+export const AnalyticsTab_Overview = "Overview";
+export const AnalyticsTab_Retention = "Retention";
+export const AnalyticsTab_UserActivity = "User Activity";
+export const AnalyticsTab_UserDemographics = "User Demographics";
+export const AnalyticsTab_MessageActivity = "Message Activity";
+export const AnalyticsTab_VoiceActivity = "Voice Activity";
+export const AnalyticsTab_RoleActivity = "Role Activity";
+export const AnalyticsTab_Invites = "Invites";
+export const AnalyticsTab_Borderwall = "Borderwall";
+
+export const DefaultAnalyticsTab = AnalyticsTab_Overview;
+
+export const AnalyticsTabs = [
+    AnalyticsTab_Overview,
+    AnalyticsTab_Retention,
+    AnalyticsTab_UserActivity,
+    AnalyticsTab_UserDemographics,
+    AnalyticsTab_MessageActivity,
+    AnalyticsTab_VoiceActivity,
+    AnalyticsTab_RoleActivity,
+    AnalyticsTab_Invites,
+    AnalyticsTab_Borderwall
+];
+
+export const ChartOptions = (callbacks) => {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        animation: {
+            duration: 700,
+            easing: 'easeOutQuart',
+        },
+
+        layout: {
+            padding: 10,
+        },
+
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+
+        plugins: {
+            legend: {
+                display: false,
+            },
+
+            tooltip: {
+                enabled: true,
+
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('background-color'),
+                titleColor: getComputedStyle(document.body).getPropertyValue('color'),
+                bodyColor: getComputedStyle(document.body).getPropertyValue('color'),
+
+                padding: 10,
+                cornerRadius: 8,
+
+                displayColors: false,
+
+                callbacks: callbacks,
+            },
+        },
+
+        scales: {
+            x: {
+                grid: {
+                    display: false,
+                },
+
+                border: {
+                    display: false,
+                },
+
+                ticks: {
+                    color: getComputedStyle(document.body).getPropertyValue('color'),
+                    font: {
+                        size: 12,
+                    },
+                },
+            },
+
+            y: {
+                display: false,
+                beginAtZero: true,
+            },
+        },
+    }
+}
+
+export const GetDatasetLine = (label, data) => {
+    return {
+        labels: data.map((item => item[0])),
+        datasets: [
+            {
+                label: label,
+                data: data.map((item) => item[1]),
+
+                pointRadius: 0,
+                pointHoverRadius: 0,
+
+                tension: 0.4,
+
+                borderColor: "#2F80ED",
+                backgroundColor: (context) => {
+                    const { chart } = context;
+                    const { ctx, chartArea } = chart;
+
+                    if (!chartArea) return undefined;
+
+                    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+
+                    gradient.addColorStop(0, `#2F80ED4D`);
+                    gradient.addColorStop(1, `#2F80ED00`);
+
+                    return gradient;
+                },
+                fill: true,
+            },
+        ],
+    }
+}
