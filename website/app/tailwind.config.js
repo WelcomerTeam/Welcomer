@@ -27,6 +27,7 @@ module.exports = {
         dace: "#72DACE",
         trendUp: "#BEC2FF",
         trendDown: "#FFB2B7",
+        blob: "#FBC01B"
       },
     },
   },

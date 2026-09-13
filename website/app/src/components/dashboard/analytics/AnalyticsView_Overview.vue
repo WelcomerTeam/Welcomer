@@ -1,22 +1,47 @@
 <template>
     <div class="dashboard-container">
         <div class="dashboard-content">
-            <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
-                <AnalyticsCard name="Total Guild Members" :amount="9564" :previousAmount="9542" icon="fa-user" />
-                <AnalyticsCard name="Members Joined" :amount="123" :previousAmount="123" />
-                <AnalyticsCard name="Members Left" :amount="123" />
+            <div class="flex justify-end min-h-12">
+                <AnalyticsDatePicker @update:modelValue="handleDateRangeUpdate" :maxDate="new Date()" :defaultPreset="'last_7_days'" />
             </div>
-            <div class="mb-4">
-                <!-- <AnalyticsCard name="Total Messages Sent" :amount="123456" :previousAmount="123456" icon="fa-message" /> -->
-                <AnalyticsCardSlot name="Test">
-                    <Line :data="GetDatasetLine('Members', [
-                        ['A', 1],
-                        ['B',6],
-                        ['C',3],
-                    ])" :options="ChartOptions({
-                        label: (context) => { return `${context.parsed.y} members` }
-                    })" />
-                </AnalyticsCardSlot>
+
+            <div v-if="isDataError">
+                <div class="mb-4">Data Error</div>
+                <button @click="this.fetch">Retry</button>
+            </div>
+            <div v-else-if="!isDataFetched" class="flex py-5 w-full justify-center">
+                <LoadingIcon />
+            </div>
+            <div v-else>
+                <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
+                    <AnalyticsCard name="Total Guild Members" :amount="data.current.total_guild_members" :previousAmount="data.previous.total_guild_members" icon="fa-user" />
+                    <AnalyticsCard name="Members Joined" :amount="data.current.members_joined" :previousAmount="data.previous.members_joined" />
+                    <AnalyticsCard name="Members Left" :amount="data.current.members_left" :previousAmount="data.previous.members_left" :isDecreaseGood="true" />
+                </div>
+                <div class="mb-4 space-y-4">
+                    <AnalyticsCardSlot name="Guild Members">
+                        <div>
+                            <Line :data="GetDatasetsLine([
+                                GetDatasetLine('#2F80ED', 'Members', data.current.guild_members).HasTimestamp().WithGradientBackgroundColor(),
+                                GetDatasetLine('#eeeeee', 'Previous', data.previous.guild_members).HasTimestamp().WithBorderDash([5, 5]).WithBorderWidth(1),
+                            ]).DontBeginAtZero()" :options="ChartOptions({
+                                label: (context) => { return `${context.dataset.label}: ${context.parsed.y} members` }
+                            })" />
+                        </div>
+                    </AnalyticsCardSlot>
+
+                    <AnalyticsCardSlot name="Join/Leave">
+                        <div>
+                            <Line :data="GetDatasetsLine([
+                                GetDatasetLine('#2F80ED', 'Sum', data.current.guild_net).HasTimestamp(),
+                                GetDatasetBar('#43B581', 'Joins', data.current.guild_joins).HasTimestamp().Ungroup(),
+                                GetDatasetBar('#F04747', 'Leaves', data.current.guild_leaves).HasTimestamp().Ungroup(),
+                            ])" :options="ChartOptions({
+                                label: (context) => { return `${context.dataset.label}: ${Math.abs(context.parsed.y)} members` }
+                            })" />
+                        </div>
+                    </AnalyticsCardSlot>
+                </div>
             </div>
         </div>
     </div>
@@ -25,6 +50,9 @@
 <script>
 import AnalyticsCard from "@/components/dashboard/analytics/AnalyticsCard.vue";
 import AnalyticsCardSlot from "@/components/dashboard/analytics/AnalyticsCardSlot.vue";
+import AnalyticsCardChange from "@/components/dashboard/analytics/AnalyticsCardChange.vue";
+import AnalyticsDatePicker from "@/components/dashboard/analytics/AnalyticsDatePicker.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
 
 import {
     Chart as ChartJS,
@@ -32,27 +60,96 @@ import {
     LinearScale,
     PointElement,
     LineElement,
+    BarController,
+    BarElement,
     Tooltip,
     Filler,
 } from "chart.js";
 
 import { Line } from "vue-chartjs";
 
-import { ChartOptions, GetDatasetLine } from "@/constants";
+import { ChartOptions, GetDatasetsLine, GetDatasetLine, GetDatasetBar } from "@/components/dashboard/analytics/analytics";
+
+import { ref } from "vue";
+
+import dashboardAPI from "@/api/dashboard";
+import endpoints from "@/api/endpoints";
+import { getErrorToast } from "@/utilities";
 
 export default {
     components: {
         AnalyticsCard,
         AnalyticsCardSlot,
+        AnalyticsCardChange,
+        AnalyticsDatePicker,
         Line,
+        LoadingIcon,
     },
     setup() {
-        ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
+        var startDate = ref(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)); // 7 days ago
+        var endDate = ref(new Date());
+
+        var isDataFetched = ref(false);
+        var isDataError = ref(false);
+        var data = ref({});
+        var lastUpdate = ref(new Date());
+
+        ChartJS.register(
+            CategoryScale,
+            LinearScale,
+            PointElement,
+            LineElement,
+            Tooltip,
+            Filler,
+            BarController,
+            BarElement
+        );
 
         return {
             ChartOptions,
+            GetDatasetsLine,
             GetDatasetLine,
+            GetDatasetBar,
+
+            startDate,
+            endDate,
+
+            isDataFetched,
+            isDataError,
+            data,
+            lastUpdate,
         };
+    },
+    mounted() {
+        this.fetch();
+    },
+    methods: {
+        fetch() {
+            this.isDataError = false;
+
+            dashboardAPI.getConfig(
+                endpoints.EndpointGuildAnalytics(this.$route.params.guildID, "overview") + "?from=" + this.startDate.toISOString() + "&to=" + this.endDate.toISOString(),
+                ({ config }) => {
+                    this.isDataFetched = true;
+                    this.isDataError = false;
+
+                    this.data = config;
+                    this.lastUpdate = new Date();
+                },
+                (error) => {
+                    this.$store.dispatch("createToast", getErrorToast(error));
+
+                    this.isDataFetched = true;
+                    this.isDataError = true;
+                }
+            );
+        },
+
+        handleDateRangeUpdate(newDateRange) {
+            this.startDate = new Date(newDateRange.startDate);
+            this.endDate = new Date(newDateRange.endDate);
+            this.fetch();
+        },
     },
 };
 </script>

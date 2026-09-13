@@ -48,6 +48,8 @@ func main() {
 
 	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
 
+	redisHost := flag.String("redisHost", os.Getenv("REDIS_HOST"), "Redis host")
+
 	flag.Parse()
 
 	backend.DiscordOAuth2Config.Endpoint.TokenURL = strings.ReplaceAll(backend.DiscordOAuth2Config.Endpoint.TokenURL, "https://discord.com", *proxyAddress)
@@ -68,6 +70,8 @@ func main() {
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
+
+	welcomer.SetupRedisClient(*redisHost)
 
 	gin.SetMode(*releaseMode)
 

@@ -54,3 +54,30 @@ WHERE
     AND science_guild_events.created_at > @welcome_message_lifetime_lookback
     AND message_deleted.guild_event_uuid IS NULL
 LIMIT @event_limit;
+
+-- name: GetScienceGuildEventsForGuild :many
+SELECT DISTINCT
+    science_guild_events.user_id,
+    science_guild_events.event_type,
+    science_guild_events.created_at
+FROM
+    science_guild_events
+WHERE
+    science_guild_events.guild_id = @guild_id
+    AND science_guild_events.event_type = @event_type
+    AND science_guild_events.created_at BETWEEN @date_from AND @date_to;
+
+-- name: GetScienceGuildEventsForGuildGroupedByPeriod :many
+SELECT
+    date_trunc(@period, science_guild_events.created_at)::TIMESTAMP AS date,
+    COUNT(*)::INT AS event_count
+FROM
+    science_guild_events
+WHERE
+    science_guild_events.guild_id = @guild_id
+    AND science_guild_events.event_type = @event_type
+    AND science_guild_events.created_at BETWEEN @date_from AND @date_to
+GROUP BY
+    date_trunc(@period, science_guild_events.created_at)
+ORDER BY
+    date_trunc(@period, science_guild_events.created_at) ASC;

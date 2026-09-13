@@ -60,7 +60,8 @@ func NewGenericErrorWithLineNumber() error {
 
 // Validation errors.
 var (
-	ErrGeneralError = NewErrorWithCode(11000, "general error")
+	ErrGeneralError    = NewErrorWithCode(11000, "general error")
+	ErrTooManyRequests = NewErrorWithCode(429, "too many requests")
 
 	ErrRequired                 = NewErrorWithCode(11001, "this field is required")
 	ErrChannelInvalid           = NewErrorWithCode(11002, "this channel does not exist")

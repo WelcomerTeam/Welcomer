@@ -153,6 +153,112 @@ func (q *Queries) GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.
 	return &i, err
 }
 
+const GetScienceGuildEventsForGuild = `-- name: GetScienceGuildEventsForGuild :many
+SELECT DISTINCT
+    science_guild_events.user_id,
+    science_guild_events.event_type,
+    science_guild_events.created_at
+FROM
+    science_guild_events
+WHERE
+    science_guild_events.guild_id = $1
+    AND science_guild_events.event_type = $2
+    AND science_guild_events.created_at BETWEEN $3 AND $4
+`
+
+type GetScienceGuildEventsForGuildParams struct {
+	GuildID   int64     `json:"guild_id"`
+	EventType int32     `json:"event_type"`
+	DateFrom  time.Time `json:"date_from"`
+	DateTo    time.Time `json:"date_to"`
+}
+
+type GetScienceGuildEventsForGuildRow struct {
+	UserID    sql.NullInt64 `json:"user_id"`
+	EventType int32         `json:"event_type"`
+	CreatedAt time.Time     `json:"created_at"`
+}
+
+func (q *Queries) GetScienceGuildEventsForGuild(ctx context.Context, arg GetScienceGuildEventsForGuildParams) ([]*GetScienceGuildEventsForGuildRow, error) {
+	rows, err := q.db.Query(ctx, GetScienceGuildEventsForGuild,
+		arg.GuildID,
+		arg.EventType,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetScienceGuildEventsForGuildRow{}
+	for rows.Next() {
+		var i GetScienceGuildEventsForGuildRow
+		if err := rows.Scan(&i.UserID, &i.EventType, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetScienceGuildEventsForGuildGroupedByPeriod = `-- name: GetScienceGuildEventsForGuildGroupedByPeriod :many
+SELECT
+    date_trunc($1, science_guild_events.created_at)::TIMESTAMP AS date,
+    COUNT(*)::INT AS event_count
+FROM
+    science_guild_events
+WHERE
+    science_guild_events.guild_id = $2
+    AND science_guild_events.event_type = $3
+    AND science_guild_events.created_at BETWEEN $4 AND $5
+GROUP BY
+    date_trunc($1, science_guild_events.created_at)
+ORDER BY
+    date_trunc($1, science_guild_events.created_at) ASC
+`
+
+type GetScienceGuildEventsForGuildGroupedByPeriodParams struct {
+	Period    string    `json:"period"`
+	GuildID   int64     `json:"guild_id"`
+	EventType int32     `json:"event_type"`
+	DateFrom  time.Time `json:"date_from"`
+	DateTo    time.Time `json:"date_to"`
+}
+
+type GetScienceGuildEventsForGuildGroupedByPeriodRow struct {
+	Date       time.Time `json:"date"`
+	EventCount int32     `json:"event_count"`
+}
+
+func (q *Queries) GetScienceGuildEventsForGuildGroupedByPeriod(ctx context.Context, arg GetScienceGuildEventsForGuildGroupedByPeriodParams) ([]*GetScienceGuildEventsForGuildGroupedByPeriodRow, error) {
+	rows, err := q.db.Query(ctx, GetScienceGuildEventsForGuildGroupedByPeriod,
+		arg.Period,
+		arg.GuildID,
+		arg.EventType,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetScienceGuildEventsForGuildGroupedByPeriodRow{}
+	for rows.Next() {
+		var i GetScienceGuildEventsForGuildGroupedByPeriodRow
+		if err := rows.Scan(&i.Date, &i.EventCount); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetScienceGuildJoinLeaveEventForUser = `-- name: GetScienceGuildJoinLeaveEventForUser :one
 SELECT
     guild_event_uuid, science_guild_events.guild_id, user_id, science_guild_events.created_at, event_type, data, invite_code, guild_invites.guild_id, created_by, guild_invites.created_at, uses

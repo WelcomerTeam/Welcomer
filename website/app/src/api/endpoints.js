@@ -90,6 +90,10 @@ let EndpointExportGuildAuditLogs = function(guildID) {
   return `${EndpointGuildSettings(guildID)}/export-audit-logs`;
 }
 
+let EndpointGuildAnalytics = function(guildID, endpoint) {
+  return `${EndpointGuild(guildID)}/analytics/${endpoint}`;
+}
+
 export default {
   EndpointGuild,
   EndpointGuildAutorole,
@@ -114,4 +118,5 @@ export default {
   EndpointStopGuildCustomBot,
   EndpointCheckMessage,
   EndpointExportGuildAuditLogs,
+  EndpointGuildAnalytics,
 };

@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { AnalyticsTabs } from "@/constants";
+import { AnalyticsTabs } from "@/components/dashboard/analytics/analytics";
 
 export default {
     props: {

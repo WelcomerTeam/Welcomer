@@ -140,6 +140,8 @@ type Querier interface {
 	GetRulesGuildSettings(ctx context.Context, guildID int64) (*GetRulesGuildSettingsRow, error)
 	GetScienceEvent(ctx context.Context, eventUuid uuid.UUID) (*ScienceEvents, error)
 	GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.UUID) (*ScienceGuildEvents, error)
+	GetScienceGuildEventsForGuild(ctx context.Context, arg GetScienceGuildEventsForGuildParams) ([]*GetScienceGuildEventsForGuildRow, error)
+	GetScienceGuildEventsForGuildGroupedByPeriod(ctx context.Context, arg GetScienceGuildEventsForGuildGroupedByPeriodParams) ([]*GetScienceGuildEventsForGuildGroupedByPeriodRow, error)
 	GetScienceGuildJoinLeaveEventForUser(ctx context.Context, arg GetScienceGuildJoinLeaveEventForUserParams) (*GetScienceGuildJoinLeaveEventForUserRow, error)
 	GetTempChannelsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTempchannels, error)
 	GetTimeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTimeroles, error)
