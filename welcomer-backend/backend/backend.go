@@ -84,9 +84,16 @@ func NewBackend(options Options) (*Backend, error) {
 	}
 
 	b := &Backend{
-		Options:           options,
-		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
-		IPChecker:         welcomer.NewLRUIPChecker(1024),
+		Options: options,
+		PrometheusHandler: gin_prometheus.NewWithConfig(gin_prometheus.Config{
+			Subsystem: "prometheus",
+		}),
+		IPChecker: welcomer.NewLRUIPChecker(1024),
+	}
+
+	// Update the Prometheus handler to use the full path as the label value for the request count metric.
+	b.PrometheusHandler.ReqCntURLLabelMappingFn = func(c *gin.Context) string {
+		return c.FullPath()
 	}
 
 	// Setup Discord OAuth2
@@ -232,6 +239,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildSettingsWelcomerRoutes(router)
 	registerGuildCustomBotRoutes(router)
 	registerGuildSettingsReactionRolesRoutes(router)
+	registerGuildAnalyticsRoutes(router)
 
 	return router
 }

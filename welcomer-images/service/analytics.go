@@ -36,7 +36,7 @@ var (
 			Help:    "Image Generation request durations",
 			Buckets: prometheus.ExponentialBucketsRange(0.1, 5, 20),
 		},
-		[]string{"guild_id", "format", "background"},
+		[]string{"guild_id"},
 	)
 )
 
@@ -57,6 +57,6 @@ func onGenerationComplete(start time.Time, guildID int64, background string, for
 		Add(dur)
 
 	imgenDuration.
-		WithLabelValues(guildIDstring, format.String(), background).
+		WithLabelValues(guildIDstring).
 		Observe(dur)
 }
