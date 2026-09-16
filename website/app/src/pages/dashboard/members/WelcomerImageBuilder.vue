@@ -191,10 +191,10 @@
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Layout</span>
             <div class="grid grid-cols-2 gap-2" v-if="image_config.dimensions">
-              <InputCalculator :min="getMinimumWidth()" max="2000" type="number" v-model="image_config.dimensions[0]">
+              <InputCalculator :min="getMinimumWidth()" max="2000" :defaultValue="800" type="number" v-model="image_config.dimensions[0]">
                 Width
               </InputCalculator>
-              <InputCalculator :min="getMinimumHeight()" max="2000" type="number" v-model="image_config.dimensions[1]">
+              <InputCalculator :min="getMinimumHeight()" max="2000" :defaultValue="600" type="number" v-model="image_config.dimensions[1]">
                 Height
               </InputCalculator>
             </div>
@@ -242,9 +242,7 @@
 
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Debug</span>
-            <code>
-              {{ image_config }}
-            </code>
+            <textarea class="w-full h-32 p-2 border rounded bg-transparent" :value="JSON.stringify(image_config, null, 2)" v-on:blur="image_config = JSON.parse($event.target.value)"></textarea>
           </div>
         </div>
 
@@ -339,11 +337,11 @@
                   </ListboxOptions>
                 </div>
               </Listbox>
-              <InputCalculator type="number" min="8" v-model="image_config.layers[selectedObject].typography.font_size">
+              <InputCalculator type="number" min="8" :defaultValue="24" v-model="image_config.layers[selectedObject].typography.font_size">
               </InputCalculator>
-              <InputCalculator type="number" min="0.1" step="0.1"
+              <InputCalculator type="number" min="0.1" step="0.1" :defaultValue="1.2"
                                v-model="image_config.layers[selectedObject].typography.line_height">Line Height</InputCalculator>
-              <InputCalculator type="number" step="0.1"
+              <InputCalculator type="number" step="0.1" :defaultValue="0"
                                v-model="image_config.layers[selectedObject].typography.letter_spacing">Letter Spacing</InputCalculator>
             </div>
             <span class="block text-neutral-500 text-xs font-medium mt-2">Alignment</span>
@@ -466,15 +464,13 @@
               </div>
             </Listbox>
             <div class="mt-2">
-              <InputCalculator type="number" min="0" max="32" v-model="image_config.layers[selectedObject].stroke.width">
+              <InputCalculator type="number" min="0" max="32" :defaultValue="8" v-model="image_config.layers[selectedObject].stroke.width">
               </InputCalculator>
             </div>
           </div>
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Debug</span>
-            <code>
-              {{ image_config.layers[selectedObject] }}
-            </code>
+            <textarea class="w-full h-32 p-2 border rounded bg-transparent" :value="JSON.stringify(image_config.layers[selectedObject], null, 2)" v-on:blur="image_config.layers[selectedObject] = JSON.parse($event.target.value)"></textarea>
           </div>
         </div>
       </div>

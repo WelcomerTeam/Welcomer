@@ -29,6 +29,10 @@ export default {
             type: String,
             default: ''
         },
+        defaultValue: {
+            type: [String, Number],
+            default: ''
+        },
         min: {
             type: Number,
             default: null
@@ -69,6 +73,10 @@ export default {
         update(value) {
             value = this.cleanValue(value);
             const expr = String(value).trim();
+
+            if (expr === '') {
+                value = this.defaultValue;
+            }
 
             // allow only digits, whitespace, parentheses, decimal point and basic operators
             if (/^[0-9\s()+\-*/%.]+$/.test(expr) && /[+\-*/%]/.test(expr)) {
