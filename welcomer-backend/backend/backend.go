@@ -213,6 +213,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	router.Use(gin.Recovery())
 
 	registerExampleRoutes(router)
+	registerDiscordEmbedRoute(router)
 
 	registerMetaRoutes(router)
 

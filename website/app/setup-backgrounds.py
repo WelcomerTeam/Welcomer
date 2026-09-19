@@ -21,6 +21,8 @@ destination_directory = sys.argv[2]
 
 output = []
 
+os.makedirs(destination_directory, exist_ok=True)
+
 # Loop through all files in the directory
 for filename in os.listdir(source_directory):
     if filename.endswith('.png'):

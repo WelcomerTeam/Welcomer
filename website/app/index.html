@@ -8,13 +8,23 @@
   <title>Welcomer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+
+  <meta property="og:site_name" content="Welcomer">
+  <meta property="og:title" content="Welcomer Discord Bot">
+  <meta property="og:description" content="Welcome members, grow communities, and simplify server management with Welcomer.">
+  <meta property="og:image" content="https://www.welcomer.gg/assets/favicon.png">
+  <meta property="og:image:width" content="64">
+  <meta property="og:image:height" content="64">
+  <meta name="theme-color" content="#FBC01B">
+  <meta name="twitter:card" content="summary">
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-44Y783TVR9"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-44Y783TVR9');
   </script>
@@ -35,5 +45,7 @@
     document.documentElement.classList.remove("dark");
   }
 </script>
+
+<link rel="discord:component-embed" type="application/json" href="{{component_embed_url}}">
 
 </html>
