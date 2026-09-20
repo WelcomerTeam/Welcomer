@@ -538,9 +538,108 @@ func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowfla
 	return &resp, nil
 }
 
+func getGuildAnalyticsUserActivity(ctx *gin.Context) {
+	requireOAuthAuthorization(ctx, func(ctx *gin.Context) {
+		requireGuildElevation(ctx, func(ctx *gin.Context) {
+			guildID := tryGetGuildID(ctx)
+
+			var err error
+
+			ok, err := ratelimitAnalytics.CanRequest(ctx, guildID.String())
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to check rate limit")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			if !ok {
+				welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Msg("rate limit exceeded")
+
+				ctx.JSON(http.StatusTooManyRequests, NewBaseResponse(ErrTooManyRequests, nil))
+
+				return
+			}
+
+			// TODO: premium date periods
+
+			partial := &AnalyticsRequest{}
+
+			err = ctx.BindQuery(partial)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			if partial.From.IsZero() || partial.To.IsZero() {
+				partial.From = time.Now().Add(-1 * defaultPeriod)
+				partial.To = time.Now()
+			}
+
+			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
+				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+			}
+
+			data, err := getGuildAnalyticsUserActivityData(ctx, guildID, partial.From, partial.To, false)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get guild analytics user activity data")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			previousData, err := getGuildAnalyticsUserActivityData(ctx, guildID, partial.PreviousFrom, partial.PreviousTo, true)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get previous guild analytics user activity data")
+
+				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+
+				return
+			}
+
+			ctx.JSON(http.StatusOK, BaseResponse{
+				Ok: true,
+				Data: map[string]any{
+					"current":  data,
+					"previous": previousData,
+				},
+			})
+		})
+	})
+}
+
+type guildAnalyticsUserActivityResponse struct {
+	DailyActive        int           `json:"daily_active"`
+	WeeklyActive       int           `json:"weekly_active"`
+	MonthlyActive      int           `json:"monthly_active"`
+	UniqueUserActivity []DatasetItem `json:"unique_user_activity"`
+	TotalUserActivity  []DatasetItem `json:"total_user_activity"`
+	TotalMembers       int           `json:"total_members"`
+	ActiveMembers      int           `json:"active_members"`
+	DormantMembers     int           `json:"dormant_members"`
+
+	TimeToFirstMessage        int           `json:"time_to_first_message"`
+	AverageTimeToFirstMessage int           `json:"average_time_to_first_message"`
+	MedianTimeToFirstMessage  int           `json:"median_time_to_first_message"`
+	AccountAgeDistribution    []DatasetItem `json:"account_age_distribution"`
+}
+
+func getGuildAnalyticsUserActivityData(ctx *gin.Context, guildID int, from, to time.Time, isPrevious bool) (*guildAnalyticsUserActivityResponse, error) {
+	resp := guildAnalyticsUserActivityResponse{}
+
+	if !isPrevious {
+	}
+
+	return &resp, nil
+}
+
 func registerGuildAnalyticsRoutes(g *gin.Engine) {
 	g.GET("/api/guild/:guildID/analytics/overview", getGuildAnalyticsOverview)
 	g.GET("/api/guild/:guildID/analytics/retention", getGuildAnalyticsRetention)
+	g.GET("/api/guild/:guildID/analytics/user-activity", getGuildAnalyticsUserActivity)
 }
 
 // Page Layouts

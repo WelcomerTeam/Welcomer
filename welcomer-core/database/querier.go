@@ -17,6 +17,7 @@ type Querier interface {
 	AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) (uuid.UUID, error)
 	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
 	AddPollEntry(ctx context.Context, arg AddPollEntryParams) (uuid.UUID, error)
+	AggregateMessageCounts(ctx context.Context, arg AggregateMessageCountsParams) ([]*AggregateMessageCountsRow, error)
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
 	CountGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID) (int32, error)
 	CountPollEntriesByUniqueUsers(ctx context.Context, pollUuid uuid.UUID) (*CountPollEntriesByUniqueUsersRow, error)
@@ -213,6 +214,7 @@ type Querier interface {
 	UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsCustomBuilderParams) (*GuildSettingsWelcomerImages, error)
 	UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error)
 	UpsertJobCheckpoint(ctx context.Context, arg UpsertJobCheckpointParams) error
+	UpsertMessageCounts(ctx context.Context, arg UpsertMessageCountsParams) error
 }
 
 var _ Querier = (*Queries)(nil)

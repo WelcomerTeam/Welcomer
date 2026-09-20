@@ -16,25 +16,6 @@ const (
 	jobNameMessageCounts = "guild_message_counts_hour"
 	backfillWindow       = time.Minute * 2 // allow late events
 	slowJobWarning       = time.Second * 45
-
-	aggregateMessageCountsSQL = `
-SELECT date_trunc('hour', occurred_at) AS hour_ts,
-	guild_id,
-	channel_id,
-	user_id,
-	COUNT(message_id) AS message_count,
-	MIN(occurred_at) AS min_ts,
-	MAX(occurred_at) AS max_ts
-FROM ingest_message_events
-WHERE occurred_at > $1 AND occurred_at <= $2 AND event_type IN ($3, $4)
-GROUP BY 1, 2, 3, 4`
-
-	upsertMessageCountsSQL = `
-INSERT INTO guild_message_counts_hour (hour_ts, guild_id, channel_id, user_id, message_count, min_ts)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (hour_ts, guild_id, channel_id, user_id) DO UPDATE SET
-	message_count = EXCLUDED.message_count,
-	min_ts = LEAST(guild_message_counts_hour.min_ts, EXCLUDED.min_ts)`
 )
 
 // AggregateMessageCounts runs on an interval and rolls ingest_message_events into hourly aggregates.
@@ -70,15 +51,6 @@ func AggregateMessageCounts(ctx context.Context, waitGroup *sync.WaitGroup, inte
 			}
 		}
 	})
-}
-
-type aggRow struct {
-	hourTimestamp      time.Time
-	guildID, channelID int64
-	userID             int64
-	messageCount       int64
-	minTimestamp       time.Time
-	maxTimestamp       time.Time
 }
 
 func aggregateMessageCounts(ctx context.Context) (err error) {
@@ -119,42 +91,34 @@ func aggregateMessageCounts(ctx context.Context) (err error) {
 		Time("upper_bound", upperBound).
 		Msg("aggregating message counts")
 
-	rows, err := tx.Query(ctx, aggregateMessageCountsSQL, lowerBound, upperBound, welcomer.IngestMessageEventTypeCreate, welcomer.IngestMessageEventTypeEdit)
+	rows, err := welcomer.Queries.AggregateMessageCounts(ctx, database.AggregateMessageCountsParams{
+		DateFrom:        lowerBound,
+		DateTo:          upperBound,
+		EventTypeCreate: int16(welcomer.IngestMessageEventTypeCreate),
+		EventTypeEdit:   int16(welcomer.IngestMessageEventTypeEdit),
+	})
 	if err != nil {
 		return fmt.Errorf("error querying aggregate message counts: %w", err)
 	}
 
 	var maxProcessed time.Time
 
-	results := make([]aggRow, 0)
-
-	for rows.Next() {
-		var aggregationRow aggRow
-
-		if err := rows.Scan(&aggregationRow.hourTimestamp, &aggregationRow.guildID, &aggregationRow.channelID, &aggregationRow.userID, &aggregationRow.messageCount, &aggregationRow.minTimestamp, &aggregationRow.maxTimestamp); err != nil {
-			rows.Close()
-
-			return fmt.Errorf("error scanning aggregate message counts: %w", err)
-		}
-
-		results = append(results, aggregationRow)
-
-		if aggregationRow.maxTimestamp.After(maxProcessed) {
-			maxProcessed = aggregationRow.maxTimestamp
+	for _, row := range rows {
+		if row.MaxTs.After(maxProcessed) {
+			maxProcessed = row.MaxTs
 		}
 	}
 
-	if err := rows.Err(); err != nil {
-		rows.Close()
-
-		return fmt.Errorf("error iterating aggregate message counts: %w", err)
-	}
-
-	// Close the result set before issuing any Exec to avoid conn busy
-	rows.Close()
-
-	for _, r := range results {
-		if _, err := tx.Exec(ctx, upsertMessageCountsSQL, r.hourTimestamp, r.guildID, r.channelID, r.userID, r.messageCount, r.minTimestamp); err != nil {
+	for _, r := range rows {
+		err := welcomer.Queries.UpsertMessageCounts(ctx, database.UpsertMessageCountsParams{
+			HourTs:       r.HourTs,
+			GuildID:      r.GuildID,
+			ChannelID:    r.ChannelID,
+			UserID:       r.UserID,
+			MessageCount: r.MessageCount,
+			MinTs:        r.MinTs,
+		})
+		if err != nil {
 			return fmt.Errorf("error upserting aggregate message counts: %w", err)
 		}
 	}
