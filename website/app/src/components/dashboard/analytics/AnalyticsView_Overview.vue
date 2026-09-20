@@ -9,10 +9,10 @@
                 <div class="mb-4">Data Error</div>
                 <button @click="this.fetch">Retry</button>
             </div>
-            <div v-else-if="!isDataFetched" class="flex py-5 w-full justify-center">
+            <div v-else-if="!isDataFetched" class="w-full h-full absolute left-0 top-0 flex items-center justify-center">
                 <LoadingIcon />
             </div>
-            <div v-else>
+            <div v-if="data && !isDataError">
                 <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
                     <AnalyticsCard name="Total Guild Members" :amount="data.current.total_guild_members" :previousAmount="data.previous.total_guild_members" icon="fa-user" />
                     <AnalyticsCard name="Members Joined" :amount="data.current.members_joined" :previousAmount="data.previous.members_joined" />
@@ -91,8 +91,7 @@ export default {
 
         var isDataFetched = ref(false);
         var isDataError = ref(false);
-        var data = ref({});
-        var lastUpdate = ref(new Date());
+        var data = ref(null);
 
         ChartJS.register(
             CategoryScale,
@@ -117,7 +116,6 @@ export default {
             isDataFetched,
             isDataError,
             data,
-            lastUpdate,
         };
     },
     mounted() {
@@ -126,6 +124,7 @@ export default {
     methods: {
         fetch() {
             this.isDataError = false;
+            this.isDataFetched = false;
 
             dashboardAPI.getConfig(
                 endpoints.EndpointGuildAnalytics(this.$route.params.guildID, "overview") + "?from=" + this.startDate.toISOString() + "&to=" + this.endDate.toISOString(),
@@ -134,7 +133,6 @@ export default {
                     this.isDataError = false;
 
                     this.data = config;
-                    this.lastUpdate = new Date();
                 },
                 (error) => {
                     this.$store.dispatch("createToast", getErrorToast(error));

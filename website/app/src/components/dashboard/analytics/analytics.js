@@ -62,6 +62,18 @@ export const ChartOptions = (callbacks) => {
                 callbacks: callbacks,
             },
         },
+
+        WithLegend() {
+            return {
+                ...this,
+                plugins: {
+                    ...this.plugins,
+                    legend: {
+                        display: true,
+                    },
+                },
+            }
+        }
     }
 }
 
@@ -110,7 +122,14 @@ export const GetDatasetBar = (colour, label, data) => {
         HasTimestamp() {
             var hasHours = this.labels.some(label => {
                 const date = new Date(label);
-                return date.getHours() !== 0 || date.getMinutes() !== 0;
+                return date.getUTCHours() !== 0 || date.getMinutes() !== 0;
+            });
+
+            var currentYear = new Date().getUTCFullYear(); 
+
+            var hasYears = this.labels.some(label => {
+                const date = new Date(label);
+                return date.getUTCFullYear() !== currentYear;
             });
 
             this.labels = this.labels.map(label =>
@@ -118,7 +137,8 @@ export const GetDatasetBar = (colour, label, data) => {
                     day: 'numeric',
                     month: 'short',
                     hour: hasHours ? '2-digit' : undefined,
-                    minute: hasHours ? '2-digit' : undefined
+                    minute: hasHours ? '2-digit' : undefined,
+                    year: hasYears ? 'numeric' : undefined
                 })
             );
 
@@ -160,7 +180,14 @@ export const GetDatasetLine = (colour, label, data) => {
         HasTimestamp() {
             var hasHours = this.labels.some(label => {
                 const date = new Date(label);
-                return date.getHours() !== 0 || date.getMinutes() !== 0;
+                return date.getUTCHours() !== 0 || date.getMinutes() !== 0;
+            });
+
+            var currentYear = new Date().getUTCFullYear();
+
+            var hasYears = this.labels.some(label => {
+                const date = new Date(label);
+                return date.getUTCFullYear() !== currentYear;
             });
 
             this.labels = this.labels.map(label =>
@@ -168,7 +195,8 @@ export const GetDatasetLine = (colour, label, data) => {
                     day: 'numeric',
                     month: 'short',
                     hour: hasHours ? '2-digit' : undefined,
-                    minute: hasHours ? '2-digit' : undefined
+                    minute: hasHours ? '2-digit' : undefined,
+                    year: hasYears ? 'numeric' : undefined
                 })
             );
 
