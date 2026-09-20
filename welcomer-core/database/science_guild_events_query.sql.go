@@ -130,6 +130,261 @@ func (q *Queries) GetExpiredWelcomeMessageEvents(ctx context.Context, arg GetExp
 	return items, nil
 }
 
+const GetGuildMemberJoins = `-- name: GetGuildMemberJoins :many
+SELECT
+    date_trunc($1, science_guild_events.created_at)::TIMESTAMP AS date,
+    COUNT(*)::INT AS join_count
+FROM
+    science_guild_events
+WHERE
+    science_guild_events.guild_id = $2
+    AND science_guild_events.event_type = $3
+GROUP BY
+    date_trunc($1, science_guild_events.created_at)
+ORDER BY
+    date_trunc($1, science_guild_events.created_at) ASC
+`
+
+type GetGuildMemberJoinsParams struct {
+	Period                        string `json:"period"`
+	GuildID                       int64  `json:"guild_id"`
+	ScienceGuildEventTypeUserJoin int32  `json:"science_guild_event_type_user_join"`
+}
+
+type GetGuildMemberJoinsRow struct {
+	Date      time.Time `json:"date"`
+	JoinCount int32     `json:"join_count"`
+}
+
+func (q *Queries) GetGuildMemberJoins(ctx context.Context, arg GetGuildMemberJoinsParams) ([]*GetGuildMemberJoinsRow, error) {
+	rows, err := q.db.Query(ctx, GetGuildMemberJoins, arg.Period, arg.GuildID, arg.ScienceGuildEventTypeUserJoin)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetGuildMemberJoinsRow{}
+	for rows.Next() {
+		var i GetGuildMemberJoinsRow
+		if err := rows.Scan(&i.Date, &i.JoinCount); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGuildMemberRetention = `-- name: GetGuildMemberRetention :one
+WITH joined AS (
+    SELECT DISTINCT ON (user_id)
+        user_id,
+        created_at AS joined_at
+    FROM science_guild_events
+    WHERE guild_id = $1
+        AND science_guild_events.event_type = $3
+        AND science_guild_events.created_at BETWEEN $4 AND $5
+    ORDER BY user_id, created_at DESC
+)
+
+SELECT
+    COUNT(*)::int AS members_joined,
+    COUNT(*) FILTER (
+        WHERE EXISTS (
+            SELECT 1
+            FROM science_guild_events leave_event
+            WHERE leave_event.guild_id = $1
+                AND leave_event.user_id = joined.user_id
+                AND leave_event.event_type = $2
+                AND leave_event.created_at > joined.joined_at
+        )
+    )::int AS members_left
+FROM joined
+`
+
+type GetGuildMemberRetentionParams struct {
+	GuildID                        int64     `json:"guild_id"`
+	ScienceGuildEventTypeUserLeave int32     `json:"science_guild_event_type_user_leave"`
+	ScienceGuildEventTypeUserJoin  int32     `json:"science_guild_event_type_user_join"`
+	DateFrom                       time.Time `json:"date_from"`
+	DateTo                         time.Time `json:"date_to"`
+}
+
+type GetGuildMemberRetentionRow struct {
+	MembersJoined int32 `json:"members_joined"`
+	MembersLeft   int32 `json:"members_left"`
+}
+
+func (q *Queries) GetGuildMemberRetention(ctx context.Context, arg GetGuildMemberRetentionParams) (*GetGuildMemberRetentionRow, error) {
+	row := q.db.QueryRow(ctx, GetGuildMemberRetention,
+		arg.GuildID,
+		arg.ScienceGuildEventTypeUserLeave,
+		arg.ScienceGuildEventTypeUserJoin,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	var i GetGuildMemberRetentionRow
+	err := row.Scan(&i.MembersJoined, &i.MembersLeft)
+	return &i, err
+}
+
+const GetGuildMemberRetentionMatrix = `-- name: GetGuildMemberRetentionMatrix :many
+WITH joined AS (
+    SELECT DISTINCT ON (user_id)
+        user_id,
+        created_at AS joined_at
+    FROM science_guild_events
+    WHERE science_guild_events.guild_id = $1
+        AND science_guild_events.event_type = $2
+        AND science_guild_events.created_at BETWEEN (($3)::timestamp - interval '1 year') AND $3
+    ORDER BY user_id, created_at DESC
+),
+left_events AS (
+    SELECT DISTINCT ON (user_id)
+        user_id,
+        created_at AS left_at
+    FROM science_guild_events
+    WHERE science_guild_events.guild_id = $1
+        AND science_guild_events.event_type = $4
+        AND science_guild_events.created_at BETWEEN (($3)::timestamp - interval '1 year') AND $3
+    ORDER BY user_id, created_at DESC
+),
+cohorts AS (
+    SELECT
+        (DATE_PART('year', age($3::timestamp, joined.joined_at)) * 12 + DATE_PART('month', age($3::timestamp, joined.joined_at)))::int AS joined_months_ago,
+        (DATE_PART('year', age($3::timestamp, left_events.left_at)) * 12 + DATE_PART('month', age($3::timestamp, left_events.left_at)))::int AS left_months_ago
+    FROM joined
+        LEFT JOIN left_events ON left_events.user_id = joined.user_id
+            AND left_events.left_at > joined.joined_at
+)
+
+SELECT
+    joined_months_ago,
+    COALESCE(left_months_ago, -1) AS left_months_ago,
+    COUNT(*)::int AS member_count
+FROM cohorts
+WHERE joined_months_ago BETWEEN 0 AND 12
+    AND (left_months_ago IS NULL OR left_months_ago BETWEEN 0 AND 12)
+GROUP BY joined_months_ago, left_months_ago
+ORDER BY joined_months_ago, left_months_ago
+`
+
+type GetGuildMemberRetentionMatrixParams struct {
+	GuildID                        int64     `json:"guild_id"`
+	ScienceGuildEventTypeUserJoin  int32     `json:"science_guild_event_type_user_join"`
+	DateTo                         time.Time `json:"date_to"`
+	ScienceGuildEventTypeUserLeave int32     `json:"science_guild_event_type_user_leave"`
+}
+
+type GetGuildMemberRetentionMatrixRow struct {
+	JoinedMonthsAgo int32 `json:"joined_months_ago"`
+	LeftMonthsAgo   int32 `json:"left_months_ago"`
+	MemberCount     int32 `json:"member_count"`
+}
+
+// Returns, for members who joined within [date_to - 1 year, date_to], how many months ago they
+// joined (X axis) and how many months ago they left (Y axis), 0 being the current month.
+// Members who have not left are included with a NULL left_months_ago.
+func (q *Queries) GetGuildMemberRetentionMatrix(ctx context.Context, arg GetGuildMemberRetentionMatrixParams) ([]*GetGuildMemberRetentionMatrixRow, error) {
+	rows, err := q.db.Query(ctx, GetGuildMemberRetentionMatrix,
+		arg.GuildID,
+		arg.ScienceGuildEventTypeUserJoin,
+		arg.DateTo,
+		arg.ScienceGuildEventTypeUserLeave,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetGuildMemberRetentionMatrixRow{}
+	for rows.Next() {
+		var i GetGuildMemberRetentionMatrixRow
+		if err := rows.Scan(&i.JoinedMonthsAgo, &i.LeftMonthsAgo, &i.MemberCount); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetLeftGuildMemberDaysOnServer = `-- name: GetLeftGuildMemberDaysOnServer :many
+WITH joined AS (
+    SELECT DISTINCT ON (user_id)
+        user_id,
+        created_at AS joined_at
+    FROM science_guild_events
+    WHERE science_guild_events.guild_id = $1
+        AND science_guild_events.event_type = $2
+        AND science_guild_events.created_at BETWEEN $3 AND $4
+    ORDER BY science_guild_events.user_id, created_at DESC
+),
+left_events AS (
+    SELECT DISTINCT ON (user_id)
+        user_id,
+        created_at AS left_at
+    FROM science_guild_events
+    WHERE science_guild_events.guild_id = $1
+        AND science_guild_events.event_type = $5
+        AND science_guild_events.created_at >= $3
+    ORDER BY science_guild_events.user_id, created_at DESC
+)
+
+SELECT
+    COUNT(*)::int AS count,
+    CASE WHEN left_events.left_at IS NULL THEN
+        (EXTRACT(EPOCH FROM now() - joined.joined_at) / 86400)
+    ELSE
+        EXTRACT(EPOCH FROM COALESCE(left_events.left_at, now()) - joined.joined_at) / 86400
+    END::int AS days_on_server
+FROM joined
+    LEFT JOIN left_events ON left_events.user_id = joined.user_id
+GROUP BY days_on_server
+ORDER BY days_on_server DESC
+`
+
+type GetLeftGuildMemberDaysOnServerParams struct {
+	GuildID                        int64     `json:"guild_id"`
+	ScienceGuildEventTypeUserJoin  int32     `json:"science_guild_event_type_user_join"`
+	DateFrom                       time.Time `json:"date_from"`
+	DateTo                         time.Time `json:"date_to"`
+	ScienceGuildEventTypeUserLeave int32     `json:"science_guild_event_type_user_leave"`
+}
+
+type GetLeftGuildMemberDaysOnServerRow struct {
+	Count        int32 `json:"count"`
+	DaysOnServer int32 `json:"days_on_server"`
+}
+
+func (q *Queries) GetLeftGuildMemberDaysOnServer(ctx context.Context, arg GetLeftGuildMemberDaysOnServerParams) ([]*GetLeftGuildMemberDaysOnServerRow, error) {
+	rows, err := q.db.Query(ctx, GetLeftGuildMemberDaysOnServer,
+		arg.GuildID,
+		arg.ScienceGuildEventTypeUserJoin,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.ScienceGuildEventTypeUserLeave,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetLeftGuildMemberDaysOnServerRow{}
+	for rows.Next() {
+		var i GetLeftGuildMemberDaysOnServerRow
+		if err := rows.Scan(&i.Count, &i.DaysOnServer); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetScienceGuildEvent = `-- name: GetScienceGuildEvent :one
 SELECT
     guild_event_uuid, guild_id, user_id, created_at, event_type, data
@@ -317,4 +572,34 @@ func (q *Queries) GetScienceGuildJoinLeaveEventForUser(ctx context.Context, arg 
 		&i.Uses,
 	)
 	return &i, err
+}
+
+const SumScienceGuildEventsForGuild = `-- name: SumScienceGuildEventsForGuild :one
+SELECT
+    COUNT(*)::INT AS event_count
+FROM
+    science_guild_events
+WHERE
+    science_guild_events.guild_id = $1
+    AND science_guild_events.event_type = $2
+    AND science_guild_events.created_at BETWEEN $3 AND $4
+`
+
+type SumScienceGuildEventsForGuildParams struct {
+	GuildID   int64     `json:"guild_id"`
+	EventType int32     `json:"event_type"`
+	DateFrom  time.Time `json:"date_from"`
+	DateTo    time.Time `json:"date_to"`
+}
+
+func (q *Queries) SumScienceGuildEventsForGuild(ctx context.Context, arg SumScienceGuildEventsForGuildParams) (int32, error) {
+	row := q.db.QueryRow(ctx, SumScienceGuildEventsForGuild,
+		arg.GuildID,
+		arg.EventType,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	var event_count int32
+	err := row.Scan(&event_count)
+	return event_count, err
 }

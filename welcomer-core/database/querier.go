@@ -118,9 +118,16 @@ type Querier interface {
 	GetGuildFeatures(ctx context.Context, guildID int64) ([]string, error)
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
+	GetGuildMemberJoins(ctx context.Context, arg GetGuildMemberJoinsParams) ([]*GetGuildMemberJoinsRow, error)
+	GetGuildMemberRetention(ctx context.Context, arg GetGuildMemberRetentionParams) (*GetGuildMemberRetentionRow, error)
+	// Returns, for members who joined within [date_to - 1 year, date_to], how many months ago they
+	// joined (X axis) and how many months ago they left (Y axis), 0 being the current month.
+	// Members who have not left are included with a NULL left_months_ago.
+	GetGuildMemberRetentionMatrix(ctx context.Context, arg GetGuildMemberRetentionMatrixParams) ([]*GetGuildMemberRetentionMatrixRow, error)
 	GetInteractionCommand(ctx context.Context, arg GetInteractionCommandParams) (*InteractionCommands, error)
 	GetJobCheckpointByName(ctx context.Context, jobName string) (*JobCheckpoints, error)
 	GetLeaverGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsLeaver, error)
+	GetLeftGuildMemberDaysOnServer(ctx context.Context, arg GetLeftGuildMemberDaysOnServerParams) ([]*GetLeftGuildMemberDaysOnServerRow, error)
 	GetMinimalWelcomerBuilderArtifactByGuildId(ctx context.Context, guildID int64) ([]*GetMinimalWelcomerBuilderArtifactByGuildIdRow, error)
 	GetPatreonUser(ctx context.Context, patreonUserID int64) (*PatreonUsers, error)
 	GetPatreonUsers(ctx context.Context) ([]*PatreonUsers, error)
@@ -174,6 +181,7 @@ type Querier interface {
 	SetGiveawayEnded(ctx context.Context, arg SetGiveawayEndedParams) (*GuildGiveaways, error)
 	SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error)
 	SetPollEnded(ctx context.Context, arg SetPollEndedParams) (*GuildPolls, error)
+	SumScienceGuildEventsForGuild(ctx context.Context, arg SumScienceGuildEventsForGuildParams) (int32, error)
 	UpdateAutoRolesGuildSettings(ctx context.Context, arg UpdateAutoRolesGuildSettingsParams) (int64, error)
 	UpdateBorderwallGuildSettings(ctx context.Context, arg UpdateBorderwallGuildSettingsParams) (int64, error)
 	UpdateBorderwallRequest(ctx context.Context, arg UpdateBorderwallRequestParams) (int64, error)
