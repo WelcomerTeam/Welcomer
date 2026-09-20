@@ -57,7 +57,7 @@
       </button>
     </div>
     <div v-else-if="!isDataFetched" class="w-full h-dvh flex items-center justify-center">
-      <LoadingIcon :isLight="true" />
+      <LoadingIcon />
     </div>
     <div v-else class="builder-portal">
       <div class="builder-canvas">
@@ -126,7 +126,7 @@
           </div>
           <img v-else-if="isPreviewFetched" :src="previewDataUrl" class="w-full h-full" />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <LoadingIcon :isLight="true" />
+            <LoadingIcon />
           </div>
         </div>
         <div v-else :class="[selectedAction == 0 ? '' : 'cursor-crosshair', 'canvas']" @mousedown="onCanvasMouseDown" :style="getCanvasStyle(x, y)">
