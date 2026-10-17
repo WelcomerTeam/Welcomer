@@ -1,19 +1,19 @@
 module github.com/WelcomerTeam/Welcomer/welcomer-gateway
 
-go 1.26
+go 1.27
 
 require (
 	github.com/WelcomerTeam/Discord v0.0.0-20260801131334-b6cf478712d7
 	github.com/WelcomerTeam/Sandwich v0.0.0-20260322170931-61406f17b909
-	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20260412131253-edad15fd4ca4
+	github.com/WelcomerTeam/Sandwich-Daemon v0.0.0-20261017090151-123ff6f39c0d
 	github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0
-	github.com/WelcomerTeam/Welcomer/welcomer-interactions v0.0.0-20260705194655-9b215f4d5bc2
+	github.com/WelcomerTeam/Welcomer/welcomer-interactions v0.0.0-20260803233653-0446b9c92faf
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
-	github.com/nats-io/nats.go v1.52.0
+	github.com/nats-io/nats.go v1.54.0
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.84.0
 )
 
 require (
@@ -36,25 +36,25 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgtype v1.14.4 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
-	github.com/klauspost/compress v1.19.1 // indirect
-	github.com/mattn/go-colorable v0.1.15 // indirect
+	github.com/klauspost/compress v1.20.3 // indirect
+	github.com/mattn/go-colorable v0.1.16 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nats-io/nkeys v0.4.16 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/plutov/paypal/v4 v4.17.0 // indirect
-	github.com/prometheus/client_golang v1.24.1 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.70.1 // indirect
-	github.com/prometheus/procfs v0.21.1 // indirect
+	github.com/prometheus/client_golang v1.25.0 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
+	github.com/prometheus/common v0.72.1 // indirect
+	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/rs/zerolog v1.35.1 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
-	golang.org/x/net v0.57.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260729162451-8efbd57d26e0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
+	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261012220534-4341edf3f941 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 replace github.com/WelcomerTeam/Welcomer/welcomer-core v0.0.0 => ../welcomer-core

@@ -12,6 +12,7 @@ import (
 	"github.com/chromedp/cdproto/emulation"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 )
 
 type Pool interface {
@@ -75,27 +76,56 @@ func (p *URLPool) Return(url string) {
 	p.cond.Signal()
 }
 
-func waitNetwork(timeout time.Duration) chromedp.ActionFunc {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
+func waitNetwork(timeout time.Duration) chromedp.Action[chromedp.Void] {
+	return chromedp.Func(func(ctx context.Context, _ *chromedp.Target) error {
 		requestsWaiting := atomic.Int32{}
 		requestsUpdate := make(chan struct{}, 1)
+		eventsCtx, cancelEvents := context.WithCancel(ctx)
+		defer cancelEvents()
 
-		timeout := time.NewTicker(timeout)
-		defer timeout.Stop()
+		requestEvents := chromedp.Events(eventsCtx, network.RequestWillBeSent)
+		finishedEvents := chromedp.Events(eventsCtx, network.LoadingFinished)
+		failedEvents := chromedp.Events(eventsCtx, network.LoadingFailed)
 
-		chromedp.ListenTarget(ctx, func(ev any) {
-			switch ev.(type) {
-			case *network.EventLoadingFailed:
-				requestsWaiting.Add(-1)
-				requestsUpdate <- struct{}{}
-			case *network.EventLoadingFinished:
-				requestsWaiting.Add(-1)
-				requestsUpdate <- struct{}{}
-			case *network.EventRequestWillBeSent:
-				requestsWaiting.Add(1)
-				requestsUpdate <- struct{}{}
+		notify := func(delta int32) {
+			requestsWaiting.Add(delta)
+			select {
+			case requestsUpdate <- struct{}{}:
+			default:
 			}
-		})
+		}
+
+		go func() {
+			for _, err := range requestEvents {
+				if err != nil {
+					return
+				}
+				notify(1)
+			}
+		}()
+		go func() {
+			for _, err := range finishedEvents {
+				if err != nil {
+					return
+				}
+				notify(-1)
+			}
+		}()
+		go func() {
+			for _, err := range failedEvents {
+				if err != nil {
+					return
+				}
+				notify(-1)
+			}
+		}()
+
+		if _, err := chromedp.Call(ctx, network.Enable, network.EnableParams{}); err != nil {
+			return err
+		}
+
+		timeoutTimer := time.NewTimer(timeout)
+		defer timeoutTimer.Stop()
 
 		time.Sleep(time.Millisecond * 50) // allow some time for requests to start
 
@@ -112,7 +142,7 @@ func waitNetwork(timeout time.Duration) chromedp.ActionFunc {
 				if requestsWaiting.Load() == 0 {
 					return nil
 				}
-			case <-timeout.C:
+			case <-timeoutTimer.C:
 				welcomer.Logger.Warn().Msg("network timeout")
 
 				return nil
@@ -129,10 +159,10 @@ func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString strin
 
 	defer is.URLPool.Return(cdpurl)
 
-	ctx, _ = chromedp.NewRemoteAllocator(ctx, cdpurl)
-	ctx, _ = chromedp.NewContext(ctx)
-
-	var buf []byte
+	allocatorCtx, cancelAllocator := remote.NewAllocator(ctx, cdpurl)
+	defer cancelAllocator()
+	ctx, cancelBrowser := chromedp.NewContext(allocatorCtx)
+	defer cancelBrowser()
 
 	start := time.Now()
 
@@ -140,28 +170,29 @@ func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString strin
 		println(htmlString)
 	}
 
-	err = chromedp.Run(ctx,
-		chromedp.Tasks{
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				return emulation.SetDefaultBackgroundColorOverride().
-					WithColor(&cdp.RGBA{}).
-					Do(ctx)
-			}),
-
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				return emulation.SetDeviceMetricsOverride(0, 0, 3, false).
-					Do(ctx)
-			}),
-
-			chromedp.Navigate("data:text/html;charset=utf-8," + url.PathEscape(htmlString)),
-
-			waitNetwork(time.Second * 2),
-			chromedp.Evaluate(`document.fonts.ready`, nil),
-
-			chromedp.WaitReady("#canvas", chromedp.ByID),
-			chromedp.Screenshot("div#canvas", &buf, chromedp.NodeReady),
-		},
+	err = chromedp.Do(ctx,
+		chromedp.Func(func(ctx context.Context, _ *chromedp.Target) error {
+			_, err := chromedp.Call(ctx, emulation.SetDefaultBackgroundColorOverride,
+				emulation.SetDefaultBackgroundColorOverrideParams{Color: &cdp.RGBA{}})
+			return err
+		}),
+		chromedp.Func(func(ctx context.Context, _ *chromedp.Target) error {
+			_, err := chromedp.Call(ctx, emulation.SetDeviceMetricsOverride,
+				emulation.SetDeviceMetricsOverrideParams{
+					DeviceScaleFactor: 3,
+				})
+			return err
+		}),
+		chromedp.Navigate("data:text/html;charset=utf-8,"+url.PathEscape(htmlString)),
+		waitNetwork(2*time.Second),
+		chromedp.Evaluate[chromedp.Void](`document.fonts.ready`, chromedp.EvalAwaitPromise),
+		chromedp.WaitReady(chromedp.CSS("#canvas")),
 	)
+	if err != nil {
+		return nil, time.Since(start), err
+	}
+
+	buf, err := chromedp.Run(ctx, chromedp.Screenshot(chromedp.CSS("div#canvas")))
 
 	return buf, time.Since(start), err
 }
