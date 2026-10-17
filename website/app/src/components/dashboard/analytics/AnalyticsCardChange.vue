@@ -2,11 +2,11 @@
     <div>
         <span v-if="$props.amount > $props.previousAmount" :class="[$props.isDecreaseGood ? 'text-trendDown' : 'text-trendUp', 'font-semibold']">
             <font-awesome-icon icon="arrow-trend-up" class="mr-1" />
-            +{{ (($props.amount / $props.previousAmount * 100) - 100).toFixed(2) }}%
+            +{{ $props.previousAmount == 0 ? $props.amount : Math.abs((($props.amount / $props.previousAmount) * 100) - 100).toFixed(2) + "%" }}
         </span>
         <span v-else-if="$props.amount < $props.previousAmount" :class="[$props.isDecreaseGood ? 'text-trendUp' : 'text-trendDown', 'font-semibold']">
             <font-awesome-icon icon="arrow-trend-down" class="mr-1" />
-            -{{ (($props.previousAmount / $props.amount * 100) - 100).toFixed(2) }}%
+            -{{ $props.previousAmount == 0 ? $props.amount : Math.abs((($props.amount / $props.previousAmount) * 100) - 100).toFixed(2) + "%"}}
         </span>
         <span v-else>
             No change
