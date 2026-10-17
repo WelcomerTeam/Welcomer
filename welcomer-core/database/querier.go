@@ -87,6 +87,8 @@ type Querier interface {
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)
 	DisableReactionRoleSettingByMessageId(ctx context.Context, arg DisableReactionRoleSettingByMessageIdParams) (int64, error)
 	FetchModerationCheckupQueue(ctx context.Context, limit int32) ([]*ModerationCheckupQueue, error)
+	// Returns the average daily, weekly and monthly active user counts for a guild within a specified date range.
+	GetActiveUserCounts(ctx context.Context, arg GetActiveUserCountsParams) (*GetActiveUserCountsRow, error)
 	GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error)
 	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GetBorderwallGuildSettingsRow, error)

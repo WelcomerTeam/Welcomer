@@ -420,7 +420,7 @@ func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowfla
 		return nil, fmt.Errorf("failed to get guild member retention: %w", err)
 	}
 
-	resp.Retention = float64(int(float64(guildRetention.MembersLeft)/float64(membersJoinedSum)*10000)) / 100
+	resp.Retention = max(0, float64(int(float64(guildRetention.MembersLeft)/float64(membersJoinedSum)*10000))/100)
 
 	guildRetentionCohorts, err := welcomer.Queries.GetGuildMemberRetentionMatrix(ctx, database.GetGuildMemberRetentionMatrixParams{
 		GuildID:                        int64(guildID),
@@ -627,8 +627,21 @@ type guildAnalyticsUserActivityResponse struct {
 	AccountAgeDistribution    []DatasetItem `json:"account_age_distribution"`
 }
 
-func getGuildAnalyticsUserActivityData(ctx *gin.Context, guildID int, from, to time.Time, isPrevious bool) (*guildAnalyticsUserActivityResponse, error) {
+func getGuildAnalyticsUserActivityData(ctx *gin.Context, guildID discord.Snowflake, from, to time.Time, isPrevious bool) (*guildAnalyticsUserActivityResponse, error) {
 	resp := guildAnalyticsUserActivityResponse{}
+
+	activeUsers, err := welcomer.Queries.GetActiveUserCounts(ctx, database.GetActiveUserCountsParams{
+		GuildID:  int64(guildID),
+		DateFrom: from,
+		DateTo:   to,
+	})
+	if err != nil {
+		welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get active user counts")
+	}
+
+	resp.DailyActive = int(activeUsers.AverageDailyActiveUsers)
+	resp.WeeklyActive = int(activeUsers.AverageWeeklyActiveUsers)
+	resp.MonthlyActive = int(activeUsers.AverageMonthlyActiveUsers)
 
 	if !isPrevious {
 	}
