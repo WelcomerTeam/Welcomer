@@ -141,6 +141,10 @@ func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	})
 
 	p.EventHandler.RegisterOnGuildLeaveEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+		if guild.OwnerID == nil {
+			return nil
+		}
+
 		startTime := time.Now()
 		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildLeave")
 
