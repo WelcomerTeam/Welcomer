@@ -7,7 +7,12 @@ import store from "./store/index";
 
 export default {
   setup() {
-    store.dispatch("fetchCurrentUser");
+    if (import.meta.env.SSR) {
+      // Match the client's initial "loading" state so hydration lines up.
+      store.commit("loadingUser");
+    } else {
+      store.dispatch("fetchCurrentUser");
+    }
   },
 };
 </script>

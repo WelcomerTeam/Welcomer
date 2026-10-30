@@ -1,5 +1,6 @@
 <template>
-  <dl class="bg-white dark:bg-secondary-dark dark:border-secondary-light rounded-lg shadow-sm border border-gray-300 p-5 flex flex-col">
+  <dl
+    class="bg-white dark:bg-secondary-dark dark:border-secondary-light rounded-lg shadow-sm border border-gray-300 p-5 flex flex-col">
     <dt class="flex mb-2">
       <span class="text-xs font-bold uppercase text-gray-500 dark:text-gray-200 flex-1">{{ $props.name }}</span>
       <div class="flex-shrink-0">
@@ -8,10 +9,12 @@
     </dt>
     <dd class="flex flex-col flex-1">
       <div class="text-4xl font-bold text-gray-900 dark:text-gray-50 flex-1">
-        {{ typeof $props.amount === 'number' ? Intl.NumberFormat().format($props.amount) : $props.amount }}{{ $props.amountSuffix }}
+        {{ typeof $props.amount === 'number' ? Intl.NumberFormat().format($props.amount) : $props.amount }}{{
+          $props.amountSuffix }}
       </div>
       <div class="text-xs mt-2" v-if="$props.previousAmount != null">
-        <analytics-card-change :amount="$props.amount" :previousAmount="$props.previousAmount" :isDecreaseGood="$props.isDecreaseGood" />
+        <analytics-card-change :amount="$props.comparisonAmount ?? $props.amount"
+          :previousAmount="$props.previousAmount" :isDecreaseGood="$props.isDecreaseGood" />
       </div>
     </dd>
   </dl>
@@ -27,10 +30,14 @@ export default {
       required: true
     },
     amount: {
-      type: Number,
+      type: [Number, String],
       required: true
     },
     previousAmount: {
+      type: Number,
+      default: null
+    },
+    comparisonAmount: {
       type: Number,
       default: null
     },

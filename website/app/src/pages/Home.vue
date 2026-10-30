@@ -57,7 +57,7 @@
                 </h2>
                 <span class="text-gray-700">{{ item.description }}
                   <router-link :to="item.href" v-if="item.href"
-                               class="text-primary hover:text-primary-dark font-semibold">
+                    class="text-primary hover:text-primary-dark font-semibold">
                     {{ item.label }}
                   </router-link>
                 </span>
@@ -65,7 +65,7 @@
             </div>
             <div class="my-auto">
               <DiscordEmbed v-if="item.embeds" class="max-w-full m-auto" :isBot="true" :isDark="false"
-                            :respectDarkMode="false" :embeds="item.embeds" />
+                :respectDarkMode="false" :embeds="item.embeds" />
               <img v-else :src="item.src" alt="Preview image" class="max-w-full m-auto" />
             </div>
           </div>
@@ -76,7 +76,7 @@
         <div class="hero-features">
           <div class="hero-features-item">
             <div v-for="item in features" :key="item.name"
-                 class="p-4 mx-0 my-3 text-center rounded-lg sm:text-left sm:mx-2 hover:bg-primary-light">
+              class="p-4 mx-0 my-3 text-center rounded-lg sm:text-left sm:mx-2 hover:bg-primary-light">
               <h2 class="text-xl font-medium text-white">{{ item.name }}</h2>
               <p>{{ item.description }}</p>
             </div>
@@ -115,7 +115,11 @@ import Footer from "@/components/Footer.vue";
 import Header from "@/components/Header.vue";
 import HoistHeading from "@/components/hoist/HoistHeading.vue";
 
-function makeAFunEmbed() {
+// When `random` is false the first option is always picked, so the pre-rendered
+// HTML matches the client's first render during hydration.
+function makeAFunEmbed(random = true) {
+  const pick = (count) => random ? Math.floor(Math.random() * count) : 0;
+
   let messages = [
     "Welcome to our server! Make sure to checkout our #rules and enjoy your stay!",
     "Welcome aboard! Don't forget to say hi in the #introductions channel. Enjoy your time here!",
@@ -203,17 +207,17 @@ function makeAFunEmbed() {
   };
 
   let embed = {
-    description: messages[Math.floor(Math.random() * messages.length)],
-    color: hslToInt(Math.floor(Math.random() * 361), 50, 50),
+    description: messages[pick(messages.length)],
+    color: hslToInt(pick(361), 50, 50),
   }
 
-  if (Math.random() < 0.1) {
+  if (random && Math.random() < 0.1) {
     embed.image = {
-      url: imageURLs[Math.floor(Math.random() * imageURLs.length)],
+      url: imageURLs[pick(imageURLs.length)],
     };
   } else {
     embed.thumbnail = {
-      url: thumbnailURLs[Math.floor(Math.random() * thumbnailURLs.length)],
+      url: thumbnailURLs[pick(thumbnailURLs.length)],
     };
   }
 
@@ -224,7 +228,7 @@ const previews = [
   {
     name: "Empower your Welcome Messages",
     description: "Tailor your welcome messages with Welcomer, offering personalized customization for text, direct messages, and images, ensuring a unique and engaging experience for every Discord user.",
-    embeds: makeAFunEmbed(),
+    embeds: makeAFunEmbed(false),
   },
   {
     name: "Reinforce Your Server's Defenses with Borderwall",
@@ -309,15 +313,17 @@ export default {
     HoistHeading,
   },
   setup() {
-    let guildCount = ref(localStorage.getItem('guildCount') || 745000);
+    let guildCount = ref(745000);
 
     return {
-      previews,
+      previews: ref(previews),
       features,
       guildCount
     };
   },
   mounted() {
+    this.previews[0].embeds = makeAFunEmbed();
+    this.guildCount = localStorage.getItem('guildCount') || this.guildCount;
     this.fetchGuildCount();
   },
   methods: {

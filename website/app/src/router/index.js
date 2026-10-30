@@ -1,9 +1,7 @@
-import { createWebHistory, createRouter } from "vue-router";
-
 import Dashboard from "@/pages/Dashboard.vue";
 import Home from "@/pages/Home.vue";
 
-const routes = [
+export const routes = [
   {
     path: "/",
     name: "home",
@@ -187,22 +185,10 @@ const routes = [
   },
 ];
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    }
-
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'auto'
-      })
-    }, 0);
+export function scrollBehavior(to, from, savedPosition) {
+  if (savedPosition) {
+    return savedPosition
   }
-});
 
-export default router;
+  return { top: 0, left: 0, behavior: 'auto' }
+}

@@ -394,8 +394,10 @@ export default {
             this.emitRange(range);
         },
         isDateDisabled(value) {
-            const date = new Date(`${value}T00:00:00`);
-            return Boolean((this.minDate && date < this.minDate) || (this.maxDate && date > this.maxDate));
+            const date = this.toDate(value);
+            const minDate = this.toDate(this.minDate);
+            const maxDate = this.toDate(this.maxDate);
+            return Boolean(date && ((minDate && date < minDate) || (maxDate && date > maxDate)));
         },
         selectDate(value) {
             if (this.isDateDisabled(value)) {

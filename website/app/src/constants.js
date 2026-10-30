@@ -94,12 +94,12 @@ export const NavigationFeatures = [
         description: "Allow users to make temporary voice channels in your server",
         icon: "microphone-lines",
     },
-    // {
-    //     name: "Guild Analytics",
-    //     href: "/features#analytics",
-    //     description: "View information about your server such as user joins",
-    //     icon: "chart-line",
-    // },
+    {
+        name: "Guild Analytics",
+        href: "/features#analytics",
+        description: "View information about your server such as user joins",
+        icon: "chart-line",
+    },
     {
         name: "Borderwall",
         href: "/features#borderwall",

@@ -44,8 +44,8 @@
                 <span class="sr-only">Price</span>
                 <p class="relative">
                   <span class="flex flex-col text-center" v-if="isDataFetched">
-                    <span class="text-5xl font-bold text-white">from {{ formatCurrency(this.currency,
-                                                                                       this.getFromPrice()) }}</span>
+                    <span class="text-5xl font-bold text-white">from {{ formatCurrency(currency,
+                                                                                       getFromPrice()) }}</span>
                     <span class="mt-2 text-base font-medium text-gray-100">per month</span>
                   </span>
                 </p>
@@ -148,10 +148,10 @@
                   <MenuItems
                     class="absolute right-0 z-10 mt-2 w-24 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div class="py-1">
-                      <MenuItem v-for="currency in currencies" :key="currency" as="template" v-slot="{ active }">
-                        <div @click="selectCurrency(currency)"
-                             :class="[(active || this.currency === currency) ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm cursor-pointer']">
-                          {{ getCurrencySymbol(currency) + ' – ' + currency }}
+                      <MenuItem v-for="currencyOption in currencies" :key="currencyOption" as="template" v-slot="{ active }">
+                        <div @click="selectCurrency(currencyOption)"
+                             :class="[(active || currency === currencyOption) ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm cursor-pointer']">
+                          {{ getCurrencySymbol(currencyOption) + ' – ' + currencyOption }}
                         </div>
                       </MenuItem>
                     </div>
@@ -182,22 +182,22 @@
                   <p class="mt-4 text-sm leading-6">Unlock more Welcomer features. Aimed at emerging or
                     well-established communities.</p>
                   <p class="mt-4 flex items-baseline gap-x-1" v-if="isDataFetched">
-                    <span class="text-xl font-bold tracking-tight">{{ formatCurrency(this.currency,
-                                                                                     (this.getSKU(this.getRelativeSKU())?.costs[this.currency] /
-                                                                                       Math.max(this.getSKU(this.getRelativeSKU())?.month_count, 1))) }}</span>
+                    <span class="text-xl font-bold tracking-tight">{{ formatCurrency(currency,
+                                                                                     (getSKU(getRelativeSKU())?.costs[currency] /
+                                                                                       Math.max(getSKU(getRelativeSKU())?.month_count, 1))) }}</span>
                     <span class="text-sm font-semibold leading-6">{{
-                      this.getSKU(this.getRelativeSKU())?.month_count == -1 ? '' : (this.getSKU(this.getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month') }}</span>
+                      getSKU(getRelativeSKU())?.month_count == -1 ? '' : (getSKU(getRelativeSKU())?.month_count > 1 ? '/ month*' : '/ month') }}</span>
                   </p>
 
-                  <p v-if="(this.durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial)"
+                  <p v-if="(durationSelected == durationMonthly && isMonthlyRecurring && hasFreeTrial)"
                      class="text-sm font-medium leading-6"> 7 days free </p>
-                  <p v-if="this.getSKU(this.getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">
-                    Billed as {{ formatCurrency(this.currency,
-                                                this.getSKU(this.getRelativeSKU())?.costs[this.currency]) }}
+                  <p v-if="getSKU(getRelativeSKU())?.month_count > 1" class="text-sm font-medium leading-6">
+                    Billed as {{ formatCurrency(currency,
+                                                getSKU(getRelativeSKU())?.costs[currency]) }}
                   </p>
 
 
-                  <button type="button" @click.prevent="selectSKU(this.getRelativeSKU())" :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">Get Started</button>
+                  <button type="button" @click.prevent="selectSKU(getRelativeSKU())" :class="['bg-white hover:bg-gray-200', 'flex items-center justify-center px-5 py-3 mt-8 text-base font-medium text-primary border border-transparent rounded-md cursor-pointer w-full']">Get Started</button>
                 </div>
               </div>
             </div>
@@ -231,8 +231,8 @@
                     Pay once, own it forever
                   </p>
                   <div class="flex items-center justify-center mt-4 text-5xl font-bold text-white">
-                    <span v-if="this.getSKU(skuCustomBackgrounds)">
-                      {{ formatCurrency(this.currency, this.getSKU(skuCustomBackgrounds)?.costs[this.currency]) }}
+                    <span v-if="getSKU(skuCustomBackgrounds)">
+                      {{ formatCurrency(currency, getSKU(skuCustomBackgrounds)?.costs[currency]) }}
                     </span>
                   </div>
                   <button type="button" @click.prevent="selectSKU(skuCustomBackgrounds)"
@@ -533,6 +533,10 @@ export default {
     },
 
     getLocale() {
+      if (typeof navigator === "undefined") {
+        return "en-US";
+      }
+
       return (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.language;
     },
 

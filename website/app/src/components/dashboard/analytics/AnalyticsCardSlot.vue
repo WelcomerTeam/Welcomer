@@ -1,5 +1,6 @@
 <template>
-  <dl class="bg-white dark:bg-secondary-dark dark:border-secondary-light rounded-lg shadow-sm border border-gray-300 p-5 flex flex-col">
+  <dl
+    class="bg-white dark:bg-secondary-dark dark:border-secondary-light rounded-lg shadow-sm border border-gray-300 p-5 flex flex-col">
     <dt class="flex mb-2">
       <span class="text-xs font-bold uppercase text-gray-500 dark:text-gray-200 flex-1">{{ $props.name }}</span>
       <div class="flex-shrink-0">
