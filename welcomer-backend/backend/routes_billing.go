@@ -1109,9 +1109,9 @@ const (
 func paypalWebhook(ctx *gin.Context) {
 	event, ok := validatePaypalWebhook(ctx)
 	if !ok {
-		// ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrWebhookValidationFailed, nil))
+		ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrWebhookValidationFailed, nil))
 
-		// return
+		return
 	}
 
 	// Handle different event types
