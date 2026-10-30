@@ -10,7 +10,9 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/WelcomerTeam/Discord/discord"
@@ -19,6 +21,7 @@ import (
 	subway "github.com/WelcomerTeam/Subway/subway"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/telemetry"
 	interactions "github.com/WelcomerTeam/Welcomer/welcomer-interactions"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
@@ -160,6 +163,21 @@ func main() {
 	restInterface.SetDebug(*proxyDebug)
 
 	welcomer.SetupLogger(*loggingLevel)
+
+	shutdownTracing, err := telemetry.Setup(ctx, "welcomer-interactions")
+	if err != nil {
+		welcomer.Logger.Panic().Err(err).Msg("Failed to initialize tracing")
+	}
+
+	defer func() {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+
+		if err := shutdownTracing(shutdownCtx); err != nil {
+			welcomer.Logger.Warn().Err(err).Msg("Failed to shut down tracing")
+		}
+	}()
+
 	welcomer.SetupGRPCConnection(
 		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -335,7 +353,6 @@ func main() {
 		}
 
 		welcomer.Logger.Info().Msg("Successfully synced commands")
-
 	}
 
 	// We return if it a dry run. Any issues loading up the bot would've already caused a panic.
@@ -344,7 +361,24 @@ func main() {
 		return
 	}
 
-	if err = app.ListenAndServe("", *host, mux); err != nil {
+	app.StartTime = time.Now().UTC()
+
+	app.Logger.Info("Starting subway", "version", subway.VERSION)
+	go app.SetupPrometheus()
+
+	app.Logger.Info("Serving subway", "host", *host)
+	app.PrepareMux("", mux)
+
+	serveCtx, stopSignals := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stopSignals()
+
+	if err = telemetry.Serve(serveCtx, &http.Server{
+		Addr: *host, Handler: interactions.TraceHTTP(mux),
+	}); err != nil {
 		welcomer.Logger.Panic().
 			Str("host", *host).
 			Err(err).

@@ -823,6 +823,7 @@ func getRandomEgg() EasterEgg {
 		if randomNum < egg.Rarity {
 			return egg
 		}
+
 		randomNum -= egg.Rarity
 	}
 
@@ -836,6 +837,7 @@ func getEggByID(id string) (EasterEgg, bool) {
 			return egg, true
 		}
 	}
+
 	return EasterEgg{}, false
 }
 

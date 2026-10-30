@@ -226,6 +226,7 @@ func (w *TempChannelsCog) RegisterCog(sub *subway.Subway) error {
 							return nil, err
 						}
 					}
+
 					switch module {
 					case TempChannelsModuleTempChannels:
 						guildSettingsTempChannels.ToggleEnabled = true

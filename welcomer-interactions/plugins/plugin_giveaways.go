@@ -109,8 +109,10 @@ func (cog *GiveawaysCog) RegisterCog(sub *subway.Subway) error {
 				sub,
 				interaction,
 				func() (*discord.InteractionResponse, error) {
-					var giveaway *database.GuildGiveaways
-					var err error
+					var (
+						giveaway *database.GuildGiveaways
+						err      error
+					)
 
 					err = welcomer.RetryWithFallback(
 						func() error {
@@ -433,7 +435,6 @@ func handleGiveawayManageComponent(
 		switch customIDSplit[2] {
 		case giveawayManageMenuExtendDurationKey:
 			durationArgument, err := subway.GetArgument(ctx, giveawayManageMenuExtendDurationKey)
-
 			if err == nil {
 				durationString := durationArgument.MustString()
 				durationString, hasMinus := strings.CutPrefix(durationString, "-")

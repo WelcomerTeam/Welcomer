@@ -260,6 +260,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				// Flatten map into slice
 
 				i := 0
+
 				emojis := make([]*sandwich_protobuf.Emoji, len(guildEmojis.GetEmojis()))
 				for _, emoji := range guildEmojis.GetEmojis() {
 					emojis[i] = emoji
@@ -339,6 +340,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				guild := discord.Guild{ID: *interaction.GuildID}
+
 				invites, err := guild.Invites(ctx, session)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).Msg("Failed to get invites")
@@ -349,6 +351,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 				doesUserHaveInvites := false
 
 				leaderboardMap := make(map[discord.Snowflake]int32)
+
 				for _, invite := range invites {
 					if invite.Inviter == nil || invite.Uses == 0 {
 						continue
@@ -497,6 +500,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					sort.Slice(guildMembers, func(i, j int) bool {
 						iSnowflake := discord.Snowflake(guildMembers[i].User.ID)
 						jSnowflake := discord.Snowflake(guildMembers[j].User.ID)
+
 						return iSnowflake.Time().After(jSnowflake.Time())
 					})
 
@@ -588,6 +592,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					i := 0
+
 					guildMembers := make(
 						[]*sandwich_protobuf.GuildMember,
 						len(guildMembersResp.GetGuildMembers()),
@@ -682,6 +687,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					i := 0
+
 					guildMembers := make(
 						[]*sandwich_protobuf.GuildMember,
 						len(guildMembersResp.GuildMembers),
@@ -948,6 +954,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							GuildID: interaction.GuildID,
 							User:    &discord.User{ID: userID},
 						}
+
 						err = guildMember.Edit(ctx, session,
 							discord.GuildMemberParams{
 								CommunicationDisabledUntil: communicationDisabledUntil,
@@ -1049,6 +1056,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 					}
 
 					var buf bytes.Buffer
+
 					zipWriter := zip.NewWriter(&buf)
 
 					client := http.Client{Timeout: time.Second * 5}
@@ -1059,6 +1067,7 @@ func (m *MiscellaneousCog) RegisterCog(sub *subway.Subway) error {
 							discord.EndpointEmojiAnimated(welcomer.Itoa(emoji.ID)),
 							discord.EndpointEmoji(welcomer.Itoa(emoji.ID)),
 						)
+
 						resp, err := client.Get(url)
 						if err != nil {
 							welcomer.Logger.Warn().Err(err).

@@ -52,6 +52,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 				if len(interaction.Data.Values) == 0 {
 					return nil, nil
 				}
+
 				customID = interaction.Data.Values[0]
 			default:
 				return nil, nil
@@ -104,6 +105,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 					},
 				}, nil
 			}
+
 			reactionRoleSettings := welcomer.UnmarshalReactionRolesJSON(reactionRole.Roles.Bytes)
 
 			if found := slices.ContainsFunc(
@@ -146,6 +148,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				return nil, err
 			}
+
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
 				Data: &discord.InteractionCallbackData{

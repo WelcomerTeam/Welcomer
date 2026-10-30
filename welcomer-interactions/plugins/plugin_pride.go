@@ -157,6 +157,7 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 						filtered = append(filtered, choice)
 					}
 				}
+
 				choices = filtered
 			}
 

@@ -165,6 +165,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 							return nil, err
 						}
 					}
+
 					guildSettingsTimeRoles.ToggleEnabled = false
 
 					err = welcomer.RetryWithFallback(
@@ -297,6 +298,7 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				now := time.Now()
 
 				hasTimeRoleRemaining := false
+
 				var timeRoleRemainingPercent int
 
 				// Check if the user has any time roles remaining.

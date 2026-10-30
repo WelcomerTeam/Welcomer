@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/telemetry"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-contrib/sessions"
@@ -171,7 +173,7 @@ func NewBackend(options Options) (*Backend, error) {
 }
 
 // Open sets up any services and starts the web server.
-func (b *Backend) Open() error {
+func (b *Backend) Open(ctx context.Context) error {
 	b.StartTime = time.Now()
 
 	welcomer.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
@@ -181,7 +183,7 @@ func (b *Backend) Open() error {
 
 	welcomer.Logger.Info().Msgf("Serving http at %s", b.Options.Host)
 
-	err := b.Route.Run(b.Options.Host)
+	err := telemetry.Serve(ctx, &http.Server{Addr: b.Options.Host, Handler: b.Route.Handler()})
 	if err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}
@@ -208,10 +210,12 @@ func (b *Backend) SetupPrometheus() error {
 // PrepareGin prepares gin routes and middleware.
 func (b *Backend) PrepareGin() *gin.Engine {
 	router := gin.New()
+	router.ContextWithFallback = telemetry.Enabled()
 	router.TrustedPlatform = gin.PlatformCloudflare
 
 	_ = router.SetTrustedProxies(nil)
 
+	router.Use(traceRequests())
 	router.Use(logger.SetLogger())
 	router.Use(b.PrometheusHandler.HandlerFunc())
 	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))

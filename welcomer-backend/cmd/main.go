@@ -4,10 +4,14 @@ import (
 	"context"
 	"flag"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
 	backend "github.com/WelcomerTeam/Welcomer/welcomer-backend/backend"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/telemetry"
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
@@ -131,6 +135,17 @@ func main() {
 
 	welcomer.SetupDefaultManagerName(*sandwichManagerName)
 	welcomer.SetupLogger(*loggingLevel)
+	shutdownTracing, err := telemetry.Setup(ctx, "welcomer-backend")
+	if err != nil {
+		welcomer.Logger.Panic().Err(err).Msg("Failed to initialize tracing")
+	}
+	defer func() {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+		if err := shutdownTracing(shutdownCtx); err != nil {
+			welcomer.Logger.Warn().Err(err).Msg("Failed to shut down tracing")
+		}
+	}()
 	welcomer.SetupGRPCConnection(
 		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -174,7 +189,13 @@ func main() {
 		welcomer.Logger.Panic().Err(err).Msg("Exception creating app")
 	}
 
-	if err = app.Open(); err != nil {
+	serveCtx, stopSignals := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stopSignals()
+	if err = app.Open(serveCtx); err != nil {
 		welcomer.Logger.Warn().Err(err).Msg("Exceptions whilst starting app")
 	}
 

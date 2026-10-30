@@ -160,8 +160,10 @@ func (cog *PollsCog) RegisterCog(sub *subway.Subway) error {
 				sub,
 				interaction,
 				func() (*discord.InteractionResponse, error) {
-					var poll *database.GuildPolls
-					var err error
+					var (
+						poll *database.GuildPolls
+						err  error
+					)
 
 					err = welcomer.RetryWithFallback(
 						func() error {
@@ -449,7 +451,6 @@ func handlePollManageComponent(
 		switch customIDSplit[2] {
 		case pollManageMenuExtendDurationKey:
 			durationArgument, err := subway.GetArgument(ctx, pollManageMenuExtendDurationKey)
-
 			if err == nil {
 				durationString := durationArgument.MustString()
 				durationString, hasMinus := strings.CutPrefix(durationString, "-")
@@ -2505,7 +2506,7 @@ func getPollResultsMinimal(poll *database.GuildPolls, answers []string, results 
 	answersString.WriteString("**Votes:**\n")
 
 	for _, answer := range answers {
-		answersString.WriteString(fmt.Sprintf("- %s\n", answer))
+		fmt.Fprintf(&answersString, "- %s\n", answer)
 	}
 
 	return answersString.String()
