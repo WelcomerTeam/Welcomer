@@ -14,10 +14,7 @@ func discordEmbedHandler(ctx *gin.Context) {
 	// // if path != "/" {
 	// // 	return
 	// // }
-
-	var component discord.InteractionComponent
-
-	component = discord.InteractionComponent{
+	component := discord.InteractionComponent{
 		Type:        discord.InteractionComponentTypeContainer,
 		AccentColor: new(uint32(0xfbc01b)),
 		Components: []discord.InteractionComponent{

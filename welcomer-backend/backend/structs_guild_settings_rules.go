@@ -41,7 +41,10 @@ func GuildSettingsRulesSettingsToPartial(
 	return partial
 }
 
-func PartialToGuildSettingsRulesSettings(guildID int64, guildSettings *GuildSettingsRules) *database.GuildSettingsRules {
+func PartialToGuildSettingsRulesSettings(
+	guildID int64,
+	guildSettings *GuildSettingsRules,
+) *database.GuildSettingsRules {
 	return &database.GuildSettingsRules{
 		GuildID:          guildID,
 		ToggleEnabled:    guildSettings.ToggleEnabled,

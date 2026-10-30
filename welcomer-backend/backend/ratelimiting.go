@@ -39,7 +39,8 @@ func NewRateLimiterRule(requests int, window time.Duration) *RateLimiterRule {
 func (r *RateLimiterRule) CanRequest(ctx context.Context, key string) (bool, error) {
 	redisKey := fmt.Sprintf("ratelimit:%s:%s", r.UUID.String(), key)
 
-	count, err := rateLimiterScript.Run(ctx, welcomer.RedisClient, []string{redisKey}, r.Window.Milliseconds()).Int()
+	count, err := rateLimiterScript.Run(ctx, welcomer.RedisClient, []string{redisKey}, r.Window.Milliseconds()).
+		Int()
 	if err != nil {
 		return false, fmt.Errorf("failed to run rate limiter script: %w", err)
 	}

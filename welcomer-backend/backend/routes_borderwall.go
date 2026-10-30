@@ -53,7 +53,10 @@ func getBorderwall(ctx *gin.Context) {
 			return
 		}
 
-		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
+		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(
+			ctx,
+			uuid.FromStringOrNil(key),
+		)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
@@ -72,14 +75,20 @@ func getBorderwall(ctx *gin.Context) {
 					Int64("borderwallRequestUserID", borderwallRequest.UserID).
 					Msg("User ID does not match")
 
-				ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrBorderwallUserInvalid, borderwallResponse))
+				ctx.JSON(
+					http.StatusForbidden,
+					NewBaseResponse(ErrBorderwallUserInvalid, borderwallResponse),
+				)
 
 				return
 			}
 
-			guildsPb, err := welcomer.SandwichClient.FetchGuild(ctx, &sandwich_protobuf.FetchGuildRequest{
-				GuildIds: []int64{borderwallRequest.GuildID},
-			})
+			guildsPb, err := welcomer.SandwichClient.FetchGuild(
+				ctx,
+				&sandwich_protobuf.FetchGuildRequest{
+					GuildIds: []int64{borderwallRequest.GuildID},
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Msg("Failed to fetch guild for guild name")
 			} else {
@@ -87,7 +96,10 @@ func getBorderwall(ctx *gin.Context) {
 				if ok {
 					borderwallResponse.GuildName = guildPb.GetName()
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guildID", borderwallRequest.GuildID).Msg("Failed to fetch guild")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guildID", borderwallRequest.GuildID).
+						Msg("Failed to fetch guild")
 				}
 			}
 		}
@@ -109,7 +121,10 @@ func setBorderwall(ctx *gin.Context) {
 
 		userAgent := ctx.GetHeader("User-Agent")
 		if userAgent == "" {
-			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("user-agent"), nil))
+			ctx.JSON(
+				http.StatusBadRequest,
+				NewBaseResponse(NewMissingParameterError("user-agent"), nil),
+			)
 
 			return
 		}
@@ -128,12 +143,18 @@ func setBorderwall(ctx *gin.Context) {
 		if request.Response == "" {
 			welcomer.Logger.Warn().Msg("Missing response")
 
-			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("response"), nil))
+			ctx.JSON(
+				http.StatusBadRequest,
+				NewBaseResponse(NewMissingParameterError("response"), nil),
+			)
 
 			return
 		}
 
-		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(ctx, uuid.FromStringOrNil(key))
+		borderwallRequest, err := welcomer.Queries.GetBorderwallRequest(
+			ctx,
+			uuid.FromStringOrNil(key),
+		)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to get borderwall request")
 		}
@@ -168,7 +189,10 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if borderwallRequest.IsVerified {
-			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrBorderwallRequestAlreadyVerified, nil))
+			ctx.JSON(
+				http.StatusBadRequest,
+				NewBaseResponse(ErrBorderwallRequestAlreadyVerified, nil),
+			)
 
 			return
 		}
@@ -176,7 +200,11 @@ func setBorderwall(ctx *gin.Context) {
 		// Validate reCAPTCHA
 		recaptchaScore, err := welcomer.ValidateRecaptcha(request.Response, ctx.ClientIP())
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("Failed to validate recaptcha")
+			welcomer.Logger.Error().
+				Err(err).
+				Str("ip", ctx.ClientIP()).
+				Int64("userID", int64(user.ID)).
+				Msg("Failed to validate recaptcha")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrRecaptchaValidationFailed, nil))
 
@@ -184,7 +212,12 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		if recaptchaScore < RecaptchaThreshold {
-			welcomer.Logger.Warn().Float64("score", recaptchaScore).Float64("threshold", RecaptchaThreshold).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("Recaptcha score is too low")
+			welcomer.Logger.Warn().
+				Float64("score", recaptchaScore).
+				Float64("threshold", RecaptchaThreshold).
+				Str("ip", ctx.ClientIP()).
+				Int64("userID", int64(user.ID)).
+				Msg("Recaptcha score is too low")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
@@ -192,13 +225,23 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Validate IPIntel
-		ipIntelResponse, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+		ipIntelResponse, err := backend.IPChecker.CheckIP(
+			ctx,
+			ctx.ClientIP(),
+			welcomer.IPIntelFlagDynamicBanListDynamicChecks,
+			welcomer.IPIntelOFlagShowCountry,
+		)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to validate IPIntel")
 		}
 
 		if ipIntelResponse.Result > IPIntelThreshold {
-			welcomer.Logger.Warn().Float64("score", ipIntelResponse.Result).Float64("threshold", IPIntelThreshold).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("IPIntel score is too high")
+			welcomer.Logger.Warn().
+				Float64("score", ipIntelResponse.Result).
+				Float64("threshold", IPIntelThreshold).
+				Str("ip", ctx.ClientIP()).
+				Int64("userID", int64(user.ID)).
+				Msg("IPIntel score is too high")
 
 			ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInsecureUser, nil))
 
@@ -206,11 +249,23 @@ func setBorderwall(ctx *gin.Context) {
 		}
 
 		// Broadcast borderwall completion.
-		managers, err := fetchApplicationsForGuild(ctx, discord.Snowflake(borderwallRequest.GuildID))
+		managers, err := fetchApplicationsForGuild(
+			ctx,
+			discord.Snowflake(borderwallRequest.GuildID),
+		)
 		if err != nil || len(managers) == 0 {
-			welcomer.Logger.Error().Err(err).Int64("guildID", borderwallRequest.GuildID).Int("len", len(managers)).Str("ip", ctx.ClientIP()).Int64("userID", int64(user.ID)).Msg("Failed to get managers for guild")
+			welcomer.Logger.Error().
+				Err(err).
+				Int64("guildID", borderwallRequest.GuildID).
+				Int("len", len(managers)).
+				Str("ip", ctx.ClientIP()).
+				Int64("userID", int64(user.ID)).
+				Msg("Failed to get managers for guild")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -230,7 +285,10 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to marshal borderwall completion data")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -243,7 +301,10 @@ func setBorderwall(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to relay borderwall completion")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -257,7 +318,8 @@ func setBorderwall(ctx *gin.Context) {
 
 		// If platform version is 13 or higher, we assume it's Windows 11.
 		// https://learn.microsoft.com/en-us/microsoft-edge/web-platform/how-to-detect-win11
-		if strings.ToLower(osName) == "windows" && osVersion == "10" && getMajor(request.PlatformVersion) >= 13 {
+		if strings.ToLower(osName) == "windows" && osVersion == "10" &&
+			getMajor(request.PlatformVersion) >= 13 {
 			osVersion = "11"
 		}
 
@@ -270,22 +332,34 @@ func setBorderwall(ctx *gin.Context) {
 			Msg("Borderwall request verified")
 
 		// Update the borderwall request with the response
-		if _, err := welcomer.Queries.UpdateBorderwallRequest(ctx, database.UpdateBorderwallRequestParams{
-			RequestUuid:     borderwallRequest.RequestUuid,
-			IsVerified:      true,
-			VerifiedAt:      sql.NullTime{Time: time.Now(), Valid: true},
-			IpAddress:       pgtype.Inet{IPNet: &net.IPNet{IP: clientIP, Mask: clientIP.DefaultMask()}, Status: pgtype.Present},
-			RecaptchaScore:  sql.NullFloat64{Float64: recaptchaScore, Valid: true},
-			IpintelScore:    sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
-			CountryCode:     sql.NullString{String: ctx.GetHeader("CF-IPCountry"), Valid: true},
-			UaFamily:        sql.NullString{String: client.UserAgent.Family, Valid: true},
-			UaFamilyVersion: sql.NullString{String: client.UserAgent.ToVersionString(), Valid: true},
-			UaOs:            sql.NullString{String: osName, Valid: true},
-			UaOsVersion:     sql.NullString{String: osVersion, Valid: true},
-		}); err != nil {
+		if _, err := welcomer.Queries.UpdateBorderwallRequest(
+			ctx,
+			database.UpdateBorderwallRequestParams{
+				RequestUuid: borderwallRequest.RequestUuid,
+				IsVerified:  true,
+				VerifiedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+				IpAddress: pgtype.Inet{
+					IPNet:  &net.IPNet{IP: clientIP, Mask: clientIP.DefaultMask()},
+					Status: pgtype.Present,
+				},
+				RecaptchaScore: sql.NullFloat64{Float64: recaptchaScore, Valid: true},
+				IpintelScore:   sql.NullFloat64{Float64: ipIntelResponse.Result, Valid: true},
+				CountryCode:    sql.NullString{String: ctx.GetHeader("CF-IPCountry"), Valid: true},
+				UaFamily:       sql.NullString{String: client.UserAgent.Family, Valid: true},
+				UaFamilyVersion: sql.NullString{
+					String: client.UserAgent.ToVersionString(),
+					Valid:  true,
+				},
+				UaOs:        sql.NullString{String: osName, Valid: true},
+				UaOsVersion: sql.NullString{String: osVersion, Valid: true},
+			},
+		); err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to update borderwall request")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}

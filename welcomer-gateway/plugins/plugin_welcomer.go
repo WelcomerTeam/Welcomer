@@ -124,15 +124,13 @@ func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 		guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(eventCtx)
 		if err == nil {
 			hasInviteVariable = HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs)
+		}
 
-			if hasInviteVariable {
-				usedInvite, err = p.trackInvites(eventCtx, eventCtx.Guild.ID)
-				if err != nil {
-					welcomer.Logger.Warn().Err(err).
-						Int64("guild_id", int64(eventCtx.Guild.ID)).
-						Msg("Failed to track invites")
-				}
-			}
+		usedInvite, err = p.trackInvites(eventCtx, eventCtx.Guild.ID)
+		if err != nil {
+			welcomer.Logger.Warn().Err(err).
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Msg("Failed to track invites")
 		}
 
 		welcomer.PusherGuildScience.Push(

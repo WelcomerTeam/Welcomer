@@ -30,9 +30,15 @@ func getGuildSettingsLeaver(ctx *gin.Context) {
 						LeaverMessageLifetime:    welcomer.DefaultLeaver.LeaverMessageLifetime,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild leaver settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild leaver settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -83,11 +89,19 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 			databaseLeaverGuildSettings := database.CreateOrUpdateLeaverGuildSettingsParams(*leaver)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *leaver).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild leaver settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *leaver).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild leaver settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, databaseLeaverGuildSettings, user.ID)
+					_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(
+						ctx,
+						databaseLeaverGuildSettings,
+						user.ID,
+					)
 
 					return err
 				},
@@ -97,9 +111,15 @@ func setGuildSettingsLeaver(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild leaver settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild leaver settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}

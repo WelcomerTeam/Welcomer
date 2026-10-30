@@ -1,0 +1,19 @@
+version: "2"
+
+linters:
+  enable:
+    - gomodguard_v2
+    - wsl_v5
+
+  settings:
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - gofumpt
+    - gci
+    - golines

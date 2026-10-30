@@ -437,6 +437,14 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return nil, err
 			}
 
+			welcomer.PusherGuildScience.Push(
+				ctx,
+				*interaction.GuildID,
+				interaction.Member.User.ID,
+				database.ScienceGuildEventTypeFreeRoleGiven,
+				welcomer.GuildScienceRoleGiven{RoleID: role.ID},
+			)
+
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{

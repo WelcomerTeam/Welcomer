@@ -45,7 +45,7 @@ func main() {
 	addJob("backup", "0        0 * * *", "cd /home/rock/Welcomer-Devops && ./backup.sh")
 	addJob("sync-guild-count", "0-59/15  * * * *", "cd /home/rock/Welcomer-Devops && python3 sync_guild_count.py")
 	addJob("patreon-service", "1-59/15  * * * *", "cd /home/rock/Welcomer/patreon-service && ./main")
-	addJob("cleanup-expired-borderwall-requests", "2-59/15  * * * *", "cd /home/rock/Welcomer/jobs && go run cleanup-expired-borderwall-requests.go")
+	// addJob("cleanup-expired-borderwall-requests", "2-59/15  * * * *", "cd /home/rock/Welcomer/jobs && go run cleanup-expired-borderwall-requests.go")
 	addJob("cleanup-expired-sessions", "3-59/15  * * * *", "cd /home/rock/Welcomer/jobs && go run cleanup-expired-sessions.go")
 	addJob("notify-expired", "4-59/15  * * * *", "cd /home/rock/Welcomer/jobs && go run notify-expired.go")
 	addJob("cleanup-custom-bots", "5-59/15  * * * *", "cd /home/rock/Welcomer/jobs && go run cleanup-custom-bots.go")

@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"slices"
@@ -61,8 +62,8 @@ type DatasetItem struct {
 }
 
 // DatasetItem is represented in json as ["Key", Value] instead of a dictionary.
-func (d *DatasetItem) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("[\"%s\", %d]", d.Key, d.Value)), nil
+func (d DatasetItem) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]any{d.Key, d.Value})
 }
 
 func createTimeMap(from, to time.Time, p datePeriod) map[time.Time]int {
@@ -84,7 +85,9 @@ func createTimeMap(from, to time.Time, p datePeriod) map[time.Time]int {
 
 	if p == datePeriodMonth {
 		from = time.Date(from.Year(), from.Month(), 1, 0, 0, 0, 0, from.Location())
-		to = time.Date(to.Year(), to.Month(), 1, 0, 0, 0, 0, to.Location()).AddDate(0, 1, 0).Add(-time.Second)
+		to = time.Date(to.Year(), to.Month(), 1, 0, 0, 0, 0, to.Location()).
+			AddDate(0, 1, 0).
+			Add(-time.Second)
 
 		for t := from; t.Before(to); t = t.AddDate(0, 1, 0) {
 			memberMap[t] = 0
@@ -127,9 +130,15 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 
 			ok, err := ratelimitAnalytics.CanRequest(ctx, guildID.String())
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to check rate limit")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to check rate limit")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -148,7 +157,10 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 
 			err = ctx.BindQuery(partial)
 			if err != nil {
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -159,30 +171,62 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 			}
 
 			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
-				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(
+					partial.From,
+					partial.To,
+				)
 			}
 
-			data, err := getGuildAnalyticsOverviewData(ctx, guildID, partial.From, partial.To, 0, false)
+			data, err := getGuildAnalyticsOverviewData(
+				ctx,
+				guildID,
+				partial.From,
+				partial.To,
+				0,
+				false,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get guild analytics overview data")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get guild analytics overview data")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			previousData, err := getGuildAnalyticsOverviewData(ctx, guildID, partial.PreviousFrom, partial.PreviousTo, int32(data.GuildMembersSum[0].Value), true)
+			previousData, err := getGuildAnalyticsOverviewData(
+				ctx,
+				guildID,
+				partial.PreviousFrom,
+				partial.PreviousTo,
+				int32(data.GuildMembersSum[0].Value),
+				true,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get previous guild analytics overview data")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get previous guild analytics overview data")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			// Keep datapoint lengths equal. Remove first N if not matching
 			if len(previousData.GuildMembersSum) != len(data.GuildMembersSum) {
-				welcomer.Logger.Info().Int("expected_length", len(data.GuildMembersSum)).Int("actual_length", len(previousData.GuildMembersSum)).Msg("mismatched guild members sum length")
+				welcomer.Logger.Info().
+					Int("expected_length", len(data.GuildMembersSum)).
+					Int("actual_length", len(previousData.GuildMembersSum)).
+					Msg("mismatched guild members sum length")
 				previousData.GuildMembersSum = previousData.GuildMembersSum[len(previousData.GuildMembersSum)-len(data.GuildMembersSum):]
 			}
 
@@ -207,7 +251,13 @@ type guildAnalyticsOverviewResponse struct {
 	GuildLeaves       []DatasetItem `json:"guild_leaves,omitempty"`
 }
 
-func getGuildAnalyticsOverviewData(ctx context.Context, guildID discord.Snowflake, from, to time.Time, overrideGuildMemberCount int32, isPrevious bool) (*guildAnalyticsOverviewResponse, error) {
+func getGuildAnalyticsOverviewData(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	from, to time.Time,
+	overrideGuildMemberCount int32,
+	isPrevious bool,
+) (*guildAnalyticsOverviewResponse, error) {
 	resp := &guildAnalyticsOverviewResponse{}
 
 	guildMemberCount := overrideGuildMemberCount
@@ -223,24 +273,30 @@ func getGuildAnalyticsOverviewData(ctx context.Context, guildID discord.Snowflak
 		guildMemberCount = guild.MemberCount
 	}
 
-	memberJoinEvents, err := welcomer.Queries.GetScienceGuildEventsForGuildGroupedByPeriod(ctx, database.GetScienceGuildEventsForGuildGroupedByPeriodParams{
-		GuildID:   int64(guildID),
-		EventType: int32(database.ScienceGuildEventTypeUserJoin),
-		DateFrom:  from,
-		DateTo:    to,
-		Period:    string(groupingPeriod),
-	})
+	memberJoinEvents, err := welcomer.Queries.GetScienceGuildEventsForGuildGroupedByPeriod(
+		ctx,
+		database.GetScienceGuildEventsForGuildGroupedByPeriodParams{
+			GuildID:   int64(guildID),
+			EventType: int32(database.ScienceGuildEventTypeUserJoin),
+			DateFrom:  from,
+			DateTo:    to,
+			Period:    string(groupingPeriod),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get member join events: %w", err)
 	}
 
-	memberLeftEvents, err := welcomer.Queries.GetScienceGuildEventsForGuildGroupedByPeriod(ctx, database.GetScienceGuildEventsForGuildGroupedByPeriodParams{
-		GuildID:   int64(guildID),
-		EventType: int32(database.ScienceGuildEventTypeUserLeave),
-		DateFrom:  from,
-		DateTo:    to,
-		Period:    string(groupingPeriod),
-	})
+	memberLeftEvents, err := welcomer.Queries.GetScienceGuildEventsForGuildGroupedByPeriod(
+		ctx,
+		database.GetScienceGuildEventsForGuildGroupedByPeriodParams{
+			GuildID:   int64(guildID),
+			EventType: int32(database.ScienceGuildEventTypeUserLeave),
+			DateFrom:  from,
+			DateTo:    to,
+			Period:    string(groupingPeriod),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get member left events: %w", err)
 	}
@@ -300,9 +356,15 @@ func getGuildAnalyticsRetention(ctx *gin.Context) {
 
 			ok, err := ratelimitAnalytics.CanRequest(ctx, guildID.String())
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to check rate limit")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to check rate limit")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -321,7 +383,10 @@ func getGuildAnalyticsRetention(ctx *gin.Context) {
 
 			err = ctx.BindQuery(partial)
 			if err != nil {
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -332,23 +397,50 @@ func getGuildAnalyticsRetention(ctx *gin.Context) {
 			}
 
 			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
-				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(
+					partial.From,
+					partial.To,
+				)
 			}
 
-			data, err := getGuildAnalyticsRetentionData(ctx, guildID, partial.From, partial.To, false)
+			data, err := getGuildAnalyticsRetentionData(
+				ctx,
+				guildID,
+				partial.From,
+				partial.To,
+				false,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get guild analytics retention data")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get guild analytics retention data")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			previousData, err := getGuildAnalyticsRetentionData(ctx, guildID, partial.PreviousFrom, partial.PreviousTo, true)
+			previousData, err := getGuildAnalyticsRetentionData(
+				ctx,
+				guildID,
+				partial.PreviousFrom,
+				partial.PreviousTo,
+				true,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get previous guild analytics retention data")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get previous guild analytics retention data")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -382,52 +474,72 @@ type guildAnalyticsRetentionResponse struct {
 	TimeOnServer              []DatasetItem `json:"time_on_server,omitempty"`
 }
 
-func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowflake, from, to time.Time, isPrevious bool) (*guildAnalyticsRetentionResponse, error) {
+func getGuildAnalyticsRetentionData(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	from, to time.Time,
+	isPrevious bool,
+) (*guildAnalyticsRetentionResponse, error) {
 	resp := guildAnalyticsRetentionResponse{}
 
-	membersJoinedSum, err := welcomer.Queries.SumScienceGuildEventsForGuild(ctx, database.SumScienceGuildEventsForGuildParams{
-		GuildID:   int64(guildID),
-		EventType: int32(database.ScienceGuildEventTypeUserJoin),
-		DateFrom:  from,
-		DateTo:    to,
-	})
+	membersJoinedSum, err := welcomer.Queries.SumScienceGuildEventsForGuild(
+		ctx,
+		database.SumScienceGuildEventsForGuildParams{
+			GuildID:   int64(guildID),
+			EventType: int32(database.ScienceGuildEventTypeUserJoin),
+			DateFrom:  from,
+			DateTo:    to,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sum science guild events for guild: %w", err)
 	}
 
 	resp.MembersJoined = int(membersJoinedSum)
 
-	membersLeftSum, err := welcomer.Queries.SumScienceGuildEventsForGuild(ctx, database.SumScienceGuildEventsForGuildParams{
-		GuildID:   int64(guildID),
-		EventType: int32(database.ScienceGuildEventTypeUserLeave),
-		DateFrom:  from,
-		DateTo:    to,
-	})
+	membersLeftSum, err := welcomer.Queries.SumScienceGuildEventsForGuild(
+		ctx,
+		database.SumScienceGuildEventsForGuildParams{
+			GuildID:   int64(guildID),
+			EventType: int32(database.ScienceGuildEventTypeUserLeave),
+			DateFrom:  from,
+			DateTo:    to,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sum science guild events for guild: %w", err)
 	}
 
 	resp.MembersLeft = int(membersLeftSum)
 
-	guildRetention, err := welcomer.Queries.GetGuildMemberRetention(ctx, database.GetGuildMemberRetentionParams{
-		GuildID:                        int64(guildID),
-		ScienceGuildEventTypeUserLeave: int32(database.ScienceGuildEventTypeUserLeave),
-		ScienceGuildEventTypeUserJoin:  int32(database.ScienceGuildEventTypeUserJoin),
-		DateFrom:                       from,
-		DateTo:                         to,
-	})
+	guildRetention, err := welcomer.Queries.GetGuildMemberRetention(
+		ctx,
+		database.GetGuildMemberRetentionParams{
+			GuildID:                        int64(guildID),
+			ScienceGuildEventTypeUserLeave: int32(database.ScienceGuildEventTypeUserLeave),
+			ScienceGuildEventTypeUserJoin:  int32(database.ScienceGuildEventTypeUserJoin),
+			DateFrom:                       from,
+			DateTo:                         to,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get guild member retention: %w", err)
 	}
 
-	resp.Retention = max(0, float64(int(float64(guildRetention.MembersLeft)/float64(membersJoinedSum)*10000))/100)
+	resp.Retention = max(
+		0,
+		float64(int(float64(guildRetention.MembersLeft)/float64(membersJoinedSum)*10000))/100,
+	)
 
-	guildRetentionCohorts, err := welcomer.Queries.GetGuildMemberRetentionMatrix(ctx, database.GetGuildMemberRetentionMatrixParams{
-		GuildID:                        int64(guildID),
-		ScienceGuildEventTypeUserJoin:  int32(database.ScienceGuildEventTypeUserJoin),
-		DateTo:                         to,
-		ScienceGuildEventTypeUserLeave: int32(database.ScienceGuildEventTypeUserLeave),
-	})
+	guildRetentionCohorts, err := welcomer.Queries.GetGuildMemberRetentionMatrix(
+		ctx,
+		database.GetGuildMemberRetentionMatrixParams{
+			GuildID:                        int64(guildID),
+			ScienceGuildEventTypeUserJoin:  int32(database.ScienceGuildEventTypeUserJoin),
+			DateTo:                         to,
+			ScienceGuildEventTypeUserLeave: int32(database.ScienceGuildEventTypeUserLeave),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get guild member retention matrix: %w", err)
 	}
@@ -447,7 +559,11 @@ func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowfla
 		for _, k := range guildRetentionCohorts {
 			if k.LeftMonthsAgo < 0 {
 				for j := 0; j < 12; j++ {
-					retentionCohorts[k.JoinedMonthsAgo][j] = float64(int((retentionCohorts[k.JoinedMonthsAgo][j]/(retentionCohorts[k.JoinedMonthsAgo][j]+float64(k.MemberCount)))*10000)) / 100
+					retentionCohorts[k.JoinedMonthsAgo][j] = float64(
+						int(
+							(retentionCohorts[k.JoinedMonthsAgo][j]/(retentionCohorts[k.JoinedMonthsAgo][j]+float64(k.MemberCount)))*10000,
+						),
+					) / 100
 				}
 			}
 		}
@@ -462,13 +578,16 @@ func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowfla
 			return nil, fmt.Errorf("failed to request guild chunk: %w", err)
 		}
 
-		leftUsersTimeOnServer, err := welcomer.Queries.GetLeftGuildMemberDaysOnServer(ctx, database.GetLeftGuildMemberDaysOnServerParams{
-			GuildID:                        int64(guildID),
-			ScienceGuildEventTypeUserJoin:  int32(database.ScienceGuildEventTypeUserJoin),
-			DateFrom:                       from,
-			DateTo:                         to,
-			ScienceGuildEventTypeUserLeave: int32(database.ScienceGuildEventTypeUserLeave),
-		})
+		leftUsersTimeOnServer, err := welcomer.Queries.GetLeftGuildMemberDaysOnServer(
+			ctx,
+			database.GetLeftGuildMemberDaysOnServerParams{
+				GuildID:                        int64(guildID),
+				ScienceGuildEventTypeUserJoin:  int32(database.ScienceGuildEventTypeUserJoin),
+				DateFrom:                       from,
+				DateTo:                         to,
+				ScienceGuildEventTypeUserLeave: int32(database.ScienceGuildEventTypeUserLeave),
+			},
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get left guild member days on server: %w", err)
 		}
@@ -489,12 +608,16 @@ func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowfla
 		slices.SortFunc(resp.TimeOnServerBeforeLeaving, func(a, b DatasetItem) int {
 			ai, _ := strconv.Atoi(a.Key)
 			bi, _ := strconv.Atoi(b.Key)
+
 			return ai - bi
 		})
 
-		guildMembers, err := welcomer.SandwichClient.FetchGuildMember(ctx, &sandwich.FetchGuildMemberRequest{
-			GuildId: int64(guildID),
-		})
+		guildMembers, err := welcomer.SandwichClient.FetchGuildMember(
+			ctx,
+			&sandwich.FetchGuildMemberRequest{
+				GuildId: int64(guildID),
+			},
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch guild members: %w", err)
 		}
@@ -531,6 +654,7 @@ func getGuildAnalyticsRetentionData(ctx context.Context, guildID discord.Snowfla
 		slices.SortFunc(resp.TimeOnServer, func(a, b DatasetItem) int {
 			ai, _ := strconv.Atoi(a.Key)
 			bi, _ := strconv.Atoi(b.Key)
+
 			return ai - bi
 		})
 	}
@@ -547,9 +671,15 @@ func getGuildAnalyticsUserActivity(ctx *gin.Context) {
 
 			ok, err := ratelimitAnalytics.CanRequest(ctx, guildID.String())
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to check rate limit")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to check rate limit")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -568,7 +698,10 @@ func getGuildAnalyticsUserActivity(ctx *gin.Context) {
 
 			err = ctx.BindQuery(partial)
 			if err != nil {
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -579,23 +712,50 @@ func getGuildAnalyticsUserActivity(ctx *gin.Context) {
 			}
 
 			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
-				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(
+					partial.From,
+					partial.To,
+				)
 			}
 
-			data, err := getGuildAnalyticsUserActivityData(ctx, guildID, partial.From, partial.To, false)
+			data, err := getGuildAnalyticsUserActivityData(
+				ctx,
+				guildID,
+				partial.From,
+				partial.To,
+				false,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get guild analytics user activity data")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get guild analytics user activity data")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			previousData, err := getGuildAnalyticsUserActivityData(ctx, guildID, partial.PreviousFrom, partial.PreviousTo, true)
+			previousData, err := getGuildAnalyticsUserActivityData(
+				ctx,
+				guildID,
+				partial.PreviousFrom,
+				partial.PreviousTo,
+				true,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get previous guild analytics user activity data")
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get previous guild analytics user activity data")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -627,23 +787,97 @@ type guildAnalyticsUserActivityResponse struct {
 	AccountAgeDistribution    []DatasetItem `json:"account_age_distribution"`
 }
 
-func getGuildAnalyticsUserActivityData(ctx *gin.Context, guildID discord.Snowflake, from, to time.Time, isPrevious bool) (*guildAnalyticsUserActivityResponse, error) {
+func getGuildAnalyticsUserActivityData(
+	ctx *gin.Context,
+	guildID discord.Snowflake,
+	from, to time.Time,
+	isPrevious bool,
+) (*guildAnalyticsUserActivityResponse, error) {
 	resp := guildAnalyticsUserActivityResponse{}
 
-	activeUsers, err := welcomer.Queries.GetActiveUserCounts(ctx, database.GetActiveUserCountsParams{
-		GuildID:  int64(guildID),
-		DateFrom: from,
-		DateTo:   to,
-	})
+	activeUsers, err := welcomer.Queries.GetActiveUserCounts(
+		ctx,
+		database.GetActiveUserCountsParams{
+			GuildID:  int64(guildID),
+			DateFrom: from,
+			DateTo:   to,
+		},
+	)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Msg("failed to get active user counts")
+		return nil, fmt.Errorf("failed to get active user counts: %w", err)
 	}
 
 	resp.DailyActive = int(activeUsers.AverageDailyActiveUsers)
 	resp.WeeklyActive = int(activeUsers.AverageWeeklyActiveUsers)
 	resp.MonthlyActive = int(activeUsers.AverageMonthlyActiveUsers)
 
+	timeToFirstMessage, err := welcomer.Queries.GetGuildTimeToFirstMessage(
+		ctx,
+		database.GetGuildTimeToFirstMessageParams{
+			GuildID:       int64(guildID),
+			JoinEventType: int32(database.ScienceGuildEventTypeUserJoin),
+			DateFrom:      from,
+			DateTo:        to,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get time to first message: %w", err)
+	}
+
+	resp.TimeToFirstMessage = int(timeToFirstMessage.Users)
+	resp.AverageTimeToFirstMessage = int(timeToFirstMessage.AverageSeconds)
+	resp.MedianTimeToFirstMessage = int(timeToFirstMessage.MedianSeconds)
+
 	if !isPrevious {
+		guild, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get guild: %w", err)
+		}
+
+		resp.TotalMembers = int(guild.MemberCount)
+
+		summary, err := welcomer.Queries.GetGuildMessageSummary(
+			ctx,
+			database.GetGuildMessageSummaryParams{
+				GuildID:  int64(guildID),
+				DateFrom: from,
+				DateTo:   to,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get message summary: %w", err)
+		}
+
+		resp.ActiveMembers = int(summary.UniqueUsers)
+		resp.DormantMembers = max(0, resp.TotalMembers-resp.ActiveMembers)
+
+		activity, err := welcomer.Queries.GetGuildMessageActivity(
+			ctx,
+			database.GetGuildMessageActivityParams{
+				Period:   string(getGroupingPeriod(from, to)),
+				GuildID:  int64(guildID),
+				DateFrom: from,
+				DateTo:   to,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get message activity: %w", err)
+		}
+
+		resp.UniqueUserActivity = make([]DatasetItem, 0, len(activity))
+
+		resp.TotalUserActivity = make([]DatasetItem, 0, len(activity))
+		for _, row := range activity {
+			key := row.Date.Format(time.RFC3339)
+			resp.UniqueUserActivity = append(
+				resp.UniqueUserActivity,
+				DatasetItem{Key: key, Value: int(row.UniqueUsers)},
+			)
+			resp.TotalUserActivity = append(
+				resp.TotalUserActivity,
+				DatasetItem{Key: key, Value: int(row.MessageCount)},
+			)
+		}
 	}
 
 	return &resp, nil
@@ -653,6 +887,12 @@ func registerGuildAnalyticsRoutes(g *gin.Engine) {
 	g.GET("/api/guild/:guildID/analytics/overview", getGuildAnalyticsOverview)
 	g.GET("/api/guild/:guildID/analytics/retention", getGuildAnalyticsRetention)
 	g.GET("/api/guild/:guildID/analytics/user-activity", getGuildAnalyticsUserActivity)
+	g.GET("/api/guild/:guildID/analytics/user-demographics", getGuildAnalyticsUserDemographics)
+	g.GET("/api/guild/:guildID/analytics/message-activity", getGuildAnalyticsMessageActivity)
+	g.GET("/api/guild/:guildID/analytics/voice-activity", getGuildAnalyticsVoiceActivity)
+	g.GET("/api/guild/:guildID/analytics/role-activity", getGuildAnalyticsRoleActivity)
+	g.GET("/api/guild/:guildID/analytics/invites", getGuildAnalyticsInvites)
+	g.GET("/api/guild/:guildID/analytics/borderwall", getGuildAnalyticsBorderwall)
 }
 
 // Page Layouts

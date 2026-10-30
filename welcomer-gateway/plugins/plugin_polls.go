@@ -149,7 +149,6 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 					Str("poll_uuid", poll.PollUuid.String()).
 					Msg("Failed to unset poll as ended")
 			}
-
 		}
 	}()
 

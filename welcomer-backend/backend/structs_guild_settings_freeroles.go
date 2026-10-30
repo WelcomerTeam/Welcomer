@@ -25,7 +25,10 @@ func GuildSettingsFreeRolesSettingsToPartial(
 	return partial
 }
 
-func PartialToGuildSettingsFreeRolesSettings(guildID int64, guildSettings *GuildSettingsFreeRoles) *database.GuildSettingsFreeroles {
+func PartialToGuildSettingsFreeRolesSettings(
+	guildID int64,
+	guildSettings *GuildSettingsFreeRoles,
+) *database.GuildSettingsFreeroles {
 	return &database.GuildSettingsFreeroles{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,

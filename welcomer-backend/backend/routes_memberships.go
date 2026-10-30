@@ -83,7 +83,10 @@ func getMemberships(ctx *gin.Context) {
 
 		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -210,17 +213,24 @@ func postMembershipSubscribe(ctx *gin.Context) {
 
 		memberships, err := welcomer.Queries.GetUserMembershipsByUserID(ctx, int64(userID))
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
 
 		for _, membership := range memberships {
 			if membership.MembershipUuid == membershipID {
-				if database.PlatformType(membership.PlatformType.Int32) == database.PlatformTypeDiscord {
+				if database.PlatformType(
+					membership.PlatformType.Int32,
+				) == database.PlatformTypeDiscord {
 					// Discord memberships cannot be transferred or modified.
-
-					ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrCannotTransferMembership, nil))
+					ctx.JSON(
+						http.StatusBadRequest,
+						NewBaseResponse(ErrCannotTransferMembership, nil),
+					)
 
 					return
 				}
@@ -236,7 +246,10 @@ func postMembershipSubscribe(ctx *gin.Context) {
 				}
 
 				if err != nil {
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}

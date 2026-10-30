@@ -103,5 +103,15 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return err
 	}
 
+	for _, roleID := range assignableRoles {
+		welcomer.PusherGuildScience.Push(
+			eventCtx.Context,
+			eventCtx.Guild.ID,
+			member.User.ID,
+			database.ScienceGuildEventTypeAutoRoleGiven,
+			welcomer.GuildScienceRoleGiven{RoleID: roleID},
+		)
+	}
+
 	return nil
 }

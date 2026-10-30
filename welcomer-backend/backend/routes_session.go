@@ -79,7 +79,6 @@ func callback(ctx *gin.Context) {
 	authorizationInformation, err := discord.GetCurrentAuthorizationInformation(ctx, discordSession)
 	if err != nil || authorizationInformation == nil {
 		// doDiscordOAuthAuthorize(session, ctx)
-
 		ctx.Redirect(http.StatusTemporaryRedirect, "/")
 
 		return

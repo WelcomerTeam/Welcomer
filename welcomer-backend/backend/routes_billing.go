@@ -27,7 +27,28 @@ import (
 )
 
 // ISO 3166-1 alpha-2 country codes for the Eurozone.
-var euroZone = []string{"AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"}
+var euroZone = []string{
+	"AT",
+	"BE",
+	"HR",
+	"CY",
+	"EE",
+	"FI",
+	"FR",
+	"DE",
+	"GR",
+	"IE",
+	"IT",
+	"LV",
+	"LT",
+	"LU",
+	"MT",
+	"NL",
+	"PT",
+	"SK",
+	"SI",
+	"ES",
+}
 
 var (
 	certificateCache   map[string][]byte = make(map[string][]byte)
@@ -78,9 +99,17 @@ func getSKUs(ctx *gin.Context) {
 			Country: ctx.GetHeader("CF-IPCountry"),
 		}
 	} else {
-		response, err = backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+		response, err = backend.IPChecker.CheckIP(
+			ctx,
+			ctx.ClientIP(),
+			welcomer.IPIntelFlagDynamicBanListDynamicChecks,
+			welcomer.IPIntelOFlagShowCountry,
+		)
 		if err != nil {
-			welcomer.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
+			welcomer.Logger.Warn().
+				Err(err).
+				IPAddr("ip", net.IP(ctx.ClientIP())).
+				Msg("Failed to validate IP via IPIntel")
 		}
 	}
 
@@ -146,9 +175,17 @@ func createPayment(ctx *gin.Context) {
 			return
 		}
 
-		response, err := backend.IPChecker.CheckIP(ctx, ctx.ClientIP(), welcomer.IPIntelFlagDynamicBanListDynamicChecks, welcomer.IPIntelOFlagShowCountry)
+		response, err := backend.IPChecker.CheckIP(
+			ctx,
+			ctx.ClientIP(),
+			welcomer.IPIntelFlagDynamicBanListDynamicChecks,
+			welcomer.IPIntelOFlagShowCountry,
+		)
 		if err != nil {
-			welcomer.Logger.Warn().Err(err).IPAddr("ip", net.IP(ctx.ClientIP())).Msg("Failed to validate IP via IPIntel")
+			welcomer.Logger.Warn().
+				Err(err).
+				IPAddr("ip", net.IP(ctx.ClientIP())).
+				Msg("Failed to validate IP via IPIntel")
 		}
 
 		if request.Currency == "" {
@@ -176,7 +213,10 @@ func createPayment(ctx *gin.Context) {
 
 		// Check if the cost is valid.
 		if welcomer.TryParseFloat(skuCost) <= 0 {
-			welcomer.Logger.Warn().Str("currency", string(request.Currency)).Str("sku", string(request.SKU)).Msg("Invalid cost")
+			welcomer.Logger.Warn().
+				Str("currency", string(request.Currency)).
+				Str("sku", string(request.SKU)).
+				Msg("Invalid cost")
 
 			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrInvalidCost, nil))
 
@@ -200,7 +240,11 @@ func createPayment(ctx *gin.Context) {
 		applicationContext := &paypal.ApplicationContext{
 			BrandName:          "Welcomer",
 			ShippingPreference: paypal.ShippingPreferenceNoShipping,
-			UserAction:         welcomer.If(sku.IsRecurring, paypal.UserActionSubscribeNow, paypal.UserActionPayNow),
+			UserAction: welcomer.If(
+				sku.IsRecurring,
+				paypal.UserActionSubscribeNow,
+				paypal.UserActionPayNow,
+			),
 			PaymentMethod: paypal.PaymentMethod{
 				PayeePreferred:         paypal.PayeePreferredUnrestricted,
 				StandardEntryClassCode: paypal.StandardEntryClassCodeWeb,
@@ -226,7 +270,14 @@ func createPayment(ctx *gin.Context) {
 	})
 }
 
-func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applicationContext *paypal.ApplicationContext, user SessionUser, money *paypal.Money, paypalSubscriptionID string) {
+func createPaymentSubscription(
+	ctx *gin.Context,
+	sku welcomer.PricingSKU,
+	applicationContext *paypal.ApplicationContext,
+	user SessionUser,
+	money *paypal.Money,
+	paypalSubscriptionID string,
+) {
 	// Create a user transaction.
 	userTransaction, err := welcomer.CreateTransactionForUser(
 		ctx,
@@ -240,7 +291,10 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create user transaction")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -281,7 +335,10 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create subscription")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -306,7 +363,10 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to update user transaction")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -316,7 +376,10 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	if payerActionLink == "" {
 		welcomer.Logger.Error().Msg("Failed to get payer action link from subscription response")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -329,7 +392,13 @@ func createPaymentSubscription(ctx *gin.Context, sku welcomer.PricingSKU, applic
 	})
 }
 
-func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationContext *paypal.ApplicationContext, user SessionUser, money *paypal.Money) {
+func createPaymentOrder(
+	ctx *gin.Context,
+	sku welcomer.PricingSKU,
+	applicationContext *paypal.ApplicationContext,
+	user SessionUser,
+	money *paypal.Money,
+) {
 	// Create a user transaction.
 	userTransaction, err := welcomer.CreateTransactionForUser(
 		ctx,
@@ -343,7 +412,10 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create user transaction")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -377,7 +449,13 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	}
 
 	// Send order request to paypal.
-	order, err := backend.PaypalClient.CreateOrder(ctx, paypal.OrderIntentCapture, []paypal.PurchaseUnitRequest{purchaseUnit}, nil, applicationContext)
+	order, err := backend.PaypalClient.CreateOrder(
+		ctx,
+		paypal.OrderIntentCapture,
+		[]paypal.PurchaseUnitRequest{purchaseUnit},
+		nil,
+		applicationContext,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create order")
 
@@ -406,7 +484,10 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to update user transaction")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -416,7 +497,10 @@ func createPaymentOrder(ctx *gin.Context, sku welcomer.PricingSKU, applicationCo
 	if payerActionLink == "" {
 		welcomer.Logger.Error().Msg("Failed to get payer action link from order response")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -457,24 +541,41 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			if subscriptionID == "" {
 				welcomer.Logger.Warn().Msg("Missing subscription_id")
 
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("subscription_id"), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewMissingParameterError("subscription_id"), nil),
+				)
 
 				return ErrMissingParameter
 			}
 
-			transactions, err := welcomer.Queries.GetUserTransactionsByTransactionID(ctx, subscriptionID)
+			transactions, err := welcomer.Queries.GetUserTransactionsByTransactionID(
+				ctx,
+				subscriptionID,
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("subscription_id", subscriptionID).Msg("Failed to get user transactions by transaction ID")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("subscription_id", subscriptionID).
+					Msg("Failed to get user transactions by transaction ID")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
 
 			if len(transactions) == 0 {
-				welcomer.Logger.Warn().Str("subscription_id", subscriptionID).Msg("No user transactions found")
+				welcomer.Logger.Warn().
+					Str("subscription_id", subscriptionID).
+					Msg("No user transactions found")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -483,9 +584,16 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			transaction := transactions[0]
 
 			if transaction.UserID != int64(user.ID) {
-				welcomer.Logger.Warn().Str("subscription_id", subscriptionID).Int64("userID", transaction.UserID).Int64("user.ID", int64(user.ID)).Msg("User ID does not match")
+				welcomer.Logger.Warn().
+					Str("subscription_id", subscriptionID).
+					Int64("userID", transaction.UserID).
+					Int64("user.ID", int64(user.ID)).
+					Msg("User ID does not match")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -493,9 +601,15 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			// TODO: If we receive the webhook before the user navigates
 			// to the success page, it may be completed.
 			if transaction.TransactionStatus != int32(database.TransactionStatusPending) {
-				welcomer.Logger.Warn().Str("subscription_id", subscriptionID).Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).Msg("Transaction is not pending")
+				welcomer.Logger.Warn().
+					Str("subscription_id", subscriptionID).
+					Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).
+					Msg("Transaction is not pending")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -503,30 +617,42 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			// Get subscription
 			subscription, err := backend.PaypalClient.GetSubscriptionDetails(ctx, subscriptionID)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("subscription_id", subscriptionID).Msg("Failed to get subscription")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("subscription_id", subscriptionID).
+					Msg("Failed to get subscription")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGetOrderValidationFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrGetOrderValidationFailed, nil),
+				)
 
 				return err
 			}
 
 			// Create a paypal subscription entry.
-			_, err = welcomer.Queries.CreateOrUpdatePaypalSubscription(ctx, database.CreateOrUpdatePaypalSubscriptionParams{
-				SubscriptionID:     subscriptionID,
-				UserID:             int64(user.ID),
-				PayerID:            subscription.Subscriber.PayerID,
-				LastBilledAt:       subscription.BillingInfo.LastPayment.Time,
-				NextBillingAt:      subscription.BillingInfo.NextBillingTime,
-				SubscriptionStatus: string(subscription.SubscriptionStatus),
-				PlanID:             subscription.PlanID,
-				Quantity:           subscription.Quantity,
-			})
+			_, err = welcomer.Queries.CreateOrUpdatePaypalSubscription(
+				ctx,
+				database.CreateOrUpdatePaypalSubscriptionParams{
+					SubscriptionID:     subscriptionID,
+					UserID:             int64(user.ID),
+					PayerID:            subscription.Subscriber.PayerID,
+					LastBilledAt:       subscription.BillingInfo.LastPayment.Time,
+					NextBillingAt:      subscription.BillingInfo.NextBillingTime,
+					SubscriptionStatus: string(subscription.SubscriptionStatus),
+					PlanID:             subscription.PlanID,
+					Quantity:           subscription.Quantity,
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Str("subscription_id", subscription.ID).
 					Msg("Failed to create paypal subscription")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -569,7 +695,10 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create user transaction")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCreateTransactionFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrCreateTransactionFailed, nil),
+				)
 
 				return err
 			}
@@ -597,7 +726,10 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create new membership")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCreateMembershipFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrCreateMembershipFailed, nil),
+				)
 
 				return err
 			}
@@ -610,7 +742,10 @@ func paymentSubscriptionCallback(ctx *gin.Context) {
 		if err != nil && !ctx.Writer.Written() {
 			welcomer.Logger.Error().Err(err).Msg("Failed to process payment")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 		}
 	})
 }
@@ -627,7 +762,10 @@ func paymentCallback(ctx *gin.Context) {
 			if token == "" {
 				welcomer.Logger.Warn().Str("PayerID", payerID).Msg("Missing token")
 
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("token"), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewMissingParameterError("token"), nil),
+				)
 
 				return ErrMissingParameter
 			}
@@ -635,16 +773,25 @@ func paymentCallback(ctx *gin.Context) {
 			if payerID == "" {
 				welcomer.Logger.Warn().Str("token", token).Msg("Missing PayerID")
 
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewMissingParameterError("PayerID"), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewMissingParameterError("PayerID"), nil),
+				)
 
 				return ErrMissingParameter
 			}
 
 			transactions, err := welcomer.Queries.GetUserTransactionsByTransactionID(ctx, token)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("token", token).Msg("Failed to get user transactions by transaction ID")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("token", token).
+					Msg("Failed to get user transactions by transaction ID")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -652,7 +799,10 @@ func paymentCallback(ctx *gin.Context) {
 			if len(transactions) == 0 {
 				welcomer.Logger.Warn().Str("token", token).Msg("No user transactions found")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -661,17 +811,30 @@ func paymentCallback(ctx *gin.Context) {
 			transaction := transactions[0]
 
 			if transaction.UserID != int64(user.ID) {
-				welcomer.Logger.Warn().Str("token", token).Int64("userID", transaction.UserID).Int64("user.ID", int64(user.ID)).Msg("User ID does not match")
+				welcomer.Logger.Warn().
+					Str("token", token).
+					Int64("userID", transaction.UserID).
+					Int64("user.ID", int64(user.ID)).
+					Msg("User ID does not match")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
 
 			if transaction.TransactionStatus != int32(database.TransactionStatusPending) {
-				welcomer.Logger.Warn().Str("token", token).Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).Msg("Transaction is not pending")
+				welcomer.Logger.Warn().
+					Str("token", token).
+					Str("transactionStatus", database.TransactionStatus(transaction.TransactionStatus).String()).
+					Msg("Transaction is not pending")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return err
 			}
@@ -681,7 +844,10 @@ func paymentCallback(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Str("token", token).Msg("Failed to get order")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGetOrderValidationFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrGetOrderValidationFailed, nil),
+				)
 
 				return err
 			}
@@ -689,7 +855,10 @@ func paymentCallback(ctx *gin.Context) {
 			if len(order.PurchaseUnits) == 0 || len(order.PurchaseUnits[0].Items) == 0 {
 				welcomer.Logger.Warn().Str("token", token).Msg("No purchase units or items found")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrGetOrderValidationFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrGetOrderValidationFailed, nil),
+				)
 
 				return err
 			}
@@ -709,9 +878,17 @@ func paymentCallback(ctx *gin.Context) {
 			}
 
 			// Capture the order
-			authorizeResponse, err := backend.PaypalClient.CaptureOrder(ctx, token, paypal.CaptureOrderRequest{})
+			authorizeResponse, err := backend.PaypalClient.CaptureOrder(
+				ctx,
+				token,
+				paypal.CaptureOrderRequest{},
+			)
 			if err != nil || authorizeResponse.Status != paypal.OrderStatusCompleted {
-				welcomer.Logger.Error().Err(err).Str("token", token).Str("status", authorizeResponse.Status).Msg("Failed to authorize order")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("token", token).
+					Str("status", authorizeResponse.Status).
+					Msg("Failed to authorize order")
 
 				// Create a user transaction.
 				_, err = welcomer.CreateTransactionForUser(
@@ -727,7 +904,10 @@ func paymentCallback(ctx *gin.Context) {
 					welcomer.Logger.Error().Err(err).Msg("Failed to create user transaction")
 				}
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCaptureOrderFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrCaptureOrderFailed, nil),
+				)
 
 				return err
 			}
@@ -745,13 +925,20 @@ func paymentCallback(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create user transaction")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCreateTransactionFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrCreateTransactionFailed, nil),
+				)
 
 				return err
 			}
 
 			startedAt := time.Time{}
-			expiresAt := startedAt.AddDate(0, welcomer.If(sku.MonthCount < 0, 120, sku.MonthCount), 0)
+			expiresAt := startedAt.AddDate(
+				0,
+				welcomer.If(sku.MonthCount < 0, 120, sku.MonthCount),
+				0,
+			)
 
 			var guildIDSnowflake discord.Snowflake
 
@@ -772,7 +959,10 @@ func paymentCallback(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to create new membership")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(ErrCreateMembershipFailed, nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(ErrCreateMembershipFailed, nil),
+				)
 
 				return err
 			}
@@ -785,14 +975,19 @@ func paymentCallback(ctx *gin.Context) {
 		if err != nil && !ctx.Writer.Written() {
 			welcomer.Logger.Error().Err(err).Msg("Failed to process payment")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 		}
 	})
 }
 
 func downloadAndCache(url string) ([]byte, error) {
 	certificateCacheMu.RLock()
+
 	body, ok := certificateCache[url]
+
 	certificateCacheMu.RUnlock()
 
 	if ok {
@@ -838,8 +1033,15 @@ func validatePaypalWebhook(ctx *gin.Context) ([]byte, bool) {
 
 		return nil, false
 	}
+
 	crc := crc32.ChecksumIEEE(event)
-	message := fmt.Sprintf("%s|%s|%s|%d", transmissionID, timeStamp, os.Getenv("PAYPAL_WEBHOOK_ID"), crc)
+	message := fmt.Sprintf(
+		"%s|%s|%s|%d",
+		transmissionID,
+		timeStamp,
+		os.Getenv("PAYPAL_WEBHOOK_ID"),
+		crc,
+	)
 
 	certPemBytes, err := downloadAndCache(certURL)
 	if err != nil {
@@ -917,7 +1119,10 @@ func paypalWebhook(ctx *gin.Context) {
 	if err := json.Unmarshal(event, &webhookEvent); err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal webhook event")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -928,7 +1133,10 @@ func paypalWebhook(ctx *gin.Context) {
 		if err := json.Unmarshal(webhookEvent.Resource, &sale); err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal resource ID")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -948,7 +1156,10 @@ func paypalWebhook(ctx *gin.Context) {
 	if err := json.Unmarshal(webhookEvent.Resource, &subscription); err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to unmarshal subscription")
 
-		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		ctx.JSON(
+			http.StatusInternalServerError,
+			NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+		)
 
 		return
 	}
@@ -1001,7 +1212,9 @@ func paypalWebhook(ctx *gin.Context) {
 	case WebhookEventBillingSubscriptionPaymentFailed:
 		err = welcomer.OnPaypalSubscriptionPaymentFailed(ctx, subscription)
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Msg("Failed to handle subscription payment failed event")
+			welcomer.Logger.Error().
+				Err(err).
+				Msg("Failed to handle subscription payment failed event")
 		}
 
 	default:

@@ -124,7 +124,11 @@ func NewBackend(options Options) (*Backend, error) {
 	for keyPairString := range keyPairStrings {
 		byteSlice, err := hex.DecodeString(keyPairString)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse keyPairString %s to hex: %w", keyPairString, err)
+			return nil, fmt.Errorf(
+				"failed to parse keyPairString %s to hex: %w",
+				keyPairString,
+				err,
+			)
 		}
 
 		keyPairs = append(keyPairs, byteSlice)
@@ -147,7 +151,11 @@ func NewBackend(options Options) (*Backend, error) {
 
 	b.Store = store
 
-	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
+	paypalClient, err := paypal.NewClient(
+		options.PaypalClientID,
+		options.PaypalClientSecret,
+		welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create paypal client: %w", err)
 	}
@@ -165,6 +173,7 @@ func NewBackend(options Options) (*Backend, error) {
 // Open sets up any services and starts the web server.
 func (b *Backend) Open() error {
 	b.StartTime = time.Now()
+
 	welcomer.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
 
 	// Setup Prometheus
@@ -183,7 +192,6 @@ func (b *Backend) Open() error {
 // Close gracefully closes the backend.
 func (b *Backend) Close() error {
 	// TODO
-
 	return nil
 }
 

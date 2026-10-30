@@ -54,7 +54,10 @@ func getStatus(ctx *gin.Context) {
 		return
 	}
 
-	applicationsPb, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{})
+	applicationsPb, err := welcomer.SandwichClient.FetchApplication(
+		ctx,
+		&sandwich_protobuf.ApplicationIdentifier{},
+	)
 	if err != nil {
 		statusResponseMu.RLock()
 		defer statusResponseMu.RUnlock()

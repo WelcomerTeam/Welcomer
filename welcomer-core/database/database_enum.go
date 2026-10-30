@@ -453,11 +453,15 @@ const (
 	ScienceGuildEventTypePollStarted
 	// ScienceGuildEventTypePollEnded is a ScienceGuildEventType of type PollEnded.
 	ScienceGuildEventTypePollEnded
+	// ScienceGuildEventTypeAutoRoleGiven is a ScienceGuildEventType of type AutoRoleGiven.
+	ScienceGuildEventTypeAutoRoleGiven
+	// ScienceGuildEventTypeFreeRoleGiven is a ScienceGuildEventType of type FreeRoleGiven.
+	ScienceGuildEventTypeFreeRoleGiven
 )
 
 var ErrInvalidScienceGuildEventType = errors.New("not a valid ScienceGuildEventType")
 
-const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoveduserLeftMessageleaverMessageRemovedreactionRoleGivenreactionRoleRemovedgiveawayCreatedgiveawayStartedgiveawayEndedpollCreatedpollStartedpollEnded"
+const _ScienceGuildEventTypeName = "unknownuserJoinuserLeaveuserWelcomedtimeRoleGivenborderwallChallengeborderwallCompletedtempChannelCreatedmembershipReceivedmembershipRemovedguildJoinguildLeaveguildOnboardedguildUserOnboardedwelcomeMessageRemoveduserLeftMessageleaverMessageRemovedreactionRoleGivenreactionRoleRemovedgiveawayCreatedgiveawayStartedgiveawayEndedpollCreatedpollStartedpollEndedautoRoleGivenfreeRoleGiven"
 
 var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypeUnknown:               _ScienceGuildEventTypeName[0:7],
@@ -485,6 +489,8 @@ var _ScienceGuildEventTypeMap = map[ScienceGuildEventType]string{
 	ScienceGuildEventTypePollCreated:           _ScienceGuildEventTypeName[326:337],
 	ScienceGuildEventTypePollStarted:           _ScienceGuildEventTypeName[337:348],
 	ScienceGuildEventTypePollEnded:             _ScienceGuildEventTypeName[348:357],
+	ScienceGuildEventTypeAutoRoleGiven:         _ScienceGuildEventTypeName[357:370],
+	ScienceGuildEventTypeFreeRoleGiven:         _ScienceGuildEventTypeName[370:383],
 }
 
 // String implements the Stringer interface.
@@ -528,6 +534,8 @@ var _ScienceGuildEventTypeValue = map[string]ScienceGuildEventType{
 	_ScienceGuildEventTypeName[326:337]: ScienceGuildEventTypePollCreated,
 	_ScienceGuildEventTypeName[337:348]: ScienceGuildEventTypePollStarted,
 	_ScienceGuildEventTypeName[348:357]: ScienceGuildEventTypePollEnded,
+	_ScienceGuildEventTypeName[357:370]: ScienceGuildEventTypeAutoRoleGiven,
+	_ScienceGuildEventTypeName[370:383]: ScienceGuildEventTypeFreeRoleGiven,
 }
 
 // ParseScienceGuildEventType attempts to convert a string to a ScienceGuildEventType.

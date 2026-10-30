@@ -27,9 +27,15 @@ func getGuildSettingsTimeRoles(ctx *gin.Context) {
 						Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild timeroles settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild timeroles settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -77,14 +83,24 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 
 			timeroles := PartialToGuildSettingsTimeRolesSettings(int64(guildID), partial)
 
-			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(*timeroles)
+			databaseTimeRolesGuildSettings := database.CreateOrUpdateTimeRolesGuildSettingsParams(
+				*timeroles,
+			)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *timeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild timeroles settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *timeroles).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild timeroles settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, databaseTimeRolesGuildSettings, user.ID)
+					_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(
+						ctx,
+						databaseTimeRolesGuildSettings,
+						user.ID,
+					)
 
 					return err
 				},
@@ -94,9 +110,15 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild timeroles settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild timeroles settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -109,7 +131,6 @@ func setGuildSettingsTimeRoles(ctx *gin.Context) {
 // Validates timerole settings.
 func doValidateTimeRoles(guildSettings *GuildSettingsTimeRoles) error {
 	// TODO: validate timeroles
-
 	return nil
 }
 

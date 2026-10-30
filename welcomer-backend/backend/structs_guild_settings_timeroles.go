@@ -25,7 +25,10 @@ func GuildSettingsTimeRolesSettingsToPartial(
 	return partial
 }
 
-func PartialToGuildSettingsTimeRolesSettings(guildID int64, guildSettings *GuildSettingsTimeRoles) *database.GuildSettingsTimeroles {
+func PartialToGuildSettingsTimeRolesSettings(
+	guildID int64,
+	guildSettings *GuildSettingsTimeRoles,
+) *database.GuildSettingsTimeroles {
 	return &database.GuildSettingsTimeroles{
 		GuildID:       guildID,
 		ToggleEnabled: guildSettings.ToggleEnabled,

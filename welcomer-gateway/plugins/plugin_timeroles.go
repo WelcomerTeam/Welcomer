@@ -203,24 +203,24 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(eventCtx *sandwich.EventContext, guildI
 
 		member.GuildID = &guildID
 
-		err = member.AddRoles(eventCtx.Context, eventCtx.Session, roles, new("Automatically assigned with TimeRoles"), true)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(guildID)).
-				Int64("member_id", int64(memberID)).
-				Interface("roles", roles).
-				Msg("Failed to add roles to member for timeroles")
-		}
-
 		for _, role := range roles {
-			welcomer.PusherGuildScience.Push(
-				eventCtx.Context,
-				eventCtx.Guild.ID,
-				member.User.ID,
-				database.ScienceGuildEventTypeTimeRoleGiven,
-				welcomer.GuildScienceTimeRoleGiven{
-					RoleID: role,
-				})
+			err = discord.AddGuildMemberRole(eventCtx.Context, eventCtx.Session, guildID, member.User.ID, role, new("Automatically assigned with TimeRoles"))
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Int64("member_id", int64(memberID)).
+					Interface("roles", roles).
+					Msg("Failed to add roles to member for timeroles")
+			} else {
+				welcomer.PusherGuildScience.Push(
+					eventCtx.Context,
+					eventCtx.Guild.ID,
+					member.User.ID,
+					database.ScienceGuildEventTypeTimeRoleGiven,
+					welcomer.GuildScienceTimeRoleGiven{
+						RoleID: role,
+					})
+			}
 		}
 	}
 

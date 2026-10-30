@@ -55,7 +55,10 @@ func MustParseGuildSettingsSettings(partial *GuildSettingsSettings) error {
 	return nil
 }
 
-func PartialToGuildSettings(guildID int64, guildSettings *GuildSettingsSettings) *database.UpdateGuildParams {
+func PartialToGuildSettings(
+	guildID int64,
+	guildSettings *GuildSettingsSettings,
+) *database.UpdateGuildParams {
 	return &database.UpdateGuildParams{
 		GuildID:          guildID,
 		EmbedColour:      guildSettings.EmbedColour,

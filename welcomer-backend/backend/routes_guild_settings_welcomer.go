@@ -69,7 +69,10 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 					}
 				}
 
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer settings")
 			}
 
 			welcomerText, err := welcomer.Queries.GetWelcomerTextGuildSettings(ctx, int64(guildID))
@@ -83,10 +86,16 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 					}
 				}
 
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer text settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer text settings")
 			}
 
-			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID))
+			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(
+				ctx,
+				int64(guildID),
+			)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					welcomerImages = &database.GuildSettingsWelcomerImages{
@@ -108,7 +117,10 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 					}
 				}
 
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer images settings")
 			}
 
 			welcomerDMs, err := welcomer.Queries.GetWelcomerDMsGuildSettings(ctx, int64(guildID))
@@ -123,10 +135,16 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 					}
 				}
 
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer dms settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer dms settings")
 			}
 
-			guildBackgrounds, err := welcomer.Queries.GetWelcomerImagesByGuildId(ctx, int64(guildID))
+			guildBackgrounds, err := welcomer.Queries.GetWelcomerImagesByGuildId(
+				ctx,
+				int64(guildID),
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(guildID)).
@@ -138,9 +156,15 @@ func getGuildSettingsWelcomer(ctx *gin.Context) {
 				customIDs[i] = b.ImageUuid.String()
 			}
 
-			partial := GuildSettingsWelcomerSettingsToPartial(*welcomerConfig, *welcomerText, *welcomerImages, *welcomerDMs, &GuildSettingsWelcomerCustom{
-				CustomBackgroundIDs: customIDs,
-			})
+			partial := GuildSettingsWelcomerSettingsToPartial(
+				*welcomerConfig,
+				*welcomerText,
+				*welcomerImages,
+				*welcomerDMs,
+				&GuildSettingsWelcomerCustom{
+					CustomBackgroundIDs: customIDs,
+				},
+			)
 
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok:   true,
@@ -211,13 +235,22 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			welcomerConfig, welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(int64(guildID), partial)
+			welcomerConfig, welcomerText, welcomerImages, welcomerDMs := PartialToGuildSettingsWelcomerSettings(
+				int64(guildID),
+				partial,
+			)
 
 			if welcomerImages.BackgroundName == welcomer.CustomBackgroundPrefix+"upload" {
 				if fileValue != nil {
-					hasWelcomerPro, hasCustomBackgrounds, _, err := welcomer.CheckGuildMemberships(ctx, guildID)
+					hasWelcomerPro, hasCustomBackgrounds, _, err := welcomer.CheckGuildMemberships(
+						ctx,
+						guildID,
+					)
 					if err != nil {
-						welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+						welcomer.Logger.Warn().
+							Err(err).
+							Int("guildID", int(guildID)).
+							Msg("Exception getting welcomer membership")
 					}
 
 					if !hasWelcomerPro && !hasCustomBackgrounds {
@@ -240,7 +273,10 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 					fileBytes, multipartFile, err := getBufferFromFileHeader(fileValue)
 					if err != nil {
-						ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+						ctx.JSON(
+							http.StatusInternalServerError,
+							NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+						)
 
 						return
 					}
@@ -255,14 +291,27 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 					case MIMEGIF, MIMEPNG, MIMEJPEG:
 						switch {
 						case mimeType == MIMEGIF && hasWelcomerPro:
-							res, err = welcomerCustomBackgroundsUploadGIF(ctx, guildID, fileValue, multipartFile, userID)
-						case mimeType == MIMEJPEG, mimeType == MIMEPNG, mimeType == MIMEGIF && !hasWelcomerPro:
+							res, err = welcomerCustomBackgroundsUploadGIF(
+								ctx,
+								guildID,
+								fileValue,
+								multipartFile,
+								userID,
+							)
+						case mimeType == MIMEJPEG,
+							mimeType == MIMEPNG,
+							mimeType == MIMEGIF && !hasWelcomerPro:
 							// We will still accept GIFs if they do not have Welcomer Pro, however
 							// they will be converted to PNG. This saves having to extract the first
 							// frame every time we try to generate the resulting welcome image.
 							// If you do not like this, get Welcomer Pro :)
 							// It helps me out.
-							res, err = welcomerCustomBackgroundsUploadStatic(ctx, guildID, multipartFile, userID)
+							res, err = welcomerCustomBackgroundsUploadStatic(
+								ctx,
+								guildID,
+								multipartFile,
+								userID,
+							)
 						default:
 							ctx.JSON(http.StatusBadRequest, BaseResponse{
 								Ok:    false,
@@ -289,7 +338,10 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 									Error: err.Error(),
 								})
 							default:
-								ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+								ctx.JSON(
+									http.StatusInternalServerError,
+									NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+								)
 							}
 
 							return
@@ -300,14 +352,20 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 						welcomerImages.BackgroundName = welcomer.CustomBackgroundPrefix + res.ImageUuid.String()
 
 						// Remove previous welcome images
-						backgrounds, err := welcomer.Queries.GetWelcomerImagesByGuildId(ctx, int64(guildID))
+						backgrounds, err := welcomer.Queries.GetWelcomerImagesByGuildId(
+							ctx,
+							int64(guildID),
+						)
 						if err == nil {
 							for _, background := range backgrounds {
 								if background.ImageUuid == res.ImageUuid {
 									continue
 								}
 
-								_, err = welcomer.Queries.DeleteWelcomerImage(ctx, background.ImageUuid)
+								_, err = welcomer.Queries.DeleteWelcomerImage(
+									ctx,
+									background.ImageUuid,
+								)
 								if err != nil {
 									welcomer.Logger.Warn().
 										Err(err).
@@ -338,13 +396,23 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 
 			user := tryGetUser(ctx)
 
-			databaseWelcomerGuildSettings := database.CreateOrUpdateWelcomerGuildSettingsParams(*welcomerConfig)
+			databaseWelcomerGuildSettings := database.CreateOrUpdateWelcomerGuildSettingsParams(
+				*welcomerConfig,
+			)
 
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerConfig).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomer config settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *welcomerConfig).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild welcomer config settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateWelcomerGuildSettingsWithAudit(ctx, databaseWelcomerGuildSettings, user.ID)
+					_, err = welcomer.CreateOrUpdateWelcomerGuildSettingsWithAudit(
+						ctx,
+						databaseWelcomerGuildSettings,
+						user.ID,
+					)
 
 					return err
 				},
@@ -354,20 +422,36 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer config settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild welcomer config settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(*welcomerText)
+			databaseWelcomerTextGuildSettings := database.CreateOrUpdateWelcomerTextGuildSettingsParams(
+				*welcomerText,
+			)
 
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerText).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerText settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *welcomerText).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild welcomerText settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx, databaseWelcomerTextGuildSettings, user.ID)
+					_, err = welcomer.CreateOrUpdateWelcomerTextGuildSettingsWithAudit(
+						ctx,
+						databaseWelcomerTextGuildSettings,
+						user.ID,
+					)
 
 					return err
 				},
@@ -377,51 +461,89 @@ func setGuildSettingsWelcomer(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer text settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild welcomer text settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
-
-				return
-			}
-
-			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
-				GuildID:                welcomerImages.GuildID,
-				ToggleEnabled:          welcomerImages.ToggleEnabled,
-				ToggleImageBorder:      welcomerImages.ToggleImageBorder,
-				ToggleShowAvatar:       welcomerImages.ToggleShowAvatar,
-				BackgroundName:         welcomerImages.BackgroundName,
-				ColourText:             welcomerImages.ColourText,
-				ColourTextBorder:       welcomerImages.ColourTextBorder,
-				ColourImageBorder:      welcomerImages.ColourImageBorder,
-				ColourProfileBorder:    welcomerImages.ColourProfileBorder,
-				ImageAlignment:         welcomerImages.ImageAlignment,
-				ImageTheme:             welcomerImages.ImageTheme,
-				ImageMessage:           welcomerImages.ImageMessage,
-				ImageProfileBorderType: welcomerImages.ImageProfileBorderType,
-				UseCustomBuilder:       welcomerImages.UseCustomBuilder,
-				CustomBuilderData:      welcomerImages.CustomBuilderData,
-			})
-
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerImages).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerImages settings")
-
-			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, databaseWelcomerImagesGuildSettings, user.ID)
-			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer images settings")
-
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			databaseWelcomerDMsGuildSettings := database.CreateOrUpdateWelcomerDMsGuildSettingsParams(*welcomerDMs)
+			databaseWelcomerImagesGuildSettings := database.CreateOrUpdateWelcomerImagesGuildSettingsParams(
+				database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+					GuildID:                welcomerImages.GuildID,
+					ToggleEnabled:          welcomerImages.ToggleEnabled,
+					ToggleImageBorder:      welcomerImages.ToggleImageBorder,
+					ToggleShowAvatar:       welcomerImages.ToggleShowAvatar,
+					BackgroundName:         welcomerImages.BackgroundName,
+					ColourText:             welcomerImages.ColourText,
+					ColourTextBorder:       welcomerImages.ColourTextBorder,
+					ColourImageBorder:      welcomerImages.ColourImageBorder,
+					ColourProfileBorder:    welcomerImages.ColourProfileBorder,
+					ImageAlignment:         welcomerImages.ImageAlignment,
+					ImageTheme:             welcomerImages.ImageTheme,
+					ImageMessage:           welcomerImages.ImageMessage,
+					ImageProfileBorderType: welcomerImages.ImageProfileBorderType,
+					UseCustomBuilder:       welcomerImages.UseCustomBuilder,
+					CustomBuilderData:      welcomerImages.CustomBuilderData,
+				},
+			)
 
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *welcomerDMs).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild welcomerDMs settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *welcomerImages).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild welcomerImages settings")
 
-			_, err = welcomer.CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx, databaseWelcomerDMsGuildSettings, user.ID)
+			_, err = welcomer.CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(
+				ctx,
+				databaseWelcomerImagesGuildSettings,
+				user.ID,
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild welcomer dms settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild welcomer images settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
+
+				return
+			}
+
+			databaseWelcomerDMsGuildSettings := database.CreateOrUpdateWelcomerDMsGuildSettingsParams(
+				*welcomerDMs,
+			)
+
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *welcomerDMs).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild welcomerDMs settings")
+
+			_, err = welcomer.CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(
+				ctx,
+				databaseWelcomerDMsGuildSettings,
+				user.ID,
+			)
+			if err != nil {
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild welcomer dms settings")
+
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -437,7 +559,10 @@ func getGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID))
+			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(
+				ctx,
+				int64(guildID),
+			)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					welcomerImages = &database.GuildSettingsWelcomerImages{
@@ -459,12 +584,21 @@ func getGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 					}
 				}
 
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer images settings")
 			}
 
-			imageReferences, err := welcomer.Queries.GetMinimalWelcomerBuilderArtifactByGuildId(ctx, int64(guildID))
+			imageReferences, err := welcomer.Queries.GetMinimalWelcomerBuilderArtifactByGuildId(
+				ctx,
+				int64(guildID),
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get welcomer builder artifacts")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get welcomer builder artifacts")
 			}
 
 			references := make(map[string]string)
@@ -473,7 +607,10 @@ func getGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 				references[r.Reference] = r.ArtifactUuid.String()
 			}
 
-			partial := GuildSettingsWelcomerSettingsToPartialCustomBuilderDataOnly(*welcomerImages, references)
+			partial := GuildSettingsWelcomerSettingsToPartialCustomBuilderDataOnly(
+				*welcomerImages,
+				references,
+			)
 
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok:   true,
@@ -529,9 +666,13 @@ func getGuildSettingsWelcomerBuilderPreview(ctx *gin.Context) {
 
 			request := welcomer.CustomWelcomerImageGenerateRequest{
 				CustomWelcomerImage: customBuilderData,
-				MembersJoined:       welcomer.If(hasWelcomerPro, guildSettings.MemberCount, guild.MemberCount),
-				NumberLocale:        database.NumberLocale(guildSettings.NumberLocale.Int32),
-				Guild:               *guild,
+				MembersJoined: welcomer.If(
+					hasWelcomerPro,
+					guildSettings.MemberCount,
+					guild.MemberCount,
+				),
+				NumberLocale: database.NumberLocale(guildSettings.NumberLocale.Int32),
+				Guild:        *guild,
 				User: discord.User{
 					GlobalName:    user.GlobalName,
 					Avatar:        user.Avatar,
@@ -553,7 +694,11 @@ func getGuildSettingsWelcomerBuilderPreview(ctx *gin.Context) {
 				return
 			}
 
-			resp, err := http.Post(os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(requestJSON))
+			resp, err := http.Post(
+				os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate",
+				"application/json",
+				bytes.NewBuffer(requestJSON),
+			)
 			if err != nil || resp == nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(guildID)).
@@ -615,7 +760,10 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Info().Err(err).Msg("Failed to unmarshal custom builder data")
 
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -632,12 +780,22 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 
 			guildID := tryGetGuildID(ctx)
 
-			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, guildID)
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(
+				ctx,
+				guildID,
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int("guildID", int(guildID)).
+					Msg("Exception getting welcomer membership")
 			}
 
-			if !hasWelcomerPro && !hasCustomBackgrounds && !welcomer.GuildHasFeature(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+			if !hasWelcomerPro && !hasCustomBackgrounds &&
+				!welcomer.GuildHasFeature(
+					features,
+					welcomer.GuildFeatureCustomWelcomerImageBuilder,
+				) {
 				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 					Ok:    false,
 					Error: ErrMissingMembership.Error(),
@@ -648,11 +806,20 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 
 			// get list of artifacts from JSON and remove unused ones and ignore files that do not contain references in the JSON.
 
-			existingRefs, err := welcomer.Queries.GetMinimalWelcomerBuilderArtifactByGuildId(ctx, int64(guildID))
+			existingRefs, err := welcomer.Queries.GetMinimalWelcomerBuilderArtifactByGuildId(
+				ctx,
+				int64(guildID),
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get existing welcomer builder artifacts")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get existing welcomer builder artifacts")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -675,21 +842,36 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			// if there are removed refs, remove them now.
 			if len(removedRefs) > 0 {
 				for _, ref := range removedRefs {
-					_, err = welcomer.Queries.RemoveWelcomerArtifact(ctx, database.RemoveWelcomerArtifactParams{
-						GuildID:   int64(guildID),
-						Reference: ref,
-					})
+					_, err = welcomer.Queries.RemoveWelcomerArtifact(
+						ctx,
+						database.RemoveWelcomerArtifactParams{
+							GuildID:   int64(guildID),
+							Reference: ref,
+						},
+					)
 					if err != nil {
-						welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to remove welcomer builder artifacts")
+						welcomer.Logger.Warn().
+							Err(err).
+							Int64("guild_id", int64(guildID)).
+							Msg("Failed to remove welcomer builder artifacts")
 					}
 				}
 			}
 
-			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID))
+			welcomerImages, err := welcomer.Queries.GetWelcomerImagesGuildSettings(
+				ctx,
+				int64(guildID),
+			)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild welcomer images settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild welcomer images settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -698,11 +880,23 @@ func setGuildSettingsWelcomerBuilder(ctx *gin.Context) {
 			welcomerImages.UseCustomBuilder = partial.UseCustomBuilder
 			welcomerImages.CustomBuilderData = welcomer.StringToJSONB(partial.CustomBuilderData)
 
-			_, err = welcomer.UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx, discord.Snowflake(guildID), partial.UseCustomBuilder, welcomerImages.CustomBuilderData, tryGetUser(ctx).ID)
+			_, err = welcomer.UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(
+				ctx,
+				discord.Snowflake(guildID),
+				partial.UseCustomBuilder,
+				welcomerImages.CustomBuilderData,
+				tryGetUser(ctx).ID,
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild welcomer images settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to update guild welcomer images settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -718,12 +912,22 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 		requireGuildElevation(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, guildID)
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(
+				ctx,
+				guildID,
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int("guildID", int(guildID)).Msg("Exception getting welcomer membership")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int("guildID", int(guildID)).
+					Msg("Exception getting welcomer membership")
 			}
 
-			if !hasWelcomerPro && !hasCustomBackgrounds && !welcomer.GuildHasFeature(features, welcomer.GuildFeatureCustomWelcomerImageBuilder) {
+			if !hasWelcomerPro && !hasCustomBackgrounds &&
+				!welcomer.GuildHasFeature(
+					features,
+					welcomer.GuildFeatureCustomWelcomerImageBuilder,
+				) {
 				ctx.JSON(http.StatusPaymentRequired, BaseResponse{
 					Ok:    false,
 					Error: ErrMissingMembership.Error(),
@@ -744,7 +948,10 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 
 			fileBytes, multipartFile, err := getBufferFromFileHeader(fileValue)
 			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -819,19 +1026,25 @@ func postGuildSettingsWelcomerBuilderArtifact(ctx *gin.Context) {
 
 			ref := uuid.Must(gen.NewV7())
 
-			_, err = welcomer.Queries.CreateWelcomerBuilderArtifacts(ctx, database.CreateWelcomerBuilderArtifactsParams{
-				ArtifactUuid: ref,
-				GuildID:      int64(tryGetGuildID(ctx)),
-				UserID:       int64(tryGetUser(ctx).ID),
-				CreatedAt:    time.Now(),
-				ImageType:    welcomer.ImageFileTypeImageWebp.String(),
-				Data:         buf.Bytes(),
-				Reference:    ref.String(),
-			})
+			_, err = welcomer.Queries.CreateWelcomerBuilderArtifacts(
+				ctx,
+				database.CreateWelcomerBuilderArtifactsParams{
+					ArtifactUuid: ref,
+					GuildID:      int64(tryGetGuildID(ctx)),
+					UserID:       int64(tryGetUser(ctx).ID),
+					CreatedAt:    time.Now(),
+					ImageType:    welcomer.ImageFileTypeImageWebp.String(),
+					Data:         buf.Bytes(),
+					Reference:    ref.String(),
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Msg("Failed to create welcomer builder artifact")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -890,7 +1103,9 @@ func getGuildWelcomerArtifact(ctx *gin.Context) {
 
 	artifact, err := welcomer.Queries.GetWelcomerBuilderArtifactByArtifactUUID(ctx, uuid)
 	if err != nil || artifact == nil {
-		welcomer.Logger.Info().Str("key", key).Msg("Failed to find welcomer builder artifact with key")
+		welcomer.Logger.Info().
+			Str("key", key).
+			Msg("Failed to find welcomer builder artifact with key")
 
 		ctx.Data(http.StatusNotFound, "image/png", imageFailure)
 
@@ -900,7 +1115,13 @@ func getGuildWelcomerArtifact(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, artifact.ImageType, artifact.Data)
 }
 
-func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Snowflake, file *multipart.FileHeader, fileBytes io.ReadSeeker, userID discord.Snowflake) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadGIF(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	file *multipart.FileHeader,
+	fileBytes io.ReadSeeker,
+	userID discord.Snowflake,
+) (*database.WelcomerImages, error) {
 	start := time.Now()
 
 	welcomer.Logger.Info().Int64("size", file.Size).Msg("Recoding image")
@@ -928,7 +1149,12 @@ func welcomerCustomBackgroundsUploadGIF(ctx context.Context, guildID discord.Sno
 	}, userID)
 }
 
-func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.Snowflake, fileBytes io.ReadSeeker, userID discord.Snowflake) (*database.WelcomerImages, error) {
+func welcomerCustomBackgroundsUploadStatic(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	fileBytes io.ReadSeeker,
+	userID discord.Snowflake,
+) (*database.WelcomerImages, error) {
 	// Validate file and get size
 	img, _, err := image.Decode(fileBytes)
 	if err != nil {
@@ -966,7 +1192,9 @@ func welcomerCustomBackgroundsUploadStatic(ctx context.Context, guildID discord.
 	}, userID)
 }
 
-func getBufferFromFileHeader(fileHeader *multipart.FileHeader) (*bytes.Buffer, multipart.File, error) {
+func getBufferFromFileHeader(
+	fileHeader *multipart.FileHeader,
+) (*bytes.Buffer, multipart.File, error) {
 	multipartFile, err := fileHeader.Open()
 	if err != nil {
 		return nil, nil, err
@@ -1055,7 +1283,10 @@ func doValidateWelcomer(guildSettings *GuildSettingsWelcomer) error {
 		}
 
 		if !welcomer.IsValidImageProfileBorderType(guildSettings.Images.ImageProfileBorderType) {
-			return fmt.Errorf("image ImageProfileBorderType is invalid: %w", ErrInvalidProfileBorderType)
+			return fmt.Errorf(
+				"image ImageProfileBorderType is invalid: %w",
+				ErrInvalidProfileBorderType,
+			)
 		}
 
 		if !welcomer.IsValidImageTheme(guildSettings.Images.ImageTheme) {
@@ -1071,11 +1302,13 @@ func doValidateCustomImageBuilder(customImage *welcomer.CustomWelcomerImage) err
 		return fmt.Errorf("too many layers in custom image: %w", ErrTooManyLayers)
 	}
 
-	if customImage.Dimensions[0] >= MaxCustomBuilderDimension || customImage.Dimensions[1] >= MaxCustomBuilderDimension {
+	if customImage.Dimensions[0] >= MaxCustomBuilderDimension ||
+		customImage.Dimensions[1] >= MaxCustomBuilderDimension {
 		return fmt.Errorf("custom image dimensions too large: %w", ErrDimensionTooLarge)
 	}
 
-	if customImage.Dimensions[0] < MinCustomBuilderDimension || customImage.Dimensions[1] < MinCustomBuilderDimension {
+	if customImage.Dimensions[0] < MinCustomBuilderDimension ||
+		customImage.Dimensions[1] < MinCustomBuilderDimension {
 		return fmt.Errorf("custom image dimensions too small: %w", ErrDimensionTooSmall)
 	}
 

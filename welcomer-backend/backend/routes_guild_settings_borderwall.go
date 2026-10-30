@@ -32,9 +32,15 @@ func getGuildSettingsBorderwall(ctx *gin.Context) {
 						RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild borderwall settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild borderwall settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -82,14 +88,24 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 
 			borderwall := PartialToGuildSettingsBorderwallSettings(int64(guildID), partial)
 
-			databaseBorderwallGuildSettings := database.CreateOrUpdateBorderwallGuildSettingsParams(*borderwall)
+			databaseBorderwallGuildSettings := database.CreateOrUpdateBorderwallGuildSettingsParams(
+				*borderwall,
+			)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *borderwall).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild borderwall settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *borderwall).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild borderwall settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, databaseBorderwallGuildSettings, discord.Snowflake(user.ID))
+					_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(
+						ctx,
+						databaseBorderwallGuildSettings,
+						discord.Snowflake(user.ID),
+					)
 
 					return err
 				},
@@ -99,9 +115,15 @@ func setGuildSettingsBorderwall(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild borderwall settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild borderwall settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
