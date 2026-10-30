@@ -172,14 +172,22 @@ func enqueueAndLink(ctx context.Context, target moderationTarget, row moderation
 	defer tx.Rollback(ctx)
 
 	txQueries := database.New(tx)
-	queue, err := txQueries.CreateModerationCheckupQueue(ctx, database.CreateModerationCheckupQueueParams{
-		GuildID:  row.guildID,
-		UserID:   0,
-		DataType: int32(target.dataType),
-		Value:    string(row.payload),
-	})
+	queue, err := txQueries.CreateModerationCheckupQueue(
+		ctx,
+		database.CreateModerationCheckupQueueParams{
+			GuildID:  row.guildID,
+			UserID:   0,
+			DataType: int32(target.dataType),
+			Value:    string(row.payload),
+		},
+	)
 	if err != nil {
-		return fmt.Errorf("create moderation queue for %s guild_id=%d: %w", target.tableName, row.guildID, err)
+		return fmt.Errorf(
+			"create moderation queue for %s guild_id=%d: %w",
+			target.tableName,
+			row.guildID,
+			err,
+		)
 	}
 
 	_, err = txQueries.CreateModerationCheckup(ctx, database.CreateModerationCheckupParams{
@@ -189,16 +197,31 @@ func enqueueAndLink(ctx context.Context, target moderationTarget, row moderation
 		DataType:    int32(target.dataType),
 	})
 	if err != nil {
-		return fmt.Errorf("create moderation checkup for %s guild_id=%d: %w", target.tableName, row.guildID, err)
+		return fmt.Errorf(
+			"create moderation checkup for %s guild_id=%d: %w",
+			target.tableName,
+			row.guildID,
+			err,
+		)
 	}
 
 	_, err = tx.Exec(ctx, target.updateSQL, queue.CheckupQueueUuid, row.guildID)
 	if err != nil {
-		return fmt.Errorf("link moderation checkup for %s guild_id=%d: %w", target.tableName, row.guildID, err)
+		return fmt.Errorf(
+			"link moderation checkup for %s guild_id=%d: %w",
+			target.tableName,
+			row.guildID,
+			err,
+		)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit moderation checkup for %s guild_id=%d: %w", target.tableName, row.guildID, err)
+		return fmt.Errorf(
+			"commit moderation checkup for %s guild_id=%d: %w",
+			target.tableName,
+			row.guildID,
+			err,
+		)
 	}
 
 	return nil

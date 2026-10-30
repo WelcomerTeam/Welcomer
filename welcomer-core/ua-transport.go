@@ -16,7 +16,10 @@ func (t *UserAgentSetterTransport) RoundTrip(req *http.Request) (*http.Response,
 }
 
 // NewUserAgentSetterTransport creates a new UserAgentSetterTransport.
-func NewUserAgentSetterTransport(roundTripper http.RoundTripper, userAgent string) *UserAgentSetterTransport {
+func NewUserAgentSetterTransport(
+	roundTripper http.RoundTripper,
+	userAgent string,
+) *UserAgentSetterTransport {
 	if roundTripper == nil {
 		roundTripper = http.DefaultTransport
 	}

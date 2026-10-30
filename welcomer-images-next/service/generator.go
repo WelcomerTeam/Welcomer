@@ -11,18 +11,27 @@ import (
 func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Builder {
 	builder := strings.Builder{}
 
-	builder.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>`)
+	builder.WriteString(
+		`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>`,
+	)
 
 	builder.WriteString(`<body><div id="canvas" style="`)
 	is.getCanvasStyle(ctx, ctx.CustomWelcomerImage).Build(&builder)
 	builder.WriteString(`">`)
 
 	functions := welcomer.GatherFunctions(ctx.NumberLocale)
-	variables := welcomer.GatherVariables(nil, &discord.GuildMember{User: &ctx.User}, welcomer.GuildVariables{
-		Guild:         &ctx.Guild,
-		MembersJoined: ctx.MembersJoined,
-		NumberLocale:  ctx.NumberLocale,
-	}, ctx.Invite, nil, false)
+	variables := welcomer.GatherVariables(
+		nil,
+		&discord.GuildMember{User: &ctx.User},
+		welcomer.GuildVariables{
+			Guild:         &ctx.Guild,
+			MembersJoined: ctx.MembersJoined,
+			NumberLocale:  ctx.NumberLocale,
+		},
+		ctx.Invite,
+		nil,
+		false,
+	)
 
 	for index, layer := range ctx.CustomWelcomerImage.Layers {
 		builder.WriteString(`<div style="`)
@@ -33,7 +42,10 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 		case welcomer.CustomWelcomerImageLayerTypeText:
 			formattedValue, err := welcomer.FormatString(functions, variables, layer.Value)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to format string for custom welcomer image layer")
+				welcomer.Logger.Error().
+					Err(err).
+					Int("layer_idx", index).
+					Msg("failed to format string for custom welcomer image layer")
 				builder.WriteString(`</div>`)
 
 				continue
@@ -41,14 +53,18 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 
 			markdownValue, err := Render(formattedValue)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to render markdown for custom welcomer image layer")
+				welcomer.Logger.Error().
+					Err(err).
+					Int("layer_idx", index).
+					Msg("failed to render markdown for custom welcomer image layer")
 				builder.WriteString(`</div>`)
 
 				continue
 			}
 
 			builder.WriteString("<div style=\"")
-			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, markdownValue).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, markdownValue).
+				Build(&builder)
 			builder.WriteString(`"><span>`)
 
 			builder.WriteString(markdownValue)
@@ -57,18 +73,24 @@ func (is *ImageService) GenerateCanvas(ctx *ImageGenerationContext) strings.Buil
 		case welcomer.CustomWelcomerImageLayerTypeImage:
 			formattedValue, err := welcomer.FormatString(functions, variables, layer.Value)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int("layer_idx", index).Msg("failed to format string for custom welcomer image layer")
+				welcomer.Logger.Error().
+					Err(err).
+					Int("layer_idx", index).
+					Msg("failed to format string for custom welcomer image layer")
 				builder.WriteString(`</div>`)
 
 				continue
 			}
 
 			builder.WriteString("<div style=\"")
-			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, formattedValue).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, formattedValue).
+				Build(&builder)
 			builder.WriteString(`"></div>`)
-		case welcomer.CustomWelcomerImageLayerTypeShapeRectangle, welcomer.CustomWelcomerImageLayerTypeShapeCircle:
+		case welcomer.CustomWelcomerImageLayerTypeShapeRectangle,
+			welcomer.CustomWelcomerImageLayerTypeShapeCircle:
 			builder.WriteString("<div style=\"")
-			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, layer.Value).Build(&builder)
+			is.getObjectStyle(ctx, layer, len(ctx.CustomWelcomerImage.Layers), index, layer.Value).
+				Build(&builder)
 			builder.WriteString(`"></div>`)
 		}
 
@@ -117,6 +139,12 @@ func FetchFonts(builder *strings.Builder, ctx *ImageGenerationContext) {
 
 		fontsLoaded[fontFamily+"-"+weight] = true
 
-		builder.WriteString(`<link href="https://fonts.googleapis.com/css2?family=` + html.EscapeString(fontFamily) + `:wght@` + html.EscapeString(font.weights[weight]) + `&display=block" rel="stylesheet">`)
+		builder.WriteString(
+			`<link href="https://fonts.googleapis.com/css2?family=` + html.EscapeString(
+				fontFamily,
+			) + `:wght@` + html.EscapeString(
+				font.weights[weight],
+			) + `&display=block" rel="stylesheet">`,
+		)
 	}
 }

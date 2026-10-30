@@ -50,17 +50,25 @@ func GetConfigurationGatherer(ctx context.Context) sandwich_daemon.ConfigProvide
 
 	switch environmentType {
 	case EnvironmentTypeProduction:
-		fileConfigProvider = sandwich_daemon.NewConfigProviderFromPath(os.Getenv("CONFIGURATION_LOCATION"))
+		fileConfigProvider = sandwich_daemon.NewConfigProviderFromPath(
+			os.Getenv("CONFIGURATION_LOCATION"),
+		)
 	case EnvironmentTypeProductionOutsideDocker:
-		fileConfigProvider = sandwich_daemon.NewConfigProviderFromPath(os.Getenv("CONFIGURATION_LOCATION_PRODUCTION"))
+		fileConfigProvider = sandwich_daemon.NewConfigProviderFromPath(
+			os.Getenv("CONFIGURATION_LOCATION_PRODUCTION"),
+		)
 	case EnvironmentTypeDevelopment:
-		fileConfigProvider = sandwich_daemon.NewConfigProviderFromPath(os.Getenv("CONFIGURATION_LOCATION"))
+		fileConfigProvider = sandwich_daemon.NewConfigProviderFromPath(
+			os.Getenv("CONFIGURATION_LOCATION"),
+		)
 	}
 
 	return &WelcomerDatabaseConfigProvider{fileConfigProvider}
 }
 
-func (p *WelcomerDatabaseConfigProvider) GetConfig(ctx context.Context) (*sandwich_daemon.Configuration, error) {
+func (p *WelcomerDatabaseConfigProvider) GetConfig(
+	ctx context.Context,
+) (*sandwich_daemon.Configuration, error) {
 	config, err := p.DefaultConfigProvider.GetConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get configuration: %w", err)
@@ -100,6 +108,9 @@ func (p *WelcomerDatabaseConfigProvider) GetConfig(ctx context.Context) (*sandwi
 }
 
 // Not implemented, as the configuration is read-only in this context.
-func (p *WelcomerDatabaseConfigProvider) SaveConfig(ctx context.Context, config *sandwich_daemon.Configuration) error {
+func (p *WelcomerDatabaseConfigProvider) SaveConfig(
+	ctx context.Context,
+	config *sandwich_daemon.Configuration,
+) error {
 	return nil
 }

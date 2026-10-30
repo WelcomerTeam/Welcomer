@@ -11,7 +11,10 @@ import (
 
 var verticalThemeSize = image.Rect(0, 0, 750, 516)
 
-func CreateVerticalImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
+func CreateVerticalImage(
+	is *ImageService,
+	args GenerateImageArguments,
+) (resp *GenerateThemeResponse, err error) {
 	imageSize := verticalThemeSize
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 686, 452)

@@ -193,12 +193,21 @@ func GetAllPatreonMembers(ctx context.Context, client *http.Client) ([]PatreonMe
 	return getAllPatreonMembers(ctx, client, nil, "")
 }
 
-func getAllPatreonMembers(ctx context.Context, client *http.Client, l []PatreonMember, u string) ([]PatreonMember, error) {
+func getAllPatreonMembers(
+	ctx context.Context,
+	client *http.Client,
+	l []PatreonMember,
+	u string,
+) ([]PatreonMember, error) {
 	if l == nil {
 		l = []PatreonMember{}
 	}
 
-	u = If(u != "", u, PatreonBase+"campaigns/"+CampaignID+"/members?fields[member]=patron_status,email,pledge_relationship_start,currently_entitled_amount_cents,last_charge_status,last_charge_date,pledge_relationship_start&fields[user]=social_connections,full_name,thumb_url&include=user,currently_entitled_tiers&page[size]=100")
+	u = If(
+		u != "",
+		u,
+		PatreonBase+"campaigns/"+CampaignID+"/members?fields[member]=patron_status,email,pledge_relationship_start,currently_entitled_amount_cents,last_charge_status,last_charge_date,pledge_relationship_start&fields[user]=social_connections,full_name,thumb_url&include=user,currently_entitled_tiers&page[size]=100",
+	)
 
 	req, err := http.NewRequestWithContext(
 		ctx,

@@ -26,7 +26,12 @@ func GetGuildCustomBotLimit(ctx context.Context, guildID discord.Snowflake) int 
 	return 0
 }
 
-func GetCustomBotConfiguration(customBotUUID uuid.UUID, botToken string, autoStart bool, guildID discord.Snowflake) sandwich_daemon.ApplicationConfiguration {
+func GetCustomBotConfiguration(
+	customBotUUID uuid.UUID,
+	botToken string,
+	autoStart bool,
+	guildID discord.Snowflake,
+) sandwich_daemon.ApplicationConfiguration {
 	return sandwich_daemon.ApplicationConfiguration{
 		ApplicationIdentifier: GetCustomBotKey(customBotUUID),
 		ProducerIdentifier:    os.Getenv("CUSTOM_BOT_PRODUCER_IDENTIFIER"),
@@ -53,12 +58,21 @@ func GetCustomBotConfiguration(customBotUUID uuid.UUID, botToken string, autoSta
 	}
 }
 
-func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken string, guildID discord.Snowflake, blocking bool) error {
+func StartCustomBot(
+	ctx context.Context,
+	customBotUUID uuid.UUID,
+	botToken string,
+	guildID discord.Snowflake,
+	blocking bool,
+) error {
 	identifier := GetCustomBotKey(customBotUUID)
 
-	applications, err := SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
-		ApplicationIdentifier: identifier,
-	})
+	applications, err := SandwichClient.FetchApplication(
+		ctx,
+		&sandwich_protobuf.ApplicationIdentifier{
+			ApplicationIdentifier: identifier,
+		},
+	)
 
 	application, ok := applications.GetApplications()[identifier]
 
@@ -70,24 +84,30 @@ func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken strin
 			return fmt.Errorf("failed to marshal custom bot values: %w", err)
 		}
 
-		application, err = SandwichClient.CreateApplication(ctx, &sandwich_protobuf.CreateApplicationRequest{
-			SaveConfig:            false,
-			ApplicationIdentifier: configuration.ApplicationIdentifier,
-			ProducerIdentifier:    configuration.ProducerIdentifier,
-			DisplayName:           configuration.DisplayName,
-			ClientName:            configuration.ClientName,
-			BotToken:              configuration.BotToken,
-			AutoStart:             configuration.AutoStart,
-			Intents:               configuration.Intents,
-			AutoSharded:           configuration.AutoSharded,
-			Values:                values,
-		})
+		application, err = SandwichClient.CreateApplication(
+			ctx,
+			&sandwich_protobuf.CreateApplicationRequest{
+				SaveConfig:            false,
+				ApplicationIdentifier: configuration.ApplicationIdentifier,
+				ProducerIdentifier:    configuration.ProducerIdentifier,
+				DisplayName:           configuration.DisplayName,
+				ClientName:            configuration.ClientName,
+				BotToken:              configuration.BotToken,
+				AutoStart:             configuration.AutoStart,
+				Intents:               configuration.Intents,
+				AutoSharded:           configuration.AutoSharded,
+				Values:                values,
+			},
+		)
 	}
 
-	resp, err := SandwichClient.StartApplication(ctx, &sandwich_protobuf.ApplicationIdentifierWithBlocking{
-		ApplicationIdentifier: identifier,
-		Blocking:              blocking,
-	})
+	resp, err := SandwichClient.StartApplication(
+		ctx,
+		&sandwich_protobuf.ApplicationIdentifierWithBlocking{
+			ApplicationIdentifier: identifier,
+			Blocking:              blocking,
+		},
+	)
 
 	// TODO: Add status codes to sandwich daemon for better error handling
 	if err != nil && status.Convert(err).Message() == "application already running" {
@@ -108,10 +128,13 @@ func StartCustomBot(ctx context.Context, customBotUUID uuid.UUID, botToken strin
 func StopCustomBot(ctx context.Context, customBotUUID uuid.UUID, blocking bool) error {
 	identifier := GetCustomBotKey(customBotUUID)
 
-	resp, err := SandwichClient.StopApplication(ctx, &sandwich_protobuf.ApplicationIdentifierWithBlocking{
-		ApplicationIdentifier: identifier,
-		Blocking:              blocking,
-	})
+	resp, err := SandwichClient.StopApplication(
+		ctx,
+		&sandwich_protobuf.ApplicationIdentifierWithBlocking{
+			ApplicationIdentifier: identifier,
+			Blocking:              blocking,
+		},
+	)
 
 	// TODO: Add status codes to sandwich daemon for better error handling
 	if err != nil && status.Convert(err).Message() == "application not found" {

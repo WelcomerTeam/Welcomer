@@ -49,54 +49,73 @@ func (p *LeaverCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *LeaverCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeLeaver event.
-	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeLeaver, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokeLeaverPayload core.CustomEventInvokeLeaverStructure
-		if err := eventCtx.DecodeContent(payload, &invokeLeaverPayload); err != nil {
-			return fmt.Errorf("failed to unmarshal payload: %w", err)
-		}
-
-		eventCtx.Guild = sandwich.NewGuild(invokeLeaverPayload.GuildID)
-
-		eventCtx.EventHandler.EventsMu.RLock()
-		defer eventCtx.EventHandler.EventsMu.RUnlock()
-
-		for _, event := range eventCtx.EventHandler.Events {
-			if f, ok := event.(welcomer.OnInvokeLeaverFuncType); ok {
-				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokeLeaverPayload))
+	p.EventHandler.RegisterEventHandler(
+		core.CustomEventInvokeLeaver,
+		func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
+			var invokeLeaverPayload core.CustomEventInvokeLeaverStructure
+			if err := eventCtx.DecodeContent(payload, &invokeLeaverPayload); err != nil {
+				return fmt.Errorf("failed to unmarshal payload: %w", err)
 			}
-		}
 
-		return nil
-	})
+			eventCtx.Guild = sandwich.NewGuild(invokeLeaverPayload.GuildID)
+
+			eventCtx.EventHandler.EventsMu.RLock()
+			defer eventCtx.EventHandler.EventsMu.RUnlock()
+
+			for _, event := range eventCtx.EventHandler.Events {
+				if f, ok := event.(welcomer.OnInvokeLeaverFuncType); ok {
+					return eventCtx.Handlers.WrapFuncType(
+						eventCtx,
+						f(eventCtx, invokeLeaverPayload),
+					)
+				}
+			}
+
+			return nil
+		},
+	)
 
 	// Trigger CustomEventInvokeLeaver when ON_GUILD_MEMBER_REMOVE event is received.
-	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, user discord.User) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "LeaverCog.OnInvokeLeaver")
+	p.EventHandler.RegisterOnGuildMemberRemoveEvent(
+		func(eventCtx *sandwich.EventContext, user discord.User) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"LeaverCog.OnInvokeLeaver",
+			)
 
-		welcomer.PusherGuildScience.Push(
-			eventCtx.Context,
-			eventCtx.Guild.ID,
-			user.ID,
-			database.ScienceGuildEventTypeUserLeave,
-			nil,
-		)
+			welcomer.PusherGuildScience.Push(
+				eventCtx.Context,
+				eventCtx.Guild.ID,
+				user.ID,
+				database.ScienceGuildEventTypeUserLeave,
+				nil,
+			)
 
-		return p.OnInvokeLeaverEvent(eventCtx, core.CustomEventInvokeLeaverStructure{
-			Interaction: nil,
-			User:        user,
-		})
-	})
+			return p.OnInvokeLeaverEvent(eventCtx, core.CustomEventInvokeLeaverStructure{
+				Interaction: nil,
+				User:        user,
+			})
+		},
+	)
 
 	// Call OnInvokeLeaverEvent when CustomEventInvokeLeaver is triggered.
-	p.EventHandler.RegisterEvent(core.CustomEventInvokeLeaver, nil, (welcomer.OnInvokeLeaverFuncType)(p.OnInvokeLeaverEvent))
+	p.EventHandler.RegisterEvent(
+		core.CustomEventInvokeLeaver,
+		nil,
+		(welcomer.OnInvokeLeaverFuncType)(p.OnInvokeLeaverEvent),
+	)
 
 	return nil
 }
 
 // OnInvokeLeaverEvent is called when CustomEventInvokeLeaver is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
-func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeLeaverStructure) (err error) {
+func (p *LeaverCog) OnInvokeLeaverEvent(
+	eventCtx *sandwich.EventContext,
+	event core.CustomEventInvokeLeaverStructure,
+) (err error) {
 	defer func() {
 		// Send follow-up if present.
 		if event.Interaction != nil && event.Interaction.Token != "" {
@@ -108,7 +127,10 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 				}
 			} else {
 				message = discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf("Failed to execute: `%s`", err.Error()),
+						welcomer.EmbedColourError,
+					),
 				}
 			}
 
@@ -125,7 +147,10 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 	// Fetch guild settings.
 
-	guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsLeaver = &database.GuildSettingsLeaver{
@@ -145,7 +170,8 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 	}
 
 	// Quit if leaver is not enabled or configured.
-	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 || welcomer.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
+	if !guildSettingsLeaver.ToggleEnabled || guildSettingsLeaver.Channel == 0 ||
+		welcomer.IsJSONBEmpty(guildSettingsLeaver.MessageFormat.Bytes) {
 		return nil
 	}
 
@@ -209,7 +235,10 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 		return err
 	}
 
-	serverMessage.AllowedMentions = welcomer.InferAllowedMentions(originalMessageFormat, &event.User.ID)
+	serverMessage.AllowedMentions = welcomer.InferAllowedMentions(
+		originalMessageFormat,
+		&event.User.ID,
+	)
 
 	var messageID discord.Snowflake
 
@@ -217,7 +246,12 @@ func (p *LeaverCog) OnInvokeLeaverEvent(eventCtx *sandwich.EventContext, event c
 
 	// Send the message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(serverMessage) {
-		validGuild, err := core.CheckChannelGuild(eventCtx.Context, welcomer.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsLeaver.Channel))
+		validGuild, err := core.CheckChannelGuild(
+			eventCtx.Context,
+			welcomer.SandwichClient,
+			eventCtx.Guild.ID,
+			discord.Snowflake(guildSettingsLeaver.Channel),
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).

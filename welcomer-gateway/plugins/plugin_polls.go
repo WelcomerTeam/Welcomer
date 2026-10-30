@@ -45,33 +45,46 @@ func (g *PollCog) RegisterCog(bot *sandwich.Bot) error {
 
 	// Register poll end handler.
 
-	g.EventHandler.RegisterEventHandler(welcomer.CustomEventInvokeEndPoll, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokePollEndPayload welcomer.CustomEventInvokeEndPollStructure
-		if err := eventCtx.DecodeContent(payload, &invokePollEndPayload); err != nil {
-			return fmt.Errorf("failed to unmarshal payload: %w", err)
-		}
-
-		eventCtx.Guild = sandwich.NewGuild(invokePollEndPayload.GuildID)
-
-		eventCtx.EventHandler.EventsMu.RLock()
-		defer eventCtx.EventHandler.EventsMu.RUnlock()
-
-		for _, event := range eventCtx.EventHandler.Events {
-			if f, ok := event.(welcomer.OnInvokeEndPollFuncType); ok {
-				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokePollEndPayload))
+	g.EventHandler.RegisterEventHandler(
+		welcomer.CustomEventInvokeEndPoll,
+		func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
+			var invokePollEndPayload welcomer.CustomEventInvokeEndPollStructure
+			if err := eventCtx.DecodeContent(payload, &invokePollEndPayload); err != nil {
+				return fmt.Errorf("failed to unmarshal payload: %w", err)
 			}
-		}
 
-		return nil
-	})
+			eventCtx.Guild = sandwich.NewGuild(invokePollEndPayload.GuildID)
+
+			eventCtx.EventHandler.EventsMu.RLock()
+			defer eventCtx.EventHandler.EventsMu.RUnlock()
+
+			for _, event := range eventCtx.EventHandler.Events {
+				if f, ok := event.(welcomer.OnInvokeEndPollFuncType); ok {
+					return eventCtx.Handlers.WrapFuncType(
+						eventCtx,
+						f(eventCtx, invokePollEndPayload),
+					)
+				}
+			}
+
+			return nil
+		},
+	)
 
 	// Call OnInvokeEndPoll when CustomEventInvokeEndPoll is triggered.
-	g.EventHandler.RegisterEvent(welcomer.CustomEventInvokeEndPoll, nil, (welcomer.OnInvokeEndPollFuncType)(g.OnInvokeEndPoll))
+	g.EventHandler.RegisterEvent(
+		welcomer.CustomEventInvokeEndPoll,
+		nil,
+		(welcomer.OnInvokeEndPollFuncType)(g.OnInvokeEndPoll),
+	)
 
 	return nil
 }
 
-func (g *PollCog) OnInvokeEndPoll(eventCtx *sandwich.EventContext, event welcomer.CustomEventInvokeEndPollStructure) error {
+func (g *PollCog) OnInvokeEndPoll(
+	eventCtx *sandwich.EventContext,
+	event welcomer.CustomEventInvokeEndPollStructure,
+) error {
 	welcomer.Logger.Info().
 		Str("poll_uuid", event.PollUUID.String()).
 		Msg("Received poll end event, processing poll end")
@@ -152,9 +165,15 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 		}
 	}()
 
-	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(poll.ChannelID), discord.Snowflake(poll.MessageID))
+	msg, err := discord.GetChannelMessage(
+		eventCtx.Context,
+		eventCtx.Session,
+		discord.Snowflake(poll.ChannelID),
+		discord.Snowflake(poll.MessageID),
+	)
 	if err != nil {
-		if strings.Contains(err.Error(), "404 Not Found") || strings.Contains(err.Error(), "403 Forbidden") {
+		if strings.Contains(err.Error(), "404 Not Found") ||
+			strings.Contains(err.Error(), "403 Forbidden") {
 			welcomer.Logger.Warn().
 				Str("poll_uuid", poll.PollUuid.String()).
 				Msg("Poll message not found, skipping disabling buttons for poll end")
@@ -198,7 +217,11 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 		}
 	}
 
-	_, err = msg.Edit(eventCtx.Context, eventCtx.Session, welcomer.WebhookMessageParamsToMessageParams(newMessage))
+	_, err = msg.Edit(
+		eventCtx.Context,
+		eventCtx.Session,
+		welcomer.WebhookMessageParamsToMessageParams(newMessage),
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("poll_uuid", poll.PollUuid.String()).
@@ -230,7 +253,11 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 
 	if topResult > 0 {
 		if len(wonAnswers) == 1 {
-			_, err = msg.Reply(eventCtx.Context, eventCtx.Session, *discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! The winner is **%s** (**%s%%**)", poll.Title, wonAnswers[0], formatDecimal(resultPercentage))))
+			_, err = msg.Reply(
+				eventCtx.Context,
+				eventCtx.Session,
+				*discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! The winner is **%s** (**%s%%**)", poll.Title, wonAnswers[0], formatDecimal(resultPercentage))),
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Str("poll_uuid", poll.PollUuid.String()).
@@ -249,7 +276,11 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 				}
 			}
 
-			_, err = msg.Reply(eventCtx.Context, eventCtx.Session, *discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! The winners are %s (**%s%%**)", poll.Title, wonAnswersStr, formatDecimal(resultPercentage))))
+			_, err = msg.Reply(
+				eventCtx.Context,
+				eventCtx.Session,
+				*discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! The winners are %s (**%s%%**)", poll.Title, wonAnswersStr, formatDecimal(resultPercentage))),
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Str("poll_uuid", poll.PollUuid.String()).
@@ -259,7 +290,11 @@ func (g *PollCog) EndPoll(eventCtx *sandwich.EventContext, poll *database.GuildP
 			}
 		}
 	} else {
-		_, err = msg.Reply(eventCtx.Context, eventCtx.Session, *discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! There were no votes.", poll.Title)))
+		_, err = msg.Reply(
+			eventCtx.Context,
+			eventCtx.Session,
+			*discord.NewMessage(fmt.Sprintf("The **%s** poll has ended! There were no votes.", poll.Title)),
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Str("poll_uuid", poll.PollUuid.String()).

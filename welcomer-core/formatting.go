@@ -20,7 +20,12 @@ import (
 
 func AssertLength(name string, expectedLength int, arguments ...any) (err error) {
 	if len(arguments) != expectedLength {
-		return fmt.Errorf("%s takes %d argument(s) but %d was given", name, expectedLength, len(arguments))
+		return fmt.Errorf(
+			"%s takes %d argument(s) but %d was given",
+			name,
+			expectedLength,
+			len(arguments),
+		)
 	}
 
 	return nil
@@ -28,7 +33,12 @@ func AssertLength(name string, expectedLength int, arguments ...any) (err error)
 
 func AssertMaxLength(name string, maximumLength int, arguments ...any) (err error) {
 	if len(arguments) > maximumLength {
-		return fmt.Errorf("%s takes up to %d argument(s) but %d was given", name, maximumLength, len(arguments))
+		return fmt.Errorf(
+			"%s takes up to %d argument(s) but %d was given",
+			name,
+			maximumLength,
+			len(arguments),
+		)
 	}
 
 	return nil
@@ -36,13 +46,20 @@ func AssertMaxLength(name string, maximumLength int, arguments ...any) (err erro
 
 func AssertMinLength(name string, minimumLength int, arguments ...any) (err error) {
 	if len(arguments) < minimumLength {
-		return fmt.Errorf("%s takes at least %d argument(s) but %d was given", name, minimumLength, len(arguments))
+		return fmt.Errorf(
+			"%s takes at least %d argument(s) but %d was given",
+			name,
+			minimumLength,
+			len(arguments),
+		)
 	}
 
 	return nil
 }
 
-func GatherFunctions(numberLocale database.NumberLocale) (funcs map[string]govaluate.ExpressionFunction) {
+func GatherFunctions(
+	numberLocale database.NumberLocale,
+) (funcs map[string]govaluate.ExpressionFunction) {
 	funcs = map[string]govaluate.ExpressionFunction{}
 
 	funcs["Ordinal"] = func(arguments ...any) (any, error) {
@@ -231,7 +248,14 @@ type GuildVariables struct {
 	NumberLocale  database.NumberLocale
 }
 
-func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMember, guild GuildVariables, invite *discord.Invite, extraValues map[string]any, useDiscordFormat bool) (vars map[string]any) {
+func GatherVariables(
+	eventCtx *sandwich.EventContext,
+	member *discord.GuildMember,
+	guild GuildVariables,
+	invite *discord.Invite,
+	extraValues map[string]any,
+	useDiscordFormat bool,
+) (vars map[string]any) {
 	vars = make(map[string]any)
 
 	leftAt, _ := extraValues["User.LeftAt"].(StubTime)
@@ -330,7 +354,11 @@ func GatherVariables(eventCtx *sandwich.EventContext, member *discord.GuildMembe
 	return vars
 }
 
-func FormatString(funcs map[string]govaluate.ExpressionFunction, vars map[string]any, message string) (string, error) {
+func FormatString(
+	funcs map[string]govaluate.ExpressionFunction,
+	vars map[string]any,
+	message string,
+) (string, error) {
 	tmpl, err := mustache.ParseString(message)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse string: %v", err)
@@ -350,7 +378,10 @@ func getGuildIcon(guild *discord.Guild) string {
 	}
 
 	if strings.HasPrefix(guild.Icon, "a_") {
-		return discord.EndpointCDN + discord.EndpointGuildIconAnimated(guild.ID.String(), guild.Icon)
+		return discord.EndpointCDN + discord.EndpointGuildIconAnimated(
+			guild.ID.String(),
+			guild.Icon,
+		)
 	}
 
 	return discord.EndpointCDN + discord.EndpointGuildIcon(guild.ID.String(), guild.Icon)
@@ -376,7 +407,9 @@ func GetUserAvatar(user *discord.User) string {
 	if user.Avatar == "" {
 		if user.Discriminator == "" {
 			// If a user is on the new username system, the index is (user_id >> 22) % 6
-			return discord.EndpointCDN + discord.EndpointDefaultUserAvatar(Itoa((int64(user.ID)>>22)%6))
+			return discord.EndpointCDN + discord.EndpointDefaultUserAvatar(
+				Itoa((int64(user.ID)>>22)%6),
+			)
 		}
 
 		// If a user is on the old username system, the index is discriminator % 5

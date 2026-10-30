@@ -30,9 +30,19 @@ type PaypalSale struct {
 
 // Handles all paypal sales.
 func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
-	println("HandlePaypalSale", paypalSale.ID, paypalSale.State, paypalSale.Amount.Total, paypalSale.Amount.Currency, paypalSale.BillingAgreementID)
+	println(
+		"HandlePaypalSale",
+		paypalSale.ID,
+		paypalSale.State,
+		paypalSale.Amount.Total,
+		paypalSale.Amount.Currency,
+		paypalSale.BillingAgreementID,
+	)
 
-	memberships, err := Queries.GetUserMembershipsByTransactionID(ctx, paypalSale.BillingAgreementID)
+	memberships, err := Queries.GetUserMembershipsByTransactionID(
+		ctx,
+		paypalSale.BillingAgreementID,
+	)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		Logger.Error().Err(err).
 			Str("transaction_id", paypalSale.BillingAgreementID).
@@ -46,7 +56,9 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 	var userID discord.Snowflake
 
 	for _, membership := range memberships {
-		if database.PlatformType(membership.PlatformType) == database.PlatformTypePaypalSubscription &&
+		if database.PlatformType(
+			membership.PlatformType,
+		) == database.PlatformTypePaypalSubscription &&
 			membership.TransactionID == paypalSale.BillingAgreementID &&
 			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle) || membership.Status == int32(database.MembershipStatusExpired)) {
 			paypalMemberships = append(paypalMemberships, membership)
@@ -153,8 +165,18 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 }
 
 // Handles all subscription events.
-func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscription paypal.Subscription) error {
-	println("HandlePaypalSubscription", paypalSubscription.ID, paypalSubscription.PlanID, paypalSubscription.SubscriptionStatus, paypalSubscription.Quantity)
+func HandlePaypalSubscription(
+	ctx context.Context,
+	action string,
+	paypalSubscription paypal.Subscription,
+) error {
+	println(
+		"HandlePaypalSubscription",
+		paypalSubscription.ID,
+		paypalSubscription.PlanID,
+		paypalSubscription.SubscriptionStatus,
+		paypalSubscription.Quantity,
+	)
 
 	if paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusApprovalPending ||
 		paypalSubscription.SubscriptionStatus == paypal.SubscriptionStatusCancelled ||
@@ -264,8 +286,10 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 							Inline: true,
 						},
 						{
-							Name:   "Created",
-							Value:  "<t:" + Itoa(time.Time(TryParseTime(paypalSubscription.CreateTime)).Unix()) + ":R>",
+							Name: "Created",
+							Value: "<t:" + Itoa(
+								time.Time(TryParseTime(paypalSubscription.CreateTime)).Unix(),
+							) + ":R>",
 							Inline: true,
 						},
 						{
@@ -274,13 +298,17 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 							Inline: true,
 						},
 						{
-							Name:   "Updated",
-							Value:  "<t:" + Itoa(time.Time(TryParseTime(paypalSubscription.UpdateTime)).Unix()) + ":R>",
+							Name: "Updated",
+							Value: "<t:" + Itoa(
+								time.Time(TryParseTime(paypalSubscription.UpdateTime)).Unix(),
+							) + ":R>",
 							Inline: true,
 						},
 						{
-							Name:   "Next Billing",
-							Value:  "<t:" + Itoa(time.Time(paypalSubscription.BillingInfo.NextBillingTime).Unix()) + ":R>",
+							Name: "Next Billing",
+							Value: "<t:" + Itoa(
+								time.Time(paypalSubscription.BillingInfo.NextBillingTime).Unix(),
+							) + ":R>",
 							Inline: true,
 						},
 					},
@@ -293,16 +321,19 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 	}
 
 	// Update paypal subscription entry.
-	_, err = Queries.CreateOrUpdatePaypalSubscription(ctx, database.CreateOrUpdatePaypalSubscriptionParams{
-		SubscriptionID:     paypalSubscription.ID,
-		UserID:             int64(userID),
-		PayerID:            paypalSubscription.Subscriber.PayerID,
-		LastBilledAt:       paypalSubscription.BillingInfo.LastPayment.Time,
-		NextBillingAt:      paypalSubscription.BillingInfo.NextBillingTime,
-		SubscriptionStatus: string(paypalSubscription.SubscriptionStatus),
-		PlanID:             paypalSubscription.PlanID,
-		Quantity:           paypalSubscription.Quantity,
-	})
+	_, err = Queries.CreateOrUpdatePaypalSubscription(
+		ctx,
+		database.CreateOrUpdatePaypalSubscriptionParams{
+			SubscriptionID:     paypalSubscription.ID,
+			UserID:             int64(userID),
+			PayerID:            paypalSubscription.Subscriber.PayerID,
+			LastBilledAt:       paypalSubscription.BillingInfo.LastPayment.Time,
+			NextBillingAt:      paypalSubscription.BillingInfo.NextBillingTime,
+			SubscriptionStatus: string(paypalSubscription.SubscriptionStatus),
+			PlanID:             paypalSubscription.PlanID,
+			Quantity:           paypalSubscription.Quantity,
+		},
+	)
 	if err != nil {
 		Logger.Error().Err(err).
 			Str("subscription_id", paypalSubscription.ID).
@@ -329,7 +360,9 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 	paypalMemberships := make([]*database.GetUserMembershipsByUserIDRow, 0, len(memberships))
 
 	for _, membership := range memberships {
-		if database.PlatformType(membership.PlatformType.Int32) == database.PlatformTypePaypalSubscription &&
+		if database.PlatformType(
+			membership.PlatformType.Int32,
+		) == database.PlatformTypePaypalSubscription &&
 			membership.TransactionUuid == paypalTxs.TransactionUuid &&
 			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) &&
 			membership.ExpiresAt.After(time.Now()) {
@@ -373,7 +406,14 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 		// Add memberships
 
 		for i := len(paypalMemberships); i < eligibleMemberships; i++ {
-			err = CreateMembershipForUser(ctx, userID, paypalTxs.TransactionUuid, database.MembershipTypeWelcomerPro, membershipExpiration, nil)
+			err = CreateMembershipForUser(
+				ctx,
+				userID,
+				paypalTxs.TransactionUuid,
+				database.MembershipTypeWelcomerPro,
+				membershipExpiration,
+				nil,
+			)
 			if err != nil {
 				Logger.Error().Err(err).
 					Int64("user_id", int64(userID)).
@@ -424,35 +464,50 @@ func HandlePaypalSubscription(ctx context.Context, action string, paypalSubscrip
 }
 
 // Triggers when a subscription is created.
-func OnPaypalSubscriptionCreated(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionCreated(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionCreated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, "created", paypalSubscription)
 }
 
 // Triggers when a subscription has been activated.
-func OnPaypalSubscriptionActivated(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionActivated(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionActivated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, "activated", paypalSubscription)
 }
 
 // Triggers when a subscription has been updated.
-func OnPaypalSubscriptionUpdated(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionUpdated(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionUpdated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, "updated", paypalSubscription)
 }
 
 // Triggers when a subscription has been re-activated.
-func OnPaypalSubscriptionReactivated(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionReactivated(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionReactivated", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, "reactivated", paypalSubscription)
 }
 
 // Triggers when a subscription has expired.
-func OnPaypalSubscriptionExpired(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionExpired(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionExpired", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
@@ -461,7 +516,10 @@ func OnPaypalSubscriptionExpired(ctx context.Context, paypalSubscription paypal.
 }
 
 // Triggers when a subscription has been cancelled.
-func OnPaypalSubscriptionCancelled(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionCancelled(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionCancelled", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
@@ -470,7 +528,10 @@ func OnPaypalSubscriptionCancelled(ctx context.Context, paypalSubscription paypa
 }
 
 // Triggers when a subscription has been suspended.
-func OnPaypalSubscriptionSuspended(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionSuspended(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionSuspended", paypalSubscription.ID)
 
 	paypalSubscription.Quantity = "0"
@@ -479,7 +540,10 @@ func OnPaypalSubscriptionSuspended(ctx context.Context, paypalSubscription paypa
 }
 
 // Triggers when a subscription payment has failed.
-func OnPaypalSubscriptionPaymentFailed(ctx context.Context, paypalSubscription paypal.Subscription) error {
+func OnPaypalSubscriptionPaymentFailed(
+	ctx context.Context,
+	paypalSubscription paypal.Subscription,
+) error {
 	println("HandlePaypalSubscriptionPaymentFailed", paypalSubscription.ID)
 
 	return HandlePaypalSubscription(ctx, "payment failed", paypalSubscription)

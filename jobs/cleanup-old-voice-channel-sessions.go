@@ -22,7 +22,11 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -73,7 +77,10 @@ func main() {
 func entrypoint(ctx context.Context, db *pgx.Conn) {
 	expirationDate := time.Now().Add(-time.Minute * 5)
 
-	rows, err := welcomer.Queries.DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx, expirationDate)
+	rows, err := welcomer.Queries.DeleteAndGetGuildVoiceChannelOpenSessionsBefore(
+		ctx,
+		expirationDate,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to get old voice channel sessions")
 		return

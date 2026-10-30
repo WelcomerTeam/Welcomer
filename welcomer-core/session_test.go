@@ -61,9 +61,14 @@ func TestURLContainsPathEscape_DetectionPatterns(t *testing.T) {
 			want:     false,
 		},
 		{
-			name:     "example escape using reactions",
-			endpoint: discord.EndpointMessageReaction("1", "2", "a/../../../../../../guilds/898560324993708032/members/662099680746012686/roles/944746337579192381?", "4"),
-			want:     true,
+			name: "example escape using reactions",
+			endpoint: discord.EndpointMessageReaction(
+				"1",
+				"2",
+				"a/../../../../../../guilds/898560324993708032/members/662099680746012686/roles/944746337579192381?",
+				"4",
+			),
+			want: true,
 		},
 	}
 
@@ -117,9 +122,14 @@ func TestURLContainsPathEscape_EncodedPatterns(t *testing.T) {
 			want:     false, // decodes to /a/b/c (no dot traversal segment)
 		},
 		{
-			name:     "example escape using reactions",
-			endpoint: discord.EndpointMessageReaction("1", "2", "a%2F..%2F..%2F..%2F..%2F..%2F..%2Fguilds%2F898560324993708032%2Fmembers%2F662099680746012686%2Froles%2F944746337579192381%3F", "4"),
-			want:     true,
+			name: "example escape using reactions",
+			endpoint: discord.EndpointMessageReaction(
+				"1",
+				"2",
+				"a%2F..%2F..%2F..%2F..%2F..%2F..%2Fguilds%2F898560324993708032%2Fmembers%2F662099680746012686%2Froles%2F944746337579192381%3F",
+				"4",
+			),
+			want: true,
 		},
 	}
 
@@ -151,6 +161,11 @@ func TestURLContainsPathEscape_InvalidEscapeReturnsError(t *testing.T) {
 		t.Fatalf("urlContainsPathEscape(%q) = %v, want false when error occurs", endpoint, got)
 	}
 	if !strings.Contains(err.Error(), "failed to unescape url") {
-		t.Fatalf("urlContainsPathEscape(%q) error = %q, want message to contain %q", endpoint, err.Error(), "failed to unescape url")
+		t.Fatalf(
+			"urlContainsPathEscape(%q) error = %q, want message to contain %q",
+			endpoint,
+			err.Error(),
+			"failed to unescape url",
+		)
 	}
 }

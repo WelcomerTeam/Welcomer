@@ -102,8 +102,11 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed("Your background has been cleared.", welcomer.EmbedColourSuccess),
-					Flags:  uint32(discord.MessageFlagEphemeral),
+					Embeds: welcomer.NewEmbed(
+						"Your background has been cleared.",
+						welcomer.EmbedColourSuccess,
+					),
+					Flags: uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
 		},
@@ -146,7 +149,8 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 				})
 			}
 
-			if background := subway.MustGetArgument(ctx, "background").MustString(); background != "" {
+			if background := subway.MustGetArgument(ctx, "background").
+				MustString(); background != "" {
 				filtered := make([]discord.ApplicationCommandOptionChoice, 0, len(choices))
 				for _, choice := range choices {
 					if strings.Contains(strings.ToLower(choice.Name), strings.ToLower(background)) {
@@ -205,8 +209,11 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Custom background must be provided when background is set to custom.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Custom background must be provided when background is set to custom.",
+								welcomer.EmbedColourError,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				} else {
@@ -224,8 +231,15 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 							return &discord.InteractionResponse{
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
-									Embeds: welcomer.NewEmbed(fmt.Sprintf("Invalid hex code `%s` at index %d. Must be 6 characters long.", v, i), welcomer.EmbedColourError),
-									Flags:  uint32(discord.MessageFlagEphemeral),
+									Embeds: welcomer.NewEmbed(
+										fmt.Sprintf(
+											"Invalid hex code `%s` at index %d. Must be 6 characters long.",
+											v,
+											i,
+										),
+										welcomer.EmbedColourError,
+									),
+									Flags: uint32(discord.MessageFlagEphemeral),
 								},
 							}, nil
 						}
@@ -235,8 +249,11 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 							return &discord.InteractionResponse{
 								Type: discord.InteractionCallbackTypeChannelMessageSource,
 								Data: &discord.InteractionCallbackData{
-									Embeds: welcomer.NewEmbed(fmt.Sprintf("Invalid hex code `%s` at index %d.", v, i), welcomer.EmbedColourError),
-									Flags:  uint32(discord.MessageFlagEphemeral),
+									Embeds: welcomer.NewEmbed(
+										fmt.Sprintf("Invalid hex code `%s` at index %d.", v, i),
+										welcomer.EmbedColourError,
+									),
+									Flags: uint32(discord.MessageFlagEphemeral),
 								},
 							}, nil
 						}
@@ -256,8 +273,11 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Invalid background preset. Please choose a valid preset or use 'custom'.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Invalid background preset. Please choose a valid preset or use 'custom'.",
+								welcomer.EmbedColourError,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -297,15 +317,23 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 
 			optionsJSON, err := json.Marshal(generateOptionsRaw)
 			if err == nil {
-				resp, err := http.DefaultClient.Post(os.Getenv("IMAGE_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
+				resp, err := http.DefaultClient.Post(
+					os.Getenv("IMAGE_ADDRESS")+"/generate",
+					"application/json",
+					bytes.NewBuffer(optionsJSON),
+				)
 				if err != nil {
-					welcomer.Logger.Error().Err(err).Msg("Failed to generate pride background image")
+					welcomer.Logger.Error().
+						Err(err).
+						Msg("Failed to generate pride background image")
 				} else if resp.StatusCode == http.StatusOK {
 					defer resp.Body.Close()
 
 					body, err := io.ReadAll(resp.Body)
 					if err != nil {
-						welcomer.Logger.Error().Err(err).Msg("Failed to read pride background image response")
+						welcomer.Logger.Error().
+							Err(err).
+							Msg("Failed to read pride background image response")
 					} else {
 						files = append(files, discord.File{
 							Name:        "background.png",
@@ -316,14 +344,22 @@ func (p *PrideCog) RegisterCog(sub *subway.Subway) error {
 				}
 			}
 
-			embeds := welcomer.NewEmbed("Your background has been set.", welcomer.EmbedColourSuccess)
+			embeds := welcomer.NewEmbed(
+				"Your background has been set.",
+				welcomer.EmbedColourSuccess,
+			)
 			embeds[0].SetImage(discord.NewEmbedImage("attachment://background.png"))
 
-			err = interaction.SendResponse(ctx, sub.EmptySession, discord.InteractionCallbackTypeChannelMessageSource, &discord.InteractionCallbackData{
-				Embeds: embeds,
-				Flags:  uint32(discord.MessageFlagEphemeral),
-				Files:  files,
-			})
+			err = interaction.SendResponse(
+				ctx,
+				sub.EmptySession,
+				discord.InteractionCallbackTypeChannelMessageSource,
+				&discord.InteractionCallbackData{
+					Embeds: embeds,
+					Flags:  uint32(discord.MessageFlagEphemeral),
+					Files:  files,
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to send pride background set response")
 

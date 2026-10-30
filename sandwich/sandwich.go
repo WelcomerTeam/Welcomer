@@ -41,7 +41,11 @@ func main() {
 	proxyHost := flag.String("proxyHost", os.Getenv("PROXY_HOST"), "Proxy host")
 	disableDedupeProvider := flag.Bool("disableDedupe", false, "Disables deduplication")
 
-	enablePprof := flag.Bool("enablePprof", welcomer.TryParseBool(os.Getenv("ENABLE_PPROF")), "Enable pprof debugging server")
+	enablePprof := flag.Bool(
+		"enablePprof",
+		welcomer.TryParseBool(os.Getenv("ENABLE_PPROF")),
+		"Enable pprof debugging server",
+	)
 
 	flag.Parse()
 
@@ -58,7 +62,9 @@ func main() {
 	if *disableDedupeProvider {
 		welcomer.SetupDedupeProvider(welcomer.NewDummyDedupeProvider())
 	} else {
-		welcomer.SetupDedupeProvider(welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()))
+		welcomer.SetupDedupeProvider(
+			welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()),
+		)
 	}
 
 	producerProvider, err := jetstream_client.NewJetstreamProducerProvider(
@@ -99,7 +105,9 @@ func main() {
 		logger,
 		welcomer.GetConfigurationGatherer(ctx),
 		NewProxyClient(*http.DefaultClient, *proxyURL),
-		sandwich_daemon.NewEventProviderWithBlacklist(sandwich_daemon.NewBuiltinDispatchProvider(true)),
+		sandwich_daemon.NewEventProviderWithBlacklist(
+			sandwich_daemon.NewBuiltinDispatchProvider(true),
+		),
 		sandwich_daemon.NewIdentifyViaBuckets(),
 		producerProvider,
 		stateProvider,
@@ -113,7 +121,10 @@ func main() {
 				ReadTimeout:       time.Second * 10,
 				ReadHeaderTimeout: time.Second * 10,
 				IdleTimeout:       time.Second * 10,
-				ErrorLog:          slog.NewLogLogger(slog.With("service", "prometheus").Handler(), slog.LevelError),
+				ErrorLog: slog.NewLogLogger(
+					slog.With("service", "prometheus").Handler(),
+					slog.LevelError,
+				),
 			},
 			registry,
 			promhttp.HandlerOpts{},
@@ -141,7 +152,10 @@ func main() {
 
 // Verbose Proxy Client
 
-var UserAgent = fmt.Sprintf("Sandwich/%s (https://github.com/WelcomerTeam/Sandwich-Daemon)", sandwich_daemon.Version)
+var UserAgent = fmt.Sprintf(
+	"Sandwich/%s (https://github.com/WelcomerTeam/Sandwich-Daemon)",
+	sandwich_daemon.Version,
+)
 
 // NewProxyClient creates an HTTP client that redirects all requests through a specified host.
 // This is useful when using a proxy such as twilight or nirn.

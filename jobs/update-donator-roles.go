@@ -29,14 +29,30 @@ func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup.",
+	)
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
-	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
+	sandwichManagerName := flag.String(
+		"sandwichManagerName",
+		os.Getenv("SANDWICH_MANAGER_NAME"),
+		"Sandwich manager identifier name",
+	)
 
 	flag.Parse()
 
@@ -69,9 +85,12 @@ func main() {
 
 	welcomer.SetupDefaultManagerName(*sandwichManagerName)
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
@@ -96,7 +115,10 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 		return
 	}
 
-	rows, err := welcomer.Pool.Query(ctx, `SELECT user_id, membership_type FROM "user_memberships" WHERE "expires_at" >= NOW() AND "status" IN (1,2)`)
+	rows, err := welcomer.Pool.Query(
+		ctx,
+		`SELECT user_id, membership_type FROM "user_memberships" WHERE "expires_at" >= NOW() AND "status" IN (1,2)`,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to query active donators")
 		return
@@ -125,9 +147,12 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 
 	rows.Close()
 
-	guildMembers, err := welcomer.SandwichClient.FetchGuildMember(ctx, &sandwich.FetchGuildMemberRequest{
-		GuildId: int64(WelcomerGuild),
-	})
+	guildMembers, err := welcomer.SandwichClient.FetchGuildMember(
+		ctx,
+		&sandwich.FetchGuildMemberRequest{
+			GuildId: int64(WelcomerGuild),
+		},
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to fetch guild members")
 		return
@@ -160,7 +185,13 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Assigning donator role to user")
 
-			err := member.AddRoles(ctx, session, []discord.Snowflake{DonatorRole}, new("Active welcomer donator"), true)
+			err := member.AddRoles(
+				ctx,
+				session,
+				[]discord.Snowflake{DonatorRole},
+				new("Active welcomer donator"),
+				true,
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).
@@ -173,7 +204,13 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Removing donator role from user")
 
-			err := member.RemoveRoles(ctx, session, []discord.Snowflake{DonatorRole}, new("No longer active welcomer donator"), true)
+			err := member.RemoveRoles(
+				ctx,
+				session,
+				[]discord.Snowflake{DonatorRole},
+				new("No longer active welcomer donator"),
+				true,
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).
@@ -188,7 +225,13 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Assigning welcomer pro role to user")
 
-			err := member.AddRoles(ctx, session, []discord.Snowflake{WelcomerProRole}, new("Active welcomer pro membership"), true)
+			err := member.AddRoles(
+				ctx,
+				session,
+				[]discord.Snowflake{WelcomerProRole},
+				new("Active welcomer pro membership"),
+				true,
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).
@@ -201,7 +244,13 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 				Int64("user_id", int64(member.User.ID)).
 				Msg("Removing welcomer pro role from user")
 
-			err := member.RemoveRoles(ctx, session, []discord.Snowflake{WelcomerProRole}, new("No longer active welcomer pro membership"), true)
+			err := member.RemoveRoles(
+				ctx,
+				session,
+				[]discord.Snowflake{WelcomerProRole},
+				new("No longer active welcomer pro membership"),
+				true,
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("user_id", int64(member.User.ID)).

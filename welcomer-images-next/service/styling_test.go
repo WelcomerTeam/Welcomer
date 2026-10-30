@@ -118,7 +118,13 @@ func TestGetFillAsCSS(t *testing.T) {
 
 			got := is.getFillAsCSS(ctx, tt.value, tt.defaultValue)
 			if got != tt.want {
-				t.Fatalf("getFillAsCSS(%q, %q) = %q, want %q", tt.value, tt.defaultValue, got, tt.want)
+				t.Fatalf(
+					"getFillAsCSS(%q, %q) = %q, want %q",
+					tt.value,
+					tt.defaultValue,
+					got,
+					tt.want,
+				)
 			}
 		})
 	}

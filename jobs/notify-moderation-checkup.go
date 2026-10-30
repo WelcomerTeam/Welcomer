@@ -25,13 +25,29 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
+	sandwichManagerName := flag.String(
+		"sandwichManagerName",
+		os.Getenv("SANDWICH_MANAGER_NAME"),
+		"Sandwich manager identifier name",
+	)
 
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup.",
+	)
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
 	flag.Parse()
@@ -68,9 +84,12 @@ func main() {
 	welcomer.SetupDefaultManagerName(*sandwichManagerName)
 	welcomer.SetupLogger(*loggingLevel)
 	welcomer.SetupDatabase(ctx, *postgresURL)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupSandwichClient()
 
@@ -128,7 +147,13 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 
 	for rows.Next() {
 		var checkup ModerationCheckup
-		err := rows.Scan(&checkup.GuildID, &checkup.RulesBlocked, &checkup.BorderwallBlocked, &checkup.TextBlocked, &checkup.DmsBlocked)
+		err := rows.Scan(
+			&checkup.GuildID,
+			&checkup.RulesBlocked,
+			&checkup.BorderwallBlocked,
+			&checkup.TextBlocked,
+			&checkup.DmsBlocked,
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to scan moderation checkup row")
 			continue
@@ -147,7 +172,10 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 			GuildIds: []int64{int64(checkup.GuildID)},
 		})
 		if err != nil {
-			welcomer.Logger.Info().Err(err).Str("guild_id", checkup.GuildID.String()).Msg("Failed to fetch guild from Sandwich")
+			welcomer.Logger.Info().
+				Err(err).
+				Str("guild_id", checkup.GuildID.String()).
+				Msg("Failed to fetch guild from Sandwich")
 
 			continue
 		}
@@ -174,9 +202,14 @@ Flagged settings:
 -# This is an automated message. Replies to this message will not be seen.`, guild.Name, flaggedSettings(guild.ID, checkup)),
 		})
 		if err != nil {
-			welcomer.Logger.Info().Err(err).Str("guild_id", checkup.GuildID.String()).Msg("Failed to send DM to guild owner")
+			welcomer.Logger.Info().
+				Err(err).
+				Str("guild_id", checkup.GuildID.String()).
+				Msg("Failed to send DM to guild owner")
 		} else {
-			welcomer.Logger.Info().Str("guild_id", checkup.GuildID.String()).Msg("Sent DM to guild owner")
+			welcomer.Logger.Info().
+				Str("guild_id", checkup.GuildID.String()).
+				Msg("Sent DM to guild owner")
 		}
 	}
 }
@@ -188,13 +221,22 @@ func flaggedSettings(guildID int64, checkup ModerationCheckup) string {
 		flagged += fmt.Sprintf("Rules ([edit](https://welcomer.gg/dashboard/%d/rules))\n", guildID)
 	}
 	if checkup.BorderwallBlocked.Valid && checkup.BorderwallBlocked.Bool {
-		flagged += fmt.Sprintf("Borderwall ([edit](https://welcomer.gg/dashboard/%d/borderwall))\n", guildID)
+		flagged += fmt.Sprintf(
+			"Borderwall ([edit](https://welcomer.gg/dashboard/%d/borderwall))\n",
+			guildID,
+		)
 	}
 	if checkup.TextBlocked.Valid && checkup.TextBlocked.Bool {
-		flagged += fmt.Sprintf("Welcomer Text ([edit](https://welcomer.gg/dashboard/%d/welcomer))\n", guildID)
+		flagged += fmt.Sprintf(
+			"Welcomer Text ([edit](https://welcomer.gg/dashboard/%d/welcomer))\n",
+			guildID,
+		)
 	}
 	if checkup.DmsBlocked.Valid && checkup.DmsBlocked.Bool {
-		flagged += fmt.Sprintf("Welcomer DMs ([edit](https://welcomer.gg/dashboard/%d/welcomer))\n", guildID)
+		flagged += fmt.Sprintf(
+			"Welcomer DMs ([edit](https://welcomer.gg/dashboard/%d/welcomer))\n",
+			guildID,
+		)
 	}
 
 	print(flagged)

@@ -44,7 +44,12 @@ func onRequest() {
 	imgenRequests.Inc()
 }
 
-func onGenerationComplete(start time.Time, guildID int64, background string, format welcomer.ImageFileType) {
+func onGenerationComplete(
+	start time.Time,
+	guildID int64,
+	background string,
+	format welcomer.ImageFileType,
+) {
 	guildIDstring := welcomer.Itoa(guildID)
 	dur := time.Since(start).Seconds()
 

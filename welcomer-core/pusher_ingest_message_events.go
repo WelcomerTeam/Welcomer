@@ -37,7 +37,12 @@ func (h *PushIngestMessageEventsHandler) Run(ctx context.Context, interval time.
 	}()
 }
 
-func (h *PushIngestMessageEventsHandler) Push(ctx context.Context, messageID, guildID, channelID, userID discord.Snowflake, eventType IngestMessageEventType, occurredAt time.Time) {
+func (h *PushIngestMessageEventsHandler) Push(
+	ctx context.Context,
+	messageID, guildID, channelID, userID discord.Snowflake,
+	eventType IngestMessageEventType,
+	occurredAt time.Time,
+) {
 	h.PushRaw(ctx, database.CreateManyIngestMessageEventsParams{
 		MessageID:  int64(messageID),
 		GuildID:    int64(guildID),
@@ -48,7 +53,10 @@ func (h *PushIngestMessageEventsHandler) Push(ctx context.Context, messageID, gu
 	})
 }
 
-func (h *PushIngestMessageEventsHandler) PushRaw(ctx context.Context, event database.CreateManyIngestMessageEventsParams) {
+func (h *PushIngestMessageEventsHandler) PushRaw(
+	ctx context.Context,
+	event database.CreateManyIngestMessageEventsParams,
+) {
 	h.Lock()
 	h.Buffer = append(h.Buffer, event)
 	h.Unlock()

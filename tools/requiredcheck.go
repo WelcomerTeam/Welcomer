@@ -91,7 +91,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				}
 
 				if !provided[field.Name()] {
-					pass.Reportf(lit.Pos(), "missing required field: %s (%s)", field.Name(), named.Obj().Pkg().Path())
+					pass.Reportf(
+						lit.Pos(),
+						"missing required field: %s (%s)",
+						field.Name(),
+						named.Obj().Pkg().Path(),
+					)
 				}
 			}
 

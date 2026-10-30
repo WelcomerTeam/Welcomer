@@ -15,7 +15,10 @@ import (
 
 var attr, _ = imagequant.NewAttributes()
 
-func encodeFrames(frames []image.Image, background FullImage) ([]byte, welcomer.ImageFileType, error) {
+func encodeFrames(
+	frames []image.Image,
+	background FullImage,
+) ([]byte, welcomer.ImageFileType, error) {
 	if len(frames) == 0 {
 		return nil, welcomer.ImageFileTypeUnknown, ErrMissingFrames
 	}
@@ -38,7 +41,10 @@ func encodeFramesAsPng(frame image.Image) ([]byte, welcomer.ImageFileType, error
 	return b.Bytes(), welcomer.ImageFileTypeImagePng, nil
 }
 
-func encodeFramesAsGif(frames []image.Image, background FullImage) ([]byte, welcomer.ImageFileType, error) {
+func encodeFramesAsGif(
+	frames []image.Image,
+	background FullImage,
+) ([]byte, welcomer.ImageFileType, error) {
 	quantized_frames := make([]*image.Paletted, len(frames))
 
 	wg := sync.WaitGroup{}

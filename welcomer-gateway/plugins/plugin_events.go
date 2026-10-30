@@ -39,89 +39,109 @@ func (c *EventsCog) GetEventHandlers() *sandwich.Handlers {
 
 func (c *EventsCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register event for when a guild is joined.
-	c.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnGuildJoin")
+	c.EventHandler.RegisterOnGuildJoinEvent(
+		func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+			startTime := time.Now()
+			defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnGuildJoin")
 
-		return welcomer.EnsureGuild(eventCtx.Context, guild.ID)
-	})
+			return welcomer.EnsureGuild(eventCtx.Context, guild.ID)
+		},
+	)
 
 	// Register event for when an invite is created.
-	c.EventHandler.RegisterOnInviteCreateEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnInviteCreate")
+	c.EventHandler.RegisterOnInviteCreateEvent(
+		func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"EventsCog.OnInviteCreate",
+			)
 
-		var guildID int64
+			var guildID int64
 
-		if invite.GuildID != nil {
-			guildID = int64(*invite.GuildID)
-		} else if invite.Guild != nil {
-			guildID = int64(invite.Guild.ID)
-		} else {
-			welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
+			if invite.GuildID != nil {
+				guildID = int64(*invite.GuildID)
+			} else if invite.Guild != nil {
+				guildID = int64(invite.Guild.ID)
+			} else {
+				welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
+
+				return nil
+			}
+
+			var inviter discord.Snowflake
+			if invite.Inviter != nil {
+				inviter = invite.Inviter.ID
+			}
+
+			err := welcomer.RetryWithFallback(
+				func() error {
+					_, err := welcomer.Queries.CreateOrUpdateGuildInvites(
+						eventCtx.Context,
+						database.CreateOrUpdateGuildInvitesParams{
+							InviteCode: invite.Code,
+							GuildID:    guildID,
+							CreatedBy:  int64(inviter),
+							CreatedAt:  invite.CreatedAt,
+							Uses:       int64(invite.Uses),
+						},
+					)
+					return err
+				},
+				func() error {
+					return welcomer.EnsureGuild(eventCtx.Context, discord.Snowflake(guildID))
+				},
+				nil,
+			)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guildID", guildID).
+					Msg("Failed to create or update invite")
+			}
 
 			return nil
-		}
-
-		var inviter discord.Snowflake
-		if invite.Inviter != nil {
-			inviter = invite.Inviter.ID
-		}
-
-		err := welcomer.RetryWithFallback(
-			func() error {
-				_, err := welcomer.Queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams{
-					InviteCode: invite.Code,
-					GuildID:    guildID,
-					CreatedBy:  int64(inviter),
-					CreatedAt:  invite.CreatedAt,
-					Uses:       int64(invite.Uses),
-				})
-				return err
-			},
-			func() error {
-				return welcomer.EnsureGuild(eventCtx.Context, discord.Snowflake(guildID))
-			},
-			nil,
-		)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guildID", guildID).
-				Msg("Failed to create or update invite")
-		}
-
-		return nil
-	})
+		},
+	)
 
 	// Register event for when an invite is deleted.
-	c.EventHandler.RegisterOnInviteDeleteEvent(func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "EventsCog.OnInviteDelete")
+	c.EventHandler.RegisterOnInviteDeleteEvent(
+		func(eventCtx *sandwich.EventContext, invite discord.Invite) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"EventsCog.OnInviteDelete",
+			)
 
-		var guildID int64
+			var guildID int64
 
-		if invite.GuildID != nil {
-			guildID = int64(*invite.GuildID)
-		} else if invite.Guild != nil {
-			guildID = int64(invite.Guild.ID)
-		} else {
-			welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
+			if invite.GuildID != nil {
+				guildID = int64(*invite.GuildID)
+			} else if invite.Guild != nil {
+				guildID = int64(invite.Guild.ID)
+			} else {
+				welcomer.Logger.Warn().Msg("Invite does not have a guild ID")
+
+				return nil
+			}
+
+			_, err := welcomer.Queries.DeleteGuildInvites(
+				eventCtx.Context,
+				database.DeleteGuildInvitesParams{
+					InviteCode: invite.Code,
+					GuildID:    guildID,
+				},
+			)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guildID", guildID).
+					Msg("Failed to create or update invite")
+			}
 
 			return nil
-		}
-
-		_, err := welcomer.Queries.DeleteGuildInvites(eventCtx.Context, database.DeleteGuildInvitesParams{
-			InviteCode: invite.Code,
-			GuildID:    guildID,
-		})
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guildID", guildID).
-				Msg("Failed to create or update invite")
-		}
-
-		return nil
-	})
+		},
+	)
 
 	return nil
 }

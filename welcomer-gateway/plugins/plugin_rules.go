@@ -42,20 +42,28 @@ func (p *RulesCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *RulesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Trigger OnInvokeRules when ON_GUILD_MEMBER_ADD event is received.
-	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "RulesCog.OnInvokeRules")
+	p.EventHandler.RegisterOnGuildMemberAddEvent(
+		func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+			startTime := time.Now()
+			defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "RulesCog.OnInvokeRules")
 
-		return p.OnInvokeRules(eventCtx, member)
-	})
+			return p.OnInvokeRules(eventCtx, member)
+		},
+	)
 
 	return nil
 }
 
-func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord.GuildMember) (err error) {
+func (p *RulesCog) OnInvokeRules(
+	eventCtx *sandwich.EventContext,
+	member discord.GuildMember,
+) (err error) {
 	// Fetch guild settings.
 
-	guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsRules = &database.GetRulesGuildSettingsRow{
@@ -74,7 +82,8 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 	}
 
 	// Quit if not enabled or no rules are set.
-	if !guildSettingsRules.ToggleEnabled || !guildSettingsRules.ToggleDmsEnabled || len(guildSettingsRules.Rules) == 0 {
+	if !guildSettingsRules.ToggleEnabled || !guildSettingsRules.ToggleDmsEnabled ||
+		len(guildSettingsRules.Rules) == 0 {
 		return nil
 	}
 
@@ -99,7 +108,11 @@ func (p *RulesCog) OnInvokeRules(eventCtx *sandwich.EventContext, member discord
 
 	embeds = append(embeds, embed)
 
-	_, err = member.User.Send(eventCtx.Context, eventCtx.Session, discord.MessageParams{Embeds: embeds})
+	_, err = member.User.Send(
+		eventCtx.Context,
+		eventCtx.Session,
+		discord.MessageParams{Embeds: embeds},
+	)
 
 	welcomer.Logger.Info().
 		Int64("guild_id", int64(eventCtx.Guild.ID)).

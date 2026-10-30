@@ -107,7 +107,9 @@ func GetOnboardingMessage(guildID discord.Snowflake) discord.MessageParams {
 					{
 						Type:  discord.InteractionComponentTypeButton,
 						Style: discord.InteractionComponentStylePremium,
-						SKUID: discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID"))),
+						SKUID: discord.Snowflake(
+							TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID")),
+						),
 					},
 				},
 			},

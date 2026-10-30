@@ -18,7 +18,12 @@ const (
 	SolidProfileLuminance = 0.7
 )
 
-func (is *ImageService) FetchBackground(background string, allowAnimated bool, avatar image.Image, themeSize image.Rectangle) (FullImage, error) {
+func (is *ImageService) FetchBackground(
+	background string,
+	allowAnimated bool,
+	avatar image.Image,
+	themeSize image.Rectangle,
+) (FullImage, error) {
 	backgroundType, _ := welcomer.ParseBackground(background)
 
 	switch backgroundType.Type {
@@ -50,26 +55,41 @@ func (is *ImageService) FetchBackgroundDefault(value string) (FullImage, error) 
 }
 
 // FetchBackgroundWelcomer returns an image from the database.
-func (is *ImageService) FetchBackgroundWelcomer(value string, allowAnimated bool) (FullImage, error) {
+func (is *ImageService) FetchBackgroundWelcomer(
+	value string,
+	allowAnimated bool,
+) (FullImage, error) {
 	var backgroundUuid uuid.UUID
 
 	err := backgroundUuid.Parse(value)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to convert value to valid UUID for background")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("value", value).
+			Msg("Failed to convert value to valid UUID for background")
 
 		return FullImage{}, err
 	}
 
 	background, err := welcomer.Queries.GetWelcomerImages(is.ctx, backgroundUuid)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("value", value).
+			Msg("Failed to fetch background from database")
 
 		return FullImage{}, err
 	}
 
-	fullImage, err := openImage(background.Data, welcomer.If(allowAnimated, background.ImageType, welcomer.ImageFileTypeImagePng.String()))
+	fullImage, err := openImage(
+		background.Data,
+		welcomer.If(allowAnimated, background.ImageType, welcomer.ImageFileTypeImagePng.String()),
+	)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Str("value", value).Msg("Failed to fetch background from database")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("value", value).
+			Msg("Failed to fetch background from database")
 
 		return FullImage{}, err
 	}
@@ -206,7 +226,10 @@ func (is *ImageService) FetchBackgroundURL(value string, allowAnimated bool) (Fu
 // FetchBackgroundStripes generates a striped background image based on the provided value.
 // The format expects to be started with "v:" for vertical stripes or "h:" for horizontal stripes.
 // Then is followed by a comma-separated list of colors.
-func (is *ImageService) FetchBackgroundStripes(value string, themeSize image.Rectangle) (FullImage, error) {
+func (is *ImageService) FetchBackgroundStripes(
+	value string,
+	themeSize image.Rectangle,
+) (FullImage, error) {
 	isVertical := strings.HasPrefix(value, "v:")
 	value = strings.TrimPrefix(value, "v:")
 	value = strings.TrimPrefix(value, "h:")

@@ -399,7 +399,10 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					},
 				}...)
 
-				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(
+					ctx,
+					welcomer.GetManagerNameFromContext(ctx),
+				)
 				if err != nil {
 					return nil, err
 				}
@@ -407,7 +410,11 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 				for i, entry := range leaderboard {
 					user, ok := userCache[discord.Snowflake(entry.UserID)]
 					if !ok {
-						user, err := welcomer.FetchUserWithDiscordFallback(ctx, session, discord.Snowflake(entry.UserID))
+						user, err := welcomer.FetchUserWithDiscordFallback(
+							ctx,
+							session,
+							discord.Snowflake(entry.UserID),
+						)
 						if err != nil {
 							welcomer.Logger.Error().Err(err).
 								Int64("user_id", entry.UserID).
@@ -428,8 +435,16 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					displayName += "<@" + welcomer.Itoa(int64(entry.UserID)) + ">"
 
 					components = append(components, discord.InteractionComponent{
-						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: welcomer.Itoa(int64(i+1)) + ". " + displayName + " - **" + welcomer.Itoa(int64(entry.Count)) + "** egg" + welcomer.If(entry.Count != 1, "s", ""),
+						Type: discord.InteractionComponentTypeTextDisplay,
+						Content: welcomer.Itoa(
+							int64(i+1),
+						) + ". " + displayName + " - **" + welcomer.Itoa(
+							int64(entry.Count),
+						) + "** egg" + welcomer.If(
+							entry.Count != 1,
+							"s",
+							"",
+						),
 					})
 				}
 
@@ -439,8 +454,10 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					})
 
 					components = append(components, discord.InteractionComponent{
-						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: "Total eggs caught globally: **" + welcomer.Itoa(int64(leaderboard[0].Total)) + "**",
+						Type: discord.InteractionComponentTypeTextDisplay,
+						Content: "Total eggs caught globally: **" + welcomer.Itoa(
+							int64(leaderboard[0].Total),
+						) + "**",
 					})
 				}
 
@@ -453,11 +470,16 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 								Components: components,
 							},
 						},
-						Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
+						Flags: uint32(
+							discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2,
+						),
 					},
 				}, nil
 			} else {
-				leaderboard, err := welcomer.Queries.GetCollectedEasterEggsByGuildID(ctx, int64(interaction.Guild.ID))
+				leaderboard, err := welcomer.Queries.GetCollectedEasterEggsByGuildID(
+					ctx,
+					int64(interaction.Guild.ID),
+				)
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					return nil, err
 				}
@@ -466,8 +488,11 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No one has caught any eggs yet! Be the first one to catch an egg and top the leaderboard!\n-# You can find them on Welcome messages.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"No one has caught any eggs yet! Be the first one to catch an egg and top the leaderboard!\n-# You can find them on Welcome messages.",
+								welcomer.EmbedColourInfo,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -484,7 +509,10 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					},
 				}...)
 
-				session, err := welcomer.AcquireSession(ctx, welcomer.GetManagerNameFromContext(ctx))
+				session, err := welcomer.AcquireSession(
+					ctx,
+					welcomer.GetManagerNameFromContext(ctx),
+				)
 				if err != nil {
 					return nil, err
 				}
@@ -492,7 +520,11 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 				for i, entry := range leaderboard {
 					user, ok := userCache[discord.Snowflake(entry.UserID)]
 					if !ok {
-						user, err := welcomer.FetchUserWithDiscordFallback(ctx, session, discord.Snowflake(entry.UserID))
+						user, err := welcomer.FetchUserWithDiscordFallback(
+							ctx,
+							session,
+							discord.Snowflake(entry.UserID),
+						)
 						if err != nil {
 							welcomer.Logger.Error().Err(err).
 								Int64("user_id", entry.UserID).
@@ -513,8 +545,16 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					displayName += "<@" + welcomer.Itoa(int64(entry.UserID)) + ">"
 
 					components = append(components, discord.InteractionComponent{
-						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: welcomer.Itoa(int64(i+1)) + ". " + displayName + " - **" + welcomer.Itoa(int64(entry.Count)) + "** egg" + welcomer.If(entry.Count != 1, "s", ""),
+						Type: discord.InteractionComponentTypeTextDisplay,
+						Content: welcomer.Itoa(
+							int64(i+1),
+						) + ". " + displayName + " - **" + welcomer.Itoa(
+							int64(entry.Count),
+						) + "** egg" + welcomer.If(
+							entry.Count != 1,
+							"s",
+							"",
+						),
 					})
 				}
 
@@ -524,8 +564,10 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 					})
 
 					components = append(components, discord.InteractionComponent{
-						Type:    discord.InteractionComponentTypeTextDisplay,
-						Content: "Total eggs caught on this guild: **" + welcomer.Itoa(int64(leaderboard[0].Total)) + "**",
+						Type: discord.InteractionComponentTypeTextDisplay,
+						Content: "Total eggs caught on this guild: **" + welcomer.Itoa(
+							int64(leaderboard[0].Total),
+						) + "**",
 					})
 				}
 
@@ -538,7 +580,9 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 								Components: components,
 							},
 						},
-						Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
+						Flags: uint32(
+							discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2,
+						),
 					},
 				}, nil
 			}
@@ -552,7 +596,10 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 		Type: subway.InteractionCommandableTypeSubcommand,
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			collection, err := welcomer.Queries.GetEasterEggsByUserID(ctx, int64(interaction.GetUser().ID))
+			collection, err := welcomer.Queries.GetEasterEggsByUserID(
+				ctx,
+				int64(interaction.GetUser().ID),
+			)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				return nil, err
 			}
@@ -561,8 +608,11 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("You don't have any eggs in your collection yet! Go catch some eggs!\n-# You can find them on Welcome messages.", welcomer.EmbedColourInfo),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"You don't have any eggs in your collection yet! Go catch some eggs!\n-# You can find them on Welcome messages.",
+							welcomer.EmbedColourInfo,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
@@ -602,8 +652,10 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 				}
 
 				components = append(components, discord.InteractionComponent{
-					Type:    discord.InteractionComponentTypeTextDisplay,
-					Content: welcomer.Itoa(int64(eggCollection.Count)) + "x <:" + egg.ID + ":" + emojiID.String() + "> **" + egg.Name + "** - **" + rarityString + "**\n",
+					Type: discord.InteractionComponentTypeTextDisplay,
+					Content: welcomer.Itoa(
+						int64(eggCollection.Count),
+					) + "x <:" + egg.ID + ":" + emojiID.String() + "> **" + egg.Name + "** - **" + rarityString + "**\n",
 					// "-# " + egg.Description,
 				})
 			}
@@ -614,11 +666,33 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 
 			components = append(components, discord.InteractionComponent{
 				Type: discord.InteractionComponentTypeTextDisplay,
-				Content: "Total eggs in collection: **" + welcomer.Itoa(int64(len(collection))) + "/" + welcomer.Itoa(int64(TotalCommonEggs+TotalRareEggs+TotalEpicEggs+TotalLegendaryEggs+TotalMythicEggs)) + "**\n" +
-					"Common: **" + welcomer.Itoa(int64(countCommon)) + "/" + welcomer.Itoa(int64(TotalCommonEggs)) + "**\n" +
-					"Rare: **" + welcomer.Itoa(int64(countRare)) + "/" + welcomer.Itoa(int64(TotalRareEggs)) + "**\n" +
-					"Epic: **" + welcomer.Itoa(int64(countEpic)) + "/" + welcomer.Itoa(int64(TotalEpicEggs)) + "**\n" +
-					"Legendary: **" + welcomer.Itoa(int64(countLegendary)) + "/" + welcomer.Itoa(int64(TotalLegendaryEggs)) + "**",
+				Content: "Total eggs in collection: **" + welcomer.Itoa(
+					int64(len(collection)),
+				) + "/" + welcomer.Itoa(
+					int64(
+						TotalCommonEggs+TotalRareEggs+TotalEpicEggs+TotalLegendaryEggs+TotalMythicEggs,
+					),
+				) + "**\n" +
+					"Common: **" + welcomer.Itoa(
+					int64(countCommon),
+				) + "/" + welcomer.Itoa(
+					int64(TotalCommonEggs),
+				) + "**\n" +
+					"Rare: **" + welcomer.Itoa(
+					int64(countRare),
+				) + "/" + welcomer.Itoa(
+					int64(TotalRareEggs),
+				) + "**\n" +
+					"Epic: **" + welcomer.Itoa(
+					int64(countEpic),
+				) + "/" + welcomer.Itoa(
+					int64(TotalEpicEggs),
+				) + "**\n" +
+					"Legendary: **" + welcomer.Itoa(
+					int64(countLegendary),
+				) + "/" + welcomer.Itoa(
+					int64(TotalLegendaryEggs),
+				) + "**",
 			})
 
 			return &discord.InteractionResponse{
@@ -636,80 +710,93 @@ func (e *EasterCog) RegisterCog(sub *subway.Subway) error {
 		},
 	})
 
-	sub.RegisterComponentListener("catch_egg:*", func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-		if !IsEasterEnabled {
+	sub.RegisterComponentListener(
+		"catch_egg:*",
+		func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
+			if !IsEasterEnabled {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(
+							"Sorry, this easter event is no longer active!",
+							welcomer.EmbedColourWarn,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			}
+
+			egg := getRandomEgg()
+
+			var emojiID discord.Snowflake
+
+			if isProduction {
+				emojiID = egg.ProductionEmojiID
+			} else {
+				emojiID = egg.TestingEmojiID
+			}
+
+			_, err := welcomer.Queries.InsertEasterEgg(ctx, database.InsertEasterEggParams{
+				GuildID:    int64(interaction.Guild.ID),
+				ChannelID:  int64(interaction.Channel.ID),
+				MessageID:  int64(interaction.Message.ID),
+				UserID:     int64(interaction.GetUser().ID),
+				ClaimedEgg: egg.ID,
+				WmUserID:   interaction.Data.CustomID[10:],
+			})
+			if err != nil && errors.Is(err, pgx.ErrNoRows) {
+				return &discord.InteractionResponse{
+					Type: discord.InteractionCallbackTypeChannelMessageSource,
+					Data: &discord.InteractionCallbackData{
+						Embeds: welcomer.NewEmbed(
+							"This egg has already been caught!",
+							welcomer.EmbedColourWarn,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
+					},
+				}, nil
+			} else if err != nil {
+				welcomer.Logger.Error().Err(err).Msg("Failed to insert easter egg")
+
+				return nil, err
+			}
+
+			rarity, an := getRarityString(egg.Rarity)
+
+			welcomer.Logger.Info().
+				Str("egg_id", egg.ID).
+				Str("egg_name", egg.Name).
+				Str("rarity", rarity).
+				Int64("user_id", int64(interaction.GetUser().ID)).
+				Str("wmuserid", interaction.Data.CustomID[10:]).
+				Msg("Egg caught")
+
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed("Sorry, this easter event is no longer active!", welcomer.EmbedColourWarn),
-					Flags:  uint32(discord.MessageFlagEphemeral),
-				},
-			}, nil
-		}
-
-		egg := getRandomEgg()
-
-		var emojiID discord.Snowflake
-
-		if isProduction {
-			emojiID = egg.ProductionEmojiID
-		} else {
-			emojiID = egg.TestingEmojiID
-		}
-
-		_, err := welcomer.Queries.InsertEasterEgg(ctx, database.InsertEasterEggParams{
-			GuildID:    int64(interaction.Guild.ID),
-			ChannelID:  int64(interaction.Channel.ID),
-			MessageID:  int64(interaction.Message.ID),
-			UserID:     int64(interaction.GetUser().ID),
-			ClaimedEgg: egg.ID,
-			WmUserID:   interaction.Data.CustomID[10:],
-		})
-		if err != nil && errors.Is(err, pgx.ErrNoRows) {
-			return &discord.InteractionResponse{
-				Type: discord.InteractionCallbackTypeChannelMessageSource,
-				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed("This egg has already been caught!", welcomer.EmbedColourWarn),
-					Flags:  uint32(discord.MessageFlagEphemeral),
-				},
-			}, nil
-		} else if err != nil {
-			welcomer.Logger.Error().Err(err).Msg("Failed to insert easter egg")
-
-			return nil, err
-		}
-
-		rarity, an := getRarityString(egg.Rarity)
-
-		welcomer.Logger.Info().
-			Str("egg_id", egg.ID).
-			Str("egg_name", egg.Name).
-			Str("rarity", rarity).
-			Int64("user_id", int64(interaction.GetUser().ID)).
-			Str("wmuserid", interaction.Data.CustomID[10:]).
-			Msg("Egg caught")
-
-		return &discord.InteractionResponse{
-			Type: discord.InteractionCallbackTypeChannelMessageSource,
-			Data: &discord.InteractionCallbackData{
-				Components: []discord.InteractionComponent{
-					{
-						Type: discord.InteractionComponentTypeContainer,
-						Components: []discord.InteractionComponent{
-							{
-								Type: discord.InteractionComponentTypeTextDisplay,
-								Content: "You caught a" + welcomer.If(an, "n", "") + " **" + rarity + "** egg!\n\n" +
-									"# <:" + egg.ID + ":" + emojiID.String() + ">\n\n" +
-									"**" + egg.Name + "**\n" +
-									"-# " + egg.Description,
+					Components: []discord.InteractionComponent{
+						{
+							Type: discord.InteractionComponentTypeContainer,
+							Components: []discord.InteractionComponent{
+								{
+									Type: discord.InteractionComponentTypeTextDisplay,
+									Content: "You caught a" + welcomer.If(
+										an,
+										"n",
+										"",
+									) + " **" + rarity + "** egg!\n\n" +
+										"# <:" + egg.ID + ":" + emojiID.String() + ">\n\n" +
+										"**" + egg.Name + "**\n" +
+										"-# " + egg.Description,
+								},
 							},
 						},
 					},
+					Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
 				},
-				Flags: uint32(discord.MessageFlagEphemeral + discord.MessageFlagIsComponentsV2),
-			},
-		}, nil
-	})
+			}, nil
+		},
+	)
 
 	e.InteractionCommands.MustAddInteractionCommand(easterGroup)
 

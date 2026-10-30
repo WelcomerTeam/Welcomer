@@ -151,7 +151,10 @@ func waitNetwork(timeout time.Duration) chromedp.Action[chromedp.Void] {
 	})
 }
 
-func (is *ImageService) ScreenshotFromHTML(ctx context.Context, htmlString string) ([]byte, time.Duration, error) {
+func (is *ImageService) ScreenshotFromHTML(
+	ctx context.Context,
+	htmlString string,
+) ([]byte, time.Duration, error) {
 	cdpurl, err := is.URLPool.Get()
 	if err != nil {
 		return nil, time.Duration(0), err

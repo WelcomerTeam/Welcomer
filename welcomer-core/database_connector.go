@@ -15,13 +15,21 @@ import (
 	"github.com/savsgio/gotils/strconv"
 )
 
-func EnqueueModerationCheckup(ctx context.Context, guildID, userID discord.Snowflake, dataType database.AuditType, value string) (*database.ModerationCheckupQueue, error) {
-	queue, err := Queries.CreateModerationCheckupQueue(ctx, database.CreateModerationCheckupQueueParams{
-		GuildID:  int64(guildID),
-		UserID:   int64(userID),
-		DataType: int32(dataType),
-		Value:    value,
-	})
+func EnqueueModerationCheckup(
+	ctx context.Context,
+	guildID, userID discord.Snowflake,
+	dataType database.AuditType,
+	value string,
+) (*database.ModerationCheckupQueue, error) {
+	queue, err := Queries.CreateModerationCheckupQueue(
+		ctx,
+		database.CreateModerationCheckupQueueParams{
+			GuildID:  int64(guildID),
+			UserID:   int64(userID),
+			DataType: int32(dataType),
+			Value:    value,
+		},
+	)
 	if err != nil {
 		return queue, nil
 	}
@@ -46,7 +54,11 @@ func EnqueueModerationCheckup(ctx context.Context, guildID, userID discord.Snowf
 // entry when changes are detected. It will attempt to fetch the existing user
 // row (if any), call AuditChange comparing old and new, then perform the DB
 // operation and return the resulting row.
-func CreateOrUpdateUserWithAudit(ctx context.Context, params database.CreateOrUpdateUserParams, actor discord.Snowflake) (*database.Users, error) {
+func CreateOrUpdateUserWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateUserParams,
+	actor discord.Snowflake,
+) (*database.Users, error) {
 	var old database.Users
 
 	// Attempt to fetch existing user by primary key.
@@ -63,12 +75,24 @@ func CreateOrUpdateUserWithAudit(ctx context.Context, params database.CreateOrUp
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.UserID), actor, old, *newRow, database.AuditTypeUsers, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.UserID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeUsers,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateWelcomerGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateWelcomerGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsWelcomer, error) {
+func CreateOrUpdateWelcomerGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateWelcomerGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsWelcomer, error) {
 	var old database.GuildSettingsWelcomer
 	if existing, err := Queries.GetWelcomerGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -79,13 +103,25 @@ func CreateOrUpdateWelcomerGuildSettingsWithAudit(ctx context.Context, params da
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomer, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsWelcomer,
+		"",
+	)
 
 	return newRow, nil
 }
 
 // Generic wrappers for guild settings create/update operations.
-func CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateAutoRolesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsAutoroles, error) {
+func CreateOrUpdateAutoRolesGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateAutoRolesGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsAutoroles, error) {
 	var old database.GuildSettingsAutoroles
 	if existing, err := Queries.GetAutoRolesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -96,12 +132,24 @@ func CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx context.Context, params d
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsAutoroles, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsAutoroles,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateBorderwallGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsBorderwall, error) {
+func CreateOrUpdateBorderwallGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateBorderwallGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsBorderwall, error) {
 	var old database.GetBorderwallGuildSettingsRow
 	if existing, err := Queries.GetBorderwallGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -113,12 +161,21 @@ func CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx context.Context, params 
 	params.MessageVerify = SetupJSONB(params.MessageVerify)
 	params.MessageVerified = SetupJSONB(params.MessageVerified)
 
-	if !bytes.EqualFold(old.MessageVerify.Bytes, params.MessageVerify.Bytes) || !bytes.EqualFold(old.MessageVerified.Bytes, params.MessageVerified.Bytes) {
-		jsonBytes, err := json.Marshal([]json.RawMessage{params.MessageVerify.Bytes, params.MessageVerified.Bytes})
+	if !bytes.EqualFold(old.MessageVerify.Bytes, params.MessageVerify.Bytes) ||
+		!bytes.EqualFold(old.MessageVerified.Bytes, params.MessageVerified.Bytes) {
+		jsonBytes, err := json.Marshal(
+			[]json.RawMessage{params.MessageVerify.Bytes, params.MessageVerified.Bytes},
+		)
 		if err != nil {
 			// failed to marshal
 		} else {
-			modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsBorderwall, strconv.B2S(jsonBytes))
+			modCheck, err := EnqueueModerationCheckup(
+				ctx,
+				discord.Snowflake(params.GuildID),
+				actor,
+				database.AuditTypeGuildSettingsBorderwall,
+				strconv.B2S(jsonBytes),
+			)
 			if err != nil {
 				// failed to enqueue
 			} else {
@@ -135,12 +192,24 @@ func CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx context.Context, params 
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsBorderwall, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsBorderwall,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateFreeRolesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsFreeroles, error) {
+func CreateOrUpdateFreeRolesGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateFreeRolesGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsFreeroles, error) {
 	var old database.GuildSettingsFreeroles
 	if existing, err := Queries.GetFreeRolesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -151,12 +220,24 @@ func CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx context.Context, params d
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsFreeroles, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsFreeroles,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateLeaverGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateLeaverGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsLeaver, error) {
+func CreateOrUpdateLeaverGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateLeaverGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsLeaver, error) {
 	var old database.GuildSettingsLeaver
 	if existing, err := Queries.GetLeaverGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -170,12 +251,24 @@ func CreateOrUpdateLeaverGuildSettingsWithAudit(ctx context.Context, params data
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsLeaver, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsLeaver,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateRulesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateRulesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsRules, error) {
+func CreateOrUpdateRulesGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateRulesGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsRules, error) {
 	var old database.GetRulesGuildSettingsRow
 	if existing, err := Queries.GetRulesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -187,7 +280,13 @@ func CreateOrUpdateRulesGuildSettingsWithAudit(ctx context.Context, params datab
 	paramsRulesBytes, _ := json.Marshal(params.Rules)
 
 	if !bytes.EqualFold(oldRulesBytes, paramsRulesBytes) {
-		modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsRules, strconv.B2S(paramsRulesBytes))
+		modCheck, err := EnqueueModerationCheckup(
+			ctx,
+			discord.Snowflake(params.GuildID),
+			actor,
+			database.AuditTypeGuildSettingsRules,
+			strconv.B2S(paramsRulesBytes),
+		)
 		if err != nil {
 			// failed to enqueue
 		} else {
@@ -203,12 +302,24 @@ func CreateOrUpdateRulesGuildSettingsWithAudit(ctx context.Context, params datab
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsRules, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsRules,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateTempChannelsGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsTempchannels, error) {
+func CreateOrUpdateTempChannelsGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateTempChannelsGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsTempchannels, error) {
 	var old database.GuildSettingsTempchannels
 	if existing, err := Queries.GetTempChannelsGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -219,12 +330,24 @@ func CreateOrUpdateTempChannelsGuildSettingsWithAudit(ctx context.Context, param
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsTempchannels, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsTempchannels,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateTimeRolesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsTimeroles, error) {
+func CreateOrUpdateTimeRolesGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateTimeRolesGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsTimeroles, error) {
 	var old database.GuildSettingsTimeroles
 	if existing, err := Queries.GetTimeRolesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -235,12 +358,24 @@ func CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx context.Context, params d
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsTimeroles, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsTimeroles,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateWelcomerTextGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsWelcomerText, error) {
+func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateWelcomerTextGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsWelcomerText, error) {
 	var old database.GetWelcomerTextGuildSettingsRow
 	if existing, err := Queries.GetWelcomerTextGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -251,7 +386,13 @@ func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx context.Context, param
 	params.MessageFormat = SetupJSONB(params.MessageFormat)
 
 	if !bytes.EqualFold(old.MessageFormat.Bytes, params.MessageFormat.Bytes) {
-		modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsWelcomerText, strconv.B2S(params.MessageFormat.Bytes))
+		modCheck, err := EnqueueModerationCheckup(
+			ctx,
+			discord.Snowflake(params.GuildID),
+			actor,
+			database.AuditTypeGuildSettingsWelcomerText,
+			strconv.B2S(params.MessageFormat.Bytes),
+		)
 		if err != nil {
 			// failed to enqueue
 		} else {
@@ -267,12 +408,24 @@ func CreateOrUpdateWelcomerTextGuildSettingsWithAudit(ctx context.Context, param
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerText, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsWelcomerText,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateWelcomerImagesGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsWelcomerImages, error) {
+func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateWelcomerImagesGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsWelcomerImages, error) {
 	var old database.GuildSettingsWelcomerImages
 	if existing, err := Queries.GetWelcomerImagesGuildSettings(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -284,12 +437,26 @@ func CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx context.Context, par
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsWelcomerImages,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context, guildID discord.Snowflake, useCustomBuilder bool, customBuilderData pgtype.JSONB, actor discord.Snowflake) (*database.GuildSettingsWelcomerImages, error) {
+func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	useCustomBuilder bool,
+	customBuilderData pgtype.JSONB,
+	actor discord.Snowflake,
+) (*database.GuildSettingsWelcomerImages, error) {
 	var old database.GuildSettingsWelcomerImages
 	if existing, err := Queries.GetWelcomerImagesGuildSettings(ctx, int64(guildID)); err == nil {
 		old = *existing
@@ -301,39 +468,49 @@ func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context
 	var err error
 	var newRow *database.GuildSettingsWelcomerImages
 
-	newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
-		GuildID:           int64(guildID),
-		UseCustomBuilder:  useCustomBuilder,
-		CustomBuilderData: customBuilderDataJSONB,
-	})
+	newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(
+		ctx,
+		database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+			GuildID:           int64(guildID),
+			UseCustomBuilder:  useCustomBuilder,
+			CustomBuilderData: customBuilderDataJSONB,
+		},
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			_, err = CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(ctx, database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
-				GuildID:                int64(guildID),
-				ToggleEnabled:          DefaultWelcomerImages.ToggleEnabled,
-				ToggleImageBorder:      DefaultWelcomerImages.ToggleImageBorder,
-				ToggleShowAvatar:       DefaultWelcomerImages.ToggleShowAvatar,
-				BackgroundName:         DefaultWelcomerImages.BackgroundName,
-				ColourText:             DefaultWelcomerImages.ColourText,
-				ColourTextBorder:       DefaultWelcomerImages.ColourTextBorder,
-				ColourImageBorder:      DefaultWelcomerImages.ColourImageBorder,
-				ColourProfileBorder:    DefaultWelcomerImages.ColourProfileBorder,
-				ImageAlignment:         DefaultWelcomerImages.ImageAlignment,
-				ImageTheme:             DefaultWelcomerImages.ImageTheme,
-				ImageMessage:           DefaultWelcomerImages.ImageMessage,
-				ImageProfileBorderType: DefaultWelcomerImages.ImageProfileBorderType,
-				UseCustomBuilder:       DefaultWelcomerImages.UseCustomBuilder,
-				CustomBuilderData:      DefaultWelcomerImages.CustomBuilderData,
-			}, actor)
+			_, err = CreateOrUpdateWelcomerImagesGuildSettingsWithAudit(
+				ctx,
+				database.CreateOrUpdateWelcomerImagesGuildSettingsParams{
+					GuildID:                int64(guildID),
+					ToggleEnabled:          DefaultWelcomerImages.ToggleEnabled,
+					ToggleImageBorder:      DefaultWelcomerImages.ToggleImageBorder,
+					ToggleShowAvatar:       DefaultWelcomerImages.ToggleShowAvatar,
+					BackgroundName:         DefaultWelcomerImages.BackgroundName,
+					ColourText:             DefaultWelcomerImages.ColourText,
+					ColourTextBorder:       DefaultWelcomerImages.ColourTextBorder,
+					ColourImageBorder:      DefaultWelcomerImages.ColourImageBorder,
+					ColourProfileBorder:    DefaultWelcomerImages.ColourProfileBorder,
+					ImageAlignment:         DefaultWelcomerImages.ImageAlignment,
+					ImageTheme:             DefaultWelcomerImages.ImageTheme,
+					ImageMessage:           DefaultWelcomerImages.ImageMessage,
+					ImageProfileBorderType: DefaultWelcomerImages.ImageProfileBorderType,
+					UseCustomBuilder:       DefaultWelcomerImages.UseCustomBuilder,
+					CustomBuilderData:      DefaultWelcomerImages.CustomBuilderData,
+				},
+				actor,
+			)
 			if err != nil {
 				return nil, err
 			}
 
-			newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx, database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
-				GuildID:           int64(guildID),
-				UseCustomBuilder:  useCustomBuilder,
-				CustomBuilderData: customBuilderDataJSONB,
-			})
+			newRow, err = Queries.UpdateWelcomerImagesGuildSettingsCustomBuilder(
+				ctx,
+				database.UpdateWelcomerImagesGuildSettingsCustomBuilderParams{
+					GuildID:           int64(guildID),
+					UseCustomBuilder:  useCustomBuilder,
+					CustomBuilderData: customBuilderDataJSONB,
+				},
+			)
 		} else {
 			return nil, err
 		}
@@ -343,12 +520,24 @@ func UpdateWelcomerImagesGuildSettingsCustomBuilderWithAudit(ctx context.Context
 		return nil, err
 	}
 
-	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerImages, "")
+	AuditChange(
+		ctx,
+		guildID,
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsWelcomerImages,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx context.Context, params database.CreateOrUpdateWelcomerDMsGuildSettingsParams, actor discord.Snowflake) (*database.GuildSettingsWelcomerDms, error) {
+func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.CreateOrUpdateWelcomerDMsGuildSettingsParams,
+	actor discord.Snowflake,
+) (*database.GuildSettingsWelcomerDms, error) {
 	var old database.GetWelcomerDMsGuildSettingsRow
 
 	if existing, err := Queries.GetWelcomerDMsGuildSettings(ctx, params.GuildID); err == nil {
@@ -360,7 +549,13 @@ func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx context.Context, params
 	params.MessageFormat = SetupJSONB(params.MessageFormat)
 
 	if !bytes.EqualFold(old.MessageFormat.Bytes, params.MessageFormat.Bytes) {
-		modCheck, err := EnqueueModerationCheckup(ctx, discord.Snowflake(params.GuildID), actor, database.AuditTypeGuildSettingsWelcomerDms, strconv.B2S(params.MessageFormat.Bytes))
+		modCheck, err := EnqueueModerationCheckup(
+			ctx,
+			discord.Snowflake(params.GuildID),
+			actor,
+			database.AuditTypeGuildSettingsWelcomerDms,
+			strconv.B2S(params.MessageFormat.Bytes),
+		)
 		if err != nil {
 			// failed to enqueue
 		} else {
@@ -376,13 +571,25 @@ func CreateOrUpdateWelcomerDMsGuildSettingsWithAudit(ctx context.Context, params
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuildSettingsWelcomerDms, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuildSettingsWelcomerDms,
+		"",
+	)
 
 	return newRow, nil
 }
 
 // Simple create wrappers for non-guild-specific objects.
-func CreateWelcomerImagesWithAudit(ctx context.Context, params database.CreateWelcomerImagesParams, actor discord.Snowflake) (*database.WelcomerImages, error) {
+func CreateWelcomerImagesWithAudit(
+	ctx context.Context,
+	params database.CreateWelcomerImagesParams,
+	actor discord.Snowflake,
+) (*database.WelcomerImages, error) {
 	var old database.WelcomerImages
 
 	newRow, err := Queries.CreateWelcomerImages(ctx, params)
@@ -395,7 +602,11 @@ func CreateWelcomerImagesWithAudit(ctx context.Context, params database.CreateWe
 	return newRow, nil
 }
 
-func CreateBorderwallRequestWithAudit(ctx context.Context, params database.CreateBorderwallRequestParams, actor discord.Snowflake) (*database.BorderwallRequests, error) {
+func CreateBorderwallRequestWithAudit(
+	ctx context.Context,
+	params database.CreateBorderwallRequestParams,
+	actor discord.Snowflake,
+) (*database.BorderwallRequests, error) {
 	var old database.BorderwallRequests
 
 	newRow, err := Queries.CreateBorderwallRequest(ctx, params)
@@ -403,12 +614,24 @@ func CreateBorderwallRequestWithAudit(ctx context.Context, params database.Creat
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeBorderwallRequests, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeBorderwallRequests,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateUserWithAudit(ctx context.Context, params database.CreateUserParams, actor discord.Snowflake) (*database.Users, error) {
+func CreateUserWithAudit(
+	ctx context.Context,
+	params database.CreateUserParams,
+	actor discord.Snowflake,
+) (*database.Users, error) {
 	var old database.Users
 
 	newRow, err := Queries.CreateUser(ctx, params)
@@ -416,12 +639,24 @@ func CreateUserWithAudit(ctx context.Context, params database.CreateUserParams, 
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.UserID), actor, old, *newRow, database.AuditTypeUsers, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.UserID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeUsers,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateCustomBotWithAudit(ctx context.Context, params database.CreateCustomBotParams, actor discord.Snowflake) (*database.CustomBots, error) {
+func CreateCustomBotWithAudit(
+	ctx context.Context,
+	params database.CreateCustomBotParams,
+	actor discord.Snowflake,
+) (*database.CustomBots, error) {
 	var old database.CustomBots
 
 	newRow, err := Queries.CreateCustomBot(ctx, params)
@@ -429,13 +664,25 @@ func CreateCustomBotWithAudit(ctx context.Context, params database.CreateCustomB
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeCustomBots, newRow.CustomBotUuid.String())
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeCustomBots,
+		newRow.CustomBotUuid.String(),
+	)
 
 	return newRow, nil
 }
 
 // CreateGuildWithAudit wraps CreateGuild and audits the creation of a guild row.
-func CreateGuildWithAudit(ctx context.Context, params database.CreateGuildParams, actor discord.Snowflake) (*database.Guilds, error) {
+func CreateGuildWithAudit(
+	ctx context.Context,
+	params database.CreateGuildParams,
+	actor discord.Snowflake,
+) (*database.Guilds, error) {
 	var old database.Guilds
 
 	newRow, err := Queries.CreateGuild(ctx, params)
@@ -443,12 +690,24 @@ func CreateGuildWithAudit(ctx context.Context, params database.CreateGuildParams
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuilds,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func UpdateCustomBotWithAudit(ctx context.Context, params database.UpdateCustomBotParams, actor, guildID discord.Snowflake) (*database.CustomBots, error) {
+func UpdateCustomBotWithAudit(
+	ctx context.Context,
+	params database.UpdateCustomBotParams,
+	actor, guildID discord.Snowflake,
+) (*database.CustomBots, error) {
 	var old database.CustomBots
 	if existing, err := Queries.GetCustomBotById(ctx, database.GetCustomBotByIdParams{
 		CustomBotUuid: params.CustomBotUuid,
@@ -473,12 +732,24 @@ func UpdateCustomBotWithAudit(ctx context.Context, params database.UpdateCustomB
 		return nil, err
 	}
 
-	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeCustomBots, params.CustomBotUuid.String())
+	AuditChange(
+		ctx,
+		guildID,
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeCustomBots,
+		params.CustomBotUuid.String(),
+	)
 
 	return newRow, nil
 }
 
-func UpdateGuildWithAudit(ctx context.Context, params database.UpdateGuildParams, actor discord.Snowflake) (*database.Guilds, error) {
+func UpdateGuildWithAudit(
+	ctx context.Context,
+	params database.UpdateGuildParams,
+	actor discord.Snowflake,
+) (*database.Guilds, error) {
 	var old database.Guilds
 	if existing, err := Queries.GetGuild(ctx, params.GuildID); err == nil {
 		old = *existing
@@ -489,12 +760,24 @@ func UpdateGuildWithAudit(ctx context.Context, params database.UpdateGuildParams
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, *newRow, database.AuditTypeGuilds, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGuilds,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func AddGuildFeatureWithAudit(ctx context.Context, params database.AddGuildFeatureParams, actor discord.Snowflake) error {
+func AddGuildFeatureWithAudit(
+	ctx context.Context,
+	params database.AddGuildFeatureParams,
+	actor discord.Snowflake,
+) error {
 	var oldFeatures []string
 	if existing, err := Queries.GetGuildFeatures(ctx, params.GuildID); err == nil {
 		oldFeatures = existing
@@ -510,12 +793,24 @@ func AddGuildFeatureWithAudit(ctx context.Context, params database.AddGuildFeatu
 		return err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		oldFeatures,
+		newFeatures,
+		database.AuditTypeGuildFeatures,
+		"",
+	)
 
 	return nil
 }
 
-func RemoveGuildFeatureWithAudit(ctx context.Context, params database.RemoveGuildFeatureParams, actor discord.Snowflake) error {
+func RemoveGuildFeatureWithAudit(
+	ctx context.Context,
+	params database.RemoveGuildFeatureParams,
+	actor discord.Snowflake,
+) error {
 	var oldFeatures []string
 	if existing, err := Queries.GetGuildFeatures(ctx, params.GuildID); err == nil {
 		oldFeatures = existing
@@ -531,12 +826,24 @@ func RemoveGuildFeatureWithAudit(ctx context.Context, params database.RemoveGuil
 		return err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, oldFeatures, newFeatures, database.AuditTypeGuildFeatures, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		oldFeatures,
+		newFeatures,
+		database.AuditTypeGuildFeatures,
+		"",
+	)
 
 	return nil
 }
 
-func UpdateBioWithAudit(ctx context.Context, params database.UpdateGuildBioParams, actor discord.Snowflake) (*database.Guilds, error) {
+func UpdateBioWithAudit(
+	ctx context.Context,
+	params database.UpdateGuildBioParams,
+	actor discord.Snowflake,
+) (*database.Guilds, error) {
 	var old string
 	if existing, err := Queries.GetGuild(ctx, params.GuildID); err == nil {
 		old = existing.Bio
@@ -547,12 +854,25 @@ func UpdateBioWithAudit(ctx context.Context, params database.UpdateGuildBioParam
 		return nil, err
 	}
 
-	AuditChange(ctx, discord.Snowflake(params.GuildID), actor, old, params.Bio, database.AuditTypeBio, "")
+	AuditChange(
+		ctx,
+		discord.Snowflake(params.GuildID),
+		actor,
+		old,
+		params.Bio,
+		database.AuditTypeBio,
+		"",
+	)
 
 	return newRow, nil
 }
 
-func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, guildID discord.Snowflake, params []database.CreateOrUpdateReactionRoleSettingParams, actor discord.Snowflake) *ErrorGroup {
+func CreateOrUpdateReactionRolesGuildSettingsWithAudit(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	params []database.CreateOrUpdateReactionRoleSettingParams,
+	actor discord.Snowflake,
+) *ErrorGroup {
 	var old []*database.GuildSettingsReactionRoles
 	if existing, err := Queries.GetReactionRoleSettingByGuildId(ctx, int64(guildID)); err == nil {
 		old = existing
@@ -569,13 +889,19 @@ func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, guil
 
 	// Delete any reaction role settings that were removed in the new params.
 	for _, oldRow := range old {
-		if !slices.ContainsFunc(params, func(param database.CreateOrUpdateReactionRoleSettingParams) bool {
-			return oldRow.ReactionRoleID == param.ReactionRoleID
-		}) {
-			_, err := Queries.DeleteReactionRoleSettings(ctx, database.DeleteReactionRoleSettingsParams{
-				ReactionRoleID: oldRow.ReactionRoleID,
-				GuildID:        int64(guildID),
-			})
+		if !slices.ContainsFunc(
+			params,
+			func(param database.CreateOrUpdateReactionRoleSettingParams) bool {
+				return oldRow.ReactionRoleID == param.ReactionRoleID
+			},
+		) {
+			_, err := Queries.DeleteReactionRoleSettings(
+				ctx,
+				database.DeleteReactionRoleSettingsParams{
+					ReactionRoleID: oldRow.ReactionRoleID,
+					GuildID:        int64(guildID),
+				},
+			)
 			if err != nil {
 				eg.Add(err)
 			}
@@ -591,7 +917,11 @@ func CreateOrUpdateReactionRolesGuildSettingsWithAudit(ctx context.Context, guil
 	return eg
 }
 
-func UpdateGiveawayGuildSettingsWithAudit(ctx context.Context, params database.UpdateGiveawayParams, actor, guildID discord.Snowflake) (*database.GuildGiveaways, error) {
+func UpdateGiveawayGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.UpdateGiveawayParams,
+	actor, guildID discord.Snowflake,
+) (*database.GuildGiveaways, error) {
 	var old database.GuildGiveaways
 	if existing, err := Queries.GetGiveaway(ctx, database.GetGiveawayParams{
 		GuildID:      int64(guildID),
@@ -605,12 +935,24 @@ func UpdateGiveawayGuildSettingsWithAudit(ctx context.Context, params database.U
 		return nil, err
 	}
 
-	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypeGiveaways, params.GiveawayUuid.String())
+	AuditChange(
+		ctx,
+		guildID,
+		actor,
+		old,
+		*newRow,
+		database.AuditTypeGiveaways,
+		params.GiveawayUuid.String(),
+	)
 
 	return newRow, nil
 }
 
-func UpdatePollGuildSettingsWithAudit(ctx context.Context, params database.UpdatePollParams, actor, guildID discord.Snowflake) (*database.GuildPolls, error) {
+func UpdatePollGuildSettingsWithAudit(
+	ctx context.Context,
+	params database.UpdatePollParams,
+	actor, guildID discord.Snowflake,
+) (*database.GuildPolls, error) {
 	var old database.GuildPolls
 	if existing, err := Queries.GetPoll(ctx, database.GetPollParams{
 		GuildID:  int64(guildID),
@@ -624,7 +966,15 @@ func UpdatePollGuildSettingsWithAudit(ctx context.Context, params database.Updat
 		return nil, err
 	}
 
-	AuditChange(ctx, guildID, actor, old, *newRow, database.AuditTypePolls, params.PollUuid.String())
+	AuditChange(
+		ctx,
+		guildID,
+		actor,
+		old,
+		*newRow,
+		database.AuditTypePolls,
+		params.PollUuid.String(),
+	)
 
 	return newRow, nil
 }

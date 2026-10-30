@@ -26,14 +26,30 @@ func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup.",
+	)
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
-	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
+	sandwichManagerName := flag.String(
+		"sandwichManagerName",
+		os.Getenv("SANDWICH_MANAGER_NAME"),
+		"Sandwich manager identifier name",
+	)
 
 	flag.Parse()
 
@@ -66,9 +82,12 @@ func main() {
 
 	welcomer.SetupDefaultManagerName(*sandwichManagerName)
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
@@ -95,11 +114,17 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 	}
 
 	for _, giveaway := range expiredGiveaways {
-		locationsPb, err := welcomer.SandwichClient.WhereIsGuild(ctx, &sandwich_protobuf.WhereIsGuildRequest{
-			GuildId: giveaway.GuildID,
-		})
+		locationsPb, err := welcomer.SandwichClient.WhereIsGuild(
+			ctx,
+			&sandwich_protobuf.WhereIsGuildRequest{
+				GuildId: giveaway.GuildID,
+			},
+		)
 		if err != nil {
-			welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Msg("Failed to do guild lookup for giveaway")
+			welcomer.Logger.Warn().
+				Err(err).
+				Int64("guild_id", giveaway.GuildID).
+				Msg("Failed to do guild lookup for giveaway")
 
 			continue
 		}
@@ -119,13 +144,20 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 		for _, location := range locations {
 			time.Sleep(time.Second)
 
-			_, err = welcomer.SandwichClient.RelayMessage(ctx, &sandwich_protobuf.RelayMessageRequest{
-				Identifier: location.GetIdentifier(),
-				Type:       welcomer.CustomEventInvokeEndGiveaway,
-				Data:       data,
-			})
+			_, err = welcomer.SandwichClient.RelayMessage(
+				ctx,
+				&sandwich_protobuf.RelayMessageRequest{
+					Identifier: location.GetIdentifier(),
+					Type:       welcomer.CustomEventInvokeEndGiveaway,
+					Data:       data,
+				},
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", giveaway.GuildID).Str("identifier", location.GetIdentifier()).Msg("Failed to relay end giveaway message")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", giveaway.GuildID).
+					Str("identifier", location.GetIdentifier()).
+					Msg("Failed to relay end giveaway message")
 
 				continue
 			}

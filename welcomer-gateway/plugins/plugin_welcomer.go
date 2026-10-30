@@ -75,132 +75,172 @@ const WelcomeDeduplicationTimeout = 5 * time.Minute
 
 func (p *WelcomerCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register CustomEventInvokeWelcomer event.
-	p.EventHandler.RegisterEventHandler(core.CustomEventInvokeWelcomer, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokeWelcomerPayload core.CustomEventInvokeWelcomerStructure
-		if err := eventCtx.DecodeContent(payload, &invokeWelcomerPayload); err != nil {
-			return fmt.Errorf("failed to unmarshal payload: %w", err)
-		}
-
-		if invokeWelcomerPayload.Member.GuildID != nil {
-			eventCtx.Guild = sandwich.NewGuild(*invokeWelcomerPayload.Member.GuildID)
-		}
-
-		eventCtx.EventHandler.EventsMu.RLock()
-		defer eventCtx.EventHandler.EventsMu.RUnlock()
-
-		for _, event := range eventCtx.EventHandler.Events {
-			if f, ok := event.(welcomer.OnInvokeWelcomerFuncType); ok {
-				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokeWelcomerPayload))
+	p.EventHandler.RegisterEventHandler(
+		core.CustomEventInvokeWelcomer,
+		func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
+			var invokeWelcomerPayload core.CustomEventInvokeWelcomerStructure
+			if err := eventCtx.DecodeContent(payload, &invokeWelcomerPayload); err != nil {
+				return fmt.Errorf("failed to unmarshal payload: %w", err)
 			}
-		}
 
-		return nil
-	})
+			if invokeWelcomerPayload.Member.GuildID != nil {
+				eventCtx.Guild = sandwich.NewGuild(*invokeWelcomerPayload.Member.GuildID)
+			}
+
+			eventCtx.EventHandler.EventsMu.RLock()
+			defer eventCtx.EventHandler.EventsMu.RUnlock()
+
+			for _, event := range eventCtx.EventHandler.Events {
+				if f, ok := event.(welcomer.OnInvokeWelcomerFuncType); ok {
+					return eventCtx.Handlers.WrapFuncType(
+						eventCtx,
+						f(eventCtx, invokeWelcomerPayload),
+					)
+				}
+			}
+
+			return nil
+		},
+	)
 
 	// Trigger CustomEventInvokeWelcomer when ON_GUILD_MEMBER_ADD event is received.
-	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "WelcomerCog.OnGuildMemberAdd")
+	p.EventHandler.RegisterOnGuildMemberAddEvent(
+		func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"WelcomerCog.OnGuildMemberAdd",
+			)
 
-		welcomer.Logger.Trace().
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(member.User.ID)).
-			Bool("is_pending", member.Pending).
-			Msg("Guild member add event")
-
-			// Query state cache for guild.
-		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
+			welcomer.Logger.Trace().
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Msg("Failed to fetch guild from state cache")
+				Int64("user_id", int64(member.User.ID)).
+				Bool("is_pending", member.Pending).
+				Msg("Guild member add event")
 
-			return err
-		}
+				// Query state cache for guild.
+			guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Msg("Failed to fetch guild from state cache")
 
-		var usedInvite *discord.Invite
-		var hasInviteVariable bool
+				return err
+			}
 
-		guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(eventCtx)
-		if err == nil {
-			hasInviteVariable = HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs)
-		}
+			var usedInvite *discord.Invite
+			var hasInviteVariable bool
 
-		usedInvite, err = p.trackInvites(eventCtx, eventCtx.Guild.ID)
-		if err != nil {
-			welcomer.Logger.Warn().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Msg("Failed to track invites")
-		}
+			guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(
+				eventCtx,
+			)
+			if err == nil {
+				hasInviteVariable = HasInviteVariable(
+					guildSettingsWelcomerText,
+					guildSettingsWelcomerImages,
+					guildSettingsWelcomerDMs,
+				)
+			}
 
-		welcomer.PusherGuildScience.Push(
-			eventCtx.Context,
-			eventCtx.Guild.ID,
-			member.User.ID,
-			database.ScienceGuildEventTypeUserJoin,
-			core.GuildScienceUserJoined{
-				HasInviteTracking: hasInviteVariable,
-				IsInviteTracked:   usedInvite != nil,
-				InviteCode: welcomer.IfFunc(
-					usedInvite != nil,
-					func() string { return usedInvite.Code },
-					func() string { return "" },
-				),
-				MemberCount: guild.MemberCount,
-				IsPending:   member.Pending,
-			},
-		)
+			usedInvite, err = p.trackInvites(eventCtx, eventCtx.Guild.ID)
+			if err != nil {
+				welcomer.Logger.Warn().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Msg("Failed to track invites")
+			}
 
-		if !member.Pending {
-			go p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
-				Interaction: nil,
-				Member:      member,
-			})
-		}
+			welcomer.PusherGuildScience.Push(
+				eventCtx.Context,
+				eventCtx.Guild.ID,
+				member.User.ID,
+				database.ScienceGuildEventTypeUserJoin,
+				core.GuildScienceUserJoined{
+					HasInviteTracking: hasInviteVariable,
+					IsInviteTracked:   usedInvite != nil,
+					InviteCode: welcomer.IfFunc(
+						usedInvite != nil,
+						func() string { return usedInvite.Code },
+						func() string { return "" },
+					),
+					MemberCount: guild.MemberCount,
+					IsPending:   member.Pending,
+				},
+			)
 
-		return nil
-	})
+			if !member.Pending {
+				go p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
+					Interaction: nil,
+					Member:      member,
+				})
+			}
+
+			return nil
+		},
+	)
 
 	// Trigger CustomEventInvokeWelcomer if user has moved from pending to non-pending.
-	p.EventHandler.RegisterOnGuildMemberUpdateEvent(func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "WelcomerCog.OnGuildMemberUpdate")
+	p.EventHandler.RegisterOnGuildMemberUpdateEvent(
+		func(eventCtx *sandwich.EventContext, before, after discord.GuildMember) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"WelcomerCog.OnGuildMemberUpdate",
+			)
 
-		welcomer.Logger.Trace().
-			Int64("guild_id", int64(eventCtx.Guild.ID)).
-			Int64("user_id", int64(after.User.ID)).
-			Bool("before_pending", before.Pending).
-			Bool("after_pending", after.Pending).
-			Msg("Guild member update event")
+			welcomer.Logger.Trace().
+				Int64("guild_id", int64(eventCtx.Guild.ID)).
+				Int64("user_id", int64(after.User.ID)).
+				Bool("before_pending", before.Pending).
+				Bool("after_pending", after.Pending).
+				Msg("Guild member update event")
 
-		if before.Pending && !after.Pending {
-			go p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
-				Interaction: nil,
-				Member:      after,
-			})
-		}
+			if before.Pending && !after.Pending {
+				go p.OnInvokeWelcomerEvent(eventCtx, core.CustomEventInvokeWelcomerStructure{
+					Interaction: nil,
+					Member:      after,
+				})
+			}
 
-		return nil
-	})
+			return nil
+		},
+	)
 
 	// Handle removal of messages when users leave.
-	p.EventHandler.RegisterOnGuildMemberRemoveEvent(func(eventCtx *sandwich.EventContext, member discord.User) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "WelcomerCog.OnGuildMemberRemove")
+	p.EventHandler.RegisterOnGuildMemberRemoveEvent(
+		func(eventCtx *sandwich.EventContext, member discord.User) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"WelcomerCog.OnGuildMemberRemove",
+			)
 
-		return p.HandleGuildMemberRemoved(eventCtx, member)
-	})
+			return p.HandleGuildMemberRemoved(eventCtx, member)
+		},
+	)
 
 	// Call OnInvokeWelcomerEvent when CustomEventInvokeWelcomer is triggered.
-	p.EventHandler.RegisterEvent(core.CustomEventInvokeWelcomer, nil, (welcomer.OnInvokeWelcomerFuncType)(p.OnInvokeWelcomerEvent))
+	p.EventHandler.RegisterEvent(
+		core.CustomEventInvokeWelcomer,
+		nil,
+		(welcomer.OnInvokeWelcomerFuncType)(p.OnInvokeWelcomerEvent),
+	)
 
 	return nil
 }
 
-func (p *WelcomerCog) FetchWelcomerImage(options welcomer.GenerateImageOptionsRaw) (io.ReadCloser, string, error) {
+func (p *WelcomerCog) FetchWelcomerImage(
+	options welcomer.GenerateImageOptionsRaw,
+) (io.ReadCloser, string, error) {
 	optionsJSON, _ := json.Marshal(options)
 
-	resp, err := p.Client.Post(os.Getenv("IMAGE_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(optionsJSON))
+	resp, err := p.Client.Post(
+		os.Getenv("IMAGE_ADDRESS")+"/generate",
+		"application/json",
+		bytes.NewBuffer(optionsJSON),
+	)
 	if err != nil || resp == nil {
 		return nil, "", fmt.Errorf("fetch welcomer.image request failed: %w", err)
 	}
@@ -212,10 +252,16 @@ func (p *WelcomerCog) FetchWelcomerImage(options welcomer.GenerateImageOptionsRa
 	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
-func (p *WelcomerCog) FetchWelcomerImagesNew(request welcomer.CustomWelcomerImageGenerateRequest) (io.ReadCloser, string, error) {
+func (p *WelcomerCog) FetchWelcomerImagesNew(
+	request welcomer.CustomWelcomerImageGenerateRequest,
+) (io.ReadCloser, string, error) {
 	requestJSON, _ := json.Marshal(request)
 
-	resp, err := p.Client.Post(os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate", "application/json", bytes.NewBuffer(requestJSON))
+	resp, err := p.Client.Post(
+		os.Getenv("IMAGE_NEXT_ADDRESS")+"/generate",
+		"application/json",
+		bytes.NewBuffer(requestJSON),
+	)
 	if err != nil || resp == nil {
 		return nil, "", fmt.Errorf("fetch welcomer.images-next request failed: %w", err)
 	}
@@ -227,7 +273,10 @@ func (p *WelcomerCog) FetchWelcomerImagesNew(request welcomer.CustomWelcomerImag
 	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
-func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID discord.Snowflake) (*discord.Invite, error) {
+func (p *WelcomerCog) trackInvites(
+	eventCtx *sandwich.EventContext,
+	guildID discord.Snowflake,
+) (*discord.Invite, error) {
 	var potentialInvite *discord.Invite
 
 	invites, err := discord.GetGuildInvites(eventCtx.Context, eventCtx.Session, guildID)
@@ -299,7 +348,10 @@ func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID disc
 	}
 
 	for _, updatedInvite := range updatedInvites {
-		_, err := welcomer.Queries.CreateOrUpdateGuildInvites(eventCtx.Context, database.CreateOrUpdateGuildInvitesParams(updatedInvite))
+		_, err := welcomer.Queries.CreateOrUpdateGuildInvites(
+			eventCtx.Context,
+			database.CreateOrUpdateGuildInvitesParams(updatedInvite),
+		)
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).
 				Int64("guild_id", int64(guildID)).
@@ -311,12 +363,17 @@ func (p *WelcomerCog) trackInvites(eventCtx *sandwich.EventContext, guildID disc
 	return potentialInvite, nil
 }
 
-func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GetWelcomerTextGuildSettingsRow, *database.GuildSettingsWelcomerImages, *database.GetWelcomerDMsGuildSettingsRow, error) {
+func GetWelcomerSettings(
+	eventCtx *sandwich.EventContext,
+) (*database.GetWelcomerTextGuildSettingsRow, *database.GuildSettingsWelcomerImages, *database.GetWelcomerDMsGuildSettingsRow, error) {
 	var err error
 
 	var guildSettingsWelcomerText *database.GetWelcomerTextGuildSettingsRow
 
-	guildSettingsWelcomerText, err = welcomer.Queries.GetWelcomerTextGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsWelcomerText, err = welcomer.Queries.GetWelcomerTextGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsWelcomerText = &database.GetWelcomerTextGuildSettingsRow{
@@ -336,7 +393,10 @@ func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GetWelcomer
 
 	var guildSettingsWelcomerImages *database.GuildSettingsWelcomerImages
 
-	guildSettingsWelcomerImages, err = welcomer.Queries.GetWelcomerImagesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsWelcomerImages, err = welcomer.Queries.GetWelcomerImagesGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsWelcomerImages = &database.GuildSettingsWelcomerImages{
@@ -365,7 +425,10 @@ func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GetWelcomer
 
 	var guildSettingsWelcomerDMs *database.GetWelcomerDMsGuildSettingsRow
 
-	guildSettingsWelcomerDMs, err = welcomer.Queries.GetWelcomerDMsGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsWelcomerDMs, err = welcomer.Queries.GetWelcomerDMsGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsWelcomerDMs = &database.GetWelcomerDMsGuildSettingsRow{
@@ -387,22 +450,36 @@ func GetWelcomerSettings(eventCtx *sandwich.EventContext) (*database.GetWelcomer
 	return guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, nil
 }
 
-func ShouldTrackInvites(eventCtx *sandwich.EventContext, event core.CustomEventInvokeWelcomerStructure) (bool, error) {
+func ShouldTrackInvites(
+	eventCtx *sandwich.EventContext,
+	event core.CustomEventInvokeWelcomerStructure,
+) (bool, error) {
 	// Fetch guild settings.
-	guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(eventCtx)
+	guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(
+		eventCtx,
+	)
 	if err != nil {
 		return false, err
 	}
 
 	// Quit if nothing is enabled.
-	if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
+	if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled &&
+		!guildSettingsWelcomerDMs.ToggleEnabled {
 		return false, nil
 	}
 
-	return HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs), nil
+	return HasInviteVariable(
+		guildSettingsWelcomerText,
+		guildSettingsWelcomerImages,
+		guildSettingsWelcomerDMs,
+	), nil
 }
 
-func HasInviteVariable(guildSettingsWelcomerText *database.GetWelcomerTextGuildSettingsRow, guildSettingsWelcomerImages *database.GuildSettingsWelcomerImages, guildSettingsWelcomerDMs *database.GetWelcomerDMsGuildSettingsRow) bool {
+func HasInviteVariable(
+	guildSettingsWelcomerText *database.GetWelcomerTextGuildSettingsRow,
+	guildSettingsWelcomerImages *database.GuildSettingsWelcomerImages,
+	guildSettingsWelcomerDMs *database.GetWelcomerDMsGuildSettingsRow,
+) bool {
 	// Check if the welcomer text, dms or images possibly has an invite variable. This also checks if the module is enabled or not.
 	hasInviteVariable := ((guildSettingsWelcomerText.ToggleEnabled || (guildSettingsWelcomerDMs.ToggleEnabled && guildSettingsWelcomerDMs.ToggleUseTextFormat)) && strings.Contains(string(guildSettingsWelcomerText.MessageFormat.Bytes), "{{Invite")) ||
 		((guildSettingsWelcomerDMs.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleUseTextFormat) && strings.Contains(string(guildSettingsWelcomerDMs.MessageFormat.Bytes), "{{Invite")) ||
@@ -413,7 +490,10 @@ func HasInviteVariable(guildSettingsWelcomerText *database.GetWelcomerTextGuildS
 
 // OnInvokeWelcomerEvent is called when CustomEventInvokeWelcomer is triggered.
 // This can be from when a user joins or a user uses /welcomer test.
-func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, event core.CustomEventInvokeWelcomerStructure) (err error) {
+func (p *WelcomerCog) OnInvokeWelcomerEvent(
+	eventCtx *sandwich.EventContext,
+	event core.CustomEventInvokeWelcomerStructure,
+) (err error) {
 	if event.Member.GuildID == nil {
 		return nil
 	}
@@ -421,8 +501,13 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	if !event.IgnoreDedupe {
 		if ok := welcomer.DedupeProvider.Deduplicate(
 			eventCtx.Context,
-			buildDedupeKey2(core.CustomEventInvokeWelcomer, *event.Member.GuildID, event.Member.User.ID),
-			WelcomeDeduplicationTimeout); !ok {
+			buildDedupeKey2(
+				core.CustomEventInvokeWelcomer,
+				*event.Member.GuildID,
+				event.Member.User.ID,
+			),
+			WelcomeDeduplicationTimeout,
+		); !ok {
 			return nil
 		}
 	}
@@ -455,15 +540,24 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				switch {
 				case serr != nil && strings.Contains(serr.Error(), "403 Forbidden"):
 					message = discord.WebhookMessageParams{
-						Embeds: welcomer.NewEmbed("Welcomer might be missing permissions to send messages in the configured channel.", welcomer.EmbedColourError),
+						Embeds: welcomer.NewEmbed(
+							"Welcomer might be missing permissions to send messages in the configured channel.",
+							welcomer.EmbedColourError,
+						),
 					}
 				case dmerr != nil && strings.Contains(dmerr.Error(), "403 Forbidden"):
 					message = discord.WebhookMessageParams{
-						Embeds: welcomer.NewEmbed("Welcomer might be missing permissions to send direct messages to the user.", welcomer.EmbedColourError),
+						Embeds: welcomer.NewEmbed(
+							"Welcomer might be missing permissions to send direct messages to the user.",
+							welcomer.EmbedColourError,
+						),
 					}
 				default:
 					message = discord.WebhookMessageParams{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Failed to execute: `%s`", err.Error()), welcomer.EmbedColourError),
+						Embeds: welcomer.NewEmbed(
+							fmt.Sprintf("Failed to execute: `%s`", err.Error()),
+							welcomer.EmbedColourError,
+						),
 					}
 				}
 			}
@@ -481,13 +575,16 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Fetch guild settings.
 
-	guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(eventCtx)
+	guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs, err := GetWelcomerSettings(
+		eventCtx,
+	)
 	if err != nil {
 		return err
 	}
 
 	// Quit if nothing is enabled.
-	if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled && !guildSettingsWelcomerDMs.ToggleEnabled {
+	if !guildSettingsWelcomerText.ToggleEnabled && !guildSettingsWelcomerImages.ToggleEnabled &&
+		!guildSettingsWelcomerDMs.ToggleEnabled {
 		return nil
 	}
 
@@ -499,9 +596,12 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		// Query state cache for user.
 		var usersPb *sandwich_protobuf.FetchUserResponse
 
-		usersPb, err = welcomer.SandwichClient.FetchUser(eventCtx, &sandwich_protobuf.FetchUserRequest{
-			UserIds: []int64{int64(event.Member.User.ID)},
-		})
+		usersPb, err = welcomer.SandwichClient.FetchUser(
+			eventCtx,
+			&sandwich_protobuf.FetchUserRequest{
+				UserIds: []int64{int64(event.Member.User.ID)},
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -520,9 +620,12 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	}
 
 	// Query state cache for guild.
-	guilds, err := welcomer.SandwichClient.FetchGuild(eventCtx, &sandwich_protobuf.FetchGuildRequest{
-		GuildIds: []int64{int64(eventCtx.Guild.ID)},
-	})
+	guilds, err := welcomer.SandwichClient.FetchGuild(
+		eventCtx,
+		&sandwich_protobuf.FetchGuildRequest{
+			GuildIds: []int64{int64(eventCtx.Guild.ID)},
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -534,11 +637,14 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		guild = sandwich_protobuf.PBToGuild(guildPb)
 	}
 
-	guildMembersJoinedCount, err := welcomer.Queries.IncrementGuildMemberCount(eventCtx, database.IncrementGuildMemberCountParams{
-		GuildID:             int64(eventCtx.Guild.ID),
-		GuildMembersDefault: guildPb.GetMemberCount() - 1,
-		Increment:           1,
-	})
+	guildMembersJoinedCount, err := welcomer.Queries.IncrementGuildMemberCount(
+		eventCtx,
+		database.IncrementGuildMemberCountParams{
+			GuildID:             int64(eventCtx.Guild.ID),
+			GuildMembersDefault: guildPb.GetMemberCount() - 1,
+			Increment:           1,
+		},
+	)
 	if err != nil {
 		welcomer.Logger.Warn().Err(err).
 			Msg("Failed to increment guild member count")
@@ -553,7 +659,8 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	// Look through the buffer for the event before checking the database.
 	welcomer.PusherGuildScience.RLock()
 	for _, scienceEvent := range welcomer.PusherGuildScience.Buffer {
-		if discord.Snowflake(scienceEvent.GuildID) == eventCtx.Guild.ID && discord.Snowflake(scienceEvent.UserID.Int64) == event.Member.User.ID {
+		if discord.Snowflake(scienceEvent.GuildID) == eventCtx.Guild.ID &&
+			discord.Snowflake(scienceEvent.UserID.Int64) == event.Member.User.ID {
 			if scienceEvent.EventType == int32(database.ScienceGuildEventTypeUserJoin) {
 				joinEvent = &welcomer.GuildScienceUserJoined{}
 
@@ -576,16 +683,23 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		guild.MemberCount = joinEvent.MemberCount
 	}
 
-	hasInviteVariable := HasInviteVariable(guildSettingsWelcomerText, guildSettingsWelcomerImages, guildSettingsWelcomerDMs)
+	hasInviteVariable := HasInviteVariable(
+		guildSettingsWelcomerText,
+		guildSettingsWelcomerImages,
+		guildSettingsWelcomerDMs,
+	)
 
 	// Handle invite tracking.
 	if hasInviteVariable {
 		// If we found the event in the buffer, get the invite from the database.
 		if joinEvent != nil && joinEvent.InviteCode != "" {
-			invite, err := welcomer.Queries.GetGuildInvite(eventCtx.Context, database.GetGuildInviteParams{
-				InviteCode: joinEvent.InviteCode,
-				GuildID:    int64(eventCtx.Guild.ID),
-			})
+			invite, err := welcomer.Queries.GetGuildInvite(
+				eventCtx.Context,
+				database.GetGuildInviteParams{
+					InviteCode: joinEvent.InviteCode,
+					GuildID:    int64(eventCtx.Guild.ID),
+				},
+			)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -598,7 +712,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Str("invite_code", invite.InviteCode).
 					Msg("Received invite from buffer")
 
-				user, err := welcomer.FetchUserWithDiscordFallback(eventCtx, eventCtx.Session, discord.Snowflake(invite.CreatedBy))
+				user, err := welcomer.FetchUserWithDiscordFallback(
+					eventCtx,
+					eventCtx.Session,
+					discord.Snowflake(invite.CreatedBy),
+				)
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -623,12 +741,15 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				Int64("user_id", int64(event.Member.User.ID)).
 				Msg("Invite not found in buffer, checking database")
 
-			recentEvent, err := welcomer.Queries.GetScienceGuildJoinLeaveEventForUser(eventCtx.Context, database.GetScienceGuildJoinLeaveEventForUserParams{
-				EventType:   int32(database.ScienceGuildEventTypeUserJoin),
-				EventType_2: int32(database.ScienceGuildEventTypeUserLeave),
-				GuildID:     int64(eventCtx.Guild.ID),
-				UserID:      sql.NullInt64{Int64: int64(event.Member.User.ID), Valid: true},
-			})
+			recentEvent, err := welcomer.Queries.GetScienceGuildJoinLeaveEventForUser(
+				eventCtx.Context,
+				database.GetScienceGuildJoinLeaveEventForUserParams{
+					EventType:   int32(database.ScienceGuildEventTypeUserJoin),
+					EventType_2: int32(database.ScienceGuildEventTypeUserLeave),
+					GuildID:     int64(eventCtx.Guild.ID),
+					UserID:      sql.NullInt64{Int64: int64(event.Member.User.ID), Valid: true},
+				},
+			)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -636,13 +757,20 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Msg("Failed to get guild join leave event for user")
 			}
 
-			if recentEvent != nil && database.ScienceGuildEventType(recentEvent.EventType) == database.ScienceGuildEventTypeGuildJoin && recentEvent.InviteCode.Valid {
+			if recentEvent != nil &&
+				database.ScienceGuildEventType(
+					recentEvent.EventType,
+				) == database.ScienceGuildEventTypeGuildJoin &&
+				recentEvent.InviteCode.Valid {
 				// If we found the event in the database, get the invite from the database.
 
-				invite, err := welcomer.Queries.GetGuildInvite(eventCtx.Context, database.GetGuildInviteParams{
-					InviteCode: recentEvent.InviteCode.String,
-					GuildID:    int64(eventCtx.Guild.ID),
-				})
+				invite, err := welcomer.Queries.GetGuildInvite(
+					eventCtx.Context,
+					database.GetGuildInviteParams{
+						InviteCode: recentEvent.InviteCode.String,
+						GuildID:    int64(eventCtx.Guild.ID),
+					},
+				)
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 					welcomer.Logger.Warn().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -654,7 +782,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 						Int64("user_id", int64(event.Member.User.ID)).
 						Msg("Received invite from database")
 
-					user, err := welcomer.FetchUserWithDiscordFallback(eventCtx, eventCtx.Session, discord.Snowflake(invite.CreatedBy))
+					user, err := welcomer.FetchUserWithDiscordFallback(
+						eventCtx,
+						eventCtx.Session,
+						discord.Snowflake(invite.CreatedBy),
+					)
 					if err != nil {
 						welcomer.Logger.Warn().Err(err).
 							Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -718,8 +850,22 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	functions := welcomer.GatherFunctions(database.NumberLocale(guildSettings.NumberLocale.Int32))
 
-	textVariables := welcomer.GatherVariables(eventCtx, &event.Member, guildVariables, usedInvite, nil, true)
-	imageVariables := welcomer.GatherVariables(eventCtx, &event.Member, guildVariables, usedInvite, nil, false)
+	textVariables := welcomer.GatherVariables(
+		eventCtx,
+		&event.Member,
+		guildVariables,
+		usedInvite,
+		nil,
+		true,
+	)
+	imageVariables := welcomer.GatherVariables(
+		eventCtx,
+		&event.Member,
+		guildVariables,
+		usedInvite,
+		nil,
+		false,
+	)
 
 	var serverMessage discord.MessageParams
 	var directMessage discord.MessageParams
@@ -752,14 +898,16 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					Msg("Failed to unmarshal custom welcomer image data")
 			}
 
-			imageReaderCloser, contentType, err = p.FetchWelcomerImagesNew(welcomer.CustomWelcomerImageGenerateRequest{
-				CustomWelcomerImage: cwi,
-				MembersJoined:       guildVariables.MembersJoined,
-				NumberLocale:        guildVariables.NumberLocale,
-				Guild:               *guildVariables.Guild,
-				User:                *event.Member.User,
-				Invite:              usedInvite,
-			})
+			imageReaderCloser, contentType, err = p.FetchWelcomerImagesNew(
+				welcomer.CustomWelcomerImageGenerateRequest{
+					CustomWelcomerImage: cwi,
+					MembersJoined:       guildVariables.MembersJoined,
+					NumberLocale:        guildVariables.NumberLocale,
+					Guild:               *guildVariables.Guild,
+					User:                *event.Member.User,
+					Invite:              usedInvite,
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -769,7 +917,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 		} else {
 			var messageFormat string
 
-			messageFormat, err = welcomer.FormatString(functions, imageVariables, guildSettingsWelcomerImages.ImageMessage)
+			messageFormat, err = welcomer.FormatString(
+				functions,
+				imageVariables,
+				guildSettingsWelcomerImages.ImageMessage,
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -808,27 +960,41 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			}
 
 			// Fetch the welcomer.image.
-			imageReaderCloser, contentType, err = p.FetchWelcomerImage(welcomer.GenerateImageOptionsRaw{
-				ShowAvatar:         guildSettingsWelcomerImages.ToggleShowAvatar,
-				GuildID:            int64(eventCtx.Guild.ID),
-				UserID:             int64(event.Member.User.ID),
-				AllowAnimated:      hasWelcomerPro,
-				AvatarURL:          welcomer.GetUserAvatar(event.Member.User),
-				Theme:              guildSettingsWelcomerImages.ImageTheme,
-				Background:         backgroundName,
-				Text:               messageFormat,
-				TextFont:           DefaultFont,
-				TextStroke:         true,
-				TextAlign:          guildSettingsWelcomerImages.ImageAlignment,
-				TextColor:          tryParseColourAsInt64(guildSettingsWelcomerImages.ColourText, white),
-				TextStrokeColor:    tryParseColourAsInt64(guildSettingsWelcomerImages.ColourTextBorder, black),
-				ImageBorderColor:   tryParseColourAsInt64(guildSettingsWelcomerImages.ColourImageBorder, white),
-				ImageBorderWidth:   borderWidth,
-				ProfileFloat:       int32(profileFloat),
-				ProfileBorderColor: tryParseColourAsInt64(guildSettingsWelcomerImages.ColourProfileBorder, white),
-				ProfileBorderWidth: DefaultProfileBorderWidth,
-				ProfileBorderCurve: guildSettingsWelcomerImages.ImageProfileBorderType,
-			})
+			imageReaderCloser, contentType, err = p.FetchWelcomerImage(
+				welcomer.GenerateImageOptionsRaw{
+					ShowAvatar:    guildSettingsWelcomerImages.ToggleShowAvatar,
+					GuildID:       int64(eventCtx.Guild.ID),
+					UserID:        int64(event.Member.User.ID),
+					AllowAnimated: hasWelcomerPro,
+					AvatarURL:     welcomer.GetUserAvatar(event.Member.User),
+					Theme:         guildSettingsWelcomerImages.ImageTheme,
+					Background:    backgroundName,
+					Text:          messageFormat,
+					TextFont:      DefaultFont,
+					TextStroke:    true,
+					TextAlign:     guildSettingsWelcomerImages.ImageAlignment,
+					TextColor: tryParseColourAsInt64(
+						guildSettingsWelcomerImages.ColourText,
+						white,
+					),
+					TextStrokeColor: tryParseColourAsInt64(
+						guildSettingsWelcomerImages.ColourTextBorder,
+						black,
+					),
+					ImageBorderColor: tryParseColourAsInt64(
+						guildSettingsWelcomerImages.ColourImageBorder,
+						white,
+					),
+					ImageBorderWidth: borderWidth,
+					ProfileFloat:     int32(profileFloat),
+					ProfileBorderColor: tryParseColourAsInt64(
+						guildSettingsWelcomerImages.ColourProfileBorder,
+						white,
+					),
+					ProfileBorderWidth: DefaultProfileBorderWidth,
+					ProfileBorderCurve: guildSettingsWelcomerImages.ImageProfileBorderType,
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -863,12 +1029,18 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 				return welcomer.ErrMissingChannel
 			}
 		} else {
-			if guildSettingsWelcomerText.ToggleEnabled && !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) && !guildSettingsWelcomerText.IsBlocked.Bool {
+			if guildSettingsWelcomerText.ToggleEnabled &&
+				!welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) &&
+				!guildSettingsWelcomerText.IsBlocked.Bool {
 				var messageFormat string
 
 				originalMessageFormat := strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes)
 
-				messageFormat, err = welcomer.FormatString(functions, textVariables, originalMessageFormat)
+				messageFormat, err = welcomer.FormatString(
+					functions,
+					textVariables,
+					originalMessageFormat,
+				)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -891,7 +1063,10 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 					return err
 				}
 
-				serverMessage.AllowedMentions = welcomer.InferAllowedMentions(originalMessageFormat, &event.Member.User.ID)
+				serverMessage.AllowedMentions = welcomer.InferAllowedMentions(
+					originalMessageFormat,
+					&event.Member.User.ID,
+				)
 			}
 
 			if file != nil {
@@ -908,12 +1083,17 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	if guildSettingsWelcomerDMs.ToggleEnabled {
 		if guildSettingsWelcomerDMs.ToggleUseTextFormat {
-			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) && !guildSettingsWelcomerText.IsBlocked.Bool {
+			if !welcomer.IsJSONBEmpty(guildSettingsWelcomerText.MessageFormat.Bytes) &&
+				!guildSettingsWelcomerText.IsBlocked.Bool {
 				var messageFormat string
 
 				originalMessageFormat := strconv.B2S(guildSettingsWelcomerText.MessageFormat.Bytes)
 
-				messageFormat, err = welcomer.FormatString(functions, textVariables, originalMessageFormat)
+				messageFormat, err = welcomer.FormatString(
+					functions,
+					textVariables,
+					originalMessageFormat,
+				)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -942,7 +1122,11 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 				originalMessageFormat := strconv.B2S(guildSettingsWelcomerDMs.MessageFormat.Bytes)
 
-				messageFormat, err = welcomer.FormatString(functions, textVariables, originalMessageFormat)
+				messageFormat, err = welcomer.FormatString(
+					functions,
+					textVariables,
+					originalMessageFormat,
+				)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -973,7 +1157,12 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 
 	// Send server message if it's not empty.
 	if !welcomer.IsMessageParamsEmpty(serverMessage) {
-		validGuild, err := core.CheckChannelGuild(eventCtx.Context, welcomer.SandwichClient, eventCtx.Guild.ID, discord.Snowflake(guildSettingsWelcomerText.Channel))
+		validGuild, err := core.CheckChannelGuild(
+			eventCtx.Context,
+			welcomer.SandwichClient,
+			eventCtx.Guild.ID,
+			discord.Snowflake(guildSettingsWelcomerText.Channel),
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -990,10 +1179,13 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 			var message *discord.Message
 
 			if IsEasterEnabled && !event.IgnoreDedupe {
-				claimed, err := welcomer.Queries.GetClaimedWM(eventCtx.Context, database.GetClaimedWMParams{
-					GuildID:  int64(eventCtx.Guild.ID),
-					WmUserID: event.Member.User.ID.String(),
-				})
+				claimed, err := welcomer.Queries.GetClaimedWM(
+					eventCtx.Context,
+					database.GetClaimedWMParams{
+						GuildID:  int64(eventCtx.Guild.ID),
+						WmUserID: event.Member.User.ID.String(),
+					},
+				)
 				if err == nil || claimed == 0 {
 					serverMessage.Components = []discord.InteractionComponent{
 						{
@@ -1088,8 +1280,14 @@ func (p *WelcomerCog) OnInvokeWelcomerEvent(eventCtx *sandwich.EventContext, eve
 	return err
 }
 
-func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, member discord.User) error {
-	guildSettings, err := welcomer.Queries.GetWelcomerGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+func (p *WelcomerCog) HandleGuildMemberRemoved(
+	eventCtx *sandwich.EventContext,
+	member discord.User,
+) error {
+	guildSettings, err := welcomer.Queries.GetWelcomerGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettings = &database.GuildSettingsWelcomer{
@@ -1123,12 +1321,15 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 	var messageEvent *database.GetScienceGuildJoinLeaveEventForUserRow
 
 	// Get most recent UserWelcomed or WelcomeMessageRemoved event for the user.
-	messageEvent, err = welcomer.Queries.GetScienceGuildJoinLeaveEventForUser(eventCtx.Context, database.GetScienceGuildJoinLeaveEventForUserParams{
-		EventType:   int32(database.ScienceGuildEventTypeUserWelcomed),
-		EventType_2: int32(database.ScienceGuildEventTypeWelcomeMessageRemoved),
-		GuildID:     int64(eventCtx.Guild.ID),
-		UserID:      sql.NullInt64{Int64: int64(member.ID), Valid: true},
-	})
+	messageEvent, err = welcomer.Queries.GetScienceGuildJoinLeaveEventForUser(
+		eventCtx.Context,
+		database.GetScienceGuildJoinLeaveEventForUserParams{
+			EventType:   int32(database.ScienceGuildEventTypeUserWelcomed),
+			EventType_2: int32(database.ScienceGuildEventTypeWelcomeMessageRemoved),
+			GuildID:     int64(eventCtx.Guild.ID),
+			UserID:      sql.NullInt64{Int64: int64(member.ID), Valid: true},
+		},
+	)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		welcomer.Logger.Warn().Err(err).
 			Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -1136,7 +1337,10 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 			Msg("Failed to get welcomed removed event for user")
 	}
 
-	if messageEvent != nil && database.ScienceGuildEventType(messageEvent.EventType) == database.ScienceGuildEventTypeUserWelcomed {
+	if messageEvent != nil &&
+		database.ScienceGuildEventType(
+			messageEvent.EventType,
+		) == database.ScienceGuildEventTypeUserWelcomed {
 		// If the most recent event is UserWelcomed, delete the message.
 
 		var userWelcomedEvent *welcomer.GuildScienceUserWelcomed
@@ -1152,9 +1356,16 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 		var hasDeleted bool
 
 		if !userWelcomedEvent.MessageID.IsNil() && !userWelcomedEvent.MessageChannelID.IsNil() {
-			message := discord.Message{ChannelID: userWelcomedEvent.MessageChannelID, ID: userWelcomedEvent.MessageID}
+			message := discord.Message{
+				ChannelID: userWelcomedEvent.MessageChannelID,
+				ID:        userWelcomedEvent.MessageID,
+			}
 
-			err = message.Delete(eventCtx.Context, eventCtx.Session, new("Auto delete welcome message on leave"))
+			err = message.Delete(
+				eventCtx.Context,
+				eventCtx.Session,
+				new("Auto delete welcome message on leave"),
+			)
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
@@ -1188,8 +1399,9 @@ func (p *WelcomerCog) HandleGuildMemberRemoved(eventCtx *sandwich.EventContext, 
 			welcomer.GuildScienceWelcomeMessageRemoved{
 				MessageID:        userWelcomedEvent.MessageID,
 				MessageChannelID: userWelcomedEvent.MessageChannelID,
-				HasMessage:       !userWelcomedEvent.MessageID.IsNil() && !userWelcomedEvent.MessageChannelID.IsNil(),
-				Successful:       hasDeleted,
+				HasMessage: !userWelcomedEvent.MessageID.IsNil() &&
+					!userWelcomedEvent.MessageChannelID.IsNil(),
+				Successful: hasDeleted,
 			},
 		)
 	}

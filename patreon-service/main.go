@@ -22,13 +22,33 @@ func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	patreonClientID := flag.String("patreonClientID", os.Getenv("PATREON_CLIENT_ID"), "Patreon client ID")
-	patreonClientSecret := flag.String("patreonClientSecret", os.Getenv("PATREON_CLIENT_SECRET"), "Patreon client secret")
+	patreonClientID := flag.String(
+		"patreonClientID",
+		os.Getenv("PATREON_CLIENT_ID"),
+		"Patreon client ID",
+	)
+	patreonClientSecret := flag.String(
+		"patreonClientSecret",
+		os.Getenv("PATREON_CLIENT_SECRET"),
+		"Patreon client secret",
+	)
 
-	patreonAccessToken := flag.String("patreonAccessToken", os.Getenv("PATREON_ACCESS_TOKEN"), "Patreon access token")
-	patreonRefreshToken := flag.String("patreonRefreshToken", os.Getenv("PATREON_REFRESH_TOKEN"), "Patreon refresh token")
+	patreonAccessToken := flag.String(
+		"patreonAccessToken",
+		os.Getenv("PATREON_ACCESS_TOKEN"),
+		"Patreon access token",
+	)
+	patreonRefreshToken := flag.String(
+		"patreonRefreshToken",
+		os.Getenv("PATREON_REFRESH_TOKEN"),
+		"Patreon refresh token",
+	)
 
-	patreonWebhookUrl := flag.String("patreonWebhookUrl", os.Getenv("PATREON_WEBHOOK_URL"), "Webhook URL for logging")
+	patreonWebhookUrl := flag.String(
+		"patreonWebhookUrl",
+		os.Getenv("PATREON_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -59,12 +79,22 @@ func main() {
 	welcomer.SetupLogger(*loggingLevel)
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
-	entrypoint(ctx, *patreonClientID, *patreonClientSecret, *patreonAccessToken, *patreonRefreshToken, *patreonWebhookUrl)
+	entrypoint(
+		ctx,
+		*patreonClientID,
+		*patreonClientSecret,
+		*patreonAccessToken,
+		*patreonRefreshToken,
+		*patreonWebhookUrl,
+	)
 
 	cancel()
 }
 
-func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patreonAccessToken, patreonRefreshToken, patreonWebhookUrl string) {
+func entrypoint(
+	ctx context.Context,
+	patreonClientID, patreonClientSecret, patreonAccessToken, patreonRefreshToken, patreonWebhookUrl string,
+) {
 	config := oauth2.Config{
 		ClientID:     patreonClientID,
 		ClientSecret: patreonClientSecret,
@@ -146,7 +176,10 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 
 				processHasWarning = true
 			} else {
-				processPatreonUsersNewlyLinked = append(processPatreonUsersNewlyLinked, discord.Snowflake(patreonUser.PatreonUserID))
+				processPatreonUsersNewlyLinked = append(
+					processPatreonUsersNewlyLinked,
+					discord.Snowflake(patreonUser.PatreonUserID),
+				)
 
 				err = core.OnPatreonLinked(ctx, welcomer.PatreonUser{
 					ID:       discord.Snowflake(patreonUser.PatreonUserID),
@@ -225,24 +258,38 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 						PatronStatus:     string(m.Attributes.PatronStatus),
 					}
 
-					processPatreonUsersTiersChanged = append(processPatreonUsersTiersChanged, discord.Snowflake(databasePatreonUser.PatreonUserID))
+					processPatreonUsersTiersChanged = append(
+						processPatreonUsersTiersChanged,
+						discord.Snowflake(databasePatreonUser.PatreonUserID),
+					)
 
 					err = core.OnPatreonTierChanged(ctx, databasePatreonUser, newPatreonUser)
 					if err != nil {
-						welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed")
+						welcomer.Logger.Warn().
+							Err(err).
+							Msg("Failed to trigger patreon tier changed")
 
 						processHasWarning = true
 
-						err = core.OnPatreonTierChanged_Fallback(ctx, databasePatreonUser, newPatreonUser, err)
+						err = core.OnPatreonTierChanged_Fallback(
+							ctx,
+							databasePatreonUser,
+							newPatreonUser,
+							err,
+						)
 						if err != nil {
-							welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed fallback")
+							welcomer.Logger.Warn().
+								Err(err).
+								Msg("Failed to trigger patreon tier changed fallback")
 						}
 					}
 				}
 			} else {
 				// Tier ID has not changed, check if pledge status has changed.
 
-				if core.PatronStatus(databasePatreonUser.PatronStatus) != m.Attributes.PatronStatus {
+				if core.PatronStatus(
+					databasePatreonUser.PatronStatus,
+				) != m.Attributes.PatronStatus {
 					welcomer.Logger.Info().
 						Int64("patreon_user_id", databasePatreonUser.PatreonUserID).
 						Str("old_patron_status", string(databasePatreonUser.PatronStatus)).
@@ -252,7 +299,10 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 					switch m.Attributes.PatronStatus {
 					case core.PatreonStatusActive:
 
-						processPatreonUsersActive = append(processPatreonUsersActive, discord.Snowflake(databasePatreonUser.PatreonUserID))
+						processPatreonUsersActive = append(
+							processPatreonUsersActive,
+							discord.Snowflake(databasePatreonUser.PatreonUserID),
+						)
 
 						err = core.OnPatreonActive(ctx, *databasePatreonUser, m)
 						if err != nil {
@@ -262,31 +312,51 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 						}
 					case core.PatreonStatusFormer:
 
-						processPatreonUsersNoLongerPledging = append(processPatreonUsersNoLongerPledging, discord.Snowflake(databasePatreonUser.PatreonUserID))
+						processPatreonUsersNoLongerPledging = append(
+							processPatreonUsersNoLongerPledging,
+							discord.Snowflake(databasePatreonUser.PatreonUserID),
+						)
 
 						err = core.OnPatreonNoLongerPledging(ctx, *databasePatreonUser, m)
 						if err != nil {
-							welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon no longer pledging")
+							welcomer.Logger.Warn().
+								Err(err).
+								Msg("Failed to trigger patreon no longer pledging")
 
 							processHasWarning = true
 						}
 					case core.PatreonStatusDeclined:
 						// Update database user.
 
-						processPatreonUsersDeclined = append(processPatreonUsersDeclined, discord.Snowflake(databasePatreonUser.PatreonUserID))
+						processPatreonUsersDeclined = append(
+							processPatreonUsersDeclined,
+							discord.Snowflake(databasePatreonUser.PatreonUserID),
+						)
 
-						_, err = welcomer.Queries.CreateOrUpdatePatreonUser(ctx, database.CreateOrUpdatePatreonUserParams{
-							PatreonUserID:    databasePatreonUser.PatreonUserID,
-							UserID:           databasePatreonUser.UserID,
-							PledgeCreatedAt:  databasePatreonUser.PledgeCreatedAt,
-							PledgeEndedAt:    databasePatreonUser.PledgeEndedAt,
-							TierID:           databasePatreonUser.TierID,
-							FullName:         welcomer.Coalesce(m.Attributes.FullName, databasePatreonUser.FullName),
-							Email:            welcomer.Coalesce(m.Attributes.Email, databasePatreonUser.Email),
-							ThumbUrl:         welcomer.Coalesce(m.Attributes.ThumbUrl, databasePatreonUser.ThumbUrl),
-							LastChargeStatus: string(m.Attributes.LastChargeStatus),
-							PatronStatus:     string(m.Attributes.PatronStatus),
-						})
+						_, err = welcomer.Queries.CreateOrUpdatePatreonUser(
+							ctx,
+							database.CreateOrUpdatePatreonUserParams{
+								PatreonUserID:   databasePatreonUser.PatreonUserID,
+								UserID:          databasePatreonUser.UserID,
+								PledgeCreatedAt: databasePatreonUser.PledgeCreatedAt,
+								PledgeEndedAt:   databasePatreonUser.PledgeEndedAt,
+								TierID:          databasePatreonUser.TierID,
+								FullName: welcomer.Coalesce(
+									m.Attributes.FullName,
+									databasePatreonUser.FullName,
+								),
+								Email: welcomer.Coalesce(
+									m.Attributes.Email,
+									databasePatreonUser.Email,
+								),
+								ThumbUrl: welcomer.Coalesce(
+									m.Attributes.ThumbUrl,
+									databasePatreonUser.ThumbUrl,
+								),
+								LastChargeStatus: string(m.Attributes.LastChargeStatus),
+								PatronStatus:     string(m.Attributes.PatronStatus),
+							},
+						)
 						if err != nil {
 							welcomer.Logger.Error().Err(err).
 								Int64("user_id", int64(databasePatreonUser.UserID)).
@@ -320,7 +390,10 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 				Int64("patreon_user_id", databasePatreonUser.PatreonUserID).
 				Msgf("Patreon user no longer exists")
 
-			processPatreonUsersMissing = append(processPatreonUsersMissing, discord.Snowflake(databasePatreonUser.PatreonUserID))
+			processPatreonUsersMissing = append(
+				processPatreonUsersMissing,
+				discord.Snowflake(databasePatreonUser.PatreonUserID),
+			)
 
 			err = core.OnPatreonNoLongerPledging(ctx, *databasePatreonUser, m)
 			if err != nil {
@@ -336,44 +409,68 @@ func entrypoint(ctx context.Context, patreonClientID, patreonClientSecret, patre
 
 	if len(processPatreonUsersNewlyLinked) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
-			Name:  "Newly Linked",
-			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersNewlyLinked), processPatreonUsersNewlyLinked),
+			Name: "Newly Linked",
+			Value: fmt.Sprintf(
+				"%d - %d",
+				len(processPatreonUsersNewlyLinked),
+				processPatreonUsersNewlyLinked,
+			),
 		})
 	}
 
 	if len(processPatreonUsersTiersChanged) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
-			Name:  "Tiers Changed",
-			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersTiersChanged), processPatreonUsersTiersChanged),
+			Name: "Tiers Changed",
+			Value: fmt.Sprintf(
+				"%d - %d",
+				len(processPatreonUsersTiersChanged),
+				processPatreonUsersTiersChanged,
+			),
 		})
 	}
 
 	if len(processPatreonUsersNoLongerPledging) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
-			Name:  "No Longer Pledging",
-			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersNoLongerPledging), processPatreonUsersNoLongerPledging),
+			Name: "No Longer Pledging",
+			Value: fmt.Sprintf(
+				"%d - %d",
+				len(processPatreonUsersNoLongerPledging),
+				processPatreonUsersNoLongerPledging,
+			),
 		})
 	}
 
 	if len(processPatreonUsersActive) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
-			Name:  "Active",
-			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersActive), processPatreonUsersActive),
+			Name: "Active",
+			Value: fmt.Sprintf(
+				"%d - %d",
+				len(processPatreonUsersActive),
+				processPatreonUsersActive,
+			),
 		})
 	}
 
 	if len(processPatreonUsersDeclined) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
-			Name:  "Declined",
-			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersDeclined), processPatreonUsersDeclined),
+			Name: "Declined",
+			Value: fmt.Sprintf(
+				"%d - %d",
+				len(processPatreonUsersDeclined),
+				processPatreonUsersDeclined,
+			),
 		})
 	}
 
 	// Only include missing when there is other fields.
 	if len(processPatreonUsersMissing) > 0 && len(embedFields) > 0 {
 		embedFields = append(embedFields, discord.EmbedField{
-			Name:  "Missing",
-			Value: fmt.Sprintf("%d - %d", len(processPatreonUsersMissing), processPatreonUsersMissing),
+			Name: "Missing",
+			Value: fmt.Sprintf(
+				"%d - %d",
+				len(processPatreonUsersMissing),
+				processPatreonUsersMissing,
+			),
 		})
 	}
 

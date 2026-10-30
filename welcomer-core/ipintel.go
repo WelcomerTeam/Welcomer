@@ -33,12 +33,16 @@ func (e IPIntelError) Error() string {
 }
 
 var (
-	ErrInvalidNoInput                = errors.New("invalid no input")
-	ErrInvalidIPAddress              = errors.New("invalid ip address")
-	ErrUnroutableAddress             = errors.New("unroutable address / private address")
-	ErrUnableToReachDatabase         = errors.New("unable to reach database")
-	ErrIPBannedOrNoPermission        = errors.New("your connecting ip has been banned from the system or you do not have permission to access a particular service")
-	ErrNoContactInfoOrInvalidContact = errors.New("you did not provide any contact information with your query or the contact information is invalid")
+	ErrInvalidNoInput         = errors.New("invalid no input")
+	ErrInvalidIPAddress       = errors.New("invalid ip address")
+	ErrUnroutableAddress      = errors.New("unroutable address / private address")
+	ErrUnableToReachDatabase  = errors.New("unable to reach database")
+	ErrIPBannedOrNoPermission = errors.New(
+		"your connecting ip has been banned from the system or you do not have permission to access a particular service",
+	)
+	ErrNoContactInfoOrInvalidContact = errors.New(
+		"you did not provide any contact information with your query or the contact information is invalid",
+	)
 )
 
 var errorCodes = map[float64]error{
@@ -67,7 +71,12 @@ const (
 )
 
 type IPChecker interface {
-	CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (response IPIntelResponse, err error)
+	CheckIP(
+		ctx context.Context,
+		ipaddress string,
+		flags IPIntelFlags,
+		oflags IPIntelOFlags,
+	) (response IPIntelResponse, err error)
 }
 
 type BasicIPChecker struct{}
@@ -77,7 +86,12 @@ func NewBasicIPChecker() *BasicIPChecker {
 	return &BasicIPChecker{}
 }
 
-func (c *BasicIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
+func (c *BasicIPChecker) CheckIP(
+	ctx context.Context,
+	ipaddress string,
+	flags IPIntelFlags,
+	oflags IPIntelOFlags,
+) (IPIntelResponse, error) {
 	return checkIPIntel(ctx, ipaddress, flags, oflags)
 }
 
@@ -98,7 +112,12 @@ func NewLRUIPChecker(maxSize int) *LRUIPChecker {
 	}
 }
 
-func (c *LRUIPChecker) CheckIP(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
+func (c *LRUIPChecker) CheckIP(
+	ctx context.Context,
+	ipaddress string,
+	flags IPIntelFlags,
+	oflags IPIntelOFlags,
+) (IPIntelResponse, error) {
 	// Check if the IP address is already in the cache
 	c.mutex.RLock()
 	cachedResponse, ok := c.cache[ipaddress]
@@ -153,7 +172,12 @@ func (c *LRUIPChecker) moveToFront(ipaddress string) {
 	c.accessOrder[0] = ipaddress
 }
 
-func checkIPIntel(ctx context.Context, ipaddress string, flags IPIntelFlags, oflags IPIntelOFlags) (IPIntelResponse, error) {
+func checkIPIntel(
+	ctx context.Context,
+	ipaddress string,
+	flags IPIntelFlags,
+	oflags IPIntelOFlags,
+) (IPIntelResponse, error) {
 	reqParams := url.Values{}
 	reqParams.Set("ip", ipaddress)
 	reqParams.Set("contact", os.Getenv("IPINTEL_CONTACT"))
@@ -166,7 +190,12 @@ func checkIPIntel(ctx context.Context, ipaddress string, flags IPIntelFlags, ofl
 
 	var response IPIntelResponse
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, IPIntelEndpoint+"?"+reqParams.Encode(), nil)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		IPIntelEndpoint+"?"+reqParams.Encode(),
+		nil,
+	)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Failed to create IPIntel request")
 
@@ -181,7 +210,10 @@ func checkIPIntel(ctx context.Context, ipaddress string, flags IPIntelFlags, ofl
 	}
 
 	if err != nil {
-		Logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send IPIntel request")
+		Logger.Error().
+			Err(err).
+			Int("status_code", resp.StatusCode).
+			Msg("Failed to send IPIntel request")
 
 		return response, err
 	}
@@ -197,7 +229,10 @@ func checkIPIntel(ctx context.Context, ipaddress string, flags IPIntelFlags, ofl
 
 	response.Result, err = strconv.ParseFloat(response.ResultString, 64)
 	if err != nil {
-		Logger.Error().Err(err).Str("response", response.ResultString).Msg("Failed to parse IPIntel response result")
+		Logger.Error().
+			Err(err).
+			Str("response", response.ResultString).
+			Msg("Failed to parse IPIntel response result")
 
 		return response, err
 	}

@@ -19,7 +19,11 @@ const (
 )
 
 // AggregateMessageCounts runs on an interval and rolls ingest_message_events into hourly aggregates.
-func AggregateMessageCounts(ctx context.Context, waitGroup *sync.WaitGroup, interval time.Duration) {
+func AggregateMessageCounts(
+	ctx context.Context,
+	waitGroup *sync.WaitGroup,
+	interval time.Duration,
+) {
 	ticker := time.NewTicker(time.Millisecond)
 	hasReset := false
 
@@ -39,9 +43,13 @@ func AggregateMessageCounts(ctx context.Context, waitGroup *sync.WaitGroup, inte
 					welcomer.Logger.Error().Err(err).Msg("aggregate message counts failed")
 				} else {
 					if time.Since(startTime) > slowJobWarning {
-						welcomer.Logger.Warn().Dur("duration", time.Since(startTime)).Msg("aggregate message counts too long to run")
+						welcomer.Logger.Warn().
+							Dur("duration", time.Since(startTime)).
+							Msg("aggregate message counts too long to run")
 					} else {
-						welcomer.Logger.Info().Dur("duration", time.Since(startTime)).Msg("aggregate message counts completed")
+						welcomer.Logger.Info().
+							Dur("duration", time.Since(startTime)).
+							Msg("aggregate message counts completed")
 					}
 				}
 			case <-ctx.Done():
@@ -67,7 +75,9 @@ func aggregateMessageCounts(ctx context.Context) (err error) {
 
 			err = tx.Rollback(ctx)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("error rolling back aggregate message counts transaction")
+				welcomer.Logger.Error().
+					Err(err).
+					Msg("error rolling back aggregate message counts transaction")
 			}
 		}
 	}()

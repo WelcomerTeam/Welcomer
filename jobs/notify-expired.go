@@ -22,14 +22,30 @@ func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup.",
+	)
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
-	sandwichManagerName := flag.String("sandwichManagerName", os.Getenv("SANDWICH_MANAGER_NAME"), "Sandwich manager identifier name")
+	sandwichManagerName := flag.String(
+		"sandwichManagerName",
+		os.Getenv("SANDWICH_MANAGER_NAME"),
+		"Sandwich manager identifier name",
+	)
 
 	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
 
@@ -64,9 +80,12 @@ func main() {
 
 	welcomer.SetupDefaultManagerName(*sandwichManagerName)
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
@@ -78,7 +97,10 @@ func main() {
 }
 
 func entrypoint(ctx context.Context, webhookUrl string, dryRun bool) {
-	memberships, err := welcomer.Queries.GetExpiringUserMemberships(ctx, int32(database.MembershipStatusExpired))
+	memberships, err := welcomer.Queries.GetExpiringUserMemberships(
+		ctx,
+		int32(database.MembershipStatusExpired),
+	)
 	if err != nil {
 		panic(fmt.Sprintf("GetExpiringUserMemberships: %v", err))
 	}
@@ -86,7 +108,15 @@ func entrypoint(ctx context.Context, webhookUrl string, dryRun bool) {
 	fmt.Printf("Expiring memberships: %d\n", len(memberships))
 
 	for _, membership := range memberships {
-		println(membership.MembershipUuid.String(), membership.UserID, membership.StartedAt.String(), membership.ExpiresAt.String(), database.MembershipType(membership.MembershipType).Label(), database.MembershipStatus(membership.Status).Label(), membership.GuildID)
+		println(
+			membership.MembershipUuid.String(),
+			membership.UserID,
+			membership.StartedAt.String(),
+			membership.ExpiresAt.String(),
+			database.MembershipType(membership.MembershipType).Label(),
+			database.MembershipStatus(membership.Status).Label(),
+			membership.GuildID,
+		)
 	}
 
 	if dryRun {

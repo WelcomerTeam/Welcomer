@@ -11,7 +11,11 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
-func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, interval time.Duration) {
+func CheckpointVoiceChannels(
+	ctx context.Context,
+	waitGroup *sync.WaitGroup,
+	interval time.Duration,
+) {
 	ticker := time.NewTicker(time.Millisecond)
 	hasReset := false
 
@@ -29,12 +33,18 @@ func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, int
 
 				err := checkpointVoiceChannels(ctx)
 				if err != nil {
-					welcomer.Logger.Error().Err(err).Msg("error during checkpoint voice channels job")
+					welcomer.Logger.Error().
+						Err(err).
+						Msg("error during checkpoint voice channels job")
 				} else {
 					if time.Since(startTime) > slowJobWarning {
-						welcomer.Logger.Warn().Dur("duration", time.Since(startTime)).Msg("checkpoint voice channels too long to run")
+						welcomer.Logger.Warn().
+							Dur("duration", time.Since(startTime)).
+							Msg("checkpoint voice channels too long to run")
 					} else {
-						welcomer.Logger.Info().Dur("duration", time.Since(startTime)).Msg("checkpoint voice channels completed")
+						welcomer.Logger.Info().
+							Dur("duration", time.Since(startTime)).
+							Msg("checkpoint voice channels completed")
 					}
 				}
 			case <-ctx.Done():
@@ -49,7 +59,10 @@ func CheckpointVoiceChannels(ctx context.Context, waitGroup *sync.WaitGroup, int
 func checkpointVoiceChannels(ctx context.Context) error {
 	welcomer.Logger.Info().Msg("starting checkpoint voice channels job")
 
-	voiceStates, err := welcomer.SandwichClient.FetchVoiceStates(ctx, &sandwich.FetchVoiceStatesRequest{})
+	voiceStates, err := welcomer.SandwichClient.FetchVoiceStates(
+		ctx,
+		&sandwich.FetchVoiceStatesRequest{},
+	)
 	if err != nil {
 		return fmt.Errorf("error fetching voice states from sandwich: %w", err)
 	}
@@ -61,11 +74,14 @@ func checkpointVoiceChannels(ctx context.Context) error {
 			continue
 		}
 
-		err := welcomer.Queries.UpdateGuildVoiceChannelOpenSessionLastSeen(ctx, database.UpdateGuildVoiceChannelOpenSessionLastSeenParams{
-			GuildID:    vs.GetGuildID(),
-			UserID:     vs.GetUserID(),
-			LastSeenTs: now,
-		})
+		err := welcomer.Queries.UpdateGuildVoiceChannelOpenSessionLastSeen(
+			ctx,
+			database.UpdateGuildVoiceChannelOpenSessionLastSeenParams{
+				GuildID:    vs.GetGuildID(),
+				UserID:     vs.GetUserID(),
+				LastSeenTs: now,
+			},
+		)
 		if err != nil {
 			welcomer.Logger.Error().
 				Err(err).

@@ -41,20 +41,32 @@ func (p *AutoRolesCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *AutoRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Trigger OnInvokeAutoRoles when ON_GUILD_MEMBER_ADD event is received.
-	p.EventHandler.RegisterOnGuildMemberAddEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "AutoRolesCog.OnInvokeAutoRoles")
+	p.EventHandler.RegisterOnGuildMemberAddEvent(
+		func(eventCtx *sandwich.EventContext, member discord.GuildMember) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"AutoRolesCog.OnInvokeAutoRoles",
+			)
 
-		return p.OnInvokeAutoRoles(eventCtx, member)
-	})
+			return p.OnInvokeAutoRoles(eventCtx, member)
+		},
+	)
 
 	return nil
 }
 
-func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member discord.GuildMember) (err error) {
+func (p *AutoRolesCog) OnInvokeAutoRoles(
+	eventCtx *sandwich.EventContext,
+	member discord.GuildMember,
+) (err error) {
 	// Fetch guild settings.
 
-	guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(eventCtx.Context, int64(eventCtx.Guild.ID))
+	guildSettingsAutoRoles, err := welcomer.Queries.GetAutoRolesGuildSettings(
+		eventCtx.Context,
+		int64(eventCtx.Guild.ID),
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			guildSettingsAutoRoles = &database.GuildSettingsAutoroles{
@@ -76,7 +88,13 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return nil
 	}
 
-	assignableRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(eventCtx.Context, welcomer.SandwichClient, int64(*member.GuildID), int64(eventCtx.Identifier.UserId), guildSettingsAutoRoles.Roles)
+	assignableRoles, err := welcomer.FilterAssignableRolesAsSnowflakes(
+		eventCtx.Context,
+		welcomer.SandwichClient,
+		int64(*member.GuildID),
+		int64(eventCtx.Identifier.UserId),
+		guildSettingsAutoRoles.Roles,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).
@@ -93,7 +111,13 @@ func (p *AutoRolesCog) OnInvokeAutoRoles(eventCtx *sandwich.EventContext, member
 		return nil
 	}
 
-	err = member.AddRoles(eventCtx.Context, eventCtx.Session, assignableRoles, new("Automatically assigned with AutoRoles"), true)
+	err = member.AddRoles(
+		eventCtx.Context,
+		eventCtx.Session,
+		assignableRoles,
+		new("Automatically assigned with AutoRoles"),
+		true,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Int64("guild_id", int64(*member.GuildID)).

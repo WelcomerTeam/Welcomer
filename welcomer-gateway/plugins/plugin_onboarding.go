@@ -47,316 +47,392 @@ func (p *OnboardingCog) GetEventHandlers() *sandwich.Handlers {
 
 func (p *OnboardingCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register
-	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildJoin")
+	p.EventHandler.RegisterOnGuildJoinEvent(
+		func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"OnboardingCog.OnGuildJoin",
+			)
 
-		welcomer.PusherGuildScience.Push(
-			eventCtx.Context,
-			eventCtx.Guild.ID,
-			0,
-			database.ScienceGuildEventTypeGuildJoin,
-			nil,
-		)
+			welcomer.PusherGuildScience.Push(
+				eventCtx.Context,
+				eventCtx.Guild.ID,
+				0,
+				database.ScienceGuildEventTypeGuildJoin,
+				nil,
+			)
 
-		if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
-			err := welcomer.SendWebhookMessage(eventCtx.Context, LargeGuildsWebhookURL, discord.WebhookMessageParams{
-				Embeds: []discord.Embed{
-					{
-						Title:     "New Large Guild",
-						Color:     welcomer.EmbedColourSuccess,
-						Timestamp: new(time.Now()),
-						Fields: []discord.EmbedField{
+			if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
+				err := welcomer.SendWebhookMessage(
+					eventCtx.Context,
+					LargeGuildsWebhookURL,
+					discord.WebhookMessageParams{
+						Embeds: []discord.Embed{
 							{
-								Name:   "Name",
-								Value:  guild.Name,
-								Inline: true,
-							},
-							{
-								Name:   "ID",
-								Value:  guild.ID.String(),
-								Inline: true,
-							},
-							{
-								Name:   "Members",
-								Value:  strconv.Itoa(int(guild.MemberCount)),
-								Inline: true,
-							},
-							{
-								Name:   "Owner",
-								Value:  fmt.Sprintf("<@%s> %s", guild.OwnerID.String(), guild.OwnerID.String()),
-								Inline: true,
-							},
-						},
-					},
-				},
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
-			}
-		} else if GuildsWebhookURL != "" {
-			err := welcomer.SendWebhookMessage(eventCtx.Context, GuildsWebhookURL, discord.WebhookMessageParams{
-				Embeds: []discord.Embed{
-					{
-						Title:     "New Guild",
-						Color:     welcomer.EmbedColourSuccess,
-						Timestamp: new(time.Now()),
-						Fields: []discord.EmbedField{
-							{
-								Name:   "Name",
-								Value:  guild.Name,
-								Inline: true,
-							},
-							{
-								Name:   "ID",
-								Value:  guild.ID.String(),
-								Inline: true,
-							},
-							{
-								Name:   "Members",
-								Value:  strconv.Itoa(int(guild.MemberCount)),
-								Inline: true,
-							},
-							{
-								Name: "Owner",
-								Value: welcomer.IfFunc(
-									guild.OwnerID != nil,
-									func() string {
-										return fmt.Sprintf("<@%s> %s", guild.OwnerID.String(), guild.OwnerID.String())
+								Title:     "New Large Guild",
+								Color:     welcomer.EmbedColourSuccess,
+								Timestamp: new(time.Now()),
+								Fields: []discord.EmbedField{
+									{
+										Name:   "Name",
+										Value:  guild.Name,
+										Inline: true,
 									},
-									func() string { return "" },
-								),
-								Inline: true,
+									{
+										Name:   "ID",
+										Value:  guild.ID.String(),
+										Inline: true,
+									},
+									{
+										Name:   "Members",
+										Value:  strconv.Itoa(int(guild.MemberCount)),
+										Inline: true,
+									},
+									{
+										Name: "Owner",
+										Value: fmt.Sprintf(
+											"<@%s> %s",
+											guild.OwnerID.String(),
+											guild.OwnerID.String(),
+										),
+										Inline: true,
+									},
+								},
 							},
 						},
 					},
-				},
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				}
+			} else if GuildsWebhookURL != "" {
+				err := welcomer.SendWebhookMessage(
+					eventCtx.Context,
+					GuildsWebhookURL,
+					discord.WebhookMessageParams{
+						Embeds: []discord.Embed{
+							{
+								Title:     "New Guild",
+								Color:     welcomer.EmbedColourSuccess,
+								Timestamp: new(time.Now()),
+								Fields: []discord.EmbedField{
+									{
+										Name:   "Name",
+										Value:  guild.Name,
+										Inline: true,
+									},
+									{
+										Name:   "ID",
+										Value:  guild.ID.String(),
+										Inline: true,
+									},
+									{
+										Name:   "Members",
+										Value:  strconv.Itoa(int(guild.MemberCount)),
+										Inline: true,
+									},
+									{
+										Name: "Owner",
+										Value: welcomer.IfFunc(
+											guild.OwnerID != nil,
+											func() string {
+												return fmt.Sprintf(
+													"<@%s> %s",
+													guild.OwnerID.String(),
+													guild.OwnerID.String(),
+												)
+											},
+											func() string { return "" },
+										),
+										Inline: true,
+									},
+								},
+							},
+						},
+					},
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				}
 			}
-		}
 
-		return nil
-	})
-
-	p.EventHandler.RegisterOnGuildLeaveEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		if guild.OwnerID == nil {
 			return nil
-		}
+		},
+	)
 
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildLeave")
+	p.EventHandler.RegisterOnGuildLeaveEvent(
+		func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+			if guild.OwnerID == nil {
+				return nil
+			}
 
-		welcomer.PusherGuildScience.Push(
-			eventCtx.Context,
-			eventCtx.Guild.ID,
-			0,
-			database.ScienceGuildEventTypeGuildLeave,
-			int(time.Since(guild.JoinedAt).Seconds()),
-		)
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"OnboardingCog.OnGuildLeave",
+			)
 
-		if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
-			err := welcomer.SendWebhookMessage(eventCtx.Context, LargeGuildsWebhookURL, discord.WebhookMessageParams{
-				Embeds: []discord.Embed{
-					{
-						Title:     "Left Large Guild",
-						Color:     welcomer.EmbedColourError,
-						Timestamp: new(time.Now()),
-						Fields: []discord.EmbedField{
+			welcomer.PusherGuildScience.Push(
+				eventCtx.Context,
+				eventCtx.Guild.ID,
+				0,
+				database.ScienceGuildEventTypeGuildLeave,
+				int(time.Since(guild.JoinedAt).Seconds()),
+			)
+
+			if guild.MemberCount > 1000 && LargeGuildsWebhookURL != "" {
+				err := welcomer.SendWebhookMessage(
+					eventCtx.Context,
+					LargeGuildsWebhookURL,
+					discord.WebhookMessageParams{
+						Embeds: []discord.Embed{
 							{
-								Name:   "Name",
-								Value:  guild.Name,
-								Inline: true,
-							},
-							{
-								Name:   "ID",
-								Value:  guild.ID.String(),
-								Inline: true,
-							},
-							{
-								Name:   "Members",
-								Value:  strconv.Itoa(int(guild.MemberCount)),
-								Inline: true,
-							},
-							{
-								Name:   "Owner",
-								Value:  fmt.Sprintf("<@%s> %s", guild.OwnerID.String(), guild.OwnerID.String()),
-								Inline: true,
-							},
-							{
-								Name:   "Retention",
-								Value:  welcomer.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
-								Inline: true,
+								Title:     "Left Large Guild",
+								Color:     welcomer.EmbedColourError,
+								Timestamp: new(time.Now()),
+								Fields: []discord.EmbedField{
+									{
+										Name:   "Name",
+										Value:  guild.Name,
+										Inline: true,
+									},
+									{
+										Name:   "ID",
+										Value:  guild.ID.String(),
+										Inline: true,
+									},
+									{
+										Name:   "Members",
+										Value:  strconv.Itoa(int(guild.MemberCount)),
+										Inline: true,
+									},
+									{
+										Name: "Owner",
+										Value: fmt.Sprintf(
+											"<@%s> %s",
+											guild.OwnerID.String(),
+											guild.OwnerID.String(),
+										),
+										Inline: true,
+									},
+									{
+										Name: "Retention",
+										Value: welcomer.HumanizeDuration(
+											int(time.Since(guild.JoinedAt).Seconds()),
+											true,
+										),
+										Inline: true,
+									},
+								},
 							},
 						},
 					},
-				},
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
-			}
-		} else if GuildsWebhookURL != "" {
-			err := welcomer.SendWebhookMessage(eventCtx.Context, GuildsWebhookURL, discord.WebhookMessageParams{
-				Embeds: []discord.Embed{
-					{
-						Title:     "Left Guild",
-						Color:     welcomer.EmbedColourError,
-						Timestamp: new(time.Now()),
-						Fields: []discord.EmbedField{
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				}
+			} else if GuildsWebhookURL != "" {
+				err := welcomer.SendWebhookMessage(
+					eventCtx.Context,
+					GuildsWebhookURL,
+					discord.WebhookMessageParams{
+						Embeds: []discord.Embed{
 							{
-								Name:   "Name",
-								Value:  guild.Name,
-								Inline: true,
-							},
-							{
-								Name:   "ID",
-								Value:  guild.ID.String(),
-								Inline: true,
-							},
-							{
-								Name:   "Members",
-								Value:  strconv.Itoa(int(guild.MemberCount)),
-								Inline: true,
-							},
-							{
-								Name:   "Owner",
-								Value:  fmt.Sprintf("<@%s> %s", guild.OwnerID.String(), guild.OwnerID.String()),
-								Inline: true,
-							},
-							{
-								Name:   "Retention",
-								Value:  welcomer.HumanizeDuration(int(time.Since(guild.JoinedAt).Seconds()), true),
-								Inline: true,
+								Title:     "Left Guild",
+								Color:     welcomer.EmbedColourError,
+								Timestamp: new(time.Now()),
+								Fields: []discord.EmbedField{
+									{
+										Name:   "Name",
+										Value:  guild.Name,
+										Inline: true,
+									},
+									{
+										Name:   "ID",
+										Value:  guild.ID.String(),
+										Inline: true,
+									},
+									{
+										Name:   "Members",
+										Value:  strconv.Itoa(int(guild.MemberCount)),
+										Inline: true,
+									},
+									{
+										Name: "Owner",
+										Value: fmt.Sprintf(
+											"<@%s> %s",
+											guild.OwnerID.String(),
+											guild.OwnerID.String(),
+										),
+										Inline: true,
+									},
+									{
+										Name: "Retention",
+										Value: welcomer.HumanizeDuration(
+											int(time.Since(guild.JoinedAt).Seconds()),
+											true,
+										),
+										Inline: true,
+									},
+								},
 							},
 						},
 					},
-				},
-			})
-			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to send webhook message")
+				}
 			}
-		}
 
-		return nil
-	})
-
-	p.EventHandler.RegisterOnAuditGuildAuditLogEntryCreateEvent(func(eventCtx *sandwich.EventContext, guildID discord.Snowflake, entry discord.AuditLogEntry) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnAuditGuildAuditLogEntryCreate")
-
-		if entry.ActionType != discord.AuditLogActionBotAdd || *entry.TargetID != discord.Snowflake(eventCtx.Identifier.UserId) {
 			return nil
-		}
+		},
+	)
 
-		guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Msg("Failed to fetch guild from state cache")
+	p.EventHandler.RegisterOnAuditGuildAuditLogEntryCreateEvent(
+		func(eventCtx *sandwich.EventContext, guildID discord.Snowflake, entry discord.AuditLogEntry) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"OnboardingCog.OnAuditGuildAuditLogEntryCreate",
+			)
 
-			return err
-		}
+			if entry.ActionType != discord.AuditLogActionBotAdd ||
+				*entry.TargetID != discord.Snowflake(eventCtx.Identifier.UserId) {
+				return nil
+			}
 
-		user, err := welcomer.FetchUserWithDiscordFallback(eventCtx.Context, eventCtx.Session, *entry.UserID)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(guildID)).
-				Int64("user_id", int64(*entry.UserID)).
-				Msg("Failed to fetch user from state cache")
-
-			return err
-		}
-
-		_, err = user.Send(eventCtx.Context, eventCtx.Session, welcomer.GetOnboardingMessage(guild.ID))
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(guildID)).
-				Int64("user_id", int64(user.ID)).
-				Msg("Failed to send DM to user")
-		}
-
-		welcomer.PusherGuildScience.Push(
-			eventCtx.Context,
-			guild.ID,
-			user.ID,
-			database.ScienceGuildEventTypeGuildUserOnboarded,
-			err == nil,
-		)
-
-		return err
-	})
-
-	p.EventHandler.RegisterOnGuildJoinEvent(func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "OnboardingCog.OnGuildJoin")
-
-		guildPointer, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Msg("Failed to fetch guild from state cache")
-
-			return err
-		}
-
-		guild = *guildPointer
-
-		var eligibleChannel *discord.Channel
-
-		if guild.SystemChannelID != nil {
-			eligibleChannel = &discord.Channel{ID: *guild.SystemChannelID}
-		} else {
-			channels, err := welcomer.FetchGuildChannels(eventCtx.Context, eventCtx.Guild.ID)
+			guild, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(eventCtx.Guild.ID)).
-					Msg("Failed to fetch channels from state cache")
+					Msg("Failed to fetch guild from state cache")
+
+				return err
+			}
+
+			user, err := welcomer.FetchUserWithDiscordFallback(
+				eventCtx.Context,
+				eventCtx.Session,
+				*entry.UserID,
+			)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Int64("user_id", int64(*entry.UserID)).
+					Msg("Failed to fetch user from state cache")
+
+				return err
+			}
+
+			_, err = user.Send(
+				eventCtx.Context,
+				eventCtx.Session,
+				welcomer.GetOnboardingMessage(guild.ID),
+			)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(guildID)).
+					Int64("user_id", int64(user.ID)).
+					Msg("Failed to send DM to user")
+			}
+
+			welcomer.PusherGuildScience.Push(
+				eventCtx.Context,
+				guild.ID,
+				user.ID,
+				database.ScienceGuildEventTypeGuildUserOnboarded,
+				err == nil,
+			)
+
+			return err
+		},
+	)
+
+	p.EventHandler.RegisterOnGuildJoinEvent(
+		func(eventCtx *sandwich.EventContext, guild discord.Guild) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"OnboardingCog.OnGuildJoin",
+			)
+
+			guildPointer, err := welcomer.FetchGuild(eventCtx.Context, eventCtx.Guild.ID)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Msg("Failed to fetch guild from state cache")
+
+				return err
+			}
+
+			guild = *guildPointer
+
+			var eligibleChannel *discord.Channel
+
+			if guild.SystemChannelID != nil {
+				eligibleChannel = &discord.Channel{ID: *guild.SystemChannelID}
+			} else {
+				channels, err := welcomer.FetchGuildChannels(eventCtx.Context, eventCtx.Guild.ID)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).
+						Int64("guild_id", int64(eventCtx.Guild.ID)).
+						Msg("Failed to fetch channels from state cache")
+
+					return nil
+				}
+
+				for _, channel := range channels {
+					if channel.Type == discord.ChannelTypeGuildText &&
+						welcomer.CompareStrings(channel.Name, "welcome", "general") {
+						eligibleChannel = channel
+
+						break
+					}
+				}
+			}
+
+			if eligibleChannel == nil {
+				welcomer.PusherGuildScience.Push(
+					eventCtx.Context,
+					guild.ID,
+					0,
+					database.ScienceGuildEventTypeGuildOnboarded,
+					false,
+				)
 
 				return nil
 			}
 
-			for _, channel := range channels {
-				if channel.Type == discord.ChannelTypeGuildText && welcomer.CompareStrings(channel.Name, "welcome", "general") {
-					eligibleChannel = channel
+			_, err = eligibleChannel.Send(
+				eventCtx.Context,
+				eventCtx.Session,
+				welcomer.GetOnboardingMessage(guild.ID),
+			)
+			if err != nil {
+				welcomer.Logger.Error().Err(err).
+					Int64("guild_id", int64(eventCtx.Guild.ID)).
+					Int64("channel_id", int64(eligibleChannel.ID)).
+					Msg("Failed to send onboarding message")
 
-					break
-				}
+				return nil
 			}
-		}
 
-		if eligibleChannel == nil {
 			welcomer.PusherGuildScience.Push(
 				eventCtx.Context,
 				guild.ID,
 				0,
 				database.ScienceGuildEventTypeGuildOnboarded,
-				false,
+				err == nil,
 			)
 
-			return nil
-		}
-
-		_, err = eligibleChannel.Send(eventCtx.Context, eventCtx.Session, welcomer.GetOnboardingMessage(guild.ID))
-		if err != nil {
-			welcomer.Logger.Error().Err(err).
-				Int64("guild_id", int64(eventCtx.Guild.ID)).
-				Int64("channel_id", int64(eligibleChannel.ID)).
-				Msg("Failed to send onboarding message")
-
-			return nil
-		}
-
-		welcomer.PusherGuildScience.Push(
-			eventCtx.Context,
-			guild.ID,
-			0,
-			database.ScienceGuildEventTypeGuildOnboarded,
-			err == nil,
-		)
-
-		return err
-	})
+			return err
+		},
+	)
 
 	return nil
 }

@@ -80,94 +80,120 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				module := subway.MustGetArgument(ctx, "module").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					module := subway.MustGetArgument(ctx, "module").MustString()
 
-				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsRules = &database.GetRulesGuildSettingsRow{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
-							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
-							Rules:            welcomer.DefaultRules.Rules,
+					guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsRules = &database.GetRulesGuildSettingsRow{
+								GuildID:          int64(*interaction.GuildID),
+								ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
+								ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
+								Rules:            welcomer.DefaultRules.Rules,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get rules guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					switch module {
+					case RuleModuleRules:
+						guildSettingsRules.ToggleEnabled = true
+					case RuleModuleDMs:
+						guildSettingsRules.ToggleDmsEnabled = true
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown module: "+module,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateRulesGuildSettingsParams{
+									GuildID:          int64(*interaction.GuildID),
+									ToggleEnabled:    guildSettingsRules.ToggleEnabled,
+									ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
+									Rules:            guildSettingsRules.Rules,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings")
+							Msg("Failed to update rules guild settings")
 
 						return nil, err
 					}
-				}
 
-				switch module {
-				case RuleModuleRules:
-					guildSettingsRules.ToggleEnabled = true
-				case RuleModuleDMs:
-					guildSettingsRules.ToggleDmsEnabled = true
-				default:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
-							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
-							Rules:            guildSettingsRules.Rules,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update rules guild settings")
-
-					return nil, err
-				}
-
-				switch module {
-				case RuleModuleRules:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled rules. Run `/rules list` to see the list of rules configured.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				case RuleModuleDMs:
-					if guildSettingsRules.ToggleEnabled {
+					switch module {
+					case RuleModuleRules:
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled rule direct messages. Users will now receive a list of rules when joining the server.", welcomer.EmbedColourSuccess),
+								Embeds: welcomer.NewEmbed(
+									"Enabled rules. Run `/rules list` to see the list of rules configured.",
+									welcomer.EmbedColourSuccess,
+								),
 							},
 						}, nil
-					} else {
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled rule direct messages. Rules are not enabled, users will not receive a list of rules when joining the server.", welcomer.EmbedColourWarn),
-							},
-						}, nil
+					case RuleModuleDMs:
+						if guildSettingsRules.ToggleEnabled {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"Enabled rule direct messages. Users will now receive a list of rules when joining the server.",
+										welcomer.EmbedColourSuccess,
+									),
+								},
+							}, nil
+						} else {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"Enabled rule direct messages. Rules are not enabled, users will not receive a list of rules when joining the server.",
+										welcomer.EmbedColourWarn,
+									),
+								},
+							}, nil
+						}
 					}
-				}
 
-				return nil, nil // Unreachable
-			})
+					return nil, nil // Unreachable
+				},
+			)
 		},
 	})
 
@@ -195,85 +221,108 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				module := subway.MustGetArgument(ctx, "module").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					module := subway.MustGetArgument(ctx, "module").MustString()
 
-				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsRules = &database.GetRulesGuildSettingsRow{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
-							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
-							Rules:            welcomer.DefaultRules.Rules,
+					guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsRules = &database.GetRulesGuildSettingsRow{
+								GuildID:          int64(*interaction.GuildID),
+								ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
+								ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
+								Rules:            welcomer.DefaultRules.Rules,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get rules guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					switch module {
+					case RuleModuleRules:
+						guildSettingsRules.ToggleEnabled = false
+					case RuleModuleDMs:
+						guildSettingsRules.ToggleDmsEnabled = false
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown module: "+module,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateRulesGuildSettingsParams{
+									GuildID:          int64(*interaction.GuildID),
+									ToggleEnabled:    guildSettingsRules.ToggleEnabled,
+									ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
+									Rules:            guildSettingsRules.Rules,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings")
+							Msg("Failed to update rules guild settings")
 
 						return nil, err
 					}
-				}
 
-				switch module {
-				case RuleModuleRules:
-					guildSettingsRules.ToggleEnabled = false
-				case RuleModuleDMs:
-					guildSettingsRules.ToggleDmsEnabled = false
-				default:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
+					switch module {
+					case RuleModuleRules:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Disabled rules.",
+									welcomer.EmbedColourSuccess,
+								),
+							},
+						}, nil
+					case RuleModuleDMs:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Disabled rule direct messages.",
+									welcomer.EmbedColourSuccess,
+								),
+							},
+						}, nil
+					}
 
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    guildSettingsRules.ToggleEnabled,
-							ToggleDmsEnabled: guildSettingsRules.ToggleDmsEnabled,
-							Rules:            guildSettingsRules.Rules,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update rules guild settings")
-
-					return nil, err
-				}
-
-				switch module {
-				case RuleModuleRules:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled rules.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				case RuleModuleDMs:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled rule direct messages.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				}
-
-				return nil, nil // Unreachable
-			})
+					return nil, nil // Unreachable
+				},
+			)
 		},
 	})
 
@@ -287,7 +336,10 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsRules, err := welcomer.Queries.GetRulesGuildSettings(
+					ctx,
+					int64(*interaction.GuildID),
+				)
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsRules = &database.GetRulesGuildSettingsRow{
@@ -309,8 +361,11 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Rules are not enabled for this server.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Rules are not enabled for this server.",
+								welcomer.EmbedColourError,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -319,8 +374,11 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no rules set for this server.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"There are no rules set for this server.",
+								welcomer.EmbedColourInfo,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -374,80 +432,109 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				rule := subway.MustGetArgument(ctx, "rule").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					rule := subway.MustGetArgument(ctx, "rule").MustString()
 
-				rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						rules = &database.GetRulesGuildSettingsRow{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
-							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
-							Rules:            welcomer.DefaultRules.Rules,
+					rules, err := welcomer.Queries.GetRulesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							rules = &database.GetRulesGuildSettingsRow{
+								GuildID:          int64(*interaction.GuildID),
+								ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
+								ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
+								Rules:            welcomer.DefaultRules.Rules,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get rules guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					if len(rule) > welcomer.MaxRuleLength {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									fmt.Sprintf(
+										"The rule is too long. Maximum length is %d characters.",
+										welcomer.MaxRuleLength,
+									),
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					if len(rules.Rules) >= welcomer.MaxRuleLength {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									fmt.Sprintf(
+										"You have reached the maximum number of rules for this server (%d).",
+										welcomer.MaxRuleLength,
+									),
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					rules.Rules = append(rules.Rules, rule)
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateRulesGuildSettingsParams{
+									GuildID:          int64(*interaction.GuildID),
+									ToggleEnabled:    rules.ToggleEnabled,
+									ToggleDmsEnabled: rules.ToggleDmsEnabled,
+									Rules:            rules.Rules,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings")
+							Msg("Failed to update rules guild settings")
 
 						return nil, err
 					}
-				}
 
-				if len(rule) > welcomer.MaxRuleLength {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed(fmt.Sprintf("The rule is too long. Maximum length is %d characters.", welcomer.MaxRuleLength), welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Your rule has been added. Run `/rules list` to see the list of rules configured.",
+								welcomer.EmbedColourSuccess,
+							),
 						},
 					}, nil
-				}
-
-				if len(rules.Rules) >= welcomer.MaxRuleLength {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed(fmt.Sprintf("You have reached the maximum number of rules for this server (%d).", welcomer.MaxRuleLength), welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				rules.Rules = append(rules.Rules, rule)
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    rules.ToggleEnabled,
-							ToggleDmsEnabled: rules.ToggleDmsEnabled,
-							Rules:            rules.Rules,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update rules guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Your rule has been added. Run `/rules list` to see the list of rules configured.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
@@ -524,81 +611,107 @@ func (r *RulesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				ruleString := subway.MustGetArgument(ctx, "rule").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					ruleString := subway.MustGetArgument(ctx, "rule").MustString()
 
-				rules, err := welcomer.Queries.GetRulesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						rules = &database.GetRulesGuildSettingsRow{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
-							ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
-							Rules:            welcomer.DefaultRules.Rules,
+					rules, err := welcomer.Queries.GetRulesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							rules = &database.GetRulesGuildSettingsRow{
+								GuildID:          int64(*interaction.GuildID),
+								ToggleEnabled:    welcomer.DefaultRules.ToggleEnabled,
+								ToggleDmsEnabled: welcomer.DefaultRules.ToggleDmsEnabled,
+								Rules:            welcomer.DefaultRules.Rules,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get rules guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					rule, err := strconv.Atoi(ruleString)
+					if err != nil {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Invalid rule number.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					if rule < 1 || rule > len(rules.Rules) {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									fmt.Sprintf(
+										"Invalid rule number. Must be between 1 and %d.",
+										len(rules.Rules),
+									),
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					rules.Rules = append(rules.Rules[:rule-1], rules.Rules[rule:]...)
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateRulesGuildSettingsParams{
+									GuildID:          int64(*interaction.GuildID),
+									ToggleEnabled:    rules.ToggleEnabled,
+									ToggleDmsEnabled: rules.ToggleDmsEnabled,
+									Rules:            rules.Rules,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get rules guild settings")
+							Msg("Failed to update rules guild settings")
 
 						return nil, err
 					}
-				}
 
-				rule, err := strconv.Atoi(ruleString)
-				if err != nil {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Invalid rule number.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Your rule has been removed. Run `/rules list` to see the list of rules configured.",
+								welcomer.EmbedColourSuccess,
+							),
 						},
 					}, nil
-				}
-
-				if rule < 1 || rule > len(rules.Rules) {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed(fmt.Sprintf("Invalid rule number. Must be between 1 and %d.", len(rules.Rules)), welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				rules.Rules = append(rules.Rules[:rule-1], rules.Rules[rule:]...)
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, database.CreateOrUpdateRulesGuildSettingsParams{
-							GuildID:          int64(*interaction.GuildID),
-							ToggleEnabled:    rules.ToggleEnabled,
-							ToggleDmsEnabled: rules.ToggleDmsEnabled,
-							Rules:            rules.Rules,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update rules guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Your rule has been removed. Run `/rules list` to see the list of rules configured.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 

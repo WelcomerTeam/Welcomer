@@ -47,90 +47,140 @@ func (c *ReactionRolesCog) GetEventHandlers() *sandwich.Handlers {
 func (r *ReactionRolesCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register reaction add/remove handler.
 
-	r.EventHandler.RegisterOnMessageReactionAddEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake, emoji discord.Emoji, guildMember discord.GuildMember) error {
-		if guildMember.User == nil || channel.GuildID == nil {
-			return nil
-		}
-
-		return r.OnReact(eventCtx, *channel.GuildID, messageID, emoji, guildMember, new(true))
-	})
-
-	r.EventHandler.RegisterOnMessageReactionRemoveEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake, emoji discord.Emoji, user *discord.User) error {
-		if user == nil || channel.GuildID == nil {
-			return nil
-		}
-
-		return r.OnReact(eventCtx, *channel.GuildID, messageID, emoji, discord.GuildMember{User: user}, new(false))
-	})
-
-	r.EventHandler.RegisterEventHandler(core.CustomEventInvokeReactionRoles, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokeReactionRolesPayload core.CustomEventInvokeReactionRolesStructure
-		if err := eventCtx.DecodeContent(payload, &invokeReactionRolesPayload); err != nil {
-			return fmt.Errorf("failed to unmarshal payload: %w", err)
-		}
-
-		if invokeReactionRolesPayload.Member.GuildID != nil {
-			eventCtx.Guild = sandwich.NewGuild(*invokeReactionRolesPayload.Member.GuildID)
-		}
-
-		eventCtx.EventHandler.EventsMu.RLock()
-		defer eventCtx.EventHandler.EventsMu.RUnlock()
-
-		for _, event := range eventCtx.EventHandler.Events {
-			if f, ok := event.(welcomer.OnInvokeReactionRolesFuncType); ok {
-				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokeReactionRolesPayload))
+	r.EventHandler.RegisterOnMessageReactionAddEvent(
+		func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake, emoji discord.Emoji, guildMember discord.GuildMember) error {
+			if guildMember.User == nil || channel.GuildID == nil {
+				return nil
 			}
-		}
 
-		return nil
-	})
+			return r.OnReact(eventCtx, *channel.GuildID, messageID, emoji, guildMember, new(true))
+		},
+	)
+
+	r.EventHandler.RegisterOnMessageReactionRemoveEvent(
+		func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake, emoji discord.Emoji, user *discord.User) error {
+			if user == nil || channel.GuildID == nil {
+				return nil
+			}
+
+			return r.OnReact(
+				eventCtx,
+				*channel.GuildID,
+				messageID,
+				emoji,
+				discord.GuildMember{User: user},
+				new(false),
+			)
+		},
+	)
+
+	r.EventHandler.RegisterEventHandler(
+		core.CustomEventInvokeReactionRoles,
+		func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
+			var invokeReactionRolesPayload core.CustomEventInvokeReactionRolesStructure
+			if err := eventCtx.DecodeContent(payload, &invokeReactionRolesPayload); err != nil {
+				return fmt.Errorf("failed to unmarshal payload: %w", err)
+			}
+
+			if invokeReactionRolesPayload.Member.GuildID != nil {
+				eventCtx.Guild = sandwich.NewGuild(*invokeReactionRolesPayload.Member.GuildID)
+			}
+
+			eventCtx.EventHandler.EventsMu.RLock()
+			defer eventCtx.EventHandler.EventsMu.RUnlock()
+
+			for _, event := range eventCtx.EventHandler.Events {
+				if f, ok := event.(welcomer.OnInvokeReactionRolesFuncType); ok {
+					return eventCtx.Handlers.WrapFuncType(
+						eventCtx,
+						f(eventCtx, invokeReactionRolesPayload),
+					)
+				}
+			}
+
+			return nil
+		},
+	)
 
 	// If a reaction role is deleted, set the message_id in the database to 0.
-	r.EventHandler.RegisterOnMessageDeleteEvent(func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake) error {
-		if channel.GuildID == nil {
-			return nil
-		}
+	r.EventHandler.RegisterOnMessageDeleteEvent(
+		func(eventCtx *sandwich.EventContext, channel *discord.Channel, messageID discord.Snowflake) error {
+			if channel.GuildID == nil {
+				return nil
+			}
 
-		reactionRole, err := welcomer.Queries.GetReactionRoleSettingByMessageId(eventCtx.Context, database.GetReactionRoleSettingByMessageIdParams{
-			MessageID: int64(messageID),
-			GuildID:   int64(*channel.GuildID),
-		})
-		if err != nil {
-			if !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(*channel.GuildID)).Int64("message_id", int64(messageID)).Msg("Failed to get reaction role setting by message ID for message delete event")
+			reactionRole, err := welcomer.Queries.GetReactionRoleSettingByMessageId(
+				eventCtx.Context,
+				database.GetReactionRoleSettingByMessageIdParams{
+					MessageID: int64(messageID),
+					GuildID:   int64(*channel.GuildID),
+				},
+			)
+			if err != nil {
+				if !errors.Is(err, pgx.ErrNoRows) {
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(*channel.GuildID)).
+						Int64("message_id", int64(messageID)).
+						Msg("Failed to get reaction role setting by message ID for message delete event")
+				}
+
+				return nil
+			}
+
+			_, err = welcomer.Queries.UpdateReactionRoleSettingMessageId(
+				eventCtx.Context,
+				database.UpdateReactionRoleSettingMessageIdParams{
+					ReactionRoleID: reactionRole.ReactionRoleID,
+					GuildID:        int64(*channel.GuildID),
+					MessageID:      0,
+				},
+			)
+			if err != nil {
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(*channel.GuildID)).
+					Int64("message_id", int64(messageID)).
+					Msg("Failed to update reaction role setting message ID to 0 for message delete event")
+
+				return nil
 			}
 
 			return nil
-		}
-
-		_, err = welcomer.Queries.UpdateReactionRoleSettingMessageId(eventCtx.Context, database.UpdateReactionRoleSettingMessageIdParams{
-			ReactionRoleID: reactionRole.ReactionRoleID,
-			GuildID:        int64(*channel.GuildID),
-			MessageID:      0,
-		})
-		if err != nil {
-			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(*channel.GuildID)).Int64("message_id", int64(messageID)).Msg("Failed to update reaction role setting message ID to 0 for message delete event")
-
-			return nil
-		}
-
-		return nil
-	})
+		},
+	)
 
 	// Call OnInvokeReactionRoles when CustomEventInvokeReactionRoles is triggered.
-	r.EventHandler.RegisterEvent(core.CustomEventInvokeReactionRoles, nil, (welcomer.OnInvokeReactionRolesFuncType)(r.OnInvokeReactionRoles))
+	r.EventHandler.RegisterEvent(
+		core.CustomEventInvokeReactionRoles,
+		nil,
+		(welcomer.OnInvokeReactionRolesFuncType)(r.OnInvokeReactionRoles),
+	)
 
 	return nil
 }
 
-func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, messageID discord.Snowflake, emoji discord.Emoji, member discord.GuildMember, assign *bool) error {
-	reactionRole, err := welcomer.Queries.GetReactionRoleSettingByMessageId(eventCtx.Context, database.GetReactionRoleSettingByMessageIdParams{
-		MessageID: int64(messageID),
-		GuildID:   int64(guildID),
-	})
+func (r *ReactionRolesCog) OnReact(
+	eventCtx *sandwich.EventContext,
+	guildID, messageID discord.Snowflake,
+	emoji discord.Emoji,
+	member discord.GuildMember,
+	assign *bool,
+) error {
+	reactionRole, err := welcomer.Queries.GetReactionRoleSettingByMessageId(
+		eventCtx.Context,
+		database.GetReactionRoleSettingByMessageIdParams{
+			MessageID: int64(messageID),
+			GuildID:   int64(guildID),
+		},
+	)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
-			welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Int64("message_id", int64(messageID)).Msg("Failed to get reaction role setting by message ID")
+			welcomer.Logger.Warn().
+				Err(err).
+				Int64("guild_id", int64(guildID)).
+				Int64("message_id", int64(messageID)).
+				Msg("Failed to get reaction role setting by message ID")
 		}
 
 		return nil
@@ -157,7 +207,9 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 	}
 
 	if !found {
-		welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Msg("Reaction role emoji not found")
+		welcomer.Logger.Warn().
+			Int64("guild_id", int64(guildID)).
+			Msg("Reaction role emoji not found")
 
 		return nil
 	}
@@ -173,7 +225,10 @@ func (r *ReactionRolesCog) OnReact(eventCtx *sandwich.EventContext, guildID, mes
 	})
 }
 
-func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext, event core.CustomEventInvokeReactionRolesStructure) error {
+func (r *ReactionRolesCog) OnInvokeReactionRoles(
+	eventCtx *sandwich.EventContext,
+	event core.CustomEventInvokeReactionRolesStructure,
+) error {
 	if err := r.OnInvokeReactionRolesInner(eventCtx, event); err != nil {
 		welcomer.Logger.Warn().Err(err).
 			Int64("guild_id", int64(*event.Member.GuildID)).
@@ -184,8 +239,11 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 		if event.Interaction != nil {
 			_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 				discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed("There was an issue assigning your reaction role. Please try again later.", welcomer.EmbedColourSuccess),
-					Flags:  discord.MessageFlagEphemeral,
+					Embeds: welcomer.NewEmbed(
+						"There was an issue assigning your reaction role. Please try again later.",
+						welcomer.EmbedColourSuccess,
+					),
+					Flags: discord.MessageFlagEphemeral,
 				},
 			)
 			if err != nil {
@@ -203,14 +261,20 @@ func (r *ReactionRolesCog) OnInvokeReactionRoles(eventCtx *sandwich.EventContext
 	return nil
 }
 
-func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventContext, event core.CustomEventInvokeReactionRolesStructure) error {
+func (r *ReactionRolesCog) OnInvokeReactionRolesInner(
+	eventCtx *sandwich.EventContext,
+	event core.CustomEventInvokeReactionRolesStructure,
+) error {
 	startedAt := time.Now()
 
 	if len(event.Member.Roles) == 0 {
-		_, err := welcomer.SandwichClient.RequestGuildChunk(eventCtx.Context, &pb.RequestGuildChunkRequest{
-			GuildId:     int64(*event.Member.GuildID),
-			AlwaysChunk: false,
-		})
+		_, err := welcomer.SandwichClient.RequestGuildChunk(
+			eventCtx.Context,
+			&pb.RequestGuildChunkRequest{
+				GuildId:     int64(*event.Member.GuildID),
+				AlwaysChunk: false,
+			},
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*event.Member.GuildID)).
@@ -220,10 +284,13 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 			return fmt.Errorf("failed to request guild chunk: %w", err)
 		}
 
-		membersPb, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
-			GuildId: int64(*event.Member.GuildID),
-			UserIds: []int64{int64(event.Member.User.ID)},
-		})
+		membersPb, err := welcomer.SandwichClient.FetchGuildMember(
+			eventCtx.Context,
+			&pb.FetchGuildMemberRequest{
+				GuildId: int64(*event.Member.GuildID),
+				UserIds: []int64{int64(event.Member.User.ID)},
+			},
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*event.Member.GuildID)).
@@ -256,7 +323,13 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 			Int64("role_id", int64(event.RoleID)).
 			Msg("Assigning reaction role to user")
 
-		err := event.Member.AddRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically assigned with Reaction Roles"), true)
+		err := event.Member.AddRoles(
+			eventCtx.Context,
+			eventCtx.Session,
+			[]discord.Snowflake{event.RoleID},
+			new("Automatically assigned with Reaction Roles"),
+			true,
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*event.Member.GuildID)).
@@ -267,8 +340,14 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 			if event.Interaction != nil {
 				_, err = event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 					discord.WebhookMessageParams{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("There was an error adding the <@&%d> role to you.", event.RoleID), welcomer.EmbedColourError),
-						Flags:  discord.MessageFlagEphemeral,
+						Embeds: welcomer.NewEmbed(
+							fmt.Sprintf(
+								"There was an error adding the <@&%d> role to you.",
+								event.RoleID,
+							),
+							welcomer.EmbedColourError,
+						),
+						Flags: discord.MessageFlagEphemeral,
 					},
 				)
 				if err != nil {
@@ -298,8 +377,11 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 		if event.Interaction != nil {
 			_, err = event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 				discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("Role <@&%d> added successfully!", event.RoleID), welcomer.EmbedColourSuccess),
-					Flags:  discord.MessageFlagEphemeral,
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf("Role <@&%d> added successfully!", event.RoleID),
+						welcomer.EmbedColourSuccess,
+					),
+					Flags: discord.MessageFlagEphemeral,
 				},
 			)
 			if err != nil {
@@ -319,7 +401,13 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 			Int64("role_id", int64(event.RoleID)).
 			Msg("Unassigning reaction role to user")
 
-		err := event.Member.RemoveRoles(eventCtx.Context, eventCtx.Session, []discord.Snowflake{event.RoleID}, new("Automatically removed with Reaction Roles"), true)
+		err := event.Member.RemoveRoles(
+			eventCtx.Context,
+			eventCtx.Session,
+			[]discord.Snowflake{event.RoleID},
+			new("Automatically removed with Reaction Roles"),
+			true,
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).
 				Int64("guild_id", int64(*event.Member.GuildID)).
@@ -330,8 +418,14 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 			if event.Interaction != nil {
 				_, err = event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 					discord.WebhookMessageParams{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("There was an error removing the <@&%d> role from you.", event.RoleID), welcomer.EmbedColourError),
-						Flags:  discord.MessageFlagEphemeral,
+						Embeds: welcomer.NewEmbed(
+							fmt.Sprintf(
+								"There was an error removing the <@&%d> role from you.",
+								event.RoleID,
+							),
+							welcomer.EmbedColourError,
+						),
+						Flags: discord.MessageFlagEphemeral,
 					},
 				)
 				if err != nil {
@@ -361,8 +455,11 @@ func (r *ReactionRolesCog) OnInvokeReactionRolesInner(eventCtx *sandwich.EventCo
 		if event.Interaction != nil {
 			_, err := event.Interaction.EditOriginalResponse(eventCtx.Context, eventCtx.Session,
 				discord.WebhookMessageParams{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("Role <@&%d> removed successfully!", event.RoleID), welcomer.EmbedColourSuccess),
-					Flags:  discord.MessageFlagEphemeral,
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf("Role <@&%d> removed successfully!", event.RoleID),
+						welcomer.EmbedColourSuccess,
+					),
+					Flags: discord.MessageFlagEphemeral,
 				},
 			)
 			if err != nil {

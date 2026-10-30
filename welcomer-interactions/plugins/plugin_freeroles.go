@@ -62,56 +62,73 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
-							Roles:         welcomer.DefaultFreeRoles.Roles,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+								Roles:         welcomer.DefaultFreeRoles.Roles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get freeroles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsFreeRoles.ToggleEnabled = true
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateFreeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+									Roles:         guildSettingsFreeRoles.Roles,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get freeroles guild settings")
+							Msg("Failed to update freeroles guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsFreeRoles.ToggleEnabled = true
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
-							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update freeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Enabled freeroles. Run `/freeroles list` to see the list of freeroles configured.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Enabled freeroles. Run `/freeroles list` to see the list of freeroles configured.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -125,56 +142,73 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
-							Roles:         welcomer.DefaultFreeRoles.Roles,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+								Roles:         welcomer.DefaultFreeRoles.Roles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get freeroles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsFreeRoles.ToggleEnabled = false
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateFreeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+									Roles:         guildSettingsFreeRoles.Roles,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get freeroles guild settings")
+							Msg("Failed to update freeroles guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsFreeRoles.ToggleEnabled = false
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
-							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update freeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Disabled freeroles.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Disabled freeroles.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -188,7 +222,10 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+					ctx,
+					int64(*interaction.GuildID),
+				)
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -205,7 +242,13 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 					}
 				}
 
-				roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+				roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(
+					ctx,
+					sub.SandwichClient,
+					int64(*interaction.GuildID),
+					int64(interaction.ApplicationID),
+					guildSettingsFreeRoles.Roles,
+				)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -218,8 +261,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Freeroles are not enabled for this server.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Freeroles are not enabled for this server.",
+								welcomer.EmbedColourError,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -228,8 +274,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no freeroles set for this server.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"There are no freeroles set for this server.",
+								welcomer.EmbedColourInfo,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -269,7 +318,10 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		AutocompleteHandler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) ([]discord.ApplicationCommandOptionChoice, error) {
 			autocompleteRole := subway.MustGetArgument(ctx, "role").MustString()
 
-			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+				ctx,
+				int64(*interaction.GuildID),
+			)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -291,7 +343,13 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return nil, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRoles(
+				ctx,
+				sub.SandwichClient,
+				int64(*interaction.GuildID),
+				int64(interaction.ApplicationID),
+				guildSettingsFreeRoles.Roles,
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -366,13 +424,19 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("You already have this role.", welcomer.EmbedColourInfo),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"You already have this role.",
+							welcomer.EmbedColourInfo,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
 
-			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+				ctx,
+				int64(*interaction.GuildID),
+			)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -394,13 +458,22 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Freeroles are not enabled for this server.", welcomer.EmbedColourError),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"Freeroles are not enabled for this server.",
+							welcomer.EmbedColourError,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(
+				ctx,
+				sub.SandwichClient,
+				int64(*interaction.GuildID),
+				int64(interaction.ApplicationID),
+				guildSettingsFreeRoles.Roles,
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -414,8 +487,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("This role is not assignable.", welcomer.EmbedColourError),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"This role is not assignable.",
+							welcomer.EmbedColourError,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
@@ -448,8 +524,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("You have been assigned the role <@&%d>.", role.ID), welcomer.EmbedColourSuccess),
-					Flags:  uint32(discord.MessageFlagEphemeral),
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf("You have been assigned the role <@&%d>.", role.ID),
+						welcomer.EmbedColourSuccess,
+					),
+					Flags: uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
 		},
@@ -479,13 +558,19 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("You do not have this role.", welcomer.EmbedColourInfo),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"You do not have this role.",
+							welcomer.EmbedColourInfo,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
 
-			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+			guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+				ctx,
+				int64(*interaction.GuildID),
+			)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
@@ -507,13 +592,22 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Freeroles are not enabled for this server.", welcomer.EmbedColourError),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"Freeroles are not enabled for this server.",
+							welcomer.EmbedColourError,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
 
-			roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), guildSettingsFreeRoles.Roles)
+			roleList, err := welcomer.FilterAssignableRolesAsSnowflakes(
+				ctx,
+				sub.SandwichClient,
+				int64(*interaction.GuildID),
+				int64(interaction.ApplicationID),
+				guildSettingsFreeRoles.Roles,
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Int64("guild_id", int64(*interaction.GuildID)).
@@ -527,8 +621,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("This role is not assignable.", welcomer.EmbedColourError),
-						Flags:  uint32(discord.MessageFlagEphemeral),
+						Embeds: welcomer.NewEmbed(
+							"This role is not assignable.",
+							welcomer.EmbedColourError,
+						),
+						Flags: uint32(discord.MessageFlagEphemeral),
 					},
 				}, nil
 			}
@@ -553,8 +650,11 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: welcomer.NewEmbed(fmt.Sprintf("You have unassigned the role <@&%d>.", role.ID), welcomer.EmbedColourSuccess),
-					Flags:  uint32(discord.MessageFlagEphemeral),
+					Embeds: welcomer.NewEmbed(
+						fmt.Sprintf("You have unassigned the role <@&%d>.", role.ID),
+						welcomer.EmbedColourSuccess,
+					),
+					Flags: uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
 		},
@@ -585,111 +685,153 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				role := subway.MustGetArgument(ctx, "role").MustRole()
-				ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").MustBool()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					role := subway.MustGetArgument(ctx, "role").MustRole()
+					ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").
+						MustBool()
 
-				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, &role)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to check if welcomer can assign role")
-
-					return nil, err
-				}
-
-				if !canAssignRoles {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Welcomer is missing permissions to assign roles", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
-				if !isRoleAssignable {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("### This role is not assignable\nWelcomer cannot assign users this role as it does not have permission to manage roles or Welcomer's highest role is below this role's position. Please rearrange your roles in the server settings to move Welcomer's role above this role.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				if !ignoreRolePermissions && isRoleElevated {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.\n\nPermissions:\n"+welcomer.GetRolePermissionListAsString(int(role.Permissions)), welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
-							Roles:         welcomer.DefaultFreeRoles.Roles,
-						}
-					} else {
+					canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(
+						ctx,
+						*interaction.GuildID,
+						&role,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get freeroles guild settings")
+							Msg("Failed to check if welcomer can assign role")
 
 						return nil, err
 					}
-				}
 
-				// Add the role to the list of freeroles if not already present.
-				for slices.Contains(guildSettingsFreeRoles.Roles, int64(role.ID)) {
+					if !canAssignRoles {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Welcomer is missing permissions to assign roles",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
+					if !isRoleAssignable {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"### This role is not assignable\nWelcomer cannot assign users this role as it does not have permission to manage roles or Welcomer's highest role is below this role's position. Please rearrange your roles in the server settings to move Welcomer's role above this role.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					if !ignoreRolePermissions && isRoleElevated {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.\n\nPermissions:\n"+welcomer.GetRolePermissionListAsString(
+										int(role.Permissions),
+									),
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+								Roles:         welcomer.DefaultFreeRoles.Roles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get freeroles guild settings")
+
+							return nil, err
+						}
+					}
+
+					// Add the role to the list of freeroles if not already present.
+					for slices.Contains(guildSettingsFreeRoles.Roles, int64(role.ID)) {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"This role is already in the list.",
+									welcomer.EmbedColourInfo,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					guildSettingsFreeRoles.Roles = append(
+						guildSettingsFreeRoles.Roles,
+						int64(role.ID),
+					)
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateFreeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+									Roles:         guildSettingsFreeRoles.Roles,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to update freeroles guild settings")
+
+						return nil, err
+					}
+
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("This role is already in the list.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf(
+									"The role <@&%d> has been added to the list of freeroles.",
+									role.ID,
+								),
+								welcomer.EmbedColourSuccess,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
-				}
-
-				guildSettingsFreeRoles.Roles = append(guildSettingsFreeRoles.Roles, int64(role.ID))
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
-							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update freeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("The role <@&%d> has been added to the list of freeroles.", role.ID), welcomer.EmbedColourSuccess),
-						Flags:  uint32(discord.MessageFlagEphemeral),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
@@ -712,73 +854,99 @@ func (r *FreeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				role := subway.MustGetArgument(ctx, "role").MustRole()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					role := subway.MustGetArgument(ctx, "role").MustRole()
 
-				guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
-							Roles:         welcomer.DefaultFreeRoles.Roles,
+					guildSettingsFreeRoles, err := welcomer.Queries.GetFreeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsFreeRoles = &database.GuildSettingsFreeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultFreeRoles.ToggleEnabled,
+								Roles:         welcomer.DefaultFreeRoles.Roles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get freeroles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					// Check if the role is in the list of freeroles.
+					if !slices.Contains(guildSettingsFreeRoles.Roles, int64(role.ID)) {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"This role is not in the list.",
+									welcomer.EmbedColourInfo,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					// Remove the role from the list of freeroles.
+					guildSettingsFreeRoles.Roles = slices.DeleteFunc(
+						guildSettingsFreeRoles.Roles,
+						func(r int64) bool {
+							return r == int64(role.ID)
+						},
+					)
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateFreeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
+									Roles:         guildSettingsFreeRoles.Roles,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get freeroles guild settings")
+							Msg("Failed to update freeroles guild settings")
 
 						return nil, err
 					}
-				}
 
-				// Check if the role is in the list of freeroles.
-				if !slices.Contains(guildSettingsFreeRoles.Roles, int64(role.ID)) {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("This role is not in the list.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf(
+									"The role <@&%d> has been removed from the list of freeroles.",
+									role.ID,
+								),
+								welcomer.EmbedColourSuccess,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
-				}
-
-				// Remove the role from the list of freeroles.
-				guildSettingsFreeRoles.Roles = slices.DeleteFunc(guildSettingsFreeRoles.Roles, func(r int64) bool {
-					return r == int64(role.ID)
-				})
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateFreeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsFreeRoles.ToggleEnabled,
-							Roles:         guildSettingsFreeRoles.Roles,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update freeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("The role <@&%d> has been removed from the list of freeroles.", role.ID), welcomer.EmbedColourSuccess),
-						Flags:  uint32(discord.MessageFlagEphemeral),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 

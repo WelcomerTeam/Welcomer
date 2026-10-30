@@ -24,9 +24,17 @@ func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -55,9 +63,12 @@ func main() {
 	}()
 
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
@@ -75,9 +86,12 @@ func main() {
 }
 
 func entrypoint(ctx context.Context, webhookUrl string) {
-	applications, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich.ApplicationIdentifier{
-		ApplicationIdentifier: "",
-	})
+	applications, err := welcomer.SandwichClient.FetchApplication(
+		ctx,
+		&sandwich.ApplicationIdentifier{
+			ApplicationIdentifier: "",
+		},
+	)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch applications: %w", err))
 	}
@@ -94,7 +108,8 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 		}
 
 		if !applicationValues.IsCustomBot {
-			welcomer.Logger.Debug().Str("application_identifier", application.GetApplicationIdentifier()).
+			welcomer.Logger.Debug().
+				Str("application_identifier", application.GetApplicationIdentifier()).
 				Msg("Skipping non-custom bot application")
 			continue // Skip non-custom bots
 		}
@@ -121,22 +136,29 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 			botsToKill := applications[guildLimit:]
 
 			for _, bot := range botsToKill {
-				welcomer.Logger.Info().Str("application_identifier", bot.GetApplicationIdentifier()).
+				welcomer.Logger.Info().
+					Str("application_identifier", bot.GetApplicationIdentifier()).
 					Msg("Killing custom bot due to exceeding guild limit")
 
 				// Stop the custom bot
-				_, err := welcomer.SandwichClient.StopApplication(ctx, &sandwich.ApplicationIdentifierWithBlocking{
-					ApplicationIdentifier: bot.GetApplicationIdentifier(),
-					Blocking:              true,
-				})
+				_, err := welcomer.SandwichClient.StopApplication(
+					ctx,
+					&sandwich.ApplicationIdentifierWithBlocking{
+						ApplicationIdentifier: bot.GetApplicationIdentifier(),
+						Blocking:              true,
+					},
+				)
 				if err != nil {
-					welcomer.Logger.Error().Err(err).Str("application_identifier", bot.GetApplicationIdentifier()).
+					welcomer.Logger.Error().
+						Err(err).
+						Str("application_identifier", bot.GetApplicationIdentifier()).
 						Msg("Failed to stop custom bot")
 				}
 			}
 		} else {
 			for _, application := range applications {
-				welcomer.Logger.Info().Str("application_identifier", application.GetApplicationIdentifier()).
+				welcomer.Logger.Info().
+					Str("application_identifier", application.GetApplicationIdentifier()).
 					Msg("Custom bot is within guild limit, no action needed")
 			}
 		}

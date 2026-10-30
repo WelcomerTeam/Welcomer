@@ -76,7 +76,8 @@ func drawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 
 			// We will keep decreasing size until it fits, unless the font is already 1.
 			// It may not fit but its likely the text will never fit after that point.
-			if ((adv.Ceil() <= args.Width) && ((face.Metrics().Height.Ceil() * len(lines)) <= args.Height)) || s <= 1 {
+			if ((adv.Ceil() <= args.Width) && ((face.Metrics().Height.Ceil() * len(lines)) <= args.Height)) ||
+				s <= 1 {
 				d.Face = face
 
 				break
@@ -102,22 +103,34 @@ func drawMultiline(d font.Drawer, newFace func(float64) font.Face, args Multilin
 		var Dy int
 
 		switch args.Alignment {
-		case welcomer.ImageAlignmentTopLeft, welcomer.ImageAlignmentLeft, welcomer.ImageAlignmentBottomLeft:
+		case welcomer.ImageAlignmentTopLeft,
+			welcomer.ImageAlignmentLeft,
+			welcomer.ImageAlignmentBottomLeft:
 			Dx = 0
-		case welcomer.ImageAlignmentTopCenter, welcomer.ImageAlignmentCenter, welcomer.ImageAlignmentBottomCenter:
+		case welcomer.ImageAlignmentTopCenter,
+			welcomer.ImageAlignmentCenter,
+			welcomer.ImageAlignmentBottomCenter:
 			Dx = int((args.Width - adv.Ceil()) / 2)
-		case welcomer.ImageAlignmentTopRight, welcomer.ImageAlignmentRight, welcomer.ImageAlignmentBottomRight:
+		case welcomer.ImageAlignmentTopRight,
+			welcomer.ImageAlignmentRight,
+			welcomer.ImageAlignmentBottomRight:
 			Dx = args.Width - adv.Ceil()
 		default:
 			return ErrInvalidHorizontalAlignment
 		}
 
 		switch args.Alignment {
-		case welcomer.ImageAlignmentTopLeft, welcomer.ImageAlignmentTopCenter, welcomer.ImageAlignmentTopRight:
+		case welcomer.ImageAlignmentTopLeft,
+			welcomer.ImageAlignmentTopCenter,
+			welcomer.ImageAlignmentTopRight:
 			Dy = lineNo * fh
-		case welcomer.ImageAlignmentLeft, welcomer.ImageAlignmentCenter, welcomer.ImageAlignmentRight:
+		case welcomer.ImageAlignmentLeft,
+			welcomer.ImageAlignmentCenter,
+			welcomer.ImageAlignmentRight:
 			Dy = (lineNo * fh) + (args.Height / 2) - (th / 2)
-		case welcomer.ImageAlignmentBottomLeft, welcomer.ImageAlignmentBottomCenter, welcomer.ImageAlignmentBottomRight:
+		case welcomer.ImageAlignmentBottomLeft,
+			welcomer.ImageAlignmentBottomCenter,
+			welcomer.ImageAlignmentBottomRight:
 			Dy = args.Height - th + (lineNo * fh)
 		default:
 			return ErrInvalidVerticalAlignment

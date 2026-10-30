@@ -10,7 +10,12 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-func SetupJetstreamConsumer(ctx context.Context, address, channel, clientName string, natsOptions []nats.Option, jetstreamOptions []jetstream.JetStreamOpt) (jetstream.Consumer, error) {
+func SetupJetstreamConsumer(
+	ctx context.Context,
+	address, channel, clientName string,
+	natsOptions []nats.Option,
+	jetstreamOptions []jetstream.JetStreamOpt,
+) (jetstream.Consumer, error) {
 	nc, err := nats.Connect(address, natsOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to nats: %w", err)

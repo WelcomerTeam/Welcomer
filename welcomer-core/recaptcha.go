@@ -34,7 +34,11 @@ func ValidateRecaptcha(response, ipAddress string) (float64, error) {
 	reqBody.Set("response", response)
 	reqBody.Set("ip_address", ipAddress)
 
-	req, err := http.NewRequest(http.MethodPost, RecaptchaEndpoint, strings.NewReader(reqBody.Encode()))
+	req, err := http.NewRequest(
+		http.MethodPost,
+		RecaptchaEndpoint,
+		strings.NewReader(reqBody.Encode()),
+	)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Failed to create reCAPTCHA request")
 
@@ -50,7 +54,10 @@ func ValidateRecaptcha(response, ipAddress string) (float64, error) {
 	}
 
 	if err != nil {
-		Logger.Error().Err(err).Int("status_code", resp.StatusCode).Msg("Failed to send reCAPTCHA request")
+		Logger.Error().
+			Err(err).
+			Int("status_code", resp.StatusCode).
+			Msg("Failed to send reCAPTCHA request")
 
 		return -1, err
 	}

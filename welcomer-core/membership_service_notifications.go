@@ -12,7 +12,11 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
 )
 
-func NotifyMembershipCreated(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
+func NotifyMembershipCreated(
+	ctx context.Context,
+	session *discord.Session,
+	membership database.UserMemberships,
+) error {
 	if membership.UserID == 0 {
 		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
@@ -56,24 +60,36 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 	var descriptionBuilder strings.Builder
 
 	if membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds) {
-		descriptionBuilder.WriteString("- This membership is for custom backgrounds, so you need to assign it to a server.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is for custom backgrounds, so you need to assign it to a server.\n",
+		)
 	} else if membership.MembershipType == int32(database.MembershipTypeWelcomerPro) {
-		descriptionBuilder.WriteString("- This membership is for Welcomer Pro so you need to make sure you assign it to a server before you can use the features. This also comes with custom backgrounds for the server.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is for Welcomer Pro so you need to make sure you assign it to a server before you can use the features. This also comes with custom backgrounds for the server.\n",
+		)
 	}
 
 	// Do not include for Discord payments, as they are automatically assigned to the server.
 	if transaction.PlatformType != int32(database.PlatformTypeDiscord) {
-		descriptionBuilder.WriteString("- If you have not assigned it to a server yet, you can run the `/membership add` command on the server you want to give it to, or use the **Memberships** tab on the website dashboard.\n")
+		descriptionBuilder.WriteString(
+			"- If you have not assigned it to a server yet, you can run the `/membership add` command on the server you want to give it to, or use the **Memberships** tab on the website dashboard.\n",
+		)
 	}
 
-	descriptionBuilder.WriteString("- If you are having any issues, use the `/support` command to get access to our support server.\n")
+	descriptionBuilder.WriteString(
+		"- If you are having any issues, use the `/support` command to get access to our support server.\n",
+	)
 
 	_, err = user.Send(ctx, session, discord.MessageParams{
 		Content: fmt.Sprintf(
 			"### Hey <@%d>, your **%s** %s via **%s** has now been created!\nThank you for supporting Welcomer, it means a lot to us.\n\n",
 			user.ID,
 			database.MembershipType(membership.MembershipType).Label(),
-			If(membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds), "benefit", "subscription"),
+			If(
+				membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds),
+				"benefit",
+				"subscription",
+			),
 			database.PlatformType(transaction.PlatformType).Label(),
 		),
 		Embeds: []discord.Embed{
@@ -121,7 +137,11 @@ func NotifyMembershipCreated(ctx context.Context, session *discord.Session, memb
 	return nil
 }
 
-func NotifyMembershipExpired(ctx context.Context, session *discord.Session, membership database.UserMemberships) error {
+func NotifyMembershipExpired(
+	ctx context.Context,
+	session *discord.Session,
+	membership database.UserMemberships,
+) error {
 	if membership.UserID == 0 {
 		Logger.Error().Msg("Cannot notify membership created, user ID is 0")
 
@@ -166,13 +186,23 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 
 	switch database.MembershipType(membership.MembershipType) {
 	case database.MembershipTypeWelcomerPro:
-		descriptionBuilder.WriteString("- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n",
+		)
 	case database.MembershipTypeLegacyWelcomerPro:
-		descriptionBuilder.WriteString("- This membership is a legacy membership for Welcomer Pro. You may have been receiving it for free, but it is now expired.\n")
-		descriptionBuilder.WriteString("- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is a legacy membership for Welcomer Pro. You may have been receiving it for free, but it is now expired.\n",
+		)
+		descriptionBuilder.WriteString(
+			"- This membership is for Welcomer Pro, so you will be missing out on any perks you got from it.\n",
+		)
 	case database.MembershipTypeLegacyCustomBackgrounds:
-		descriptionBuilder.WriteString("- This membership is a legacy membership for custom backgrounds. You may have been receiving it for free, but it is now expired.\n")
-		descriptionBuilder.WriteString("- This membership is for custom backgrounds, so you will be missing out on any perks you got from it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is a legacy membership for custom backgrounds. You may have been receiving it for free, but it is now expired.\n",
+		)
+		descriptionBuilder.WriteString(
+			"- This membership is for custom backgrounds, so you will be missing out on any perks you got from it.\n",
+		)
 	default:
 		Logger.Warn().
 			Str("membership_id", membership.MembershipUuid.String()).
@@ -185,13 +215,21 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 
 	switch database.PlatformType(transaction.PlatformType) {
 	case database.PlatformTypeDiscord:
-		descriptionBuilder.WriteString("- This membership was purchased via Discord, so you will need to renew it below if you want to keep using it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership was purchased via Discord, so you will need to renew it below if you want to keep using it.\n",
+		)
 	case database.PlatformTypePatreon:
-		descriptionBuilder.WriteString("- This membership is a Patreon pledge, so you will need to renew it via Patreon or pledge again if you want to keep using it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is a Patreon pledge, so you will need to renew it via Patreon or pledge again if you want to keep using it.\n",
+		)
 	case database.PlatformTypePaypalSubscription:
-		descriptionBuilder.WriteString("- This membership is a PayPal subscription, so you will need to renew it via PayPal or subscribe again if you want to keep using it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership is a PayPal subscription, so you will need to renew it via PayPal or subscribe again if you want to keep using it.\n",
+		)
 	case database.PlatformTypePaypal:
-		descriptionBuilder.WriteString("- This membership was purchased via PayPal, so you will need to purchase a new plan if you want to keep using it.\n")
+		descriptionBuilder.WriteString(
+			"- This membership was purchased via PayPal, so you will need to purchase a new plan if you want to keep using it.\n",
+		)
 	default:
 		Logger.Warn().
 			Str("membership_id", membership.MembershipUuid.String()).
@@ -209,7 +247,11 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 			"### Hey <@%d>, your **%s** %s via **%s** has expired!\n\n",
 			user.ID,
 			database.MembershipType(membership.MembershipType).Label(),
-			If(membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds), "benefit", "subscription"),
+			If(
+				membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds),
+				"benefit",
+				"subscription",
+			),
 			database.PlatformType(transaction.PlatformType).Label(),
 		)
 	} else {
@@ -217,7 +259,11 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 			"### Hey <@%d>, your **%s** %s via **%s** expires <t:%d:R>\nDon't miss out!\n\n",
 			user.ID,
 			database.MembershipType(membership.MembershipType).Label(),
-			If(membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds), "benefit", "subscription"),
+			If(
+				membership.MembershipType == int32(database.MembershipTypeCustomBackgrounds),
+				"benefit",
+				"subscription",
+			),
 			database.PlatformType(transaction.PlatformType).Label(),
 			membership.ExpiresAt.Unix(),
 		)
@@ -239,7 +285,11 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 	}
 
 	if guildName != "" {
-		content += fmt.Sprintf("- This membership is assigned to the server **%s** `%d`.\n\n", guildName, guildID)
+		content += fmt.Sprintf(
+			"- This membership is assigned to the server **%s** `%d`.\n\n",
+			guildName,
+			guildID,
+		)
 	}
 
 	_, err = user.Send(ctx, session, discord.MessageParams{
@@ -257,7 +307,9 @@ func NotifyMembershipExpired(ctx context.Context, session *discord.Session, memb
 					{
 						Type:  discord.InteractionComponentTypeButton,
 						Style: discord.InteractionComponentStylePremium,
-						SKUID: discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID"))),
+						SKUID: discord.Snowflake(
+							TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID")),
+						),
 					},
 					{
 						Type:  discord.InteractionComponentTypeButton,

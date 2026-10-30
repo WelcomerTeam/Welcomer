@@ -26,7 +26,11 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_EXPIRED_WELCOME_MESSAGES_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -77,7 +81,11 @@ func main() {
 func entrypoint(ctx context.Context, db *pgx.Conn) {
 	expirationDate := time.Now().Add(-MaxRowRetention)
 
-	rows, err := welcomer.Pool.Query(ctx, "DELETE FROM ingest_message_events WHERE occurred_at < $1", expirationDate)
+	rows, err := welcomer.Pool.Query(
+		ctx,
+		"DELETE FROM ingest_message_events WHERE occurred_at < $1",
+		expirationDate,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to clean up ingest welcome messages")
 		return

@@ -31,7 +31,11 @@ func init() {
 	}
 }
 
-func CheckChannelGuild(ctx context.Context, c sandwich_protobuf.SandwichClient, guildID, channelID discord.Snowflake) (bool, error) {
+func CheckChannelGuild(
+	ctx context.Context,
+	c sandwich_protobuf.SandwichClient,
+	guildID, channelID discord.Snowflake,
+) (bool, error) {
 	channels, err := c.FetchGuildChannel(ctx, &sandwich_protobuf.FetchGuildChannelRequest{
 		GuildId: int64(guildID),
 	})
@@ -48,7 +52,10 @@ func CheckChannelGuild(ctx context.Context, c sandwich_protobuf.SandwichClient, 
 	return false, nil
 }
 
-func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasWelcomerPro, hasCustomBackgrounds bool, features []GuildFeature, err error) {
+func CheckGuildMemberships(
+	ctx context.Context,
+	guildID discord.Snowflake,
+) (hasWelcomerPro, hasCustomBackgrounds bool, features []GuildFeature, err error) {
 	guildFeatures, err := Queries.GetGuildFeatures(ctx, int64(guildID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		Logger.Warn().Err(err).
@@ -83,11 +90,13 @@ func CheckGuildMemberships(ctx context.Context, guildID discord.Snowflake) (hasW
 }
 
 func IsCustomBackgroundsMembership(membershipType database.MembershipType) bool {
-	return membershipType == database.MembershipTypeLegacyCustomBackgrounds || membershipType == database.MembershipTypeCustomBackgrounds
+	return membershipType == database.MembershipTypeLegacyCustomBackgrounds ||
+		membershipType == database.MembershipTypeCustomBackgrounds
 }
 
 func IsWelcomerProMembership(membershipType database.MembershipType) bool {
-	return membershipType == database.MembershipTypeLegacyWelcomerPro || membershipType == database.MembershipTypeWelcomerPro
+	return membershipType == database.MembershipTypeLegacyWelcomerPro ||
+		membershipType == database.MembershipTypeWelcomerPro
 }
 
 func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember) bool {
@@ -128,7 +137,10 @@ func MemberHasElevation(discordGuild *discord.Guild, member *discord.GuildMember
 
 type BasicInteractionHandler func() (*discord.InteractionResponse, error)
 
-func RequireGuild(interaction discord.Interaction, handler BasicInteractionHandler) (*discord.InteractionResponse, error) {
+func RequireGuild(
+	interaction discord.Interaction,
+	handler BasicInteractionHandler,
+) (*discord.InteractionResponse, error) {
 	if interaction.GuildID == nil {
 		return &discord.InteractionResponse{
 			Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -164,14 +176,21 @@ func IsInterationAuthorElevated(sub *subway.Subway, interaction discord.Interact
 	return true
 }
 
-func RequireGuildElevation(sub *subway.Subway, interaction discord.Interaction, handler BasicInteractionHandler) (*discord.InteractionResponse, error) {
+func RequireGuildElevation(
+	sub *subway.Subway,
+	interaction discord.Interaction,
+	handler BasicInteractionHandler,
+) (*discord.InteractionResponse, error) {
 	return RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
 		if !IsInterationAuthorElevated(sub, interaction) {
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeChannelMessageSource,
 				Data: &discord.InteractionCallbackData{
-					Embeds: NewEmbed("You do not have the required permissions to use this command.", EmbedColourError),
-					Flags:  uint32(discord.MessageFlagEphemeral),
+					Embeds: NewEmbed(
+						"You do not have the required permissions to use this command.",
+						EmbedColourError,
+					),
+					Flags: uint32(discord.MessageFlagEphemeral),
 				},
 			}, nil
 		}
@@ -209,9 +228,12 @@ func AcquireSession(ctx context.Context, applicationIdentifier string) (*discord
 		return session, nil
 	}
 
-	configurations, err := SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
-		ApplicationIdentifier: applicationIdentifier,
-	})
+	configurations, err := SandwichClient.FetchApplication(
+		ctx,
+		&sandwich_protobuf.ApplicationIdentifier{
+			ApplicationIdentifier: applicationIdentifier,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch application: %v", err)
 	}

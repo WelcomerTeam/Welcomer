@@ -43,97 +43,118 @@ func (c *IngestCog) GetEventHandlers() *sandwich.Handlers {
 
 func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register event for message create.
-	c.EventHandler.RegisterOnMessageCreateEvent(func(eventCtx *sandwich.EventContext, message discord.Message) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "IngestCog.OnMessageCreate")
+	c.EventHandler.RegisterOnMessageCreateEvent(
+		func(eventCtx *sandwich.EventContext, message discord.Message) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"IngestCog.OnMessageCreate",
+			)
 
-		if message.GuildID == nil {
+			if message.GuildID == nil {
+				return nil
+			}
+
+			// Ignore non-default message types (e.g., system messages).
+			if message.Type != discord.MessageTypeDefault {
+				return nil
+			}
+
+			welcomer.PusherIngestMessageEvents.Push(eventCtx.Context,
+				message.ID, *message.GuildID, message.ChannelID, message.Author.ID,
+				welcomer.IngestMessageEventTypeCreate, message.Timestamp)
+
 			return nil
-		}
-
-		// Ignore non-default message types (e.g., system messages).
-		if message.Type != discord.MessageTypeDefault {
-			return nil
-		}
-
-		welcomer.PusherIngestMessageEvents.Push(eventCtx.Context,
-			message.ID, *message.GuildID, message.ChannelID, message.Author.ID,
-			welcomer.IngestMessageEventTypeCreate, message.Timestamp)
-
-		return nil
-	})
+		},
+	)
 
 	// Register event for message update.
-	c.EventHandler.RegisterOnMessageUpdateEvent(func(eventCtx *sandwich.EventContext, _, newMessage discord.Message) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "IngestCog.OnMessageUpdate")
+	c.EventHandler.RegisterOnMessageUpdateEvent(
+		func(eventCtx *sandwich.EventContext, _, newMessage discord.Message) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"IngestCog.OnMessageUpdate",
+			)
 
-		if newMessage.GuildID == nil {
+			if newMessage.GuildID == nil {
+				return nil
+			}
+
+			welcomer.PusherIngestMessageEvents.Push(eventCtx.Context,
+				newMessage.ID, *newMessage.GuildID, newMessage.ChannelID, newMessage.Author.ID,
+				welcomer.IngestMessageEventTypeEdit, time.Now())
+
 			return nil
-		}
-
-		welcomer.PusherIngestMessageEvents.Push(eventCtx.Context,
-			newMessage.ID, *newMessage.GuildID, newMessage.ChannelID, newMessage.Author.ID,
-			welcomer.IngestMessageEventTypeEdit, time.Now())
-
-		return nil
-	})
+		},
+	)
 
 	// Register event for voice state update.
-	c.EventHandler.RegisterOnVoiceStateUpdateEvent(func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
-		startTime := time.Now()
-		defer notifyTiming(startTime, eventCtx.Payload.Metadata.Shard, "IngestCog.OnVoiceStateUpdate")
+	c.EventHandler.RegisterOnVoiceStateUpdateEvent(
+		func(eventCtx *sandwich.EventContext, member discord.GuildMember, before, after discord.VoiceState) error {
+			startTime := time.Now()
+			defer notifyTiming(
+				startTime,
+				eventCtx.Payload.Metadata.Shard,
+				"IngestCog.OnVoiceStateUpdate",
+			)
 
-		var guildID discord.Snowflake
+			var guildID discord.Snowflake
 
-		if after.GuildID != nil {
-			guildID = *after.GuildID
-		} else if before.GuildID != nil {
-			guildID = *before.GuildID
-		} else {
-			return nil
-		}
-
-		if before.ChannelID == after.ChannelID {
-			return nil
-		}
-
-		if (before.ChannelID != nil && after.ChannelID == nil) ||
-			(before.ChannelID != nil && after.ChannelID != nil) {
-			// Left or moved voice channel.
-			err := closeSession(eventCtx.Context, guildID, *before.ChannelID, member.User.ID)
-			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to close voice channel session")
-
-				return err
+			if after.GuildID != nil {
+				guildID = *after.GuildID
+			} else if before.GuildID != nil {
+				guildID = *before.GuildID
+			} else {
+				return nil
 			}
-		}
 
-		if (before.ChannelID == nil && after.ChannelID != nil) ||
-			(before.ChannelID != nil && after.ChannelID != nil) {
-			// Joined or moved voice channel.
-			err := createSession(eventCtx.Context, guildID, *after.ChannelID, member.User.ID)
-			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to create voice channel session")
-
-				return err
+			if before.ChannelID == after.ChannelID {
+				return nil
 			}
-		}
 
-		return nil
-	})
+			if (before.ChannelID != nil && after.ChannelID == nil) ||
+				(before.ChannelID != nil && after.ChannelID != nil) {
+				// Left or moved voice channel.
+				err := closeSession(eventCtx.Context, guildID, *before.ChannelID, member.User.ID)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to close voice channel session")
+
+					return err
+				}
+			}
+
+			if (before.ChannelID == nil && after.ChannelID != nil) ||
+				(before.ChannelID != nil && after.ChannelID != nil) {
+				// Joined or moved voice channel.
+				err := createSession(eventCtx.Context, guildID, *after.ChannelID, member.User.ID)
+				if err != nil {
+					welcomer.Logger.Error().Err(err).Msg("Failed to create voice channel session")
+
+					return err
+				}
+			}
+
+			return nil
+		},
+	)
 
 	return nil
 }
 
 func createSession(ctx context.Context, guildID, channelID, userID discord.Snowflake) error {
-	err := welcomer.Queries.CreateGuildVoiceChannelOpenSession(ctx, database.CreateGuildVoiceChannelOpenSessionParams{
-		GuildID:    int64(guildID),
-		UserID:     int64(userID),
-		ChannelID:  int64(channelID),
-		StartTs:    time.Now(),
-		LastSeenTs: time.Now(),
-	})
+	err := welcomer.Queries.CreateGuildVoiceChannelOpenSession(
+		ctx,
+		database.CreateGuildVoiceChannelOpenSessionParams{
+			GuildID:    int64(guildID),
+			UserID:     int64(userID),
+			ChannelID:  int64(channelID),
+			StartTs:    time.Now(),
+			LastSeenTs: time.Now(),
+		},
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to create voice channel open session")
 
@@ -144,10 +165,13 @@ func createSession(ctx context.Context, guildID, channelID, userID discord.Snowf
 }
 
 func closeSession(ctx context.Context, guildID, channelID, userID discord.Snowflake) error {
-	session, err := welcomer.Queries.DeleteAndGetGuildVoiceChannelOpenSession(ctx, database.DeleteAndGetGuildVoiceChannelOpenSessionParams{
-		GuildID: int64(guildID),
-		UserID:  int64(userID),
-	})
+	session, err := welcomer.Queries.DeleteAndGetGuildVoiceChannelOpenSession(
+		ctx,
+		database.DeleteAndGetGuildVoiceChannelOpenSessionParams{
+			GuildID: int64(guildID),
+			UserID:  int64(userID),
+		},
+	)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		welcomer.Logger.Error().Err(err).Msg("Failed to get voice channel open session")
 

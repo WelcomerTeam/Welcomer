@@ -21,7 +21,11 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_BORDERWALL_REQUESTS_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_EXPIRED_BORDERWALL_REQUESTS_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -65,7 +69,11 @@ func main() {
 }
 
 func entrypoint(ctx context.Context, webhookUrl string) {
-	rows, err := welcomer.Pool.Query(ctx, "DELETE FROM borderwall_requests WHERE is_verified = false AND updated_at < $1", time.Now().Add(time.Hour*(-1*24*90)).UTC())
+	rows, err := welcomer.Pool.Query(
+		ctx,
+		"DELETE FROM borderwall_requests WHERE is_verified = false AND updated_at < $1",
+		time.Now().Add(time.Hour*(-1*24*90)).UTC(),
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Msg("Failed to delete expired borderwall requests")

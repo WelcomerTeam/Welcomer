@@ -20,7 +20,11 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -69,15 +73,25 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 		var min time.Time
 		var max time.Time
 
-		welcomer.Logger.Info().Msgf("Migrating data for table %s based on column %s", tableName, timestampColumn)
+		welcomer.Logger.Info().
+			Msgf("Migrating data for table %s based on column %s", tableName, timestampColumn)
 
-		res, err := welcomer.Pool.Query(ctx, fmt.Sprintf("SELECT MIN(%s), MAX(%s) FROM %s", timestampColumn, timestampColumn, tableName+"_original"))
+		res, err := welcomer.Pool.Query(
+			ctx,
+			fmt.Sprintf(
+				"SELECT MIN(%s), MAX(%s) FROM %s",
+				timestampColumn,
+				timestampColumn,
+				tableName+"_original",
+			),
+		)
 		if err != nil {
 			welcomer.Logger.Error().Err(err).Msg("Failed to query min and max timestamps")
 			continue
 		}
 
-		welcomer.Logger.Info().Msgf("Successfully queried min and max timestamps for table %s", tableName)
+		welcomer.Logger.Info().
+			Msgf("Successfully queried min and max timestamps for table %s", tableName)
 
 		if res.Next() {
 			err = res.Scan(&min, &max)
@@ -105,15 +119,25 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 
 			to_date := start_date.AddDate(0, 0, 1)
 
-			welcomer.Logger.Info().Msgf("Migrating data for table %s from %s to %s", tableName, start_date.Format("2006-01-02"), to_date.Format("2006-01-02"))
+			welcomer.Logger.Info().
+				Msgf("Migrating data for table %s from %s to %s", tableName, start_date.Format("2006-01-02"), to_date.Format("2006-01-02"))
 
-			_, err = welcomer.Pool.Exec(ctx,
-				fmt.Sprintf("INSERT INTO %s SELECT %s FROM %s WHERE %s BETWEEN $1 AND $2 ON CONFLICT DO NOTHING", tableName, selector, tableName+"_original", timestampColumn),
+			_, err = welcomer.Pool.Exec(
+				ctx,
+				fmt.Sprintf(
+					"INSERT INTO %s SELECT %s FROM %s WHERE %s BETWEEN $1 AND $2 ON CONFLICT DO NOTHING",
+					tableName,
+					selector,
+					tableName+"_original",
+					timestampColumn,
+				),
 				start_date,
 				to_date,
 			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Msgf("Failed to insert data into table %s", tableName)
+				welcomer.Logger.Error().
+					Err(err).
+					Msgf("Failed to insert data into table %s", tableName)
 				if err != nil {
 					welcomer.Logger.Warn().Err(err).Msg("Failed to send webhook message")
 				}
@@ -124,15 +148,21 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 			print("Deleting...")
 
 			_, err = welcomer.Pool.Exec(ctx, fmt.Sprintf(
-				"DELETE FROM %s WHERE %s BETWEEN $1 AND $2", tableName+"_original", timestampColumn),
+				"DELETE FROM %s WHERE %s BETWEEN $1 AND $2",
+				tableName+"_original",
+				timestampColumn,
+			),
 				start_date,
 				to_date,
 			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Msgf("Failed to select data from table %s", tableName)
+				welcomer.Logger.Error().
+					Err(err).
+					Msgf("Failed to select data from table %s", tableName)
 			}
 
-			welcomer.Logger.Info().Msgf("Migrated data for table %s from %s to %s", tableName, start_date.Format("2006-01-02"), to_date.Format("2006-01-02"))
+			welcomer.Logger.Info().
+				Msgf("Migrated data for table %s from %s to %s", tableName, start_date.Format("2006-01-02"), to_date.Format("2006-01-02"))
 			start_date = to_date
 		}
 	}

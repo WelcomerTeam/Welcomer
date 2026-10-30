@@ -22,7 +22,13 @@ var (
 	ErrMissingPaypalUser        = errors.New("missing user for paypal subscription transaction")
 )
 
-func CreateTransactionForUser(ctx context.Context, userID discord.Snowflake, platformType database.PlatformType, transactionStatus database.TransactionStatus, transactionID, currencyCode, amount string) (*database.UserTransactions, error) {
+func CreateTransactionForUser(
+	ctx context.Context,
+	userID discord.Snowflake,
+	platformType database.PlatformType,
+	transactionStatus database.TransactionStatus,
+	transactionID, currencyCode, amount string,
+) (*database.UserTransactions, error) {
 	return Queries.CreateUserTransaction(ctx, database.CreateUserTransactionParams{
 		UserID:            int64(userID),
 		PlatformType:      int32(platformType),
@@ -33,7 +39,14 @@ func CreateTransactionForUser(ctx context.Context, userID discord.Snowflake, pla
 	})
 }
 
-func CreateMembershipForUser(ctx context.Context, userID discord.Snowflake, transactionUUID uuid.UUID, membershipType database.MembershipType, expiresAt time.Time, guildID *discord.Snowflake) error {
+func CreateMembershipForUser(
+	ctx context.Context,
+	userID discord.Snowflake,
+	transactionUUID uuid.UUID,
+	membershipType database.MembershipType,
+	expiresAt time.Time,
+	guildID *discord.Snowflake,
+) error {
 	var guildIDInt int64
 	if guildID != nil {
 		guildIDInt = int64(*guildID)
@@ -104,8 +117,20 @@ func CreateMembershipForUser(ctx context.Context, userID discord.Snowflake, tran
 }
 
 // Triggers when a membership has been added to the server.
-func onMembershipAdded(ctx context.Context, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
-	println("HandleMembershipAdded", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
+func onMembershipAdded(
+	ctx context.Context,
+	beforeMembership database.GetUserMembershipsByUserIDRow,
+	membership database.UpdateUserMembershipParams,
+) error {
+	println(
+		"HandleMembershipAdded",
+		beforeMembership.MembershipUuid.String(),
+		beforeMembership.UserID,
+		beforeMembership.GuildID,
+		beforeMembership.ExpiresAt.String(),
+		membership.GuildID,
+		membership.ExpiresAt.String(),
+	)
 
 	// Notify of addition?
 
@@ -113,8 +138,20 @@ func onMembershipAdded(ctx context.Context, beforeMembership database.GetUserMem
 }
 
 // Triggers when a membership has had its guild transferred.
-func onMembershipUpdated(ctx context.Context, beforeMembership database.GetUserMembershipsByUserIDRow, membership database.UpdateUserMembershipParams) error {
-	println("HandleMembershipUpdated", beforeMembership.MembershipUuid.String(), beforeMembership.UserID, beforeMembership.GuildID, beforeMembership.ExpiresAt.String(), membership.GuildID, membership.ExpiresAt.String())
+func onMembershipUpdated(
+	ctx context.Context,
+	beforeMembership database.GetUserMembershipsByUserIDRow,
+	membership database.UpdateUserMembershipParams,
+) error {
+	println(
+		"HandleMembershipUpdated",
+		beforeMembership.MembershipUuid.String(),
+		beforeMembership.UserID,
+		beforeMembership.GuildID,
+		beforeMembership.ExpiresAt.String(),
+		membership.GuildID,
+		membership.ExpiresAt.String(),
+	)
 
 	// Notify of transfer?
 
@@ -122,8 +159,17 @@ func onMembershipUpdated(ctx context.Context, beforeMembership database.GetUserM
 }
 
 // Triggers when a membership has been removed from the server.
-func onMembershipRemoved(ctx context.Context, membership database.GetUserMembershipsByUserIDRow) error {
-	println("HandleMembershipRemoved", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+func onMembershipRemoved(
+	ctx context.Context,
+	membership database.GetUserMembershipsByUserIDRow,
+) error {
+	println(
+		"HandleMembershipRemoved",
+		membership.MembershipUuid.String(),
+		membership.UserID,
+		membership.GuildID,
+		membership.ExpiresAt.String(),
+	)
 
 	// Notify of removal?
 
@@ -131,10 +177,19 @@ func onMembershipRemoved(ctx context.Context, membership database.GetUserMembers
 }
 
 // Triggers when a membership has expired and not renewed.
-func OnMembershipExpired(ctx context.Context, membership database.GetUserMembershipsByUserIDRow) error {
+func OnMembershipExpired(
+	ctx context.Context,
+	membership database.GetUserMembershipsByUserIDRow,
+) error {
 	// TODO: implement action
 
-	println("HandleMembershipExpired", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+	println(
+		"HandleMembershipExpired",
+		membership.MembershipUuid.String(),
+		membership.UserID,
+		membership.GuildID,
+		membership.ExpiresAt.String(),
+	)
 
 	// Notify of new membership?
 
@@ -169,15 +224,28 @@ func OnMembershipExpired(ctx context.Context, membership database.GetUserMembers
 }
 
 // Triggers when a membership has been renewed on expiry.
-func onMembershipRenewed(ctx context.Context, membership database.GetUserMembershipsByUserIDRow) error {
+func onMembershipRenewed(
+	ctx context.Context,
+	membership database.GetUserMembershipsByUserIDRow,
+) error {
 	// TODO: implement action
 
-	println("HandleMembershipRenewed", membership.MembershipUuid.String(), membership.UserID, membership.GuildID, membership.ExpiresAt.String())
+	println(
+		"HandleMembershipRenewed",
+		membership.MembershipUuid.String(),
+		membership.UserID,
+		membership.GuildID,
+		membership.ExpiresAt.String(),
+	)
 
 	return nil
 }
 
-func AddMembershipToServer(ctx context.Context, membership database.GetUserMembershipsByUserIDRow, guildID discord.Snowflake) (newMembership database.UpdateUserMembershipParams, err error) {
+func AddMembershipToServer(
+	ctx context.Context,
+	membership database.GetUserMembershipsByUserIDRow,
+	guildID discord.Snowflake,
+) (newMembership database.UpdateUserMembershipParams, err error) {
 	// if membership.GuildID != 0 {
 	// 	Logger.Error().
 	// 		Str("membership_uuid", membership.MembershipUuid.String()).
@@ -198,7 +266,9 @@ func AddMembershipToServer(ctx context.Context, membership database.GetUserMembe
 		database.MembershipStatusIdle:
 
 		// Check if the transaction is completed.
-		if database.TransactionStatus(membership.TransactionStatus.Int32) != database.TransactionStatusCompleted {
+		if database.TransactionStatus(
+			membership.TransactionStatus.Int32,
+		) != database.TransactionStatusCompleted {
 			Logger.Error().
 				Str("membership_uuid", membership.MembershipUuid.String()).
 				Int32("transaction_status", membership.TransactionStatus.Int32).
@@ -270,13 +340,20 @@ func AddMembershipToServer(ctx context.Context, membership database.GetUserMembe
 	}
 }
 
-func RemoveMembershipFromServer(ctx context.Context, membership database.GetUserMembershipsByUserIDRow) (newMembership database.UpdateUserMembershipParams, err error) {
+func RemoveMembershipFromServer(
+	ctx context.Context,
+	membership database.GetUserMembershipsByUserIDRow,
+) (newMembership database.UpdateUserMembershipParams, err error) {
 	if membership.GuildID == 0 {
 		return database.UpdateUserMembershipParams{}, ErrMembershipNotInUse
 	}
 
 	// Only set the status to Idle if the membership is currently Active.
-	membership.Status = If(membership.Status == int32(database.MembershipStatusActive), int32(database.MembershipStatusIdle), membership.Status)
+	membership.Status = If(
+		membership.Status == int32(database.MembershipStatusActive),
+		int32(database.MembershipStatusIdle),
+		membership.Status,
+	)
 	membership.GuildID = 0
 
 	newMembership = database.UpdateUserMembershipParams{

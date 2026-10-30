@@ -17,15 +17,43 @@ import (
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
-	prometheusAddress := flag.String("prometheusAddress", os.Getenv("IMAGE_PROMETHEUS_ADDRESS"), "Prometheus address")
-	imageHost := flag.String("host", os.Getenv("IMAGE_HOST"), "Host to serve the image service interface from")
-	proxyAddress := flag.String("proxyAddress", os.Getenv("IMAGE_PROXY_ADDRESS"), "Proxy address for requests")
+	prometheusAddress := flag.String(
+		"prometheusAddress",
+		os.Getenv("IMAGE_PROMETHEUS_ADDRESS"),
+		"Prometheus address",
+	)
+	imageHost := flag.String(
+		"host",
+		os.Getenv("IMAGE_HOST"),
+		"Host to serve the image service interface from",
+	)
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("IMAGE_PROXY_ADDRESS"),
+		"Proxy address for requests",
+	)
 
-	chromedpStartPort := flag.Int64("chromedpStartPort", welcomer.TryParseInt(os.Getenv("CHROMEDP_START_PORT")), "Start port for chromedp instances")
-	chromedpEndPort := flag.Int64("chromedpEndPort", welcomer.TryParseInt(os.Getenv("CHROMEDP_END_PORT")), "End port for chromedp instances")
-	chromedpServicePrefix := flag.String("chromedpServicePrefix", welcomer.Coalesce(os.Getenv("CHROMEDP_SERVICE_PREFIX"), "127.0.0.1"), "Hostname for chromedp services")
+	chromedpStartPort := flag.Int64(
+		"chromedpStartPort",
+		welcomer.TryParseInt(os.Getenv("CHROMEDP_START_PORT")),
+		"Start port for chromedp instances",
+	)
+	chromedpEndPort := flag.Int64(
+		"chromedpEndPort",
+		welcomer.TryParseInt(os.Getenv("CHROMEDP_END_PORT")),
+		"End port for chromedp instances",
+	)
+	chromedpServicePrefix := flag.String(
+		"chromedpServicePrefix",
+		welcomer.Coalesce(os.Getenv("CHROMEDP_SERVICE_PREFIX"), "127.0.0.1"),
+		"Hostname for chromedp services",
+	)
 
-	chromedpServiceHost := flag.String("chromedpServiceHost", os.Getenv("CHROMEDP_SERVICE_HOST"), "Optional host to use for chromedp which will disable load balancing and directly use it instead")
+	chromedpServiceHost := flag.String(
+		"chromedpServiceHost",
+		os.Getenv("CHROMEDP_SERVICE_HOST"),
+		"Optional host to use for chromedp which will disable load balancing and directly use it instead",
+	)
 
 	releaseMode := flag.String("ginMode", os.Getenv("GIN_MODE"), "gin mode (release/debug)")
 	debug := flag.Bool("debug", false, "When enabled, images will be saved to a file.")
@@ -49,7 +77,11 @@ func main() {
 	if *chromedpServiceHost != "" {
 		imageService.URLPool = service.NewHardcodedPool(*chromedpServiceHost)
 	} else {
-		imageService.URLPool = discoverChromedp(*chromedpServicePrefix, *chromedpStartPort, *chromedpEndPort)
+		imageService.URLPool = discoverChromedp(
+			*chromedpServicePrefix,
+			*chromedpStartPort,
+			*chromedpEndPort,
+		)
 	}
 
 	imageService.Open()
@@ -66,7 +98,10 @@ func main() {
 func discoverChromedp(servicePrefix string, startPort, endPort int64) service.Pool {
 	urls := []string{}
 
-	welcomer.Logger.Info().Int64("start", startPort).Int64("end", endPort).Msg("Probing chromedp ports")
+	welcomer.Logger.Info().
+		Int64("start", startPort).
+		Int64("end", endPort).
+		Msg("Probing chromedp ports")
 
 	for port := startPort; port <= endPort; port++ {
 		host := servicePrefix + ":" + welcomer.Itoa(port)
@@ -78,7 +113,10 @@ func discoverChromedp(servicePrefix string, startPort, endPort int64) service.Po
 			continue
 		}
 
-		welcomer.Logger.Info().Str("host", host).Str("browser", browser).Msg("Found chromedp instance")
+		welcomer.Logger.Info().
+			Str("host", host).
+			Str("browser", browser).
+			Msg("Found chromedp instance")
 
 		urls = append(urls, "ws://"+host)
 	}

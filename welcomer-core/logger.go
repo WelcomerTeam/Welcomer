@@ -16,7 +16,13 @@ func SetupLogger(loggingLevel string) io.Writer {
 
 	level, err := zerolog.ParseLevel(loggingLevel)
 	if err != nil {
-		panic(fmt.Errorf(`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`, loggingLevel, err))
+		panic(
+			fmt.Errorf(
+				`failed to parse loggingLevel. zerolog.ParseLevel(%s): %w`,
+				loggingLevel,
+				err,
+			),
+		)
 	}
 
 	zerolog.SetGlobalLevel(level)

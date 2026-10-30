@@ -17,7 +17,10 @@ type AssignableRole struct {
 	IsElevated   bool `json:"is_elevated"`
 }
 
-func GetWelcomerPresence(ctx context.Context, guildID discord.Snowflake) (guildMembers []*discord.GuildMember, err error) {
+func GetWelcomerPresence(
+	ctx context.Context,
+	guildID discord.Snowflake,
+) (guildMembers []*discord.GuildMember, err error) {
 	pbLocations, err := SandwichClient.WhereIsGuild(ctx, &sandwich_protobuf.WhereIsGuildRequest{
 		GuildId: int64(guildID),
 	})
@@ -42,7 +45,10 @@ func GetWelcomerPresence(ctx context.Context, guildID discord.Snowflake) (guildM
 			GuildId: int64(guildID),
 		})
 		if err != nil {
-			Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
+			Logger.Warn().
+				Err(err).
+				Int64("guild_id", int64(guildID)).
+				Msg("Failed to fetch guild roles")
 
 			return nil, err
 		}
@@ -66,11 +72,18 @@ func GetWelcomerPresence(ctx context.Context, guildID discord.Snowflake) (guildM
 	return guildMembers, err
 }
 
-func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, role *discord.Role) (canAssignRoles, isRoleAssignable, isRoleElevated bool, err error) {
+func Accelerator_CanAssignRole(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	role *discord.Role,
+) (canAssignRoles, isRoleAssignable, isRoleElevated bool, err error) {
 	// Fetch guild roles so we can check if the role is assignable.
-	guildRolesPb, err := SandwichClient.FetchGuildRole(ctx, &sandwich_protobuf.FetchGuildRoleRequest{
-		GuildId: int64(guildID),
-	})
+	guildRolesPb, err := SandwichClient.FetchGuildRole(
+		ctx,
+		&sandwich_protobuf.FetchGuildRoleRequest{
+			GuildId: int64(guildID),
+		},
+	)
 	if err != nil {
 		Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
@@ -113,7 +126,11 @@ func Accelerator_CanAssignRole(ctx context.Context, guildID discord.Snowflake, r
 	return canAssignRoles, isRoleAssignable, isRoleElevated, nil
 }
 
-func CanAssignRole(role *discord.Role, guildRoles []*discord.Role, guildMembers []*discord.GuildMember) (isAssignable, isElevated bool) {
+func CanAssignRole(
+	role *discord.Role,
+	guildRoles []*discord.Role,
+	guildMembers []*discord.GuildMember,
+) (isAssignable, isElevated bool) {
 	if role.Managed {
 		return false, false
 	}
@@ -139,7 +156,10 @@ func GuildMemberCanAssignRoles(guildMember *discord.GuildMember) bool {
 	return false
 }
 
-func CalculateRoleValues(roles []*discord.Role, guildMembers []*discord.GuildMember) (convertedRoles []*AssignableRole) {
+func CalculateRoleValues(
+	roles []*discord.Role,
+	guildMembers []*discord.GuildMember,
+) (convertedRoles []*AssignableRole) {
 	roleMap := map[discord.Snowflake]AssignableRole{}
 
 	for _, role := range roles {
@@ -170,7 +190,10 @@ func CalculateRoleValues(roles []*discord.Role, guildMembers []*discord.GuildMem
 	return convertedRoles
 }
 
-func GetHighestRoleForGuildMember(roleMap map[discord.Snowflake]AssignableRole, guildMember *discord.GuildMember) int32 {
+func GetHighestRoleForGuildMember(
+	roleMap map[discord.Snowflake]AssignableRole,
+	guildMember *discord.GuildMember,
+) int32 {
 	highestRolePosition := int32(0)
 
 	for _, roleID := range guildMember.Roles {
@@ -185,8 +208,19 @@ func GetHighestRoleForGuildMember(roleMap map[discord.Snowflake]AssignableRole, 
 	return highestRolePosition
 }
 
-func FilterAssignableRolesAsSnowflakes(ctx context.Context, sandwichClient pb.SandwichClient, guildID, applicationID int64, roleIDs []int64) (out []discord.Snowflake, err error) {
-	assignableRoles, err := FilterAssignableRoles(ctx, sandwichClient, guildID, applicationID, roleIDs)
+func FilterAssignableRolesAsSnowflakes(
+	ctx context.Context,
+	sandwichClient pb.SandwichClient,
+	guildID, applicationID int64,
+	roleIDs []int64,
+) (out []discord.Snowflake, err error) {
+	assignableRoles, err := FilterAssignableRoles(
+		ctx,
+		sandwichClient,
+		guildID,
+		applicationID,
+		roleIDs,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +233,12 @@ func FilterAssignableRolesAsSnowflakes(ctx context.Context, sandwichClient pb.Sa
 	return out, nil
 }
 
-func FilterAssignableRoles(ctx context.Context, sandwichClient pb.SandwichClient, guildID, applicationID int64, roleIDs []int64) (out []discord.Role, err error) {
+func FilterAssignableRoles(
+	ctx context.Context,
+	sandwichClient pb.SandwichClient,
+	guildID, applicationID int64,
+	roleIDs []int64,
+) (out []discord.Role, err error) {
 	guildRolesPb, err := sandwichClient.FetchGuildRole(ctx, &pb.FetchGuildRoleRequest{
 		GuildId: int64(guildID),
 	})

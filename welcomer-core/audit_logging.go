@@ -9,7 +9,13 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-func AuditChange(ctx context.Context, guildID, userID discord.Snowflake, oldValue, newValue any, auditType database.AuditType, customID string) {
+func AuditChange(
+	ctx context.Context,
+	guildID, userID discord.Snowflake,
+	oldValue, newValue any,
+	auditType database.AuditType,
+	customID string,
+) {
 	changesAsJSON, hasChanges, err := CompareStructsAsJSON(oldValue, newValue)
 	if err != nil {
 		Logger.Warn().Err(err).

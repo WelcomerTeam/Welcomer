@@ -6,9 +6,14 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 )
 
-var themes = make(map[welcomer.ImageTheme]func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error))
+var themes = make(
+	map[welcomer.ImageTheme]func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error),
+)
 
-func registerThemeFunc(theme welcomer.ImageTheme, f func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error)) {
+func registerThemeFunc(
+	theme welcomer.ImageTheme,
+	f func(*ImageService, GenerateImageArguments) (*GenerateThemeResponse, error),
+) {
 	themes[theme] = f
 }
 

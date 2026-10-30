@@ -72,8 +72,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to enable.",
 
 				Choices: []discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallModuleBorderwall, Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall)},
-					{Name: BorderwallModuleDMs, Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs)},
+					{
+						Name:  BorderwallModuleBorderwall,
+						Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall),
+					},
+					{
+						Name:  BorderwallModuleDMs,
+						Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs),
+					},
 				},
 			},
 		},
@@ -82,113 +88,144 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				module := subway.MustGetArgument(ctx, "module").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					module := subway.MustGetArgument(ctx, "module").MustString()
 
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+					guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
+								GuildID:         int64(*interaction.GuildID),
+								ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+								ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+								Channel:         welcomer.DefaultBorderwall.Channel,
+								MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+								MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+								RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+								RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get borderwall guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					switch module {
+					case BorderwallModuleBorderwall:
+						guildSettingsBorderwall.ToggleEnabled = true
+					case BorderwallModuleDMs:
+						guildSettingsBorderwall.ToggleSendDm = true
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown module: "+module,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					// A channel must be set if direct messages are disabled.
+					if guildSettingsBorderwall.Channel == 0 &&
+						guildSettingsBorderwall.ToggleEnabled &&
+						!guildSettingsBorderwall.ToggleSendDm {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"A channel must be selected if you are not sending borderwall messages via direct message. Please set a channel with `/borderwall channel` before enabling borderwall.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateBorderwallGuildSettingsParams{
+									GuildID:         int64(*interaction.GuildID),
+									ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+									ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+									Channel:         guildSettingsBorderwall.Channel,
+									MessageVerify:   guildSettingsBorderwall.MessageVerify,
+									MessageVerified: guildSettingsBorderwall.MessageVerified,
+									RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+									RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
+							Msg("Failed to update borderwall guild settings")
 
 						return nil, err
 					}
-				}
 
-				switch module {
-				case BorderwallModuleBorderwall:
-					guildSettingsBorderwall.ToggleEnabled = true
-				case BorderwallModuleDMs:
-					guildSettingsBorderwall.ToggleSendDm = true
-				default:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				// A channel must be set if direct messages are disabled.
-				if guildSettingsBorderwall.Channel == 0 && guildSettingsBorderwall.ToggleEnabled && !guildSettingsBorderwall.ToggleSendDm {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("A channel must be selected if you are not sending borderwall messages via direct message. Please set a channel with `/borderwall channel` before enabling borderwall.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-							Channel:         guildSettingsBorderwall.Channel,
-							MessageVerify:   guildSettingsBorderwall.MessageVerify,
-							MessageVerified: guildSettingsBorderwall.MessageVerified,
-							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings")
-
-					return nil, err
-				}
-
-				switch module {
-				case BorderwallModuleBorderwall:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Enabled borderwall. Users will now have to verify when joining the server.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				case BorderwallModuleDMs:
-					if guildSettingsBorderwall.ToggleEnabled {
+					switch module {
+					case BorderwallModuleBorderwall:
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled borderwall direct messages. Users will now receive instructions on how to verify with borderwall when joining the server.", welcomer.EmbedColourSuccess),
+								Embeds: welcomer.NewEmbed(
+									"Enabled borderwall. Users will now have to verify when joining the server.",
+									welcomer.EmbedColourSuccess,
+								),
 							},
 						}, nil
-					} else {
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("Enabled borderwall direct messages. Borderwall is not enabled, users won't have to verify when joining the server.", welcomer.EmbedColourWarn),
-							},
-						}, nil
+					case BorderwallModuleDMs:
+						if guildSettingsBorderwall.ToggleEnabled {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"Enabled borderwall direct messages. Users will now receive instructions on how to verify with borderwall when joining the server.",
+										welcomer.EmbedColourSuccess,
+									),
+								},
+							}, nil
+						} else {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"Enabled borderwall direct messages. Borderwall is not enabled, users won't have to verify when joining the server.",
+										welcomer.EmbedColourWarn,
+									),
+								},
+							}, nil
+						}
 					}
-				}
 
-				return nil, nil // Unreachable
-			})
+					return nil, nil // Unreachable
+				},
+			)
 		},
 	})
 
@@ -206,8 +243,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The module to disable.",
 
 				Choices: []discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallModuleBorderwall, Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall)},
-					{Name: BorderwallModuleDMs, Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs)},
+					{
+						Name:  BorderwallModuleBorderwall,
+						Value: welcomer.StringToJsonLiteral(BorderwallModuleBorderwall),
+					},
+					{
+						Name:  BorderwallModuleDMs,
+						Value: welcomer.StringToJsonLiteral(BorderwallModuleDMs),
+					},
 				},
 			},
 		},
@@ -216,93 +259,116 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				module := subway.MustGetArgument(ctx, "module").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					module := subway.MustGetArgument(ctx, "module").MustString()
 
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+					guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
+								GuildID:         int64(*interaction.GuildID),
+								ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+								ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+								Channel:         welcomer.DefaultBorderwall.Channel,
+								MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+								MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+								RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+								RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get borderwall guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					switch module {
+					case BorderwallModuleBorderwall:
+						guildSettingsBorderwall.ToggleEnabled = false
+					case BorderwallModuleDMs:
+						guildSettingsBorderwall.ToggleSendDm = false
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown module: "+module,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateBorderwallGuildSettingsParams{
+									GuildID:         int64(*interaction.GuildID),
+									ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+									ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+									Channel:         guildSettingsBorderwall.Channel,
+									MessageVerify:   guildSettingsBorderwall.MessageVerify,
+									MessageVerified: guildSettingsBorderwall.MessageVerified,
+									RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+									RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
+							Msg("Failed to update borderwall guild settings")
 
 						return nil, err
 					}
-				}
 
-				switch module {
-				case BorderwallModuleBorderwall:
-					guildSettingsBorderwall.ToggleEnabled = false
-				case BorderwallModuleDMs:
-					guildSettingsBorderwall.ToggleSendDm = false
-				default:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown module: "+module, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
+					switch module {
+					case BorderwallModuleBorderwall:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Disabled borderwall.",
+									welcomer.EmbedColourSuccess,
+								),
+							},
+						}, nil
+					case BorderwallModuleDMs:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Disabled borderwall direct messages.",
+									welcomer.EmbedColourSuccess,
+								),
+							},
+						}, nil
+					}
 
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-							Channel:         guildSettingsBorderwall.Channel,
-							MessageVerify:   guildSettingsBorderwall.MessageVerify,
-							MessageVerified: guildSettingsBorderwall.MessageVerified,
-							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings")
-
-					return nil, err
-				}
-
-				switch module {
-				case BorderwallModuleBorderwall:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled borderwall.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				case BorderwallModuleDMs:
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Disabled borderwall direct messages.", welcomer.EmbedColourSuccess),
-						},
-					}, nil
-				}
-
-				return nil, nil // Unreachable
-			})
+					return nil, nil // Unreachable
+				},
+			)
 		},
 	})
 
@@ -316,19 +382,26 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: []discord.Embed{
-							{
-								Description: fmt.Sprintf("Configure your borderwall verify and verified messages on our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()+"/borderwall"),
-								Color:       welcomer.EmbedColourInfo,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: []discord.Embed{
+								{
+									Description: fmt.Sprintf(
+										"Configure your borderwall verify and verified messages on our dashboard [**here**](%s).",
+										welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()+"/borderwall",
+									),
+									Color: welcomer.EmbedColourInfo,
+								},
 							},
 						},
-					},
-				}, nil
-			})
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -351,68 +424,85 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+					guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
+								GuildID:         int64(*interaction.GuildID),
+								ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+								ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+								Channel:         welcomer.DefaultBorderwall.Channel,
+								MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+								MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+								RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+								RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get borderwall guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsBorderwall.Channel = int64(channel.ID)
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateBorderwallGuildSettingsParams{
+									GuildID:         int64(*interaction.GuildID),
+									ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+									ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+									Channel:         guildSettingsBorderwall.Channel,
+									MessageVerify:   guildSettingsBorderwall.MessageVerify,
+									MessageVerified: guildSettingsBorderwall.MessageVerified,
+									RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+									RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
+							Msg("Failed to update borderwall guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsBorderwall.Channel = int64(channel.ID)
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-							Channel:         guildSettingsBorderwall.Channel,
-							MessageVerify:   guildSettingsBorderwall.MessageVerify,
-							MessageVerified: guildSettingsBorderwall.MessageVerified,
-							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Set borderwall channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Set borderwall channel to: <#"+channel.ID.String()+">.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -430,8 +520,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Description:  "The type of role to list.",
 
 				Choices: []discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallRoleTypeJoin, Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeJoin)},
-					{Name: BorderwallRoleTypeVerify, Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeVerify)},
+					{
+						Name:  BorderwallRoleTypeJoin,
+						Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeJoin),
+					},
+					{
+						Name:  BorderwallRoleTypeVerify,
+						Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeVerify),
+					},
 				},
 			},
 		},
@@ -440,82 +536,101 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				roleType := subway.MustGetArgument(ctx, "type").MustString()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					roleType := subway.MustGetArgument(ctx, "type").MustString()
 
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+					guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
+								GuildID:         int64(*interaction.GuildID),
+								ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+								ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+								Channel:         welcomer.DefaultBorderwall.Channel,
+								MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+								MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+								RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+								RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get borderwall guild settings")
+
+							return nil, err
 						}
-					} else {
-						welcomer.Logger.Error().Err(err).
-							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
-
-						return nil, err
 					}
-				}
 
-				var roles []int64
+					var roles []int64
 
-				switch roleType {
-				case BorderwallRoleTypeJoin:
-					roles = guildSettingsBorderwall.RolesOnJoin
-				case BorderwallRoleTypeVerify:
-					roles = guildSettingsBorderwall.RolesOnVerify
-				default:
+					switch roleType {
+					case BorderwallRoleTypeJoin:
+						roles = guildSettingsBorderwall.RolesOnJoin
+					case BorderwallRoleTypeVerify:
+						roles = guildSettingsBorderwall.RolesOnVerify
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown role type: "+roleType,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					if len(roles) == 0 {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									fmt.Sprintf(
+										"There are no borderwall %s roles set for this server.",
+										roleType,
+									),
+									welcomer.EmbedColourInfo,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					embeds := []discord.Embed{}
+					embed := discord.Embed{
+						Title: "Borderwall " + roleType + " roles",
+						Color: welcomer.EmbedColourInfo,
+					}
+
+					for _, roleID := range roles {
+						roleMessage := fmt.Sprintf("- <@&%d>\n", roleID)
+
+						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
+						if len(embed.Description)+len(roleMessage) > 4000 {
+							embeds = append(embeds, embed)
+							embed = discord.Embed{Color: welcomer.EmbedColourInfo}
+						}
+
+						embed.Description += roleMessage
+					}
+
+					embeds = append(embeds, embed)
+
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown role type: "+roleType, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: embeds,
 						},
 					}, nil
-				}
-
-				if len(roles) == 0 {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed(fmt.Sprintf("There are no borderwall %s roles set for this server.", roleType), welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				embeds := []discord.Embed{}
-				embed := discord.Embed{Title: "Borderwall " + roleType + " roles", Color: welcomer.EmbedColourInfo}
-
-				for _, roleID := range roles {
-					roleMessage := fmt.Sprintf("- <@&%d>\n", roleID)
-
-					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
-					if len(embed.Description)+len(roleMessage) > 4000 {
-						embeds = append(embeds, embed)
-						embed = discord.Embed{Color: welcomer.EmbedColourInfo}
-					}
-
-					embed.Description += roleMessage
-				}
-
-				embeds = append(embeds, embed)
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: embeds,
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
@@ -533,8 +648,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Required:     true,
 
 				Choices: []discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallRoleTypeJoin, Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeJoin)},
-					{Name: BorderwallRoleTypeVerify, Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeVerify)},
+					{
+						Name:  BorderwallRoleTypeJoin,
+						Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeJoin),
+					},
+					{
+						Name:  BorderwallRoleTypeVerify,
+						Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeVerify),
+					},
 				},
 			},
 			{
@@ -555,145 +676,197 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				roleType := subway.MustGetArgument(ctx, "type").MustString()
-				role := subway.MustGetArgument(ctx, "role").MustRole()
-				ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").MustBool()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					roleType := subway.MustGetArgument(ctx, "type").MustString()
+					role := subway.MustGetArgument(ctx, "role").MustRole()
+					ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").
+						MustBool()
 
-				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, &role)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to check if welcomer can assign role")
-
-					return nil, err
-				}
-
-				if !canAssignRoles {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Welcomer is missing permissions to assign roles", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
-				if !isRoleAssignable {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("### This role is not assignable\nWelcomer cannot assign users this role as it does not have permission to manage roles or Welcomer's highest role is below this role's position. Please rearrange your roles in the server settings to move Welcomer's role above this role.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				if !ignoreRolePermissions && isRoleElevated {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.\n\nPermissions:\n"+welcomer.GetRolePermissionListAsString(int(role.Permissions)), welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
-						}
-					} else {
+					canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(
+						ctx,
+						*interaction.GuildID,
+						&role,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
+							Msg("Failed to check if welcomer can assign role")
 
 						return nil, err
 					}
-				}
 
-				switch roleType {
-				case BorderwallRoleTypeJoin:
-					// Check if the role is already in the list.
-					if slices.Contains(guildSettingsBorderwall.RolesOnJoin, int64(role.ID)) {
+					if !canAssignRoles {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This role is already in the list.", welcomer.EmbedColourError),
-								Flags:  uint32(discord.MessageFlagEphemeral),
+								Embeds: welcomer.NewEmbed(
+									"Welcomer is missing permissions to assign roles",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
 					}
 
-					guildSettingsBorderwall.RolesOnJoin = append(guildSettingsBorderwall.RolesOnJoin, int64(role.ID))
-				case BorderwallRoleTypeVerify:
-					// Check if the role is already in the list.
-					if slices.Contains(guildSettingsBorderwall.RolesOnVerify, int64(role.ID)) {
+					// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
+					if !isRoleAssignable {
 						return &discord.InteractionResponse{
 							Type: discord.InteractionCallbackTypeChannelMessageSource,
 							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This role is already in the list.", welcomer.EmbedColourError),
-								Flags:  uint32(discord.MessageFlagEphemeral),
+								Embeds: welcomer.NewEmbed(
+									"### This role is not assignable\nWelcomer cannot assign users this role as it does not have permission to manage roles or Welcomer's highest role is below this role's position. Please rearrange your roles in the server settings to move Welcomer's role above this role.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
 							},
 						}, nil
 					}
 
-					guildSettingsBorderwall.RolesOnVerify = append(guildSettingsBorderwall.RolesOnVerify, int64(role.ID))
-				default:
+					if !ignoreRolePermissions && isRoleElevated {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.\n\nPermissions:\n"+welcomer.GetRolePermissionListAsString(
+										int(role.Permissions),
+									),
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
+								GuildID:         int64(*interaction.GuildID),
+								ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+								ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+								Channel:         welcomer.DefaultBorderwall.Channel,
+								MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+								MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+								RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+								RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get borderwall guild settings")
+
+							return nil, err
+						}
+					}
+
+					switch roleType {
+					case BorderwallRoleTypeJoin:
+						// Check if the role is already in the list.
+						if slices.Contains(guildSettingsBorderwall.RolesOnJoin, int64(role.ID)) {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"This role is already in the list.",
+										welcomer.EmbedColourError,
+									),
+									Flags: uint32(discord.MessageFlagEphemeral),
+								},
+							}, nil
+						}
+
+						guildSettingsBorderwall.RolesOnJoin = append(
+							guildSettingsBorderwall.RolesOnJoin,
+							int64(role.ID),
+						)
+					case BorderwallRoleTypeVerify:
+						// Check if the role is already in the list.
+						if slices.Contains(guildSettingsBorderwall.RolesOnVerify, int64(role.ID)) {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"This role is already in the list.",
+										welcomer.EmbedColourError,
+									),
+									Flags: uint32(discord.MessageFlagEphemeral),
+								},
+							}, nil
+						}
+
+						guildSettingsBorderwall.RolesOnVerify = append(
+							guildSettingsBorderwall.RolesOnVerify,
+							int64(role.ID),
+						)
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown role type: "+roleType,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateBorderwallGuildSettingsParams{
+									GuildID:         int64(*interaction.GuildID),
+									ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+									ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+									Channel:         guildSettingsBorderwall.Channel,
+									MessageVerify:   guildSettingsBorderwall.MessageVerify,
+									MessageVerified: guildSettingsBorderwall.MessageVerified,
+									RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+									RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to update borderwall guild settings")
+
+						return nil, err
+					}
+
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown role type: "+roleType, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf(
+									"Added role <@&%d> to borderwall %s roles. Run `/borderwall listroles` to see the list of roles configured.",
+									role.ID,
+									roleType,
+								),
+								welcomer.EmbedColourSuccess,
+							),
 						},
 					}, nil
-				}
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-							Channel:         guildSettingsBorderwall.Channel,
-							MessageVerify:   guildSettingsBorderwall.MessageVerify,
-							MessageVerified: guildSettingsBorderwall.MessageVerified,
-							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Added role <@&%d> to borderwall %s roles. Run `/borderwall listroles` to see the list of roles configured.", role.ID, roleType), welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
@@ -711,8 +884,14 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 				Required:     true,
 
 				Choices: []discord.ApplicationCommandOptionChoice{
-					{Name: BorderwallRoleTypeJoin, Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeJoin)},
-					{Name: BorderwallRoleTypeVerify, Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeVerify)},
+					{
+						Name:  BorderwallRoleTypeJoin,
+						Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeJoin),
+					},
+					{
+						Name:  BorderwallRoleTypeVerify,
+						Value: welcomer.StringToJsonLiteral(BorderwallRoleTypeVerify),
+					},
 				},
 			},
 			{
@@ -727,110 +906,146 @@ func (b *BorderwallCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				roleType := subway.MustGetArgument(ctx, "type").MustString()
-				role := subway.MustGetArgument(ctx, "role").MustRole()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					roleType := subway.MustGetArgument(ctx, "type").MustString()
+					role := subway.MustGetArgument(ctx, "role").MustRole()
 
-				guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
-							ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
-							Channel:         welcomer.DefaultBorderwall.Channel,
-							MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
-							MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
-							RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
-							RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+					guildSettingsBorderwall, err := welcomer.Queries.GetBorderwallGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsBorderwall = &database.GetBorderwallGuildSettingsRow{
+								GuildID:         int64(*interaction.GuildID),
+								ToggleEnabled:   welcomer.DefaultBorderwall.ToggleEnabled,
+								ToggleSendDm:    welcomer.DefaultBorderwall.ToggleSendDm,
+								Channel:         welcomer.DefaultBorderwall.Channel,
+								MessageVerify:   welcomer.DefaultBorderwall.MessageVerify,
+								MessageVerified: welcomer.DefaultBorderwall.MessageVerified,
+								RolesOnJoin:     welcomer.DefaultBorderwall.RolesOnJoin,
+								RolesOnVerify:   welcomer.DefaultBorderwall.RolesOnVerify,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get borderwall guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					switch roleType {
+					case BorderwallRoleTypeJoin:
+						// Check if the role exists in the list.
+						if !slices.Contains(guildSettingsBorderwall.RolesOnJoin, int64(role.ID)) {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"This role is not in the list.",
+										welcomer.EmbedColourError,
+									),
+									Flags: uint32(discord.MessageFlagEphemeral),
+								},
+							}, nil
+						}
+
+						// Remove the role from the list.
+						guildSettingsBorderwall.RolesOnJoin = slices.DeleteFunc(
+							guildSettingsBorderwall.RolesOnJoin,
+							func(r int64) bool {
+								return r == int64(role.ID)
+							},
+						)
+					case BorderwallRoleTypeVerify:
+						// Check if the role exists in the list.
+						if !slices.Contains(guildSettingsBorderwall.RolesOnVerify, int64(role.ID)) {
+							return &discord.InteractionResponse{
+								Type: discord.InteractionCallbackTypeChannelMessageSource,
+								Data: &discord.InteractionCallbackData{
+									Embeds: welcomer.NewEmbed(
+										"This role is not in the list.",
+										welcomer.EmbedColourError,
+									),
+									Flags: uint32(discord.MessageFlagEphemeral),
+								},
+							}, nil
+						}
+
+						// Remove the role from the list.
+						guildSettingsBorderwall.RolesOnVerify = slices.DeleteFunc(
+							guildSettingsBorderwall.RolesOnVerify,
+							func(r int64) bool {
+								return r == int64(role.ID)
+							},
+						)
+					default:
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Unknown role type: "+roleType,
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateBorderwallGuildSettingsParams{
+									GuildID:         int64(*interaction.GuildID),
+									ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
+									ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
+									Channel:         guildSettingsBorderwall.Channel,
+									MessageVerify:   guildSettingsBorderwall.MessageVerify,
+									MessageVerified: guildSettingsBorderwall.MessageVerified,
+									RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
+									RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get borderwall guild settings")
+							Msg("Failed to update borderwall guild settings")
 
 						return nil, err
 					}
-				}
 
-				switch roleType {
-				case BorderwallRoleTypeJoin:
-					// Check if the role exists in the list.
-					if !slices.Contains(guildSettingsBorderwall.RolesOnJoin, int64(role.ID)) {
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This role is not in the list.", welcomer.EmbedColourError),
-								Flags:  uint32(discord.MessageFlagEphemeral),
-							},
-						}, nil
-					}
-
-					// Remove the role from the list.
-					guildSettingsBorderwall.RolesOnJoin = slices.DeleteFunc(guildSettingsBorderwall.RolesOnJoin, func(r int64) bool {
-						return r == int64(role.ID)
-					})
-				case BorderwallRoleTypeVerify:
-					// Check if the role exists in the list.
-					if !slices.Contains(guildSettingsBorderwall.RolesOnVerify, int64(role.ID)) {
-						return &discord.InteractionResponse{
-							Type: discord.InteractionCallbackTypeChannelMessageSource,
-							Data: &discord.InteractionCallbackData{
-								Embeds: welcomer.NewEmbed("This role is not in the list.", welcomer.EmbedColourError),
-								Flags:  uint32(discord.MessageFlagEphemeral),
-							},
-						}, nil
-					}
-
-					// Remove the role from the list.
-					guildSettingsBorderwall.RolesOnVerify = slices.DeleteFunc(guildSettingsBorderwall.RolesOnVerify, func(r int64) bool {
-						return r == int64(role.ID)
-					})
-				default:
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Unknown role type: "+roleType, welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf(
+									"Removed role <@&%d> from borderwall %s roles. Run `/borderwall listroles` to see the list of roles configured.",
+									role.ID,
+									roleType,
+								),
+								welcomer.EmbedColourSuccess,
+							),
 						},
 					}, nil
-				}
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateBorderwallGuildSettingsWithAudit(ctx, database.CreateOrUpdateBorderwallGuildSettingsParams{
-							GuildID:         int64(*interaction.GuildID),
-							ToggleEnabled:   guildSettingsBorderwall.ToggleEnabled,
-							ToggleSendDm:    guildSettingsBorderwall.ToggleSendDm,
-							Channel:         guildSettingsBorderwall.Channel,
-							MessageVerify:   guildSettingsBorderwall.MessageVerify,
-							MessageVerified: guildSettingsBorderwall.MessageVerified,
-							RolesOnJoin:     guildSettingsBorderwall.RolesOnJoin,
-							RolesOnVerify:   guildSettingsBorderwall.RolesOnVerify,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update borderwall guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Removed role <@&%d> from borderwall %s roles. Run `/borderwall listroles` to see the list of roles configured.", role.ID, roleType), welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 

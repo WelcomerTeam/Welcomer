@@ -9,8 +9,17 @@ import (
 )
 
 // Triggers when a patreon tier has changed.
-func OnPatreonTierChanged(ctx context.Context, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams) error {
-	println("HandlePatreonTierChanged", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID)
+func OnPatreonTierChanged(
+	ctx context.Context,
+	beforePatreonUser *database.PatreonUsers,
+	patreonUser database.CreateOrUpdatePatreonUserParams,
+) error {
+	println(
+		"HandlePatreonTierChanged",
+		beforePatreonUser.PatreonUserID,
+		beforePatreonUser.TierID,
+		patreonUser.TierID,
+	)
 
 	eligibleMemberships := 0
 
@@ -60,7 +69,15 @@ func OnPatreonTierChanged(ctx context.Context, beforePatreonUser *database.Patre
 			Int64("user_id", int64(patreonUser.UserID)).
 			Msg("No patreon transaction found")
 
-		transaction, err := CreateTransactionForUser(ctx, discord.Snowflake(patreonUser.UserID), database.PlatformTypePatreon, database.TransactionStatusCompleted, "", "", "")
+		transaction, err := CreateTransactionForUser(
+			ctx,
+			discord.Snowflake(patreonUser.UserID),
+			database.PlatformTypePatreon,
+			database.TransactionStatusCompleted,
+			"",
+			"",
+			"",
+		)
 		if err != nil {
 			Logger.Error().Err(err).
 				Int64("user_id", int64(patreonUser.UserID)).
@@ -145,7 +162,14 @@ func OnPatreonTierChanged(ctx context.Context, beforePatreonUser *database.Patre
 		// Add memberships
 
 		for i := len(patreonMemberships); i < eligibleMemberships; i++ {
-			err = CreateMembershipForUser(ctx, discord.Snowflake(patreonUser.UserID), patreonTransaction.TransactionUuid, membershipType, membershipExpiration, nil)
+			err = CreateMembershipForUser(
+				ctx,
+				discord.Snowflake(patreonUser.UserID),
+				patreonTransaction.TransactionUuid,
+				membershipType,
+				membershipExpiration,
+				nil,
+			)
 			if err != nil {
 				Logger.Error().Err(err).
 					Int64("user_id", int64(patreonUser.UserID)).
@@ -189,8 +213,19 @@ func OnPatreonTierChanged(ctx context.Context, beforePatreonUser *database.Patre
 }
 
 // Triggers when a patreon tier has changed. Ran if OnPatreonTierChange failed to run.
-func OnPatreonTierChanged_Fallback(ctx context.Context, beforePatreonUser *database.PatreonUsers, patreonUser database.CreateOrUpdatePatreonUserParams, e error) error {
-	println("HandlePatreonTierChanged_Fallback", beforePatreonUser.PatreonUserID, beforePatreonUser.TierID, patreonUser.TierID, e.Error())
+func OnPatreonTierChanged_Fallback(
+	ctx context.Context,
+	beforePatreonUser *database.PatreonUsers,
+	patreonUser database.CreateOrUpdatePatreonUserParams,
+	e error,
+) error {
+	println(
+		"HandlePatreonTierChanged_Fallback",
+		beforePatreonUser.PatreonUserID,
+		beforePatreonUser.TierID,
+		patreonUser.TierID,
+		e.Error(),
+	)
 
 	// TODO: Log to file/webhook
 
@@ -198,8 +233,18 @@ func OnPatreonTierChanged_Fallback(ctx context.Context, beforePatreonUser *datab
 }
 
 // Triggers when a patron is no longer pledging
-func OnPatreonNoLongerPledging(ctx context.Context, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
-	println("HandlePatreonNoLongerPledging", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus)
+func OnPatreonNoLongerPledging(
+	ctx context.Context,
+	patreonUser database.PatreonUsers,
+	patreonMember PatreonMember,
+) error {
+	println(
+		"HandlePatreonNoLongerPledging",
+		patreonUser.PatreonUserID,
+		patreonUser.UserID,
+		patreonUser.TierID,
+		patreonMember.Attributes.PatronStatus,
+	)
 
 	// Update pledge ended at.
 	_, err := Queries.CreateOrUpdatePatreonUser(ctx, database.CreateOrUpdatePatreonUserParams{
@@ -240,7 +285,13 @@ func OnPatreonNoLongerPledging(ctx context.Context, patreonUser database.Patreon
 
 	// If no longer pledging, ensure membership lasts a month after last purchase.
 	for _, membership := range memberships {
-		if database.MembershipType(membership.PlatformType.Int32) == database.MembershipType(database.PlatformTypePatreon) && (membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) && membership.ExpiresAt.After(time.Now()) {
+		if database.MembershipType(
+			membership.PlatformType.Int32,
+		) == database.MembershipType(
+			database.PlatformTypePatreon,
+		) &&
+			(membership.Status == int32(database.MembershipStatusActive) || membership.Status == int32(database.MembershipStatusIdle)) &&
+			membership.ExpiresAt.After(time.Now()) {
 			membership.ExpiresAt = membershipExpiration
 
 			_, err = Queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
@@ -266,8 +317,19 @@ func OnPatreonNoLongerPledging(ctx context.Context, patreonUser database.Patreon
 }
 
 // Triggered when a patron is still pledging.
-func OnPatreonActive(ctx context.Context, patreonUser database.PatreonUsers, patreonMember PatreonMember) error {
-	println("HandlePatreonActive", patreonUser.PatreonUserID, patreonUser.UserID, patreonUser.TierID, patreonMember.Attributes.PatronStatus, patreonMember.Attributes.LastChargeStatus)
+func OnPatreonActive(
+	ctx context.Context,
+	patreonUser database.PatreonUsers,
+	patreonMember PatreonMember,
+) error {
+	println(
+		"HandlePatreonActive",
+		patreonUser.PatreonUserID,
+		patreonUser.UserID,
+		patreonUser.TierID,
+		patreonMember.Attributes.PatronStatus,
+		patreonMember.Attributes.LastChargeStatus,
+	)
 
 	// Update patreon user
 	_, err := Queries.CreateOrUpdatePatreonUser(ctx, database.CreateOrUpdatePatreonUserParams{
@@ -308,7 +370,11 @@ func OnPatreonActive(ctx context.Context, patreonUser database.PatreonUsers, pat
 
 	// If no longer pledging, ensure membership lasts a month after last purchase.
 	for _, membership := range memberships {
-		if database.MembershipType(membership.PlatformType.Int32) == database.MembershipType(database.PlatformTypePatreon) {
+		if database.MembershipType(
+			membership.PlatformType.Int32,
+		) == database.MembershipType(
+			database.PlatformTypePatreon,
+		) {
 			membership.ExpiresAt = membershipExpiration
 
 			_, err = Queries.UpdateUserMembership(ctx, database.UpdateUserMembershipParams{
@@ -335,7 +401,12 @@ func OnPatreonActive(ctx context.Context, patreonUser database.PatreonUsers, pat
 
 // Triggers when a patreon account has been linked.
 func OnPatreonLinked(ctx context.Context, patreonUser PatreonUser, automatic bool) error {
-	println("HandlePatreonLinked", patreonUser.SocialConnections.Discord.UserID.String(), patreonUser.ID, automatic)
+	println(
+		"HandlePatreonLinked",
+		patreonUser.SocialConnections.Discord.UserID.String(),
+		patreonUser.ID,
+		automatic,
+	)
 
 	// TODO: Notify of linked if not automatic or automatic and has tier.
 

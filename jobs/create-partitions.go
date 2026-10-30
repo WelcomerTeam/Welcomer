@@ -20,7 +20,11 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
 	flag.Parse()
 
@@ -68,19 +72,34 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 	}
 
 	for tableName, timestampColumn := range tableNames {
-		now := time.Date(time.Now().Year(), time.Now().Month(), 1, 0, 0, 0, 0, time.Now().Location())
+		now := time.Date(
+			time.Now().Year(),
+			time.Now().Month(),
+			1,
+			0,
+			0,
+			0,
+			0,
+			time.Now().Location(),
+		)
 
 		err := createPartitions(ctx, tableName, timestampColumn, now)
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Msgf("Failed to create partitions for table %s", tableName)
+			welcomer.Logger.Error().
+				Err(err).
+				Msgf("Failed to create partitions for table %s", tableName)
 			err = welcomer.SendWebhookMessage(ctx, webhookUrl, discord.WebhookMessageParams{
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Create Partitions",
-						Description: fmt.Sprintf("Failed to create partitions for table %s: %v", tableName, err),
-						Color:       int32(16760839),
-						Timestamp:   new(time.Now()),
+						Title: "Create Partitions",
+						Description: fmt.Sprintf(
+							"Failed to create partitions for table %s: %v",
+							tableName,
+							err,
+						),
+						Color:     int32(16760839),
+						Timestamp: new(time.Now()),
 					},
 				},
 			})
@@ -91,15 +110,21 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 
 		err = createPartitions(ctx, tableName, timestampColumn, now.AddDate(0, 1, 0))
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Msgf("Failed to create partitions for table %s", tableName)
+			welcomer.Logger.Error().
+				Err(err).
+				Msgf("Failed to create partitions for table %s", tableName)
 			err = welcomer.SendWebhookMessage(ctx, webhookUrl, discord.WebhookMessageParams{
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Create Partitions",
-						Description: fmt.Sprintf("Failed to create partitions for table %s: %v", tableName, err),
-						Color:       int32(16760839),
-						Timestamp:   new(time.Now()),
+						Title: "Create Partitions",
+						Description: fmt.Sprintf(
+							"Failed to create partitions for table %s: %v",
+							tableName,
+							err,
+						),
+						Color:     int32(16760839),
+						Timestamp: new(time.Now()),
 					},
 				},
 			})
@@ -110,7 +135,11 @@ func entrypoint(ctx context.Context, webhookUrl string) {
 	}
 }
 
-func createPartitions(ctx context.Context, tableName, timestampColumn string, partitionTime time.Time) error {
+func createPartitions(
+	ctx context.Context,
+	tableName, timestampColumn string,
+	partitionTime time.Time,
+) error {
 	start := partitionTime
 	end := partitionTime.AddDate(0, 1, 0)
 
@@ -127,7 +156,8 @@ func createPartitions(ctx context.Context, tableName, timestampColumn string, pa
 		return fmt.Errorf("failed to create partition %s: %w", partitionName, err)
 	}
 
-	welcomer.Logger.Info().Msgf("Successfully created partition %s for table %s", partitionName, tableName)
+	welcomer.Logger.Info().
+		Msgf("Successfully created partition %s for table %s", partitionName, tableName)
 
 	return nil
 }

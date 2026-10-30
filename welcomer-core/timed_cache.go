@@ -18,7 +18,10 @@ type cacheItem[V any] struct {
 	lastAccess time.Time
 }
 
-func NewTimedCache[K comparable, V any](capacity int, maxDuration time.Duration) *TTLLRUCache[K, V] {
+func NewTimedCache[K comparable, V any](
+	capacity int,
+	maxDuration time.Duration,
+) *TTLLRUCache[K, V] {
 	return &TTLLRUCache[K, V]{
 		mu:          sync.RWMutex{},
 		capacity:    capacity,

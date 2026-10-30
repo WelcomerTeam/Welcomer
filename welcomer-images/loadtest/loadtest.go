@@ -105,7 +105,11 @@ func doLoadTest() {
 		req := getImageRequest()
 		jval, _ := json.Marshal(req)
 
-		res, err := http.Post("http://127.0.0.1:4003/generate", "application/json", bytes.NewBuffer(jval))
+		res, err := http.Post(
+			"http://127.0.0.1:4003/generate",
+			"application/json",
+			bytes.NewBuffer(jval),
+		)
 		if err != nil {
 			r, _ := json.Marshal(req)
 			println(err.Error(), string(r))

@@ -24,11 +24,23 @@ func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_CLEANUP_EXPIRED_LEAVER_MESSAGES_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_CLEANUP_EXPIRED_LEAVER_MESSAGES_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup.",
+	)
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
 	flag.Parse()
@@ -58,9 +70,12 @@ func main() {
 	}()
 
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 
 	restInterface := welcomer.NewTwilightProxy(*proxyAddress)
@@ -128,9 +143,16 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 			Int32("leaver_message_lifetime", item.LeaverMessageLifetime).
 			Msg("Cleaning up expired leaver messages for guild")
 
-		countDeleted, err := cleanupLeaverMessagesForGuild(ctx, discord.Snowflake(item.GuildID), item.LeaverMessageLifetime)
+		countDeleted, err := cleanupLeaverMessagesForGuild(
+			ctx,
+			discord.Snowflake(item.GuildID),
+			item.LeaverMessageLifetime,
+		)
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Int64("guild_id", item.GuildID).Msg("Failed to cleanup leaver messages for guild")
+			welcomer.Logger.Error().
+				Err(err).
+				Int64("guild_id", item.GuildID).
+				Msg("Failed to cleanup leaver messages for guild")
 		}
 
 		totalCountDeleted += countDeleted
@@ -141,7 +163,11 @@ func entrypoint(ctx context.Context, db *pgx.Conn) {
 		Msg("Completed cleanup of expired leaver messages")
 }
 
-func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflake, leaverMessageLifetime int32) (int, error) {
+func cleanupLeaverMessagesForGuild(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	leaverMessageLifetime int32,
+) (int, error) {
 	hasWelcomerPro, _, _, _ := welcomer.CheckGuildMemberships(ctx, guildID)
 
 	if !hasWelcomerPro {
@@ -149,18 +175,27 @@ func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflak
 		return 0, nil
 	}
 
-	pbRoles, err := welcomer.SandwichClient.FetchGuildRole(ctx, &sandwich_protobuf.FetchGuildRoleRequest{
-		GuildId: int64(guildID),
-	})
+	pbRoles, err := welcomer.SandwichClient.FetchGuildRole(
+		ctx,
+		&sandwich_protobuf.FetchGuildRoleRequest{
+			GuildId: int64(guildID),
+		},
+	)
 	if err != nil {
-		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
+		welcomer.Logger.Warn().
+			Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to fetch guild roles")
 
 		return 0, fmt.Errorf("failed to fetch guild roles: %w", err)
 	}
 
-	locations, err := welcomer.SandwichClient.WhereIsGuild(ctx, &sandwich_protobuf.WhereIsGuildRequest{
-		GuildId: int64(guildID),
-	})
+	locations, err := welcomer.SandwichClient.WhereIsGuild(
+		ctx,
+		&sandwich_protobuf.WhereIsGuildRequest{
+			GuildId: int64(guildID),
+		},
+	)
 	if err != nil {
 		return 0, fmt.Errorf("failed to find guild location: %w", err)
 	}
@@ -188,11 +223,16 @@ func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflak
 			(guildMember.Permissions&discord.PermissionAdministrator != 0) {
 			applicationIdentifier := location.GetIdentifier()
 
-			application, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{
-				ApplicationIdentifier: applicationIdentifier,
-			})
+			application, err := welcomer.SandwichClient.FetchApplication(
+				ctx,
+				&sandwich_protobuf.ApplicationIdentifier{
+					ApplicationIdentifier: applicationIdentifier,
+				},
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("application_identifier", applicationIdentifier).
+				welcomer.Logger.Error().
+					Err(err).
+					Str("application_identifier", applicationIdentifier).
 					Msg("Failed to fetch application for guild location")
 
 				continue
@@ -223,14 +263,23 @@ func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflak
 
 	lifetime := time.Now().Add(time.Second * time.Duration(-leaverMessageLifetime))
 
-	messagesToDelete, err := welcomer.Queries.GetExpiredWelcomeMessageEvents(ctx, database.GetExpiredWelcomeMessageEventsParams{
-		ScienceGuildEventTypeUserWelcomed:          int32(database.ScienceGuildEventTypeUserLeftMessage),
-		ScienceGuildEventTypeWelcomeMessageRemoved: int32(database.ScienceGuildEventTypeLeaverMessageRemoved),
-		GuildID:                        int64(guildID),
-		EventLimit:                     50,
-		WelcomeMessageLifetime:         lifetime,
-		WelcomeMessageLifetimeLookback: lifetime.Add(time.Hour * (-24 * 7)), // Look back only 7 days for performance reasons.
-	})
+	messagesToDelete, err := welcomer.Queries.GetExpiredWelcomeMessageEvents(
+		ctx,
+		database.GetExpiredWelcomeMessageEventsParams{
+			ScienceGuildEventTypeUserWelcomed: int32(
+				database.ScienceGuildEventTypeUserLeftMessage,
+			),
+			ScienceGuildEventTypeWelcomeMessageRemoved: int32(
+				database.ScienceGuildEventTypeLeaverMessageRemoved,
+			),
+			GuildID:                int64(guildID),
+			EventLimit:             50,
+			WelcomeMessageLifetime: lifetime,
+			WelcomeMessageLifetimeLookback: lifetime.Add(
+				time.Hour * (-24 * 7),
+			), // Look back only 7 days for performance reasons.
+		},
+	)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get expired welcome message events: %w", err)
 	}
@@ -253,9 +302,18 @@ func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflak
 		}
 
 		if len(messageIDs) > 2 {
-			err = discord.BulkDeleteMessages(ctx, session, channelID, messageIDs, new("Expired leaver message cleanup"))
+			err = discord.BulkDeleteMessages(
+				ctx,
+				session,
+				channelID,
+				messageIDs,
+				new("Expired leaver message cleanup"),
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(channelID)).
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Int64("channel_id", int64(channelID)).
 					Msg("Failed to bulk delete welcome messages for guild")
 			}
 		} else {
@@ -263,7 +321,10 @@ func cleanupLeaverMessagesForGuild(ctx context.Context, guildID discord.Snowflak
 
 			err = message.Delete(ctx, session, new("Expired leaver message cleanup"))
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Int64("guild_id", int64(guildID)).Int64("channel_id", int64(channelID)).
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Int64("channel_id", int64(channelID)).
 					Msg("Failed to delete welcome message for guild")
 			}
 		}

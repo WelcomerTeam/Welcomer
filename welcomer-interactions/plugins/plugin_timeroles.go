@@ -62,56 +62,73 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+								Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get timeroles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsTimeRoles.ToggleEnabled = true
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateTimeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
+									Timeroles:     guildSettingsTimeRoles.Timeroles,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get timeroles guild settings")
+							Msg("Failed to update timeroles guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsTimeRoles.ToggleEnabled = true
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
-							Timeroles:     guildSettingsTimeRoles.Timeroles,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update timeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Enabled timeroles. Run `/timeroles list` to see the list of timeroles configured.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Enabled timeroles. Run `/timeroles list` to see the list of timeroles configured.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -125,55 +142,72 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+								Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get TimeRoles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+					guildSettingsTimeRoles.ToggleEnabled = false
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateTimeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
+									Timeroles:     guildSettingsTimeRoles.Timeroles,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get TimeRoles guild settings")
+							Msg("Failed to update timeroles guild settings")
 
 						return nil, err
 					}
-				}
-				guildSettingsTimeRoles.ToggleEnabled = false
 
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
-							Timeroles:     guildSettingsTimeRoles.Timeroles,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update timeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Disabled timeroles.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Disabled timeroles.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -187,7 +221,10 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
 			return welcomer.RequireGuild(interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
+				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(
+					ctx,
+					int64(*interaction.GuildID),
+				)
 				if err != nil {
 					if errors.Is(err, pgx.ErrNoRows) {
 						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
@@ -207,9 +244,17 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				embeds := []discord.Embed{}
 				embed := discord.Embed{Title: "TimeRoles", Color: welcomer.EmbedColourInfo}
 
-				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
+				timeRoleList := welcomer.UnmarshalTimeRolesJSON(
+					guildSettingsTimeRoles.Timeroles.Bytes,
+				)
 
-				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
+				timeRoleList, err = welcomer.FilterAssignableTimeRoles(
+					ctx,
+					sub.SandwichClient,
+					int64(*interaction.GuildID),
+					int64(interaction.ApplicationID),
+					timeRoleList,
+				)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Int64("guild_id", int64(*interaction.GuildID)).
@@ -222,8 +267,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Timeroles are disabled for this server.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"Timeroles are disabled for this server.",
+								welcomer.EmbedColourError,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -232,8 +280,11 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no timeroles set for this server.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								"There are no timeroles set for this server.",
+								welcomer.EmbedColourInfo,
+							),
+							Flags: uint32(discord.MessageFlagEphemeral),
 						},
 					}, nil
 				}
@@ -251,19 +302,24 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 				// Check if the user has any time roles remaining.
 				// If they do, then set the embed description to the first one.
 				for _, role := range timeRoleList {
-					roleGivenAt := interaction.Member.JoinedAt.Add(time.Second * time.Duration(role.Seconds))
+					roleGivenAt := interaction.Member.JoinedAt.Add(
+						time.Second * time.Duration(role.Seconds),
+					)
 
 					if roleGivenAt.After(now) {
 						embed.Description = fmt.Sprintf(
 							"You joined this server <t:%d:R>!\n\nNext role: <@&%d>\nTime until next role: <t:%d:R>\n\n",
 							interaction.Member.JoinedAt.Unix(),
 							role.Role,
-							interaction.Member.JoinedAt.Add(time.Second*time.Duration(role.Seconds)).Unix(),
+							interaction.Member.JoinedAt.Add(time.Second*time.Duration(role.Seconds)).
+								Unix(),
 						)
 
 						hasTimeRoleRemaining = true
-						timeRoleRemainingPercent = int((float64(time.Since(interaction.Member.JoinedAt).Seconds()) /
-							float64(role.Seconds)) * 100)
+						timeRoleRemainingPercent = int(
+							(float64(time.Since(interaction.Member.JoinedAt).Seconds()) /
+								float64(role.Seconds)) * 100,
+						)
 
 						break
 					}
@@ -279,12 +335,18 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				// List all the time roles.
 				for _, role := range timeRoleList {
-					roleGivenAt := interaction.Member.JoinedAt.Add(time.Second * time.Duration(role.Seconds))
+					roleGivenAt := interaction.Member.JoinedAt.Add(
+						time.Second * time.Duration(role.Seconds),
+					)
 
 					var roleMessage string
 
 					if roleGivenAt.After(now) {
-						roleMessage = fmt.Sprintf(welcomer.EmojiNeutral+" <@&%d> <t:%d:R>\n", role.Role, roleGivenAt.Unix())
+						roleMessage = fmt.Sprintf(
+							welcomer.EmojiNeutral+" <@&%d> <t:%d:R>\n",
+							role.Role,
+							roleGivenAt.Unix(),
+						)
 					} else {
 						roleMessage = fmt.Sprintf(welcomer.EmojiCheck+" <@&%d>\n", role.Role)
 					}
@@ -302,7 +364,10 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 
 				if hasTimeRoleRemaining {
 					embeds[len(embeds)-1].SetImage(&discord.MediaItem{
-						URL: fmt.Sprintf("https://cdn.welcomer.gg/minecraftxp.png?percent=%d", timeRoleRemainingPercent),
+						URL: fmt.Sprintf(
+							"https://cdn.welcomer.gg/minecraftxp.png?percent=%d",
+							timeRoleRemainingPercent,
+						),
 					})
 				}
 
@@ -326,85 +391,111 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		DMPermission: new(false),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+								Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get timeroles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					embeds := []discord.Embed{}
+					embed := discord.Embed{Title: "TimeRoles", Color: welcomer.EmbedColourInfo}
+
+					timeRoleList := welcomer.UnmarshalTimeRolesJSON(
+						guildSettingsTimeRoles.Timeroles.Bytes,
+					)
+
+					timeRoleList, err = welcomer.FilterAssignableTimeRoles(
+						ctx,
+						sub.SandwichClient,
+						int64(*interaction.GuildID),
+						int64(interaction.ApplicationID),
+						timeRoleList,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get timeroles guild settings")
+							Msg("Failed to filter assignable roles")
 
 						return nil, err
 					}
-				}
 
-				embeds := []discord.Embed{}
-				embed := discord.Embed{Title: "TimeRoles", Color: welcomer.EmbedColourInfo}
-
-				timeRoleList := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
-
-				timeRoleList, err = welcomer.FilterAssignableTimeRoles(ctx, sub.SandwichClient, int64(*interaction.GuildID), int64(interaction.ApplicationID), timeRoleList)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to filter assignable roles")
-
-					return nil, err
-				}
-
-				if !guildSettingsTimeRoles.ToggleEnabled && !welcomer.IsInterationAuthorElevated(sub, interaction) {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Timeroles are disabled for this server.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				if len(timeRoleList) == 0 {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("There are no timeroles set for this server.", welcomer.EmbedColourInfo),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				// Sort timeRoleList by Seconds in ascending order
-				sort.Slice(timeRoleList, func(i, j int) bool {
-					return timeRoleList[i].Seconds < timeRoleList[j].Seconds
-				})
-
-				for _, role := range timeRoleList {
-					roleMessage := fmt.Sprintf("- <@&%d> - `%s`\n", role.Role, welcomer.HumanizeDuration(role.Seconds, true))
-
-					// If the embed content will go over 4000 characters then create a new embed and continue from that one.
-					if len(embed.Description)+len(roleMessage) > 4000 {
-						embeds = append(embeds, embed)
-						embed = discord.Embed{Color: welcomer.EmbedColourInfo}
+					if !guildSettingsTimeRoles.ToggleEnabled &&
+						!welcomer.IsInterationAuthorElevated(sub, interaction) {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Timeroles are disabled for this server.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
 					}
 
-					embed.Description += roleMessage
-				}
+					if len(timeRoleList) == 0 {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"There are no timeroles set for this server.",
+									welcomer.EmbedColourInfo,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
 
-				embeds = append(embeds, embed)
+					// Sort timeRoleList by Seconds in ascending order
+					sort.Slice(timeRoleList, func(i, j int) bool {
+						return timeRoleList[i].Seconds < timeRoleList[j].Seconds
+					})
 
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: embeds,
-						Flags:  uint32(discord.MessageFlagEphemeral),
-					},
-				}, nil
-			})
+					for _, role := range timeRoleList {
+						roleMessage := fmt.Sprintf(
+							"- <@&%d> - `%s`\n",
+							role.Role,
+							welcomer.HumanizeDuration(role.Seconds, true),
+						)
+
+						// If the embed content will go over 4000 characters then create a new embed and continue from that one.
+						if len(embed.Description)+len(roleMessage) > 4000 {
+							embeds = append(embeds, embed)
+							embed = discord.Embed{Color: welcomer.EmbedColourInfo}
+						}
+
+						embed.Description += roleMessage
+					}
+
+					embeds = append(embeds, embed)
+
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: embeds,
+							Flags:  uint32(discord.MessageFlagEphemeral),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -439,135 +530,185 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				role := subway.MustGetArgument(ctx, "role").MustRole()
-				durationString := subway.MustGetArgument(ctx, "duration").MustString()
-				ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").MustBool()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					role := subway.MustGetArgument(ctx, "role").MustRole()
+					durationString := subway.MustGetArgument(ctx, "duration").MustString()
+					ignoreRolePermissions := subway.MustGetArgument(ctx, "ignore-permissions").
+						MustBool()
 
-				var err error
+					var err error
 
-				seconds, err := welcomer.ParseDurationAsSeconds(durationString)
-				if err != nil || seconds < 0 {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Str("duration", durationString).
-						Msg("Failed to parse duration")
-
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Invalid duration. It must be a positive number in a valid format (e.g., `5y`, `30d`, `1h`, `30m`, `3600s`, `3600`). Only years, days, hours, minutes and seconds are supported.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(ctx, *interaction.GuildID, &role)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to check if welcomer can assign role")
-
-					return nil, err
-				}
-
-				if !canAssignRoles {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Welcomer is missing permissions to assign roles", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
-				if !isRoleAssignable {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("### This role is not assignable\nWelcomer cannot assign users this role as it does not have permission to manage roles or Welcomer's highest role is below this role's position. Please rearrange your roles in the server settings to move Welcomer's role above this role.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				if !ignoreRolePermissions && isRoleElevated {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.\n\nPermissions:\n"+welcomer.GetRolePermissionListAsString(int(role.Permissions)), welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				guildSettingsTempChannels, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsTempChannels = &database.GuildSettingsTimeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
-						}
-					} else {
+					seconds, err := welcomer.ParseDurationAsSeconds(durationString)
+					if err != nil || seconds < 0 {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get timeroles guild settings")
+							Str("duration", durationString).
+							Msg("Failed to parse duration")
+
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Invalid duration. It must be a positive number in a valid format (e.g., `5y`, `30d`, `1h`, `30m`, `3600s`, `3600`). Only years, days, hours, minutes and seconds are supported.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					canAssignRoles, isRoleAssignable, isRoleElevated, err := welcomer.Accelerator_CanAssignRole(
+						ctx,
+						*interaction.GuildID,
+						&role,
+					)
+					if err != nil {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to check if welcomer can assign role")
 
 						return nil, err
 					}
-				}
 
-				timeRoles := welcomer.UnmarshalTimeRolesJSON(guildSettingsTempChannels.Timeroles.Bytes)
+					if !canAssignRoles {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Welcomer is missing permissions to assign roles",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
 
-				// Check if the role already exists in the list
-				if slices.ContainsFunc(timeRoles, func(tr welcomer.GuildSettingsTimeRolesRole) bool { return tr.Role == role.ID }) {
+					// Check if the role is assignable by welcomer using the guild roles and roles Welcomer has.
+					if !isRoleAssignable {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"### This role is not assignable\nWelcomer cannot assign users this role as it does not have permission to manage roles or Welcomer's highest role is below this role's position. Please rearrange your roles in the server settings to move Welcomer's role above this role.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					if !ignoreRolePermissions && isRoleElevated {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"### This role is elevated\nThis role has elevated permissions. If you are sure you want to use this role, please run the command again with ignore-permissions set to true.\n\nPermissions:\n"+welcomer.GetRolePermissionListAsString(
+										int(role.Permissions),
+									),
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					guildSettingsTempChannels, err := welcomer.Queries.GetTimeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsTempChannels = &database.GuildSettingsTimeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+								Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get timeroles guild settings")
+
+							return nil, err
+						}
+					}
+
+					timeRoles := welcomer.UnmarshalTimeRolesJSON(
+						guildSettingsTempChannels.Timeroles.Bytes,
+					)
+
+					// Check if the role already exists in the list
+					if slices.ContainsFunc(
+						timeRoles,
+						func(tr welcomer.GuildSettingsTimeRolesRole) bool { return tr.Role == role.ID },
+					) {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"This role is already in the list.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					timeRoles = append(timeRoles, welcomer.GuildSettingsTimeRolesRole{
+						Role:    role.ID,
+						Seconds: seconds,
+					})
+
+					// Update the guild settings with the new timeRoles
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateTimeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsTempChannels.ToggleEnabled,
+									Timeroles: welcomer.BytesToJSONB(
+										welcomer.MarshalTimeRolesJSON(timeRoles),
+									),
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
+						welcomer.Logger.Error().Err(err).
+							Int64("guild_id", int64(*interaction.GuildID)).
+							Msg("Failed to update timeroles guild settings")
+
+						return nil, err
+					}
+
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("This role is already in the list.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf(
+									"Added timerole <@&%d> with duration `%s`. Run `/timeroles list` to see the list of timeroles configured.",
+									role.ID,
+									welcomer.HumanizeDuration(seconds, true),
+								),
+								welcomer.EmbedColourSuccess,
+							),
 						},
 					}, nil
-				}
-
-				timeRoles = append(timeRoles, welcomer.GuildSettingsTimeRolesRole{
-					Role:    role.ID,
-					Seconds: seconds,
-				})
-
-				// Update the guild settings with the new timeRoles
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsTempChannels.ToggleEnabled,
-							Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(timeRoles)),
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update timeroles guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Added timerole <@&%d> with duration `%s`. Run `/timeroles list` to see the list of timeroles configured.", role.ID, welcomer.HumanizeDuration(seconds, true)), welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
@@ -590,73 +731,106 @@ func (r *TimeRolesCog) RegisterCog(sub *subway.Subway) error {
 		},
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				role := subway.MustGetArgument(ctx, "role").MustRole()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					role := subway.MustGetArgument(ctx, "role").MustRole()
 
-				guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
-							Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+					guildSettingsTimeRoles, err := welcomer.Queries.GetTimeRolesGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsTimeRoles = &database.GuildSettingsTimeroles{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultTimeRoles.ToggleEnabled,
+								Timeroles:     welcomer.DefaultTimeRoles.Timeroles,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get timeroles guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					timeRoles := welcomer.UnmarshalTimeRolesJSON(
+						guildSettingsTimeRoles.Timeroles.Bytes,
+					)
+
+					// Check if the role exists in the list.
+					if !slices.ContainsFunc(
+						timeRoles,
+						func(tr welcomer.GuildSettingsTimeRolesRole) bool { return tr.Role == role.ID },
+					) {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"This role is not in the list.",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					// Remove the role from the list.
+					timeRoles = slices.DeleteFunc(
+						timeRoles,
+						func(tr welcomer.GuildSettingsTimeRolesRole) bool { return tr.Role == role.ID },
+					)
+
+					// Update the guild settings with the new timeRoles
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateTimeRolesGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
+									Timeroles: welcomer.BytesToJSONB(
+										welcomer.MarshalTimeRolesJSON(timeRoles),
+									),
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get timeroles guild settings")
+							Msg("Failed to update timerole guild settings")
 
 						return nil, err
 					}
-				}
 
-				timeRoles := welcomer.UnmarshalTimeRolesJSON(guildSettingsTimeRoles.Timeroles.Bytes)
-
-				// Check if the role exists in the list.
-				if !slices.ContainsFunc(timeRoles, func(tr welcomer.GuildSettingsTimeRolesRole) bool { return tr.Role == role.ID }) {
 					return &discord.InteractionResponse{
 						Type: discord.InteractionCallbackTypeChannelMessageSource,
 						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("This role is not in the list.", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
+							Embeds: welcomer.NewEmbed(
+								fmt.Sprintf(
+									"Removed timerole <@&%d>. Run `/timeroles list` to see the list of timeroles configured.",
+									role.ID,
+								),
+								welcomer.EmbedColourSuccess,
+							),
 						},
 					}, nil
-				}
-
-				// Remove the role from the list.
-				timeRoles = slices.DeleteFunc(timeRoles, func(tr welcomer.GuildSettingsTimeRolesRole) bool { return tr.Role == role.ID })
-
-				// Update the guild settings with the new timeRoles
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateTimeRolesGuildSettingsWithAudit(ctx, database.CreateOrUpdateTimeRolesGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsTimeRoles.ToggleEnabled,
-							Timeroles:     welcomer.BytesToJSONB(welcomer.MarshalTimeRolesJSON(timeRoles)),
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update timerole guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed(fmt.Sprintf("Removed timerole <@&%d>. Run `/timeroles list` to see the list of timeroles configured.", role.ID), welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
