@@ -2,6 +2,7 @@ package backend
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -108,11 +109,30 @@ func callback(ctx *gin.Context) {
 	queryPath, ok := GetPreviousPathSession(session)
 
 	// Prevent open redirection and same protocol redirection.
-	if !ok || !strings.HasPrefix(queryPath, "/") || strings.HasPrefix(queryPath, "//") {
+	if !ok || !isSafeLocalRedirect(queryPath) {
 		queryPath = "/"
 	}
 
 	ctx.Redirect(http.StatusTemporaryRedirect, queryPath)
+}
+
+func isSafeLocalRedirect(target string) bool {
+	if target == "" || strings.ContainsAny(target, "\\\r\n") {
+		return false
+	}
+
+	u, err := url.Parse(target)
+	if err != nil || u.IsAbs() || u.Host != "" || u.User != nil || u.Opaque != "" {
+		return false
+	}
+
+	path, err := url.PathUnescape(u.EscapedPath())
+	if err != nil || !strings.HasPrefix(path, "/") ||
+		strings.HasPrefix(path, "//") || strings.Contains(path, "\\") {
+		return false
+	}
+
+	return true
 }
 
 func registerSessionRoutes(g *gin.Engine) {
