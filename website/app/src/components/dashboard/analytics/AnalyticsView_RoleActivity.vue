@@ -19,11 +19,9 @@
           <AnalyticsCard name="Roles Changed" :amount="data.current.role_changes.length" />
         </div>
         <AnalyticsCardSlot name="Roles Given by Module and Role" class="mb-4">
-          <div v-if="data.current.role_changes.length" class="h-72">
-            <Bar :data="GetDatasetsLine([
-              GetDatasetBar('#5865F2', 'Role changes', data.current.role_changes),
-            ])" :options="barOptions" />
-          </div>
+          <Bar class="h-72" v-if="data.current.role_changes.length" :data="GetDatasetsLine([
+            GetDatasetBar('#5865F2', 'Role changes', data.current.role_changes),
+          ])" :options="barOptions" />
           <p v-else class="text-sm text-gray-500">No autorole, freerole, reaction-role, or timerole grants were recorded
             in this period.</p>
         </AnalyticsCardSlot>

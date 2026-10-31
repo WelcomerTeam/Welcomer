@@ -23,29 +23,25 @@
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Messages Sent">
-            <div class="h-72">
-              <Line :data="GetDatasetsLine([
-                GetDatasetLine('#2F80ED', 'Messages', data.current.messages_by_time).HasTimestamp().WithGradientBackgroundColor(),
-              ])" :options="ChartOptions({ label: (context) => `${context.parsed.y} messages` })" />
-            </div>
+            <Line class="h-72" v-if="data.current.messages_by_time.length" :data="GetDatasetsLine([
+              GetDatasetLine('#2F80ED', 'Messages', data.current.messages_by_time).HasTimestamp().WithGradientBackgroundColor(),
+            ])" :options="ChartOptions({ label: (context) => `${context.parsed.y} messages` })" />
+            <p v-else class="text-sm text-gray-500">No messages were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Unique Users by Period">
-            <div class="h-72">
-              <Line :data="GetDatasetsLine([
-                GetDatasetLine('#27AE60', 'Unique users', data.current.unique_users_by_time).HasTimestamp().WithGradientBackgroundColor(),
-              ])" :options="ChartOptions({ label: (context) => `${context.parsed.y} unique users` })" />
-            </div>
+            <Line class="h-72" v-if="data.current.unique_users_by_time.length" :data="GetDatasetsLine([
+              GetDatasetLine('#27AE60', 'Unique users', data.current.unique_users_by_time).HasTimestamp().WithGradientBackgroundColor(),
+            ])" :options="ChartOptions({ label: (context) => `${context.parsed.y} unique users` })" />
+            <p v-else class="text-sm text-gray-500">No unique users were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Messages by Channel">
-            <div v-if="data.current.messages_by_channel.length" class="h-72">
-              <Bar :data="GetDatasetsLine([
-                GetDatasetBar('#5865F2', 'Messages', data.current.messages_by_channel),
-              ])" :options="barOptions" />
-            </div>
+            <Bar class="h-72" v-if="data.current.messages_by_channel.length" :data="GetDatasetsLine([
+              GetDatasetBar('#5865F2', 'Messages', data.current.messages_by_channel),
+            ])" :options="barOptions" />
             <p v-else class="text-sm text-gray-500">No messages were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
@@ -75,21 +71,17 @@
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Top Message Authors">
-            <div v-if="data.current.top_authors.length" class="h-72">
-              <Bar :data="GetDatasetsLine([
-                GetDatasetBar('#27AE60', 'Messages', data.current.top_authors),
-              ])" :options="barOptions" />
-            </div>
+            <Bar class="h-72" v-if="data.current.top_authors.length" :data="GetDatasetsLine([
+              GetDatasetBar('#27AE60', 'Messages', data.current.top_authors),
+            ])" :options="barOptions" />
             <p v-else class="text-sm text-gray-500">No messages were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Top Contributors">
-            <div v-if="data.current.top_contributors.length" class="h-72">
-              <Bar :data="GetDatasetsLine([
-                GetDatasetBar('#F1C40F', 'Active hours', data.current.top_contributors),
-              ])" :options="barOptions" />
-            </div>
+            <Bar class="h-72" v-if="data.current.top_contributors.length" :data="GetDatasetsLine([
+              GetDatasetBar('#F1C40F', 'Active hours', data.current.top_contributors),
+            ])" :options="barOptions" />
             <p v-else class="text-sm text-gray-500">No messages were recorded in this period.</p>
           </AnalyticsCardSlot>
           <p class="text-xs text-gray-500 mt-2">Each hour with at least one message counts once for a user.</p>

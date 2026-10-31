@@ -30,32 +30,27 @@
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Invites Tracked">
-            <div class="h-72">
-              <Line :data="GetDatasetsLine([
-                GetDatasetLine('#2F80ED', 'All joins', data.current.joins_by_time).HasTimestamp(),
-                GetDatasetLine('#27AE60', 'Invite tracked', data.current.tracked_joins_by_time).HasTimestamp().WithBorderDash([5, 5]),
-              ])"
-                :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y} joins` }).WithLegend()" />
-            </div>
+            <Line class="h-72" v-if="data.current.joins_by_time.length" :data="GetDatasetsLine([
+              GetDatasetLine('#2F80ED', 'All joins', data.current.joins_by_time).HasTimestamp(),
+              GetDatasetLine('#27AE60', 'Invite tracked', data.current.tracked_joins_by_time).HasTimestamp().WithBorderDash([5, 5]),
+            ])"
+              :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y} joins` }).WithLegend()" />
+            <p v-else class="text-sm text-gray-500">No joins were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Top Invites by Tracked Joins">
-            <div v-if="data.current.top_invites.length" class="h-72">
-              <Bar :data="GetDatasetsLine([
-                GetDatasetBar('#5865F2', 'Joins', data.current.top_invites),
-              ])" :options="barOptions" />
-            </div>
+            <Bar class="h-72" v-if="data.current.top_invites.length" :data="GetDatasetsLine([
+              GetDatasetBar('#5865F2', 'Joins', data.current.top_invites),
+            ])" :options="barOptions" />
             <p v-else class="text-sm text-gray-500">No invite-attributed joins were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Top Invite Creators">
-            <div v-if="data.current.top_creators.length" class="h-72">
-              <Bar :data="GetDatasetsLine([
-                GetDatasetBar('#27AE60', 'Tracked joins', data.current.top_creators),
-              ])" :options="barOptions" />
-            </div>
+            <Bar class="h-72" v-if="data.current.top_creators.length" :data="GetDatasetsLine([
+              GetDatasetBar('#27AE60', 'Tracked joins', data.current.top_creators),
+            ])" :options="barOptions" />
             <p v-else class="text-sm text-gray-500">No invite-attributed joins were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>

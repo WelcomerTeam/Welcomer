@@ -22,11 +22,10 @@
                 </div>
                 <div class="mb-4">
                     <AnalyticsCardSlot name="Account Age Distribution">
-                        <div class="h-72">
-                            <Bar :data="GetDatasetsLine([
-                                GetDatasetBar('#2F80ED', 'Members', data.current.account_age_distribution),
-                            ])" :options="distributionOptions" />
-                        </div>
+                        <Bar class="h-72" v-if="data.current.account_age_distribution.length" :data="GetDatasetsLine([
+                            GetDatasetBar('#2F80ED', 'Members', data.current.account_age_distribution),
+                        ])" :options="distributionOptions" />
+                        <p v-else class="text-sm text-gray-500">No data available for this period.</p>
                     </AnalyticsCardSlot>
                 </div>
                 <div class="mb-4">

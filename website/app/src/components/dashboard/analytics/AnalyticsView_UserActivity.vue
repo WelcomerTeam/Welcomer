@@ -23,11 +23,10 @@
             :previousAmount="data.previous.monthly_active" />
         </div>
         <AnalyticsCardSlot name="Unique User Activity" class="mb-4">
-          <div class="h-72">
-            <Line :data="GetDatasetsLine([
+            <Line class="h-72" v-if="data.current.unique_user_activity.length" :data="GetDatasetsLine([
               GetDatasetLine('#2F80ED', 'Active users', data.current.unique_user_activity).HasTimestamp().WithGradientBackgroundColor(),
             ])" :options="ChartOptions({ label: (context) => `${context.parsed.y} active users` })" />
-          </div>
+            <p v-else class="text-sm text-gray-500">No data available for this period.</p>
         </AnalyticsCardSlot>
 
         <div class="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-3 mb-4">
@@ -36,11 +35,10 @@
           <AnalyticsCard name="Dormant Members" :amount="data.current.dormant_members" :isDecreaseGood="true" />
         </div>
         <AnalyticsCardSlot name="Message Activity" class="mb-4">
-          <div class="h-72">
-            <Line :data="GetDatasetsLine([
+            <Line class="h-72" v-if="data.current.total_user_activity.length" :data="GetDatasetsLine([
               GetDatasetLine('#2F80ED', 'Messages', data.current.total_user_activity).HasTimestamp().WithGradientBackgroundColor(),
             ])" :options="ChartOptions({ label: (context) => `${context.parsed.y} messages` })" />
-          </div>
+            <p v-else class="text-sm text-gray-500">No data available for this period.</p>
         </AnalyticsCardSlot>
         <div class="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-3 mb-2">
           <AnalyticsCard name="Joined Members Who Messaged" :amount="data.current.time_to_first_message"

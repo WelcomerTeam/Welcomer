@@ -24,12 +24,13 @@
                 </div>
                 <div class="mb-4 space-y-4">
                     <AnalyticsCardSlot name="Days on Server">
-                        <Bar :data="GetDatasetsLine([
+                        <Bar class="h-72" v-if="data.current.time_on_server_before_leaving.length" :data="GetDatasetsLine([
                             GetDatasetBar('#2F80ED', 'Left', data.current.time_on_server_before_leaving),
                             GetDatasetBar('#27AE60', 'Still on server', data.current.time_on_server),
                         ])" :options="ChartOptions({
                             label: (context) => { return `${context.dataset.label} ${context.parsed.x == 0 ? 'on the first day' : 'after ' + context.parsed.x + ' day' + (context.parsed.x !== 1 ? 's' : '')}: ${context.parsed.y} members` }
                         }).WithLegend()" />
+                        <p v-else class="text-sm text-gray-500">No data available for this period.</p>
                     </AnalyticsCardSlot>
                     <AnalyticsCardSlot name="Retention Cohorts">
                         <div class="overflow-x-auto">

@@ -25,26 +25,22 @@
                 </div>
                 <div class="mb-4 space-y-4">
                     <AnalyticsCardSlot name="Guild Members">
-                        <div>
-                            <Line :data="GetDatasetsLine([
-                                GetDatasetLine('#2F80ED', 'Members', data.current.guild_members).HasTimestamp().WithGradientBackgroundColor(),
-                                GetDatasetLine('#eeeeee', 'Previous', data.previous.guild_members).HasTimestamp().WithBorderDash([5, 5]).WithBorderWidth(1),
-                            ]).DontBeginAtZero()" :options="ChartOptions({
-                                label: (context) => { return `${context.dataset.label}: ${context.parsed.y} members` }
-                            })" />
-                        </div>
+                        <Line class="h-72" :data="GetDatasetsLine([
+                            GetDatasetLine('#2F80ED', 'Members', data.current.guild_members).HasTimestamp().WithGradientBackgroundColor(),
+                            GetDatasetLine('#eeeeee', 'Previous', data.previous.guild_members).HasTimestamp().WithBorderDash([5, 5]).WithBorderWidth(1),
+                        ]).DontBeginAtZero()" :options="ChartOptions({
+                            label: (context) => { return `${context.dataset.label}: ${context.parsed.y} members` }
+                        })" />
                     </AnalyticsCardSlot>
 
                     <AnalyticsCardSlot name="Join/Leave">
-                        <div>
-                            <Line :data="GetDatasetsLine([
-                                GetDatasetLine('#2F80ED', 'Sum', data.current.guild_net).HasTimestamp(),
-                                GetDatasetBar('#43B581', 'Joins', data.current.guild_joins).HasTimestamp().Ungroup(),
-                                GetDatasetBar('#F04747', 'Leaves', data.current.guild_leaves).HasTimestamp().Ungroup(),
-                            ])" :options="ChartOptions({
+                        <Line class="h-72" :data="GetDatasetsLine([
+                            GetDatasetLine('#2F80ED', 'Sum', data.current.guild_net).HasTimestamp(),
+                            GetDatasetBar('#43B581', 'Joins', data.current.guild_joins).HasTimestamp().Ungroup(),
+                            GetDatasetBar('#F04747', 'Leaves', data.current.guild_leaves).HasTimestamp().Ungroup(),
+                        ])" :options="ChartOptions({
                                 label: (context) => { return `${context.dataset.label}: ${Math.abs(context.parsed.y)} members` }
                             })" />
-                        </div>
                     </AnalyticsCardSlot>
                 </div>
             </template>

@@ -26,29 +26,25 @@
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Voice Sessions">
-            <div class="h-72">
-              <Line :data="GetDatasetsLine([
-                GetDatasetLine('#2F80ED', 'Sessions', data.current.voice_sessions_by_time).HasTimestamp().WithGradientBackgroundColor(),
-              ])" :options="voiceSessionsOptions" />
-            </div>
+            <Line class="h-72" v-if="data.current.voice_sessions_by_time.length" :data="GetDatasetsLine([
+              GetDatasetLine('#2F80ED', 'Sessions', data.current.voice_sessions_by_time).HasTimestamp().WithGradientBackgroundColor(),
+            ])" :options="voiceSessionsOptions" />
+            <p v-else class="text-sm text-gray-500">No voice sessions were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Total Voice Time">
-            <div class="h-72">
-              <Line :data="GetDatasetsLine([
-                GetDatasetLine('#27AE60', 'Total Voice Time (seconds)', data.current.voice_time_by_time).HasTimestamp().WithGradientBackgroundColor(),
-              ])" :options="voiceTimeOptions" />
-            </div>
+            <Line class="h-72" v-if="data.current.voice_time_by_time.length" :data="GetDatasetsLine([
+              GetDatasetLine('#27AE60', 'Total Voice Time (seconds)', data.current.voice_time_by_time).HasTimestamp().WithGradientBackgroundColor(),
+            ])" :options="voiceTimeOptions" />
+            <p v-else class="text-sm text-gray-500">No voice time was recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Top Voice Users">
-            <div v-if="data.current.top_users.length" class="h-72">
-              <Bar :data="GetDatasetsLine([
-                GetDatasetBar('#5865F2', 'Voice time (seconds)', data.current.top_users),
-              ])" :options="barOptions" />
-            </div>
+            <Bar class="h-72" v-if="data.current.top_users.length" :data="GetDatasetsLine([
+              GetDatasetBar('#5865F2', 'Voice time (seconds)', data.current.top_users),
+            ])" :options="barOptions" />
             <p v-else class="text-sm text-gray-500">No completed voice sessions were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>

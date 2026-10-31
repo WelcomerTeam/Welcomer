@@ -27,13 +27,12 @@
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Requests Tracked">
-            <div class="h-72">
-              <Line :data="GetDatasetsLine([
-                GetDatasetLine('#2F80ED', 'Requests', data.current.requests_by_time).HasTimestamp(),
-                GetDatasetLine('#27AE60', 'Verified', data.current.verified_by_time).HasTimestamp(),
-              ])"
-                :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y}` }).WithLegend()" />
-            </div>
+            <Line class="h-72" v-if="data.current.requests_by_time.length" :data="GetDatasetsLine([
+              GetDatasetLine('#2F80ED', 'Requests', data.current.requests_by_time).HasTimestamp(),
+              GetDatasetLine('#27AE60', 'Verified', data.current.verified_by_time).HasTimestamp(),
+            ])"
+              :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y}` }).WithLegend()" />
+            <p v-else class="text-sm text-gray-500">No requests were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-4">
