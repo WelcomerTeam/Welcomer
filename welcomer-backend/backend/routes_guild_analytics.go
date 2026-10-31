@@ -227,7 +227,12 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 					Int("expected_length", len(data.GuildMembersSum)).
 					Int("actual_length", len(previousData.GuildMembersSum)).
 					Msg("mismatched guild members sum length")
-				previousData.GuildMembersSum = previousData.GuildMembersSum[len(previousData.GuildMembersSum)-len(data.GuildMembersSum):]
+
+				if len(previousData.GuildMembersSum) < len(data.GuildMembersSum) {
+					previousData.GuildMembersSum = make([]DatasetItem, len(data.GuildMembersSum))
+				} else {
+					previousData.GuildMembersSum = previousData.GuildMembersSum[len(previousData.GuildMembersSum)-len(data.GuildMembersSum):]
+				}
 			}
 
 			ctx.JSON(http.StatusOK, BaseResponse{
