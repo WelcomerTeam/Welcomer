@@ -293,7 +293,20 @@ func fetchAnalyticsUserNames(
 	for _, userID := range userIDs {
 		guildMember, _ := guildMembers[userID]
 
-		name := getGuildMemberDisplayName(userID, guildMember)
+		name := getGuildMemberDisplayName(guildMember)
+		if name == "" {
+			user, err := discord.GetUser(ctx, backend.BotSession, discord.Snowflake(userID))
+			if err != nil {
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Int64("user_id", userID).
+					Msg("Failed to fetch analytics user")
+			} else {
+				name = getDiscordUserDisplayName(user)
+			}
+		}
+
 		if name == "" {
 			name = fmt.Sprintf("Unknown user (ID: %d)", userID)
 		}
@@ -304,25 +317,48 @@ func fetchAnalyticsUserNames(
 	return names, nil
 }
 
-func getGuildMemberDisplayName(userID int64, user *sandwich.GuildMember) string {
-	name := ""
-
-	if user != nil {
-		name = user.Nick
-		if name == "" {
-			name = user.GetUser().GlobalName
-		}
-
-		if name == "" && user.GetUser().Username != "" {
-			if user.GetUser().Discriminator != "0" {
-				name = user.GetUser().Username + "#" + user.GetUser().Discriminator
-			} else {
-				name = user.GetUser().Username
-			}
-		}
+func getGuildMemberDisplayName(member *sandwich.GuildMember) string {
+	if member == nil {
+		return ""
 	}
 
-	return name
+	if member.Nick != "" {
+		return member.Nick
+	}
+
+	if member.GetUser() == nil {
+		return ""
+	}
+
+	return getAnalyticsDisplayName(
+		member.GetUser().GetGlobalName(),
+		member.GetUser().GetUsername(),
+		member.GetUser().GetDiscriminator(),
+	)
+}
+
+func getDiscordUserDisplayName(user *discord.User) string {
+	if user == nil {
+		return ""
+	}
+
+	return getAnalyticsDisplayName(user.GlobalName, user.Username, user.Discriminator)
+}
+
+func getAnalyticsDisplayName(globalName, username, discriminator string) string {
+	if globalName != "" {
+		return globalName
+	}
+
+	if username == "" {
+		return ""
+	}
+
+	if discriminator != "" && discriminator != "0" {
+		return username + "#" + discriminator
+	}
+
+	return username
 }
 
 func discordAccountCreatedAt(userID int64) time.Time {

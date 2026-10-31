@@ -270,12 +270,14 @@ func getGuildAnalyticsOverviewData(
 	groupingPeriod := getGroupingPeriod(from, to)
 
 	if guildMemberCount == 0 {
-		guild, err := welcomer.Queries.GetGuild(ctx, int64(guildID))
+		// The database counter tracks total members joined, not current guild
+		// membership. Use the live guild state for the analytics snapshot.
+		guild, err := welcomer.FetchGuild(ctx, guildID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get guild: %w", err)
+			return nil, fmt.Errorf("failed to get guild member count: %w", err)
 		}
 
-		guildMemberCount = guild.MemberCount
+		guildMemberCount = int32(guild.MemberCount)
 	}
 
 	memberJoinEvents, err := welcomer.Queries.GetScienceGuildEventsForGuildGroupedByPeriod(
