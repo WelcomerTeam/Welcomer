@@ -32,8 +32,10 @@ const (
 
 func getPreviousDuration(from, to time.Time) (time.Time, time.Time) {
 	duration := to.Sub(from)
+	previousTo := from.Add(-time.Microsecond)
 
-	return from.Add(-duration), to.Add(-duration)
+	// PostgreSQL timestamp bounds are inclusive and have microsecond precision.
+	return previousTo.Add(-duration), previousTo
 }
 
 func getGroupingPeriod(from, to time.Time) datePeriod {
@@ -475,10 +477,22 @@ func getGuildAnalyticsRetention(ctx *gin.Context) {
 type guildAnalyticsRetentionResponse struct {
 	MembersJoined             int           `json:"members_joined"`
 	MembersLeft               int           `json:"members_left"`
-	Retention                 float64       `json:"retention_percentage"`
+	Retention                 *float64      `json:"retention_percentage"`
+	RetentionCohortSize       int           `json:"retention_cohort_size"`
+	RetainedMembers           int           `json:"retained_members"`
 	RetentionCohorts          [][]float64   `json:"retention_cohorts,omitempty"` // Matrix from 1 to 12 months and how many remain.
 	TimeOnServerBeforeLeaving []DatasetItem `json:"time_on_server_before_leaving,omitempty"`
 	TimeOnServer              []DatasetItem `json:"time_on_server,omitempty"`
+}
+
+func retentionPercentageFromCohort(cohortSize, membersLeft int32) *float64 {
+	if cohortSize <= 0 {
+		return nil
+	}
+
+	retainedMembers := max(int32(0), cohortSize-membersLeft)
+	retention := float64(int(float64(retainedMembers)/float64(cohortSize)*10000)) / 100
+	return &retention
 }
 
 func getGuildAnalyticsRetentionData(
@@ -533,10 +547,9 @@ func getGuildAnalyticsRetentionData(
 		return nil, fmt.Errorf("failed to get guild member retention: %w", err)
 	}
 
-	resp.Retention = max(
-		0,
-		float64(int(float64(guildRetention.MembersLeft)/float64(membersJoinedSum)*10000))/100,
-	)
+	resp.RetentionCohortSize = int(guildRetention.MembersJoined)
+	resp.RetainedMembers = int(max(int32(0), guildRetention.MembersJoined-guildRetention.MembersLeft))
+	resp.Retention = retentionPercentageFromCohort(guildRetention.MembersJoined, guildRetention.MembersLeft)
 
 	guildRetentionCohorts, err := welcomer.Queries.GetGuildMemberRetentionMatrix(
 		ctx,

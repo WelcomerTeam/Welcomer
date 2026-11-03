@@ -17,12 +17,20 @@
             <div v-if="data && !isDataError">
                 <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
                     <AnalyticsCard name="Members Joined" :amount="data.current.members_joined"
-                        :previousAmount="data.previous.members_joined" />
+                        :previousAmount="data.previous.members_joined"
+                        description="Count of recorded join events in this range." />
                     <AnalyticsCard name="Members Left" :amount="data.current.members_left"
-                        :previousAmount="data.previous.members_left" icon="fa-user" :isDecreaseGood="true" />
-                    <AnalyticsCard name="Retention Rate" :amount="data.current.retention_percentage"
-                        :previousAmount="data.previous.retention_percentage" amountSuffix="%" />
+                        :previousAmount="data.previous.members_left" icon="fa-user" :isDecreaseGood="true"
+                        description="Count of recorded leave events in this range." />
+                    <AnalyticsCard name="Retention Rate" :amount="getRetentionRate(data.current)"
+                        :previousAmount="getRetentionComparison(data.current, data.previous)"
+                        :amountSuffix="getRetentionSuffix(data.current)"
+                        :description="getRetentionDescription(data.current)" />
                 </div>
+                <p class="text-xs text-gray-500 mb-4">
+                    This is retention as of the selected range's end, not after a fixed time from joining. Members who
+                    joined later had less time to leave, so changes in join timing can affect comparisons between ranges.
+                </p>
                 <div class="mb-4 space-y-4">
                     <AnalyticsCardSlot name="Days on Server">
                         <Bar class="h-72" v-if="data.current.time_on_server_before_leaving.length" :data="GetDatasetsLine([
@@ -108,6 +116,29 @@ export default {
         return { ChartOptions, GetDatasetsLine, GetDatasetBar };
     },
     methods: {
+        getRetentionRate(current) {
+            return current.retention_percentage == null ? "-" : current.retention_percentage;
+        },
+        getRetentionSuffix(current) {
+            return current.retention_percentage == null ? "" : "%";
+        },
+        getRetentionComparison(current, previous) {
+            if (current.retention_percentage == null || previous.retention_percentage == null) {
+                return null;
+            }
+            return previous.retention_percentage;
+        },
+        getRetentionDescription(current) {
+            const cohortSize = current.retention_cohort_size;
+            const retainedMembers = current.retained_members;
+            if (!Number.isInteger(cohortSize) || !Number.isInteger(retainedMembers)) {
+                return "Unique members who joined during this range and had no recorded leave by the range end.";
+            }
+            if (cohortSize === 0) {
+                return "No unique members joined during this range.";
+            }
+            return `${retainedMembers} of ${cohortSize} unique members who joined during this range had no recorded leave by the range end.`;
+        },
         getMonthLabel(monthNumber) {
             if (monthNumber === 0) {
                 return "this month";

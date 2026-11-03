@@ -128,6 +128,7 @@ type Querier interface {
 	GetGuildInviteJoinCounts(ctx context.Context, arg GetGuildInviteJoinCountsParams) ([]*GetGuildInviteJoinCountsRow, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
 	GetGuildMemberJoins(ctx context.Context, arg GetGuildMemberJoinsParams) ([]*GetGuildMemberJoinsRow, error)
+	// Counts unique members who joined in the selected range and whether they had left by its end.
 	GetGuildMemberRetention(ctx context.Context, arg GetGuildMemberRetentionParams) (*GetGuildMemberRetentionRow, error)
 	// Returns, for members who joined within [date_to - 1 year, date_to], how many months ago they
 	// joined (X axis) and how many months ago they left (Y axis), 0 being the current month.

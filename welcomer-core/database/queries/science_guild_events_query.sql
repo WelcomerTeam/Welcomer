@@ -93,6 +93,7 @@ ORDER BY
     date_trunc(@period, science_guild_events.created_at) ASC;
 
 -- name: GetGuildMemberRetention :one
+-- Counts unique members who joined in the selected range and whether they had left by its end.
 WITH joined AS (
     SELECT DISTINCT ON (user_id)
         user_id,
@@ -100,6 +101,7 @@ WITH joined AS (
     FROM science_guild_events
     WHERE guild_id = @guild_id
         AND science_guild_events.event_type = @science_guild_event_type_user_join
+        AND science_guild_events.user_id IS NOT NULL
         AND science_guild_events.created_at BETWEEN @date_from AND @date_to
     ORDER BY user_id, created_at DESC
 )
@@ -114,6 +116,7 @@ SELECT
                 AND leave_event.user_id = joined.user_id
                 AND leave_event.event_type = @science_guild_event_type_user_leave
                 AND leave_event.created_at > joined.joined_at
+                AND leave_event.created_at <= @date_to
         )
     )::int AS members_left
 FROM joined;

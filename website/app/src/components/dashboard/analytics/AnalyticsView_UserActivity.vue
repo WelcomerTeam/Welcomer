@@ -16,11 +16,14 @@
       <template v-else-if="data && !isDataError">
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
           <AnalyticsCard name="Daily Active Users" :amount="data.current.daily_active"
-            :previousAmount="data.previous.daily_active" icon="fa-user" />
+            :previousAmount="data.previous.daily_active" icon="fa-user"
+            description="Average unique members with a recorded message per calendar day in this range." />
           <AnalyticsCard name="Weekly Active Users" :amount="data.current.weekly_active"
-            :previousAmount="data.previous.weekly_active" />
+            :previousAmount="data.previous.weekly_active"
+            description="Average unique members with a recorded message per calendar week in this range." />
           <AnalyticsCard name="Monthly Active Users" :amount="data.current.monthly_active"
-            :previousAmount="data.previous.monthly_active" />
+            :previousAmount="data.previous.monthly_active"
+            description="Average unique members with a recorded message per calendar month in this range." />
         </div>
         <AnalyticsCardSlot name="Unique User Activity" class="mb-4">
             <Line class="h-72" v-if="data.current.unique_user_activity.length" :data="GetDatasetsLine([
@@ -42,15 +45,18 @@
         </AnalyticsCardSlot>
         <div class="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-3 mb-2">
           <AnalyticsCard name="Joined Members Who Messaged" :amount="data.current.time_to_first_message"
-            :previousAmount="data.previous.time_to_first_message" />
+            :previousAmount="data.previous.time_to_first_message"
+            description="Members who joined and sent a recorded message during this range, after joining." />
           <AnalyticsCard name="Average Time to First Message"
             :amount="formatDuration(data.current.average_time_to_first_message)"
             :comparisonAmount="data.current.average_time_to_first_message"
-            :previousAmount="data.previous.average_time_to_first_message" />
+            :previousAmount="data.previous.average_time_to_first_message"
+            description="Elapsed time from recorded join to first recorded message; members must have both events in this range." />
           <AnalyticsCard name="Median Time to First Message"
             :amount="formatDuration(data.current.median_time_to_first_message)"
             :comparisonAmount="data.current.median_time_to_first_message"
-            :previousAmount="data.previous.median_time_to_first_message" />
+            :previousAmount="data.previous.median_time_to_first_message"
+            description="Median elapsed time from recorded join to first recorded message; members must have both events in this range." />
         </div>
         <p class="text-xs text-gray-500 mb-4">
           Onboarding times include members who joined during the selected period and sent a message during that period.

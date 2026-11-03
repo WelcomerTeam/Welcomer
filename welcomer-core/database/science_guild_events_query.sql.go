@@ -183,8 +183,9 @@ WITH joined AS (
         created_at AS joined_at
     FROM science_guild_events
     WHERE guild_id = $1
-        AND science_guild_events.event_type = $3
-        AND science_guild_events.created_at BETWEEN $4 AND $5
+        AND science_guild_events.event_type = $4
+        AND science_guild_events.user_id IS NOT NULL
+        AND science_guild_events.created_at BETWEEN $5 AND $3
     ORDER BY user_id, created_at DESC
 )
 
@@ -198,6 +199,7 @@ SELECT
                 AND leave_event.user_id = joined.user_id
                 AND leave_event.event_type = $2
                 AND leave_event.created_at > joined.joined_at
+                AND leave_event.created_at <= $3
         )
     )::int AS members_left
 FROM joined
@@ -206,9 +208,9 @@ FROM joined
 type GetGuildMemberRetentionParams struct {
 	GuildID                        int64     `json:"guild_id"`
 	ScienceGuildEventTypeUserLeave int32     `json:"science_guild_event_type_user_leave"`
+	DateTo                         time.Time `json:"date_to"`
 	ScienceGuildEventTypeUserJoin  int32     `json:"science_guild_event_type_user_join"`
 	DateFrom                       time.Time `json:"date_from"`
-	DateTo                         time.Time `json:"date_to"`
 }
 
 type GetGuildMemberRetentionRow struct {
@@ -216,13 +218,14 @@ type GetGuildMemberRetentionRow struct {
 	MembersLeft   int32 `json:"members_left"`
 }
 
+// Counts unique members who joined in the selected range and whether they had left by its end.
 func (q *Queries) GetGuildMemberRetention(ctx context.Context, arg GetGuildMemberRetentionParams) (*GetGuildMemberRetentionRow, error) {
 	row := q.db.QueryRow(ctx, GetGuildMemberRetention,
 		arg.GuildID,
 		arg.ScienceGuildEventTypeUserLeave,
+		arg.DateTo,
 		arg.ScienceGuildEventTypeUserJoin,
 		arg.DateFrom,
-		arg.DateTo,
 	)
 	var i GetGuildMemberRetentionRow
 	err := row.Scan(&i.MembersJoined, &i.MembersLeft)

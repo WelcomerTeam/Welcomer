@@ -12,6 +12,9 @@
         {{ typeof $props.amount === 'number' ? Intl.NumberFormat().format($props.amount) : $props.amount }}{{
           $props.amountSuffix }}
       </div>
+      <p v-if="$props.description" class="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">
+        {{ $props.description }}
+      </p>
       <div class="text-xs mt-2" v-if="$props.previousAmount != null">
         <analytics-card-change :amount="$props.comparisonAmount ?? $props.amount"
           :previousAmount="$props.previousAmount" :isDecreaseGood="$props.isDecreaseGood" />
@@ -40,6 +43,11 @@ export default {
     comparisonAmount: {
       type: Number,
       default: null
+    },
+    // Optional plain-language definition or caveat displayed below the metric.
+    description: {
+      type: String,
+      default: ''
     },
     amountSuffix: {
       type: String,
