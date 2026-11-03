@@ -3,11 +3,18 @@ import endpoints from "@/api/endpoints";
 import { getErrorToast } from "@/utilities";
 
 export default {
+    inject: ["analyticsDateRange"],
     data() {
         const endDate = new Date();
         const startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 6);
         startDate.setHours(0, 0, 0, 0);
+        const selectedStartDate = new Date(`${this.analyticsDateRange.startDate}T00:00:00`);
+        const selectedEndDate = new Date(`${this.analyticsDateRange.endDate}T00:00:00`);
+        if (!Number.isNaN(selectedStartDate.getTime()) && !Number.isNaN(selectedEndDate.getTime())) {
+            startDate.setTime(selectedStartDate.getTime());
+            endDate.setTime(selectedEndDate.getTime());
+        }
         return {
             startDate,
             endDate,
@@ -77,6 +84,11 @@ export default {
             }
             this.startDate = startDate;
             this.endDate = endDate;
+            Object.assign(this.analyticsDateRange, {
+                preset: range.preset || "custom",
+                startDate: range.startDate,
+                endDate: range.endDate,
+            });
             this.fetch();
         },
         parseDateRangeValue(value) {

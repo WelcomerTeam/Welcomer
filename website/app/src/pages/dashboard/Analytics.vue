@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { provide, reactive, ref } from "vue";
 
 import AnalyticsHeader from "@/components/dashboard/analytics/AnalyticsHeader.vue";
 import AnalyticsView_Overview from "@/components/dashboard/analytics/AnalyticsView_Overview.vue";
@@ -53,6 +53,22 @@ export default {
   },
   setup() {
     var tab = ref(DefaultAnalyticsTab);
+    const endDate = new Date();
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+    const formatDate = (date) => [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+    // Views are conditionally mounted, so provide one shared range to preserve it across tab changes.
+    const analyticsDateRange = reactive({
+      preset: "last_7_days",
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    });
+    provide("analyticsDateRange", analyticsDateRange);
 
     return {
       tab,

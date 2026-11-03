@@ -2,7 +2,7 @@
   <div class="dashboard-container">
     <div class="dashboard-content">
       <div class="flex justify-end min-h-12">
-        <AnalyticsDatePicker :modelValue="'last_7_days'" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
+        <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
           :defaultPreset="'last_7_days'" />
       </div>
 

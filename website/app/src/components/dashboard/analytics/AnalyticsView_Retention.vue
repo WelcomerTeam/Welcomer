@@ -2,7 +2,8 @@
     <div class="dashboard-container">
         <div class="dashboard-content">
             <div class="flex justify-end min-h-12">
-                <AnalyticsDatePicker @update:modelValue="handleDateRangeUpdate" :defaultPreset="'last_7_days'" />
+                <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate"
+                    :defaultPreset="'last_7_days'" />
             </div>
 
             <div v-if="isDataError">
