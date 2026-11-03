@@ -287,6 +287,10 @@ const features = [
     name: "Rules",
     description: "Provide a list of rules for users to see, and send them when a user joins your server.",
   },
+  {
+    name: "Server Analytics",
+    description: "Get insights and analytics about your server's activity and growth."
+  },
   // Starboard
   // StickyRoles
   // Suggestions
