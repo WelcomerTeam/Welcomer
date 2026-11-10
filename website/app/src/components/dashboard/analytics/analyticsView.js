@@ -46,6 +46,9 @@ export default {
                 from: this.startDate.toISOString(),
                 to: this.endDate.toISOString(),
             });
+            if (this.analyticsEndpoint === "message-activity") {
+                query.set("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+            }
             dashboardAPI.getConfig(
                 `${endpoints.EndpointGuildAnalytics(this.$route.params.guildID, this.analyticsEndpoint)}?${query}`,
                 ({ config }) => {

@@ -9,7 +9,7 @@
         <p class="mb-2">Unable to load message activity.</p>
         <button class="text-blue-500 hover:underline" @click="fetch">Retry</button>
       </div>
-      <div v-else-if="!isDataFetched" class="w-full h-full absolute left-0 top-0 flex items-center justify-center">
+      <div v-else-if="!isDataFetched" class="pointer-events-none w-full h-full absolute left-0 top-0 flex items-center justify-center">
         <LoadingIcon />
       </div>
       <template v-else-if="data && !isDataError">
@@ -67,6 +67,7 @@
                 </tbody>
               </table>
             </div>
+            <p class="mt-2 text-xs text-gray-500">Hours are shown in your local timezone.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="mb-4">

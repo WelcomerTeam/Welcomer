@@ -7,8 +7,285 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
+
+const DeleteGuildAnalyticsBenchmarks = `-- name: DeleteGuildAnalyticsBenchmarks :exec
+DELETE FROM guild_analytics_benchmarks
+`
+
+func (q *Queries) DeleteGuildAnalyticsBenchmarks(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, DeleteGuildAnalyticsBenchmarks)
+	return err
+}
+
+const GetGuildAnalyticsBenchmarkBucket = `-- name: GetGuildAnalyticsBenchmarkBucket :many
+SELECT
+    metric_key,
+    benchmark_value,
+    sample_count,
+    updated_at
+FROM guild_analytics_benchmarks
+WHERE member_count_bucket = $1
+    AND statistic = 'p90'
+ORDER BY metric_key
+`
+
+type GetGuildAnalyticsBenchmarkBucketRow struct {
+	MetricKey      string          `json:"metric_key"`
+	BenchmarkValue sql.NullFloat64 `json:"benchmark_value"`
+	SampleCount    int32           `json:"sample_count"`
+	UpdatedAt      time.Time       `json:"updated_at"`
+}
+
+func (q *Queries) GetGuildAnalyticsBenchmarkBucket(ctx context.Context, memberCountBucket int16) ([]*GetGuildAnalyticsBenchmarkBucketRow, error) {
+	rows, err := q.db.Query(ctx, GetGuildAnalyticsBenchmarkBucket, memberCountBucket)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetGuildAnalyticsBenchmarkBucketRow{}
+	for rows.Next() {
+		var i GetGuildAnalyticsBenchmarkBucketRow
+		if err := rows.Scan(
+			&i.MetricKey,
+			&i.BenchmarkValue,
+			&i.SampleCount,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGuildAnalyticsBenchmarkGuilds = `-- name: GetGuildAnalyticsBenchmarkGuilds :many
+SELECT guild.guild_id, guild.member_count
+FROM guilds AS guild
+WHERE guild.member_count > 0
+    AND EXISTS (
+        SELECT 1
+        FROM science_guild_events AS recent_event
+        WHERE recent_event.guild_id = guild.guild_id
+            AND recent_event.created_at >= $1
+            AND recent_event.created_at < $2
+    )
+ORDER BY guild.guild_id
+`
+
+type GetGuildAnalyticsBenchmarkGuildsParams struct {
+	ActiveSince time.Time `json:"active_since"`
+	ActiveUntil time.Time `json:"active_until"`
+}
+
+type GetGuildAnalyticsBenchmarkGuildsRow struct {
+	GuildID     int64 `json:"guild_id"`
+	MemberCount int32 `json:"member_count"`
+}
+
+// Restricts benchmark candidates to guilds with recent analytics events before per-bucket sampling.
+func (q *Queries) GetGuildAnalyticsBenchmarkGuilds(ctx context.Context, arg GetGuildAnalyticsBenchmarkGuildsParams) ([]*GetGuildAnalyticsBenchmarkGuildsRow, error) {
+	rows, err := q.db.Query(ctx, GetGuildAnalyticsBenchmarkGuilds, arg.ActiveSince, arg.ActiveUntil)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetGuildAnalyticsBenchmarkGuildsRow{}
+	for rows.Next() {
+		var i GetGuildAnalyticsBenchmarkGuildsRow
+		if err := rows.Scan(&i.GuildID, &i.MemberCount); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGuildAnalyticsBenchmarkInputs = `-- name: GetGuildAnalyticsBenchmarkInputs :many
+WITH weekly_messages AS (
+    SELECT
+        message_count_row.guild_id,
+        SUM(message_count_row.message_count)::bigint AS total_messages,
+        COUNT(DISTINCT message_count_row.user_id)::bigint AS unique_users
+    FROM guild_message_counts_hour AS message_count_row
+    WHERE message_count_row.guild_id = $1
+        AND message_count_row.hour_ts >= $2
+        AND message_count_row.hour_ts < $3
+    GROUP BY message_count_row.guild_id
+),
+weekly_voice AS (
+    SELECT
+        COUNT(*)::bigint AS sessions,
+        COUNT(DISTINCT user_id)::bigint AS unique_users,
+        SUM(total_time_ms)::bigint AS total_time_ms
+    FROM guild_voice_channel_stats
+    WHERE guild_id = $1
+        AND start_ts >= $2
+        AND start_ts < $3
+)
+SELECT
+    guild.guild_id,
+    guild.member_count,
+    weekly_messages.total_messages,
+    weekly_messages.unique_users,
+    weekly_voice.sessions,
+    weekly_voice.unique_users,
+    weekly_voice.total_time_ms
+FROM guilds guild
+LEFT JOIN weekly_messages ON weekly_messages.guild_id = guild.guild_id
+LEFT JOIN weekly_voice ON true
+WHERE guild.guild_id = $1
+    AND guild.member_count > 0
+`
+
+type GetGuildAnalyticsBenchmarkInputsParams struct {
+	GuildID  int64     `json:"guild_id"`
+	WeekFrom time.Time `json:"week_from"`
+	WeekTo   time.Time `json:"week_to"`
+}
+
+type GetGuildAnalyticsBenchmarkInputsRow struct {
+	GuildID       int64         `json:"guild_id"`
+	MemberCount   int32         `json:"member_count"`
+	TotalMessages sql.NullInt64 `json:"total_messages"`
+	UniqueUsers   sql.NullInt64 `json:"unique_users"`
+	Sessions      sql.NullInt64 `json:"sessions"`
+	UniqueUsers_2 sql.NullInt64 `json:"unique_users_2"`
+	TotalTimeMs   sql.NullInt64 `json:"total_time_ms"`
+}
+
+// Returns per-guild messaging and voice totals for the fixed, complete UTC activity week.
+func (q *Queries) GetGuildAnalyticsBenchmarkInputs(ctx context.Context, arg GetGuildAnalyticsBenchmarkInputsParams) ([]*GetGuildAnalyticsBenchmarkInputsRow, error) {
+	rows, err := q.db.Query(ctx, GetGuildAnalyticsBenchmarkInputs, arg.GuildID, arg.WeekFrom, arg.WeekTo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetGuildAnalyticsBenchmarkInputsRow{}
+	for rows.Next() {
+		var i GetGuildAnalyticsBenchmarkInputsRow
+		if err := rows.Scan(
+			&i.GuildID,
+			&i.MemberCount,
+			&i.TotalMessages,
+			&i.UniqueUsers,
+			&i.Sessions,
+			&i.UniqueUsers_2,
+			&i.TotalTimeMs,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGuildAnalyticsBenchmarkJoinMetrics = `-- name: GetGuildAnalyticsBenchmarkJoinMetrics :one
+WITH joined AS (
+    SELECT DISTINCT ON (guild_event.user_id)
+        guild_event.user_id,
+        guild_event.created_at AS joined_at
+    FROM science_guild_events AS guild_event
+    WHERE guild_event.guild_id = $1
+        AND guild_event.event_type = $2
+        AND guild_event.user_id IS NOT NULL
+        AND guild_event.created_at >= $3
+        AND guild_event.created_at < $4
+    ORDER BY guild_event.user_id, guild_event.created_at DESC
+),
+member_retention AS (
+    SELECT
+        joined.user_id,
+        joined.joined_at,
+        NOT EXISTS (
+            SELECT 1
+            FROM science_guild_events leave_event
+            WHERE leave_event.guild_id = $1
+                AND leave_event.user_id = joined.user_id
+                AND leave_event.event_type = $5
+                AND leave_event.created_at > $3
+                AND leave_event.created_at <= $6            AND leave_event.created_at > joined.joined_at
+                AND leave_event.created_at <= joined.joined_at + INTERVAL '30 days'
+        ) AS retained
+    FROM joined
+),
+first_messages AS (
+    SELECT
+        joined.user_id,
+        joined.joined_at,
+        MIN(message.min_ts) AS first_message_at
+    FROM joined
+    INNER JOIN guild_message_counts_hour message
+        ON message.guild_id = $1
+        AND message.user_id = joined.user_id
+        AND message.hour_ts >= date_trunc('hour', $3)
+        AND message.hour_ts < $6    AND message.hour_ts >= date_trunc('hour', joined.joined_at)
+        AND message.hour_ts < joined.joined_at + INTERVAL '30 days'
+        AND message.min_ts >= joined.joined_at
+        AND message.min_ts < joined.joined_at + INTERVAL '30 days'
+    GROUP BY joined.user_id, joined.joined_at
+)
+SELECT
+    COUNT(member_retention.user_id)::bigint AS cohort_size,
+    COUNT(*) FILTER (WHERE member_retention.retained)::bigint AS retained_members,
+    COUNT(first_messages.user_id)::bigint AS messaged_members,
+    COALESCE(
+        AVG(EXTRACT(EPOCH FROM first_messages.first_message_at - member_retention.joined_at))
+            FILTER (WHERE first_messages.first_message_at IS NOT NULL),
+        0
+    )::double precision AS average_time_to_first_message_seconds
+FROM member_retention
+LEFT JOIN first_messages
+    ON first_messages.user_id = member_retention.user_id
+`
+
+type GetGuildAnalyticsBenchmarkJoinMetricsParams struct {
+	GuildID                         int64     `json:"guild_id"`
+	JoinEventType                   int32     `json:"join_event_type"`
+	CohortFrom                      time.Time `json:"cohort_from"`
+	CohortTo                        time.Time `json:"cohort_to"`
+	LeaveEventType                  int32     `json:"leave_event_type"`
+	CohortTo30DayspgCataloginterval time.Time `json:"+cohort_to30 dayspg_cataloginterval"`
+}
+
+type GetGuildAnalyticsBenchmarkJoinMetricsRow struct {
+	CohortSize                       int64   `json:"cohort_size"`
+	RetainedMembers                  int64   `json:"retained_members"`
+	MessagedMembers                  int64   `json:"messaged_members"`
+	AverageTimeToFirstMessageSeconds float64 `json:"average_time_to_first_message_seconds"`
+}
+
+// Cohort members receive the same 30-day observation window for both retention and onboarding.
+// First-message timing uses the hourly min_ts aggregate, not raw message events.
+func (q *Queries) GetGuildAnalyticsBenchmarkJoinMetrics(ctx context.Context, arg GetGuildAnalyticsBenchmarkJoinMetricsParams) (*GetGuildAnalyticsBenchmarkJoinMetricsRow, error) {
+	row := q.db.QueryRow(ctx, GetGuildAnalyticsBenchmarkJoinMetrics,
+		arg.GuildID,
+		arg.JoinEventType,
+		arg.CohortFrom,
+		arg.CohortTo,
+		arg.LeaveEventType,
+		arg.CohortTo30DayspgCataloginterval,
+	)
+	var i GetGuildAnalyticsBenchmarkJoinMetricsRow
+	err := row.Scan(
+		&i.CohortSize,
+		&i.RetainedMembers,
+		&i.MessagedMembers,
+		&i.AverageTimeToFirstMessageSeconds,
+	)
+	return &i, err
+}
 
 const GetGuildBorderwallActivity = `-- name: GetGuildBorderwallActivity :many
 SELECT
@@ -459,17 +736,18 @@ func (q *Queries) GetGuildMessageContributors(ctx context.Context, arg GetGuildM
 
 const GetGuildMessageHeatmap = `-- name: GetGuildMessageHeatmap :many
 SELECT
-    EXTRACT(DOW FROM hour_ts)::int AS day_of_week,
-    EXTRACT(HOUR FROM hour_ts)::int AS hour_of_day,
+    EXTRACT(DOW FROM hour_ts AT TIME ZONE ($1::text))::int AS day_of_week,
+    EXTRACT(HOUR FROM hour_ts AT TIME ZONE ($1::text))::int AS hour_of_day,
     SUM(message_count)::bigint AS message_count
 FROM guild_message_counts_hour
-WHERE guild_id = $1
-    AND hour_ts BETWEEN $2 AND $3
+WHERE guild_id = $2
+    AND hour_ts BETWEEN $3 AND $4
 GROUP BY day_of_week, hour_of_day
 ORDER BY day_of_week, hour_of_day
 `
 
 type GetGuildMessageHeatmapParams struct {
+	Timezone string    `json:"timezone"`
 	GuildID  int64     `json:"guild_id"`
 	DateFrom time.Time `json:"date_from"`
 	DateTo   time.Time `json:"date_to"`
@@ -482,7 +760,12 @@ type GetGuildMessageHeatmapRow struct {
 }
 
 func (q *Queries) GetGuildMessageHeatmap(ctx context.Context, arg GetGuildMessageHeatmapParams) ([]*GetGuildMessageHeatmapRow, error) {
-	rows, err := q.db.Query(ctx, GetGuildMessageHeatmap, arg.GuildID, arg.DateFrom, arg.DateTo)
+	rows, err := q.db.Query(ctx, GetGuildMessageHeatmap,
+		arg.Timezone,
+		arg.GuildID,
+		arg.DateFrom,
+		arg.DateTo,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -772,4 +1055,47 @@ func (q *Queries) GetGuildVoiceSummary(ctx context.Context, arg GetGuildVoiceSum
 	var i GetGuildVoiceSummaryRow
 	err := row.Scan(&i.Sessions, &i.UniqueUsers, &i.TotalTimeMs)
 	return &i, err
+}
+
+const UpsertGuildAnalyticsBenchmark = `-- name: UpsertGuildAnalyticsBenchmark :exec
+INSERT INTO guild_analytics_benchmarks (
+    member_count_bucket,
+    metric_key,
+    benchmark_value,
+    sample_count,
+    updated_at,
+    statistic
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    'p90'
+)
+ON CONFLICT (member_count_bucket, metric_key) DO UPDATE SET
+    benchmark_value = EXCLUDED.benchmark_value,
+    sample_count = EXCLUDED.sample_count,
+    updated_at = EXCLUDED.updated_at,
+    statistic = EXCLUDED.statistic
+`
+
+type UpsertGuildAnalyticsBenchmarkParams struct {
+	MemberCountBucket int16           `json:"member_count_bucket"`
+	MetricKey         string          `json:"metric_key"`
+	BenchmarkValue    sql.NullFloat64 `json:"benchmark_value"`
+	SampleCount       int32           `json:"sample_count"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+}
+
+func (q *Queries) UpsertGuildAnalyticsBenchmark(ctx context.Context, arg UpsertGuildAnalyticsBenchmarkParams) error {
+	_, err := q.db.Exec(ctx, UpsertGuildAnalyticsBenchmark,
+		arg.MemberCountBucket,
+		arg.MetricKey,
+		arg.BenchmarkValue,
+		arg.SampleCount,
+		arg.UpdatedAt,
+	)
+	return err
 }

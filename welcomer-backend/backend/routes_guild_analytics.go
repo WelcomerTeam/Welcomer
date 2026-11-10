@@ -56,6 +56,7 @@ type AnalyticsRequest struct {
 
 	PreviousFrom time.Time `form:"previous_from"`
 	PreviousTo   time.Time `form:"previous_to"`
+	Timezone     string    `form:"timezone"`
 }
 
 type DatasetItem struct {
@@ -237,11 +238,27 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 				}
 			}
 
+			benchmarks, err := getGuildAnalyticsBenchmarks(ctx, guildID)
+			if err != nil {
+				welcomer.Logger.Error().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("failed to get guild analytics benchmarks")
+
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
+
+				return
+			}
+
 			ctx.JSON(http.StatusOK, BaseResponse{
 				Ok: true,
 				Data: map[string]any{
-					"current":  data,
-					"previous": previousData,
+					"current":    data,
+					"previous":   previousData,
+					"benchmarks": benchmarks,
 				},
 			})
 		})

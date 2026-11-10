@@ -51,6 +51,17 @@ func withGuildAnalyticsRequest(
 				return
 			}
 
+			if request.Timezone != "" {
+				if _, err := time.LoadLocation(request.Timezone); err != nil {
+					ctx.JSON(
+						http.StatusBadRequest,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
+
+					return
+				}
+			}
+
 			if request.From.IsZero() || request.To.IsZero() {
 				request.To = time.Now()
 				request.From = request.To.Add(-defaultPeriod)
@@ -81,6 +92,7 @@ func getMessageActivityData(
 	ctx *gin.Context,
 	guildID discord.Snowflake,
 	from, to time.Time,
+	timezone string,
 ) (map[string]any, error) {
 	period := string(getGroupingPeriod(from, to))
 	args := database.GetGuildMessageActivityParams{
@@ -182,7 +194,7 @@ func getMessageActivityData(
 	heatmap, err := welcomer.Queries.GetGuildMessageHeatmap(
 		ctx,
 		database.GetGuildMessageHeatmapParams{
-			GuildID: int64(guildID), DateFrom: from, DateTo: to,
+			GuildID: int64(guildID), DateFrom: from, DateTo: to, Timezone: timezone,
 		},
 	)
 	if err != nil {
@@ -362,14 +374,19 @@ func getAnalyticsDisplayName(globalName, username, discriminator string) string 
 }
 
 func discordAccountCreatedAt(userID int64) time.Time {
-	return time.UnixMilli(int64(uint64(userID)>>22) + 1420070400000)
+	return welcomer.DiscordSnowflakeAccountCreatedAt(userID)
 }
 
 func getGuildAnalyticsMessageActivity(ctx *gin.Context) {
 	withGuildAnalyticsRequest(
 		ctx,
 		func(ctx *gin.Context, guildID discord.Snowflake, request *AnalyticsRequest) {
-			current, err := getMessageActivityData(ctx, guildID, request.From, request.To)
+			timezone := request.Timezone
+			if timezone == "" {
+				timezone = "UTC"
+			}
+
+			current, err := getMessageActivityData(ctx, guildID, request.From, request.To, timezone)
 			if err == nil {
 				var previous map[string]any
 
@@ -378,6 +395,7 @@ func getGuildAnalyticsMessageActivity(ctx *gin.Context) {
 					guildID,
 					request.PreviousFrom,
 					request.PreviousTo,
+					timezone,
 				)
 				if err == nil {
 					ctx.JSON(

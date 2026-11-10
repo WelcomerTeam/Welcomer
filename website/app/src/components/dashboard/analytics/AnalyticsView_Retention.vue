@@ -11,7 +11,7 @@
                 <button @click="this.fetch">Retry</button>
             </div>
             <div v-else-if="!isDataFetched"
-                class="w-full h-full absolute left-0 top-0 flex items-center justify-center">
+                class="pointer-events-none w-full h-full absolute left-0 top-0 flex items-center justify-center">
                 <LoadingIcon />
             </div>
             <div v-if="data && !isDataError">

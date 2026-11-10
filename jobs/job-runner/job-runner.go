@@ -115,6 +115,11 @@ func main() {
 		"0        * * * *",
 		"cd /home/rock/Welcomer/jobs && go run update-donator-roles.go",
 	)
+	addJob(
+		"aggregate-guild-analytics-benchmarks",
+		"2       1 * * 0",
+		"cd /home/rock/Welcomer/jobs && go run aggregate-guild-analytics-benchmarks.go",
+	)
 
 	c.Start()
 

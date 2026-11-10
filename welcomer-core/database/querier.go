@@ -79,6 +79,7 @@ type Querier interface {
 	DeleteAndGetGuildVoiceChannelOpenSession(ctx context.Context, arg DeleteAndGetGuildVoiceChannelOpenSessionParams) (*GuildVoiceChannelOpenSessions, error)
 	DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx context.Context, lastSeenTs time.Time) ([]*GuildVoiceChannelOpenSessions, error)
 	DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) (int64, error)
+	DeleteGuildAnalyticsBenchmarks(ctx context.Context) error
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
 	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)
 	DeleteReactionRoleSettings(ctx context.Context, arg DeleteReactionRoleSettingsParams) (int64, error)
@@ -117,6 +118,14 @@ type Querier interface {
 	GetGiveawayFromMessageID(ctx context.Context, arg GetGiveawayFromMessageIDParams) (*GuildGiveaways, error)
 	GetGiveawayWinners(ctx context.Context, giveawayUuid uuid.UUID) ([]*GuildGiveawaysWinners, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
+	GetGuildAnalyticsBenchmarkBucket(ctx context.Context, memberCountBucket int16) ([]*GetGuildAnalyticsBenchmarkBucketRow, error)
+	// Restricts benchmark candidates to guilds with recent analytics events before per-bucket sampling.
+	GetGuildAnalyticsBenchmarkGuilds(ctx context.Context, arg GetGuildAnalyticsBenchmarkGuildsParams) ([]*GetGuildAnalyticsBenchmarkGuildsRow, error)
+	// Returns per-guild messaging and voice totals for the fixed, complete UTC activity week.
+	GetGuildAnalyticsBenchmarkInputs(ctx context.Context, arg GetGuildAnalyticsBenchmarkInputsParams) ([]*GetGuildAnalyticsBenchmarkInputsRow, error)
+	// Cohort members receive the same 30-day observation window for both retention and onboarding.
+	// First-message timing uses the hourly min_ts aggregate, not raw message events.
+	GetGuildAnalyticsBenchmarkJoinMetrics(ctx context.Context, arg GetGuildAnalyticsBenchmarkJoinMetricsParams) (*GetGuildAnalyticsBenchmarkJoinMetricsRow, error)
 	GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) ([]*GetGuildAuditLogsRow, error)
 	GetGuildBorderwallActivity(ctx context.Context, arg GetGuildBorderwallActivityParams) ([]*GetGuildBorderwallActivityRow, error)
 	GetGuildBorderwallCountries(ctx context.Context, arg GetGuildBorderwallCountriesParams) ([]*GetGuildBorderwallCountriesRow, error)
@@ -233,6 +242,7 @@ type Querier interface {
 	UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error)
 	UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsCustomBuilderParams) (*GuildSettingsWelcomerImages, error)
 	UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error)
+	UpsertGuildAnalyticsBenchmark(ctx context.Context, arg UpsertGuildAnalyticsBenchmarkParams) error
 	UpsertJobCheckpoint(ctx context.Context, arg UpsertJobCheckpointParams) error
 	UpsertMessageCounts(ctx context.Context, arg UpsertMessageCountsParams) error
 }
