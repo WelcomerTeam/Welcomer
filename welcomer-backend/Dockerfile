@@ -9,7 +9,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 LD_LIBRARY_PATH='/usr/local/lib' \
     go build -a --trimpath -o ./out/backend ./cmd/main.go
 
 FROM alpine:3
-RUN apk add ca-certificates libc6-compat
+RUN apk add --no-cache ca-certificates libc6-compat tzdata
 COPY --from=build_base /usr/local/lib /usr/local/lib
 COPY --from=build_base /tmp/welcomer-backend/out/backend /app/backend
 CMD ["/app/backend"]
