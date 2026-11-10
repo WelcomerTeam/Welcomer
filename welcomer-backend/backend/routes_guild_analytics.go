@@ -59,6 +59,110 @@ type AnalyticsRequest struct {
 	Timezone     string    `form:"timezone"`
 }
 
+func validateAnalyticsDateRange(from, to time.Time) error {
+	if !from.Before(to) {
+		return fmt.Errorf("analytics from date must be before to date")
+	}
+
+	return nil
+}
+
+func defaultAnalyticsDateRange(request *AnalyticsRequest, now time.Time) {
+	location := time.UTC
+	if request.Timezone != "" {
+		if loadedLocation, err := time.LoadLocation(request.Timezone); err == nil {
+			location = loadedLocation
+		}
+	}
+
+	localNow := now.In(location)
+	today := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, location)
+	request.From = today.AddDate(0, 0, -6)
+	request.To = now
+}
+
+func isAllowedFreeAnalyticsDateRange(from, to, now time.Time, location *time.Location) bool {
+	if location == nil {
+		return false
+	}
+
+	localNow := now.In(location)
+	today := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, location)
+	startOfWeek := today.AddDate(0, 0, -((int(today.Weekday()) + 6) % 7))
+	startOfMonth := time.Date(today.Year(), today.Month(), 1, 0, 0, 0, 0, location)
+
+	type dateRange struct {
+		from time.Time
+		to   time.Time
+	}
+	allowedRanges := []dateRange{
+		{from: today.AddDate(0, 0, -6), to: today},
+		{from: today.AddDate(0, 0, -29), to: today},
+		{from: startOfWeek, to: today},
+		{from: startOfWeek.AddDate(0, 0, -7), to: startOfWeek.AddDate(0, 0, -1)},
+		{from: startOfMonth, to: today},
+	}
+
+	localFrom := from.In(location)
+	localTo := to.In(location)
+	startOfRequestedRange := time.Date(localFrom.Year(), localFrom.Month(), localFrom.Day(), 0, 0, 0, 0, location)
+	if !from.Equal(startOfRequestedRange) {
+		return false
+	}
+
+	for _, allowed := range allowedRanges {
+		if !startOfRequestedRange.Equal(allowed.from) ||
+			localTo.Year() != allowed.to.Year() ||
+			localTo.Month() != allowed.to.Month() ||
+			localTo.Day() != allowed.to.Day() {
+			continue
+		}
+
+		if allowed.to.Equal(today) {
+			return true
+		}
+
+		endOfDay := allowed.to.AddDate(0, 0, 1).Add(-time.Millisecond)
+		return to.Equal(endOfDay)
+	}
+
+	return false
+}
+
+func validateAnalyticsRequest(ctx *gin.Context, guildID discord.Snowflake, request *AnalyticsRequest) bool {
+	if err := validateAnalyticsDateRange(request.From, request.To); err != nil {
+		ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		return false
+	}
+
+	location := time.UTC
+	if request.Timezone != "" {
+		loadedLocation, err := time.LoadLocation(request.Timezone)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			return false
+		}
+		location = loadedLocation
+	}
+
+	hasWelcomerPro, _, _, err := welcomer.CheckGuildMemberships(ctx, guildID)
+	if err != nil {
+		welcomer.Logger.Error().
+			Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("failed to check Welcomer Pro membership for analytics")
+		ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+		return false
+	}
+
+	if !hasWelcomerPro && !isAllowedFreeAnalyticsDateRange(request.From, request.To, time.Now(), location) {
+		ctx.JSON(http.StatusForbidden, NewBaseResponse(ErrMissingMembership, nil))
+		return false
+	}
+
+	return true
+}
+
 type DatasetItem struct {
 	Key   string
 	Value int
@@ -154,8 +258,6 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 				return
 			}
 
-			// TODO: premium date periods
-
 			partial := &AnalyticsRequest{}
 
 			err = ctx.BindQuery(partial)
@@ -169,15 +271,21 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 			}
 
 			if partial.From.IsZero() || partial.To.IsZero() {
-				partial.From = time.Now().Add(-1 * defaultPeriod)
-				partial.To = time.Now()
+				defaultAnalyticsDateRange(partial, time.Now())
 			}
 
-			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
-				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(
-					partial.From,
-					partial.To,
-				)
+			partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+
+			if err := validateAnalyticsDateRange(partial.From, partial.To); err != nil {
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				return
+			}
+			if err := validateAnalyticsDateRange(partial.PreviousFrom, partial.PreviousTo); err != nil {
+				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				return
+			}
+			if !validateAnalyticsRequest(ctx, guildID, partial) {
+				return
 			}
 
 			data, err := getGuildAnalyticsOverviewData(
@@ -199,6 +307,17 @@ func getGuildAnalyticsOverview(ctx *gin.Context) {
 					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
 				)
 
+				return
+			}
+
+			if len(data.GuildMembersSum) == 0 {
+				welcomer.Logger.Error().
+					Int64("guild_id", int64(guildID)).
+					Msg("guild analytics overview returned no member datapoints")
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 				return
 			}
 
@@ -403,8 +522,6 @@ func getGuildAnalyticsRetention(ctx *gin.Context) {
 				return
 			}
 
-			// TODO: premium date periods
-
 			partial := &AnalyticsRequest{}
 
 			err = ctx.BindQuery(partial)
@@ -418,15 +535,12 @@ func getGuildAnalyticsRetention(ctx *gin.Context) {
 			}
 
 			if partial.From.IsZero() || partial.To.IsZero() {
-				partial.From = time.Now().Add(-1 * defaultPeriod)
-				partial.To = time.Now()
+				defaultAnalyticsDateRange(partial, time.Now())
 			}
 
-			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
-				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(
-					partial.From,
-					partial.To,
-				)
+			partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+			if !validateAnalyticsRequest(ctx, guildID, partial) {
+				return
 			}
 
 			data, err := getGuildAnalyticsRetentionData(
@@ -729,8 +843,6 @@ func getGuildAnalyticsUserActivity(ctx *gin.Context) {
 				return
 			}
 
-			// TODO: premium date periods
-
 			partial := &AnalyticsRequest{}
 
 			err = ctx.BindQuery(partial)
@@ -744,15 +856,12 @@ func getGuildAnalyticsUserActivity(ctx *gin.Context) {
 			}
 
 			if partial.From.IsZero() || partial.To.IsZero() {
-				partial.From = time.Now().Add(-1 * defaultPeriod)
-				partial.To = time.Now()
+				defaultAnalyticsDateRange(partial, time.Now())
 			}
 
-			if partial.PreviousFrom.IsZero() || partial.PreviousTo.IsZero() {
-				partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(
-					partial.From,
-					partial.To,
-				)
+			partial.PreviousFrom, partial.PreviousTo = getPreviousDuration(partial.From, partial.To)
+			if !validateAnalyticsRequest(ctx, guildID, partial) {
+				return
 			}
 
 			data, err := getGuildAnalyticsUserActivityData(

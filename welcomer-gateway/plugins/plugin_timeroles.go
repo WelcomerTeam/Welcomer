@@ -190,10 +190,6 @@ func (p *TimeRolesCog) OnInvokeTimeRoles(
 		}
 
 		if len(rolesToAssign) > 0 {
-			for _, role := range guildMember.Roles {
-				rolesToAssign = append(rolesToAssign, discord.Snowflake(role))
-			}
-
 			allRolesToAssign[discord.Snowflake(guildMember.User.ID)] = rolesToAssign
 		}
 	}

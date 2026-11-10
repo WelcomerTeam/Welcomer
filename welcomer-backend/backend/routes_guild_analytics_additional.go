@@ -51,37 +51,15 @@ func withGuildAnalyticsRequest(
 				return
 			}
 
-			if request.Timezone != "" {
-				if _, err := time.LoadLocation(request.Timezone); err != nil {
-					ctx.JSON(
-						http.StatusBadRequest,
-						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
-					)
-
-					return
-				}
-			}
-
 			if request.From.IsZero() || request.To.IsZero() {
-				request.To = time.Now()
-				request.From = request.To.Add(-defaultPeriod)
+				defaultAnalyticsDateRange(request, time.Now())
 			}
 
-			if !request.From.Before(request.To) {
-				ctx.JSON(
-					http.StatusBadRequest,
-					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
-				)
-
+			if !validateAnalyticsRequest(ctx, guildID, request) {
 				return
 			}
 
-			if request.PreviousFrom.IsZero() || request.PreviousTo.IsZero() {
-				request.PreviousFrom, request.PreviousTo = getPreviousDuration(
-					request.From,
-					request.To,
-				)
-			}
+			request.PreviousFrom, request.PreviousTo = getPreviousDuration(request.From, request.To)
 
 			handler(ctx, guildID, request)
 		})

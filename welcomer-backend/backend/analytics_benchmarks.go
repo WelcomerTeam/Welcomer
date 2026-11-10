@@ -87,8 +87,7 @@ func getGuildAnalyticsBenchmarks(
 		if err != nil {
 			return nil, fmt.Errorf("get guild benchmark daily activity: %w", err)
 		}
-		values[welcomer.GuildAnalyticsBenchmarkMetricDailyActiveUsers] =
-			floatPointer(activeUsers.AverageDailyActiveUsers)
+		values[welcomer.GuildAnalyticsBenchmarkMetricDailyActiveUsers] = floatPointer(activeUsers.AverageDailyActiveUsers)
 
 		uniqueMessagingUsers := int64(0)
 		if input.UniqueUsers.Valid {
@@ -98,26 +97,21 @@ func getGuildAnalyticsBenchmarks(
 		if input.TotalMessages.Valid {
 			totalMessages = input.TotalMessages.Int64
 		}
-		values[welcomer.GuildAnalyticsBenchmarkMetricWeeklyUniqueMessagingUsers] =
-			floatPointer(float64(uniqueMessagingUsers))
+		values[welcomer.GuildAnalyticsBenchmarkMetricWeeklyUniqueMessagingUsers] = floatPointer(float64(uniqueMessagingUsers))
 		if uniqueMessagingUsers > 0 {
-			values[welcomer.GuildAnalyticsBenchmarkMetricWeeklyMessagesPerUser] =
-				floatPointer(float64(totalMessages) / float64(uniqueMessagingUsers))
+			values[welcomer.GuildAnalyticsBenchmarkMetricWeeklyMessagesPerUser] = floatPointer(float64(totalMessages) / float64(uniqueMessagingUsers))
 		}
 		if input.MemberCount > 0 {
-			values[welcomer.GuildAnalyticsBenchmarkMetricActiveMembersPercentage] =
-				floatPointer(float64(uniqueMessagingUsers) * 100 / float64(input.MemberCount))
+			values[welcomer.GuildAnalyticsBenchmarkMetricActiveMembersPercentage] = floatPointer(float64(uniqueMessagingUsers) * 100 / float64(input.MemberCount))
 		}
 
 		uniqueVoiceUsers := int64(0)
 		if input.UniqueUsers_2.Valid {
 			uniqueVoiceUsers = input.UniqueUsers_2.Int64
 		}
-		values[welcomer.GuildAnalyticsBenchmarkMetricWeeklyUniqueVoiceUsers] =
-			floatPointer(float64(uniqueVoiceUsers))
+		values[welcomer.GuildAnalyticsBenchmarkMetricWeeklyUniqueVoiceUsers] = floatPointer(float64(uniqueVoiceUsers))
 		if input.Sessions.Valid && input.Sessions.Int64 > 0 && input.TotalTimeMs.Valid {
-			values[welcomer.GuildAnalyticsBenchmarkMetricAverageVoiceSessionMS] =
-				floatPointer(float64(input.TotalTimeMs.Int64) / float64(input.Sessions.Int64))
+			values[welcomer.GuildAnalyticsBenchmarkMetricAverageVoiceSessionMS] = floatPointer(float64(input.TotalTimeMs.Int64) / float64(input.Sessions.Int64))
 		}
 
 		joinMetrics, err := welcomer.Queries.GetGuildAnalyticsBenchmarkJoinMetrics(
@@ -135,12 +129,10 @@ func getGuildAnalyticsBenchmarks(
 			return nil, fmt.Errorf("get guild benchmark join metrics: %w", err)
 		}
 		if joinMetrics.CohortSize > 0 {
-			values[welcomer.GuildAnalyticsBenchmarkMetricRetentionRate30D] =
-				floatPointer(float64(joinMetrics.RetainedMembers) * 100 / float64(joinMetrics.CohortSize))
+			values[welcomer.GuildAnalyticsBenchmarkMetricRetentionRate30D] = floatPointer(float64(joinMetrics.RetainedMembers) * 100 / float64(joinMetrics.CohortSize))
 		}
 		if joinMetrics.MessagedMembers > 0 {
-			values[welcomer.GuildAnalyticsBenchmarkMetricAverageTimeToFirstMessageSeconds] =
-				floatPointer(joinMetrics.AverageTimeToFirstMessageSeconds)
+			values[welcomer.GuildAnalyticsBenchmarkMetricAverageTimeToFirstMessageSeconds] = floatPointer(joinMetrics.AverageTimeToFirstMessageSeconds)
 		}
 
 		accountAgeDays, available, cacheErr := cachedGuildAverageAccountAgeDays(ctx, guildID, now)
@@ -154,8 +146,7 @@ func getGuildAnalyticsBenchmarks(
 				Int64("guild_id", int64(guildID)).
 				Msg("guild account-age benchmark value unavailable because its cached member roster is empty")
 		} else {
-			values[welcomer.GuildAnalyticsBenchmarkMetricAverageAccountAgeDays] =
-				floatPointer(accountAgeDays)
+			values[welcomer.GuildAnalyticsBenchmarkMetricAverageAccountAgeDays] = floatPointer(accountAgeDays)
 		}
 	}
 

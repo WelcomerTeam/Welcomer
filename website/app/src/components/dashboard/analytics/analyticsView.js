@@ -2,10 +2,18 @@ import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
 import { getErrorToast } from "@/utilities";
 
+function getDateRangeEnd(date, now) {
+    const endOfSelectedDate = new Date(date);
+    endOfSelectedDate.setHours(23, 59, 59, 999);
+
+    return endOfSelectedDate > now ? new Date(now) : endOfSelectedDate;
+}
+
 export default {
     inject: ["analyticsDateRange"],
     data() {
-        const endDate = new Date();
+        const now = new Date();
+        const endDate = new Date(now);
         const startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 6);
         startDate.setHours(0, 0, 0, 0);
@@ -13,15 +21,15 @@ export default {
         const selectedEndDate = new Date(`${this.analyticsDateRange.endDate}T00:00:00`);
         if (!Number.isNaN(selectedStartDate.getTime()) && !Number.isNaN(selectedEndDate.getTime())) {
             startDate.setTime(selectedStartDate.getTime());
-            endDate.setTime(selectedEndDate.getTime());
+            endDate.setTime(getDateRangeEnd(selectedEndDate, now).getTime());
         }
         return {
             startDate,
             endDate,
             todayDate: [
-                endDate.getFullYear(),
-                String(endDate.getMonth() + 1).padStart(2, "0"),
-                String(endDate.getDate()).padStart(2, "0"),
+                now.getFullYear(),
+                String(now.getMonth() + 1).padStart(2, "0"),
+                String(now.getDate()).padStart(2, "0"),
             ].join("-"),
             isDataFetched: false,
             isDataError: false,
@@ -45,10 +53,8 @@ export default {
             const query = new URLSearchParams({
                 from: this.startDate.toISOString(),
                 to: this.endDate.toISOString(),
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
             });
-            if (this.analyticsEndpoint === "message-activity") {
-                query.set("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
-            }
             dashboardAPI.getConfig(
                 `${endpoints.EndpointGuildAnalytics(this.$route.params.guildID, this.analyticsEndpoint)}?${query}`,
                 ({ config }) => {
@@ -71,6 +77,11 @@ export default {
             );
         },
         handleDateRangeUpdate(range) {
+            if (!this.$store.getters.guildHasWelcomerPro &&
+                ["last_month", "custom"].includes(range.preset)) {
+                return;
+            }
+
             const startDate = this.parseDateRangeValue(range.startDate);
             const selectedEnd = this.parseDateRangeValue(range.endDate);
             if (!startDate || !selectedEnd) {
@@ -78,9 +89,8 @@ export default {
                 return;
             }
             startDate.setHours(0, 0, 0, 0);
-            selectedEnd.setHours(23, 59, 59, 999);
             const now = new Date();
-            const endDate = selectedEnd > now ? now : selectedEnd;
+            const endDate = getDateRangeEnd(selectedEnd, now);
             if (startDate >= endDate) {
                 this.$store.dispatch("createToast", getErrorToast("Select a valid analytics date range."));
                 return;
