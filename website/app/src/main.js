@@ -111,7 +111,7 @@ import {
 import {
   faPersonDigging as fadPersonDigging
 } from "@fortawesome/pro-duotone-svg-icons";
-import store from "./store";
+import { createAppStore } from "./store";
 import { routes, scrollBehavior } from "./router";
 import App from "./App.vue";
 
@@ -211,6 +211,8 @@ export const createApp = ViteSSG(
   App,
   { routes, scrollBehavior },
   ({ app, isClient }) => {
+    const store = createAppStore();
+
     if (isClient) {
       if ("scrollRestoration" in history) {
         history.scrollRestoration = "manual";

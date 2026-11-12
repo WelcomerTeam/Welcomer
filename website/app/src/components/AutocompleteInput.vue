@@ -40,9 +40,6 @@
 <script>
 import { ref } from 'vue';
 
-import store from "@/store/index";
-
-
 var iconTypeChannel = 1;
 var iconTypeRole = 1;
 var iconTypeIcon = 2;
@@ -300,6 +297,8 @@ export default {
     },
 
     getSuggestions(input) {
+      const store = this.$store;
+
       var options = function () {
         if (input.startsWith("#")) {
           const query = input.slice(1);

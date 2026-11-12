@@ -107,6 +107,17 @@ const getters = {
 
 // actions
 const actions = {
+  selectGuild({ commit, dispatch }, guildID) {
+    const selectedGuildID = guildID || null;
+    commit("setSelectedGuild", selectedGuildID);
+
+    if (selectedGuildID) {
+      dispatch("fillGuild");
+    } else {
+      commit("setGuild", { guild: null, hasWelcomer: false });
+    }
+  },
+
   fillGuild({ dispatch, state }) {
     if (state.selectedGuild != state.guild?.id && state.selectedGuild) {
       dispatch("fetchGuild");
@@ -146,7 +157,7 @@ const actions = {
 // mutations
 const mutations = {
   setGuild(state, { guild, hasWelcomer }) {
-    state.guild = guild?.guild;
+    state.guild = guild?.guild ?? null;
     state.guildHasWelcomerPro = guild?.has_welcomer_pro;
     state.guildHasCustomBackgrounds = guild?.has_custom_backgrounds;
     state.guildFeatures = guild?.features || [];
@@ -163,7 +174,6 @@ const mutations = {
 
   setSelectedGuild(state, guildID) {
     state.selectedGuild = guildID;
-    this.dispatch("fillGuild");
   },
 
   setGuildMemberResults(state, guildMembers) {

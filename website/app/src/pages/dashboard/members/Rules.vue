@@ -194,7 +194,7 @@ export default {
 
   methods: {
     marked(text, embed) {
-      return marked(text, embed);
+      return marked(text, embed, false, this.$store);
     },
 
     setConfig(config) {

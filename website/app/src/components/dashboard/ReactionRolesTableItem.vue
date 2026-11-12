@@ -81,6 +81,7 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/vue";
 import { ChevronDownIcon } from "@heroicons/vue/solid";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredIf } from "@vuelidate/validators";
+import { useStore } from "vuex";
 
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
@@ -94,7 +95,6 @@ import {
 import RoleTableReactionRoles from "@/components/dashboard/RoleTableReactionRoles.vue";
 import DiscordEmojiPicker from "@/components/DiscordEmojiPicker.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-import store from "@/store";
 import {
   getErrorToast,
   getValidationToast,
@@ -127,6 +127,7 @@ export default {
   emits: ["save"],
 
   setup(props) {
+    const store = useStore();
     let onboardingStep = ref(props.reactionRole.is_system_message == undefined ? 0 : 2);
     let showOnboardingLoading = ref(false);
     // Onboarding steps:

@@ -365,6 +365,7 @@ import {
 } from "@headlessui/vue";
 import { ChevronDownIcon } from "@heroicons/vue/outline";
 import { CheckIcon } from "@heroicons/vue/solid";
+import { useStore } from "vuex";
 
 import billingAPI from "@/api/billing";
 import FormValue from "@/components/dashboard/FormValue.vue";
@@ -375,7 +376,6 @@ import Toast from "@/components/dashboard/Toast.vue";
 import Footer from "@/components/Footer.vue";
 import Header from "@/components/Header.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
-import store from "@/store/index";
 import { getErrorToast } from "@/utilities";
 
 
@@ -462,6 +462,7 @@ export default {
     FormValue,
   },
   setup() {
+    const store = useStore();
     store.dispatch("fetchGuilds");
 
     let durationSelected = ref(durationMonthly);
@@ -529,7 +530,7 @@ export default {
 
   methods: {
     marked(text, embed) {
-      return marked(text, embed);
+      return marked(text, embed, false, this.$store);
     },
 
     getLocale() {

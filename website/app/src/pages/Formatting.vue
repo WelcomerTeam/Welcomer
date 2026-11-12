@@ -226,7 +226,7 @@ export default {
   },
   methods: {
     marked(text, embed, skipFormatting) {
-      return marked(text, embed, skipFormatting);
+      return marked(text, embed, skipFormatting, this.$store);
     },
 
     copyTag(formattingTag) {

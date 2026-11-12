@@ -1,5 +1,4 @@
 import { toHTML } from "@/components/discord-markdown";
-import store from "@/store";
 
 export function getHexColor(number) {
     return "#" + (number >>> 0).toString(16).slice(-6);
@@ -84,13 +83,13 @@ export function getRolePermissionListAsString(permissions) {
     return roleNames.join(", ");
 }
 
-export function ordinal(number) {
+export function ordinal(number, store) {
     const suffixes = ["th", "st", "nd", "rd"];
 
-    return formatNumber(number).toString() + suffixes[(number % 100 >= 11 && number % 100 <= 13) ? 0 : (number % 10 < 4 ? number % 10 : 0)];
+    return formatNumber(number, store).toString() + suffixes[(number % 100 >= 11 && number % 100 <= 13) ? 0 : (number % 10 < 4 ? number % 10 : 0)];
 }
 
-export function formatNumber(number) {
+export function formatNumber(number, store) {
     if (!number) {
         return "0";
     }
@@ -109,7 +108,7 @@ export function formatNumber(number) {
     }
 }
 
-export function formatText(text) {
+export function formatText(text, store) {
     if (!text || !text.includes("{{")) {
         return text;
     }
@@ -132,19 +131,19 @@ export function formatText(text) {
         "{{Guild.Splash}}": `https://cdn.discordapp.com/splashes/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.splash}.png`,
 
         "{{Guild.Members}}": store.getters.getCurrentSelectedGuild?.member_count,
-        "{{Ordinal(Guild.Members)}}": ordinal(store.getters.getCurrentSelectedGuild?.member_count),
-        "{{FormatNumber(Guild.Members)}}": formatNumber(store.getters.getCurrentSelectedGuild?.member_count),
+        "{{Ordinal(Guild.Members)}}": ordinal(store.getters.getCurrentSelectedGuild?.member_count, store),
+        "{{FormatNumber(Guild.Members)}}": formatNumber(store.getters.getCurrentSelectedGuild?.member_count, store),
 
         "{{Guild.MembersJoined}}": store.getters.getCurrentSelectedGuild?.members_joined,
-        "{{Ordinal(Guild.MembersJoined)}}": ordinal(store.getters.getCurrentSelectedGuild?.members_joined),
-        "{{FormatNumber(Guild.MembersJoined)}}": formatNumber(store.getters.getCurrentSelectedGuild?.members_joined),
+        "{{Ordinal(Guild.MembersJoined)}}": ordinal(store.getters.getCurrentSelectedGuild?.members_joined, store),
+        "{{FormatNumber(Guild.MembersJoined)}}": formatNumber(store.getters.getCurrentSelectedGuild?.members_joined, store),
 
         "{{Guild.Banner}}": `https://cdn.discordapp.com/banners/${store.getters.getCurrentSelectedGuild?.id}/${store.getters.getCurrentSelectedGuild?.banner}.png`,
         "{{Invite.Code}}": "Unknown",
 
         "{{Invite.Uses}}": "0",
-        "{{Ordinal(Invite.Uses)}}": ordinal(0),
-        "{{FormatNumber(Invite.Uses)}}": formatNumber(0),
+        "{{Ordinal(Invite.Uses)}}": ordinal(0, store),
+        "{{FormatNumber(Invite.Uses)}}": formatNumber(0, store),
 
         "{{Invite.Inviter}}": "Unknown",
         "{{Invite.ChannelID}}": "0",
@@ -153,8 +152,8 @@ export function formatText(text) {
         "{{Invite.MaxAge}}": "0",
 
         "{{Invite.MaxUses}}": "0",
-        "{{Ordinal(Invite.MaxUses)}}": ordinal(0),
-        "{{FormatNumber(Invite.MaxUses)}}": formatNumber(0),
+        "{{Ordinal(Invite.MaxUses)}}": ordinal(0, store),
+        "{{FormatNumber(Invite.MaxUses)}}": formatNumber(0, store),
 
         "{{Invite.Temporary}}": "False",
     };
@@ -166,9 +165,9 @@ export function formatText(text) {
     return text;
 }
 
-export function marked(input, embed, skipFormatting) {
+export function marked(input, embed, skipFormatting, store) {
     if (!skipFormatting) {
-        input = formatText(input);
+        input = formatText(input, store);
     }
 
     if (input) {

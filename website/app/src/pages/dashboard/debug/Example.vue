@@ -50,6 +50,8 @@
 <script>
 import { ref } from "vue";
 
+import { useStore } from "vuex";
+
 import FormValue from "@/components/dashboard/FormValue.vue";
 import {
   FormTypeToggle,
@@ -65,7 +67,6 @@ import {
   FormTypeDropdown,
   FormTypeEmbed,
 } from "@/components/dashboard/FormValueEnum";
-import store from "@/store/index";
 
 
 var config = ref({
@@ -88,6 +89,7 @@ export default {
     FormValue,
   },
   setup() {
+    const store = useStore();
     let nullable = ref(false);
     let disabled = ref(false);
     let invalid = ref(false);

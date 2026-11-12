@@ -5,7 +5,8 @@
     "dev": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website-dev/assets/backgrounds/ && vite build --mode development --watch --outDir /home/rock/Welcomer-Devops/data/nginx/website-dev --emptyOutDir false",
     "dev:ssg": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website-dev/assets/backgrounds/ && WEBSITE_OUT_DIR=/home/rock/Welcomer-Devops/data/nginx/website-dev vite-ssg build --mode development",
     "build": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website/assets/backgrounds/ && WEBSITE_OUT_DIR=/home/rock/Welcomer-Devops/data/nginx/website vite-ssg build --mode production",
-    "lint": "eslint src --max-warnings=0"
+    "lint": "eslint src test --max-warnings=0",
+    "test": "node --test"
   },
   "dependencies": {
     "@adapttive/vue-markdown": "git+https://github.com/adapttive/vue-markdown.git",

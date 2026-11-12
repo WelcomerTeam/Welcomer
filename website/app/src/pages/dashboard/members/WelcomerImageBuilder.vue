@@ -516,11 +516,9 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
-import { useRoute } from "vue-router";
 
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
-import store from "@/store/index";
 import { doRequest } from "@/api/routes";
 import AutocompleteInput from "@/components/AutocompleteInput.vue";
 import ImageBuilderColourSelector from "@/components/dashboard/ImageBuilderColourSelector.vue";
@@ -530,6 +528,7 @@ import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import VirtualFontSelector from "@/components/dashboard/VirtualFontSelector.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 import Popup from "@/components/Popup.vue";
+import useGuildRoute from "@/composables/useGuildRoute";
 import fonts from "@/fonts.json";
 import {
   getErrorToast,
@@ -560,9 +559,6 @@ export default {
     ListboxOptions,
   },
   watch: {
-    "$route.params.guildID"(to) {
-      store.commit("setSelectedGuild", to);
-    },
     "image_config.stroke.width"(newValue, oldValue) {
       if (newValue !== oldValue) {
         this.fitCanvas();
@@ -584,21 +580,7 @@ export default {
     },
   },
   setup() {
-    store.watch(
-      () => store.getters.getSelectedGuildID,
-      () => {
-        if (store.getters.getSelectedGuildID !== undefined) {
-          store.dispatch("fillGuild");
-        }
-      }
-    );
-
-    const route = useRoute();
-
-    let guildID = route.params.guildID;
-    if (guildID !== undefined) {
-      store.commit("setSelectedGuild", guildID);
-    }
+    useGuildRoute();
 
     let isDataFetched = ref(false);
     let isDataError = ref(false);
@@ -1047,11 +1029,11 @@ you are the {{Ordinal(Guild.Members)}} member!`;
     },
 
     marked(text, embed) {
-      return marked(text, embed);
+      return marked(text, embed, false, this.$store);
     },
 
     formatText(text) {
-      return formatText(text);
+      return formatText(text, this.$store);
     },
 
     rgbaToHex(color) {
