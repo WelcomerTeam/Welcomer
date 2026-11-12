@@ -55,5 +55,11 @@ export default [
       }
     },
     rules: {}
+  },
+  {
+    files: ['**/*.d.ts'],
+    rules: {
+      'no-unused-vars': 'off'
+    }
   }
 ];

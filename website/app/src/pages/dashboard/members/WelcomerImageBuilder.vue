@@ -507,9 +507,6 @@ body {
 <script>
 import { ref } from "vue";
 
-import store from "@/store/index";
-import dashboardAPI from "@/api/dashboard";
-
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
 
@@ -521,7 +518,9 @@ import {
 } from "@headlessui/vue";
 import { useRoute } from "vue-router";
 
+import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
+import store from "@/store/index";
 import { doRequest } from "@/api/routes";
 import AutocompleteInput from "@/components/AutocompleteInput.vue";
 import ImageBuilderColourSelector from "@/components/dashboard/ImageBuilderColourSelector.vue";

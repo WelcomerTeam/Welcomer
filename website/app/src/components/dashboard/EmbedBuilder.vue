@@ -307,6 +307,8 @@
 </style>
 
 <script>
+import { ref } from "vue";
+
 import {
   Listbox,
   ListboxButton,
@@ -320,6 +322,7 @@ import {
   PopoverButton,
   PopoverPanel,
 } from "@headlessui/vue";
+
 import { XIcon } from "@heroicons/vue/outline";
 import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { ColorPicker } from "vue-color-kit";
@@ -329,7 +332,6 @@ import CodeEditor from "@/components/simple-code-editor/CodeEditor.vue";
 
 
 import "vue-color-kit/dist/vue-color-kit.css";
-import { ref } from "vue";
 
 import DiscordEmbed from "@/components/DiscordEmbed.vue";
 import AutocompleteInput from "@/components/AutocompleteInput.vue";

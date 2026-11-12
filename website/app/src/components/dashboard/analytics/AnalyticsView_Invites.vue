@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="flex justify-end min-h-12">
         <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
-          :defaultPreset="'last_7_days'" />
+                             :defaultPreset="'last_7_days'" />
       </div>
       <div v-if="isDataError" class="mb-4">
         <p class="mb-2">Unable to load invite analytics.</p>
@@ -16,25 +16,25 @@
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-4 mb-4">
           <AnalyticsCard name="Tracked Invites" :amount="data.current.total_invites" icon="fa-user-plus" />
           <AnalyticsCard name="Invite Joins" :amount="data.current.invite_joins"
-            :previousAmount="data.previous.invite_joins" />
+                         :previousAmount="data.previous.invite_joins" />
           <AnalyticsCard name="Tracked Joins" :amount="data.current.tracked_joins"
-            :previousAmount="data.previous.tracked_joins" />
+                         :previousAmount="data.previous.tracked_joins" />
           <AnalyticsCard name="Untracked Joins" :amount="data.current.untracked_joins"
-            :previousAmount="data.previous.untracked_joins" />
+                         :previousAmount="data.previous.untracked_joins" />
         </div>
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-1 mb-4">
           <AnalyticsCard name="Tracked Joins per Saved Invite"
-            :amount="data.current.average_joins_per_invite.toFixed(1)"
-            :comparisonAmount="data.current.average_joins_per_invite"
-            :previousAmount="data.previous.average_joins_per_invite" />
+                         :amount="data.current.average_joins_per_invite.toFixed(1)"
+                         :comparisonAmount="data.current.average_joins_per_invite"
+                         :previousAmount="data.previous.average_joins_per_invite" />
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Invites Tracked">
             <Line class="h-72" v-if="data.current.joins_by_time.length" :data="GetDatasetsLine([
-              GetDatasetLine('#2F80ED', 'All joins', data.current.joins_by_time).HasTimestamp(),
-              GetDatasetLine('#27AE60', 'Invite tracked', data.current.tracked_joins_by_time).HasTimestamp().WithBorderDash([5, 5]),
-            ])"
-              :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y} joins` }).WithLegend()" />
+                    GetDatasetLine('#2F80ED', 'All joins', data.current.joins_by_time).HasTimestamp(),
+                    GetDatasetLine('#27AE60', 'Invite tracked', data.current.tracked_joins_by_time).HasTimestamp().WithBorderDash([5, 5]),
+                  ])"
+                  :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y} joins` }).WithLegend()" />
             <p v-else class="text-sm text-gray-500">No joins were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>

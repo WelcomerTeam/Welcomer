@@ -17,7 +17,7 @@
       </p>
       <div class="text-xs mt-2" v-if="$props.previousAmount != null">
         <analytics-card-change :amount="$props.comparisonAmount ?? $props.amount"
-          :previousAmount="$props.previousAmount" :isDecreaseGood="$props.isDecreaseGood" />
+                               :previousAmount="$props.previousAmount" :isDecreaseGood="$props.isDecreaseGood" />
       </div>
     </dd>
   </dl>

@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="flex justify-end min-h-12">
         <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
-          :defaultPreset="'last_7_days'" />
+                             :defaultPreset="'last_7_days'" />
       </div>
       <div v-if="isDataError" class="mb-4">
         <p class="mb-2">Unable to load message activity.</p>
@@ -15,11 +15,11 @@
       <template v-else-if="data && !isDataError">
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
           <AnalyticsCard name="Messages Sent" :amount="data.current.total_messages"
-            :previousAmount="data.previous.total_messages" icon="fa-chart-line" />
+                         :previousAmount="data.previous.total_messages" icon="fa-chart-line" />
           <AnalyticsCard name="Unique Users" :amount="data.current.unique_users"
-            :previousAmount="data.previous.unique_users" />
+                         :previousAmount="data.previous.unique_users" />
           <AnalyticsCard name="Messages per User" :amount="data.current.messages_per_user"
-            :previousAmount="data.previous.messages_per_user" />
+                         :previousAmount="data.previous.messages_per_user" />
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Messages Sent">
@@ -60,8 +60,8 @@
                     <th class="p-2 text-left font-normal">{{ day }}</th>
                     <td v-for="hour in hours" :key="hour" class="p-1">
                       <span class="block min-w-5 h-6 rounded"
-                        :style="{ backgroundColor: heatmapColor(cellCount(dayIndex, hour)) }"
-                        :title="`${day}, ${hour}:00 - ${cellCount(dayIndex, hour)} messages`"></span>
+                            :style="{ backgroundColor: heatmapColor(cellCount(dayIndex, hour)) }"
+                            :title="`${day}, ${hour}:00 - ${cellCount(dayIndex, hour)} messages`"></span>
                     </td>
                   </tr>
                 </tbody>

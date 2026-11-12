@@ -1,99 +1,99 @@
 <template>
-    <Popover as="div" v-slot="{ open }" class="relative">
-        <div class="border-gray-300 dark:border-secondary-light">
-            <PopoverButton :class="[
-                'bg-white dark:bg-secondary',
-                'relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-secondary-light',
-            ]">
-                <span>{{ formattedRange }}</span>
-                <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <ChevronDownIcon :class="[
-                        open ? 'transform rotate-180' : '',
-                        'h-5 w-5 text-gray-400 transition-all duration-100',
-                    ]" aria-hidden="true" />
-                </span>
-            </PopoverButton>
+  <Popover as="div" v-slot="{ open }" class="relative">
+    <div class="border-gray-300 dark:border-secondary-light">
+      <PopoverButton :class="[
+        'bg-white dark:bg-secondary',
+        'relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-secondary-light',
+      ]">
+        <span>{{ formattedRange }}</span>
+        <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+          <ChevronDownIcon :class="[
+            open ? 'transform rotate-180' : '',
+            'h-5 w-5 text-gray-400 transition-all duration-100',
+          ]" aria-hidden="true" />
+        </span>
+      </PopoverButton>
 
-            <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
-                leave-to-class="opacity-0">
-                <PopoverPanel :class="[
-                    'absolute right-0 z-10 mt-1 rounded-md border border-gray-300 bg-white p-4 text-sm shadow-lg dark:border-secondary-light dark:bg-secondary',
-                    hasWelcomerPro ? 'w-[min(100vw-2rem,38rem)]' : 'w-[min(100vw-2rem,20rem)]',
-                ]">
-                    <div :class="['grid gap-5', hasWelcomerPro ? 'sm:grid-cols-[minmax(0,1fr)_10rem]' : 'grid-cols-1']">
-                        <section v-if="hasWelcomerPro" aria-label="Choose a custom date range">
-                            <div class="mb-3 flex items-center justify-between">
-                                <button type="button"
-                                    class="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:hover:bg-secondary-light dark:hover:text-white"
-                                    aria-label="Previous month" @click="changeMonth(-1)">
-                                    <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
-                                </button>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ monthLabel }}</span>
-                                <button type="button"
-                                    class="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:hover:bg-secondary-light dark:hover:text-white"
-                                    aria-label="Next month" @click="changeMonth(1)">
-                                    <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
-                                </button>
-                            </div>
+      <transition :show="open" leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100"
+                  leave-to-class="opacity-0">
+        <PopoverPanel :class="[
+          'absolute right-0 z-10 mt-1 rounded-md border border-gray-300 bg-white p-4 text-sm shadow-lg dark:border-secondary-light dark:bg-secondary',
+          hasWelcomerPro ? 'w-[min(100vw-2rem,38rem)]' : 'w-[min(100vw-2rem,20rem)]',
+        ]">
+          <div :class="['grid gap-5', hasWelcomerPro ? 'sm:grid-cols-[minmax(0,1fr)_10rem]' : 'grid-cols-1']">
+            <section v-if="hasWelcomerPro" aria-label="Choose a custom date range">
+              <div class="mb-3 flex items-center justify-between">
+                <button type="button"
+                        class="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:hover:bg-secondary-light dark:hover:text-white"
+                        aria-label="Previous month" @click="changeMonth(-1)">
+                  <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                </button>
+                <span class="font-medium text-gray-900 dark:text-white">{{ monthLabel }}</span>
+                <button type="button"
+                        class="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:hover:bg-secondary-light dark:hover:text-white"
+                        aria-label="Next month" @click="changeMonth(1)">
+                  <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
 
-                            <div
-                                class="grid grid-cols-7 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
-                                <span v-for="weekday in weekdays" :key="weekday" class="py-1">{{ weekday }}</span>
-                            </div>
-                            <div class="grid grid-cols-7">
-                                <button v-for="day in calendarDays" :key="day.value" type="button"
-                                    :disabled="isDateDisabled(day.value)" :aria-label="formatLongDate(day.value)"
-                                    :aria-pressed="isSelected(day.value)" :class="[
-                                        'relative flex h-9 items-center justify-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary',
-                                        day.isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500',
-                                        isDateDisabled(day.value) ? 'cursor-not-allowed opacity-40' : '',
-                                        isRangeMiddle(day.value) ? 'bg-primary/15 dark:bg-primary/25' : '',
-                                        isRangeEdge(day.value) ? 'bg-primary font-semibold text-white' : (isDateDisabled(day.value) ? '' : 'hover:bg-gray-100 dark:hover:bg-secondary-light'),
-                                        isRangeStart(day.value) ? 'rounded-l-md' : '',
-                                        isRangeEnd(day.value) ? 'rounded-r-md' : '',
-                                        isSingleDayRange(day.value) ? 'rounded-md' : '',
-                                    ]" @click="selectDate(day.value)">
-                                    {{ day.day }}
-                                </button>
-                            </div>
-                            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                                {{ awaitingRangeEnd ? "Choose an end date" : "Choose a start date, then an end date" }}
-                            </p>
-                        </section>
+              <div
+                class="grid grid-cols-7 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
+                <span v-for="weekday in weekdays" :key="weekday" class="py-1">{{ weekday }}</span>
+              </div>
+              <div class="grid grid-cols-7">
+                <button v-for="day in calendarDays" :key="day.value" type="button"
+                        :disabled="isDateDisabled(day.value)" :aria-label="formatLongDate(day.value)"
+                        :aria-pressed="isSelected(day.value)" :class="[
+                          'relative flex h-9 items-center justify-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary',
+                          day.isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500',
+                          isDateDisabled(day.value) ? 'cursor-not-allowed opacity-40' : '',
+                          isRangeMiddle(day.value) ? 'bg-primary/15 dark:bg-primary/25' : '',
+                          isRangeEdge(day.value) ? 'bg-primary font-semibold text-white' : (isDateDisabled(day.value) ? '' : 'hover:bg-gray-100 dark:hover:bg-secondary-light'),
+                          isRangeStart(day.value) ? 'rounded-l-md' : '',
+                          isRangeEnd(day.value) ? 'rounded-r-md' : '',
+                          isSingleDayRange(day.value) ? 'rounded-md' : '',
+                        ]" @click="selectDate(day.value)">
+                  {{ day.day }}
+                </button>
+              </div>
+              <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                {{ awaitingRangeEnd ? "Choose an end date" : "Choose a start date, then an end date" }}
+              </p>
+            </section>
 
-                        <section
-                            :class="[hasWelcomerPro ? 'border-t border-gray-200 pt-4 dark:border-secondary-light sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0' : '']"
-                            aria-label="Date range presets">
-                            <p class="mb-2 text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Presets</p>
-                            <div class="space-y-1">
-                                <button v-for="option in presetOptions" :key="option.value" type="button" :class="[
-                                    'w-full rounded-md px-3 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
-                                    selectedPreset === option.value
-                                        ? 'bg-primary font-medium text-white'
-                                        : isPresetDisabled(option)
-                                            ? 'cursor-not-allowed text-gray-400 dark:text-gray-500'
-                                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-secondary-light',
-                                ]" :disabled="isPresetDisabled(option)" :aria-disabled="isPresetDisabled(option)"
-                                    @click="selectPreset(option.value)">
-                                    {{ option.label }}
-                                </button>
-                            </div>
-                            <div v-if="!hasWelcomerPro"
-                                class="mt-4 border-t border-gray-200 pt-4 dark:border-secondary-light">
-                                <p class="text-xs text-gray-600 dark:text-gray-300">
-                                    Unlock Last month and custom date ranges with Welcomer Pro.
-                                </p>
-                                <router-link to="/premium"
-                                    class="mt-2 inline-flex rounded-md bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                                    Get Welcomer Pro
-                                </router-link>
-                            </div>
-                        </section>
-                    </div>
-                </PopoverPanel>
-            </transition>
-        </div>
-    </Popover>
+            <section
+              :class="[hasWelcomerPro ? 'border-t border-gray-200 pt-4 dark:border-secondary-light sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0' : '']"
+              aria-label="Date range presets">
+              <p class="mb-2 text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Presets</p>
+              <div class="space-y-1">
+                <button v-for="option in presetOptions" :key="option.value" type="button" :class="[
+                          'w-full rounded-md px-3 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
+                          selectedPreset === option.value
+                            ? 'bg-primary font-medium text-white'
+                            : isPresetDisabled(option)
+                              ? 'cursor-not-allowed text-gray-400 dark:text-gray-500'
+                              : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-secondary-light',
+                        ]" :disabled="isPresetDisabled(option)" :aria-disabled="isPresetDisabled(option)"
+                        @click="selectPreset(option.value)">
+                  {{ option.label }}
+                </button>
+              </div>
+              <div v-if="!hasWelcomerPro"
+                   class="mt-4 border-t border-gray-200 pt-4 dark:border-secondary-light">
+                <p class="text-xs text-gray-600 dark:text-gray-300">
+                  Unlock Last month and custom date ranges with Welcomer Pro.
+                </p>
+                <router-link to="/premium"
+                             class="mt-2 inline-flex rounded-md bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                  Get Welcomer Pro
+                </router-link>
+              </div>
+            </section>
+          </div>
+        </PopoverPanel>
+      </transition>
+    </div>
+  </Popover>
 </template>
 
 <script>

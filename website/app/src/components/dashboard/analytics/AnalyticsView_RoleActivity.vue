@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="flex justify-end min-h-12">
         <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
-          :defaultPreset="'last_7_days'" />
+                             :defaultPreset="'last_7_days'" />
       </div>
       <div v-if="isDataError" class="mb-4">
         <p class="mb-2">Unable to load role activity.</p>
@@ -15,7 +15,7 @@
       <template v-else-if="data && !isDataError">
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-2 mb-4">
           <AnalyticsCard name="Recorded Role Changes" :amount="totalChanges" :previousAmount="previousTotalChanges"
-            icon="fa-user-group" />
+                         icon="fa-user-group" />
           <AnalyticsCard name="Roles Changed" :amount="data.current.role_changes.length" />
         </div>
         <AnalyticsCardSlot name="Roles Given by Module and Role" class="mb-4">

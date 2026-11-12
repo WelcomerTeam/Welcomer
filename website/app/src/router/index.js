@@ -1,11 +1,8 @@
-import Dashboard from "@/pages/Dashboard.vue";
-import Home from "@/pages/Home.vue";
-
 export const routes = [
   {
     path: "/",
     name: "home",
-    component: Home,
+    component: () => import("@/pages/Home.vue"),
   },
   {
     path: "/premium",
@@ -70,7 +67,7 @@ export const routes = [
   {
     path: "/dashboard",
     name: "dashboard",
-    component: Dashboard,
+    component: () => import("@/pages/Dashboard.vue"),
     children: [
       {
         path: "",

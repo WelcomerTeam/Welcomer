@@ -1,46 +1,46 @@
 <template>
-    <div class="dashboard-container">
-        <div class="dashboard-content">
-            <div v-if="isDataError" class="mb-4">
-                <p class="mb-2">Unable to load member demographics.</p>
-                <button class="text-blue-500 hover:underline" @click="fetch">Retry</button>
-            </div>
-            <div v-else-if="!isDataFetched"
-                class="pointer-events-none w-full h-full absolute left-0 top-0 flex items-center justify-center">
-                <LoadingIcon />
-            </div>
-            <template v-else-if="data && !isDataError">
-                <p class="text-sm text-gray-500 mb-4">Based on current guild members. Account creation dates are derived
-                    from Discord user IDs.</p>
-                <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
-                    <AnalyticsCard name="Average Account Age" :amount="formatAge(data.current.average_account_age_days)"
-                        icon="fa-user" />
-                    <AnalyticsCard name="Median Account Age"
-                        :amount="formatAge(data.current.median_account_age_days)" />
-                    <AnalyticsCard name="90th Percentile Account Age"
-                        :amount="formatAge(data.current.p90_account_age_days)" />
-                </div>
-                <div class="mb-4">
-                    <AnalyticsCardSlot name="Account Age Distribution">
-                        <Bar class="h-72" v-if="data.current.account_age_distribution.length" :data="GetDatasetsLine([
-                            GetDatasetBar('#2F80ED', 'Members', data.current.account_age_distribution),
-                        ])" :options="distributionOptions" />
-                        <p v-else class="text-sm text-gray-500">No data available for this period.</p>
-                    </AnalyticsCardSlot>
-                </div>
-                <div class="mb-4">
-                    <AnalyticsCardSlot name="Account Age vs Join Date">
-                        <div class="h-72">
-                            <Scatter :data="scatterData(data.current.account_age_vs_join_date)"
-                                :options="scatterOptions" />
-                        </div>
-                    </AnalyticsCardSlot>
-                    <p class="text-xs text-gray-500 mt-2">The scatter plot samples at most 1,000 members; summary
-                        statistics and age buckets use all returned current members.</p>
-                </div>
-            </template>
+  <div class="dashboard-container">
+    <div class="dashboard-content">
+      <div v-if="isDataError" class="mb-4">
+        <p class="mb-2">Unable to load member demographics.</p>
+        <button class="text-blue-500 hover:underline" @click="fetch">Retry</button>
+      </div>
+      <div v-else-if="!isDataFetched"
+           class="pointer-events-none w-full h-full absolute left-0 top-0 flex items-center justify-center">
+        <LoadingIcon />
+      </div>
+      <template v-else-if="data && !isDataError">
+        <p class="text-sm text-gray-500 mb-4">Based on current guild members. Account creation dates are derived
+          from Discord user IDs.</p>
+        <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3 mb-4">
+          <AnalyticsCard name="Average Account Age" :amount="formatAge(data.current.average_account_age_days)"
+                         icon="fa-user" />
+          <AnalyticsCard name="Median Account Age"
+                         :amount="formatAge(data.current.median_account_age_days)" />
+          <AnalyticsCard name="90th Percentile Account Age"
+                         :amount="formatAge(data.current.p90_account_age_days)" />
         </div>
+        <div class="mb-4">
+          <AnalyticsCardSlot name="Account Age Distribution">
+            <Bar class="h-72" v-if="data.current.account_age_distribution.length" :data="GetDatasetsLine([
+              GetDatasetBar('#2F80ED', 'Members', data.current.account_age_distribution),
+            ])" :options="distributionOptions" />
+            <p v-else class="text-sm text-gray-500">No data available for this period.</p>
+          </AnalyticsCardSlot>
+        </div>
+        <div class="mb-4">
+          <AnalyticsCardSlot name="Account Age vs Join Date">
+            <div class="h-72">
+              <Scatter :data="scatterData(data.current.account_age_vs_join_date)"
+                       :options="scatterOptions" />
+            </div>
+          </AnalyticsCardSlot>
+          <p class="text-xs text-gray-500 mt-2">The scatter plot samples at most 1,000 members; summary
+            statistics and age buckets use all returned current members.</p>
+        </div>
+      </template>
     </div>
+  </div>
 </template>
 
 <script>

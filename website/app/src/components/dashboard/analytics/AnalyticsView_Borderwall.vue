@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="flex justify-end min-h-12">
         <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
-          :defaultPreset="'last_7_days'" />
+                             :defaultPreset="'last_7_days'" />
       </div>
       <div v-if="isDataError" class="mb-4">
         <p class="mb-2">Unable to load Borderwall analytics.</p>
@@ -15,35 +15,35 @@
       <template v-else-if="data && !isDataError">
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-4 mb-4">
           <AnalyticsCard name="Total Requests" :amount="data.current.total_requests"
-            :previousAmount="data.previous.total_requests" icon="fa-shield" />
+                         :previousAmount="data.previous.total_requests" icon="fa-shield" />
           <AnalyticsCard name="Verified Requests" :amount="data.current.verified_requests"
-            :previousAmount="data.previous.verified_requests" />
+                         :previousAmount="data.previous.verified_requests" />
           <AnalyticsCard name="Pass Rate" :amount="`${data.current.pass_rate.toFixed(1)}%`"
-            :comparisonAmount="data.current.pass_rate" :previousAmount="data.previous.pass_rate" />
+                         :comparisonAmount="data.current.pass_rate" :previousAmount="data.previous.pass_rate" />
           <AnalyticsCard name="Average Time to Verify"
-            :amount="formatDuration(data.current.average_verification_time_ms)"
-            :comparisonAmount="data.current.average_verification_time_ms"
-            :previousAmount="data.previous.average_verification_time_ms" />
+                         :amount="formatDuration(data.current.average_verification_time_ms)"
+                         :comparisonAmount="data.current.average_verification_time_ms"
+                         :previousAmount="data.previous.average_verification_time_ms" />
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Requests Tracked">
             <Line class="h-72" v-if="data.current.requests_by_time.length" :data="GetDatasetsLine([
-              GetDatasetLine('#2F80ED', 'Requests', data.current.requests_by_time).HasTimestamp(),
-              GetDatasetLine('#27AE60', 'Verified', data.current.verified_by_time).HasTimestamp(),
-            ])"
-              :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y}` }).WithLegend()" />
+                    GetDatasetLine('#2F80ED', 'Requests', data.current.requests_by_time).HasTimestamp(),
+                    GetDatasetLine('#27AE60', 'Verified', data.current.verified_by_time).HasTimestamp(),
+                  ])"
+                  :options="ChartOptions({ label: (context) => `${context.dataset.label}: ${context.parsed.y}` }).WithLegend()" />
             <p v-else class="text-sm text-gray-500">No requests were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-4">
           <AnalyticsCardSlot name="Top Countries">
             <Doughnut v-if="data.current.top_countries.length" :data="doughnutData(data.current.top_countries)"
-              :options="doughnutOptions" />
+                      :options="doughnutOptions" />
             <p v-else class="text-sm text-gray-500">No requests were recorded in this period.</p>
           </AnalyticsCardSlot>
           <AnalyticsCardSlot name="Top Operating Systems">
             <Doughnut v-if="data.current.top_devices.length" :data="doughnutData(data.current.top_devices)"
-              :options="doughnutOptions" />
+                      :options="doughnutOptions" />
             <p v-else class="text-sm text-gray-500">No requests were recorded in this period.</p>
           </AnalyticsCardSlot>
         </div>

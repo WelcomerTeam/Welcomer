@@ -85,14 +85,6 @@ const integerTags = [
   "Invite.MaxUses",
 ];
 
-const numberLocales = [
-  "default",
-  "dots",
-  "commas",
-  "indian",
-  "arabic",
-];
-
 const timeTags = [
   "User.CreatedAt",
   "User.JoinedAt",

@@ -148,7 +148,7 @@ export default {
     );
   },
 
-  fetchGuildMembers(query, guildID, callback, errorCallback) {
+  fetchGuildMembers(query, guildID, callback, _errorCallback) {
     if (query == "") {
       callback(this.dummyMembers);
     } else {

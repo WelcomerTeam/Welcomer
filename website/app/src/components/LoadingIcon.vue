@@ -7,32 +7,26 @@
   </svg>
 </template>
 
-<script>
-import { ref } from "vue";
+<script setup>
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
-export default {
-  props: {
-    isLight: {
-      type: Boolean,
-      default: false,
-    },
+defineProps({
+  isLight: {
+    type: Boolean,
+    default: false,
   },
-  setup() {
-    let showSpinner = ref(false);
+});
 
-    return {
-      showSpinner,
-    }
-  },
-  mounted() {
-    setTimeout(() => {
-      this.toggleSpinner()
-    }, 250);
-  },
-  methods: {
-    toggleSpinner() {
-      this.showSpinner = true;
-    }
-  }
-};
+const showSpinner = ref(false);
+let timeoutId;
+
+onMounted(() => {
+  timeoutId = setTimeout(() => {
+    showSpinner.value = true;
+  }, 250);
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(timeoutId);
+});
 </script>

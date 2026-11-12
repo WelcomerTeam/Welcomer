@@ -3,26 +3,26 @@
     <div class="dashboard-content">
       <div class="flex justify-end min-h-12">
         <AnalyticsDatePicker :modelValue="analyticsDateRange" @update:modelValue="handleDateRangeUpdate" :maxDate="todayDate"
-          :defaultPreset="'last_7_days'" />
+                             :defaultPreset="'last_7_days'" />
       </div>
       <div v-if="isDataError" class="mb-4">
         <p class="mb-2">Unable to load voice activity.</p>
         <button class="text-blue-500 hover:underline" @click="fetch">Retry</button>
       </div>
       <div v-else-if="!isDataFetched && !isDataError"
-        class="pointer-events-none w-full h-full absolute left-0 top-0 flex items-center justify-center">
+           class="pointer-events-none w-full h-full absolute left-0 top-0 flex items-center justify-center">
         <LoadingIcon />
       </div>
       <template v-else-if="data">
         <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-4 mb-4">
           <AnalyticsCard name="Voice Sessions" :amount="data.current.voice_sessions"
-            :previousAmount="data.previous.voice_sessions" icon="fa-microphone-lines" />
+                         :previousAmount="data.previous.voice_sessions" icon="fa-microphone-lines" />
           <AnalyticsCard name="Unique Users" :amount="data.current.unique_users"
-            :previousAmount="data.previous.unique_users" />
+                         :previousAmount="data.previous.unique_users" />
           <AnalyticsCard name="Total Voice Time" :amount="formatDuration(data.current.total_voice_time_ms)"
-            :comparisonAmount="data.current.total_voice_time_ms" :previousAmount="data.previous.total_voice_time_ms" />
+                         :comparisonAmount="data.current.total_voice_time_ms" :previousAmount="data.previous.total_voice_time_ms" />
           <AnalyticsCard name="Average Session" :amount="formatDuration(data.current.average_session_ms)"
-            :comparisonAmount="data.current.average_session_ms" :previousAmount="data.previous.average_session_ms" />
+                         :comparisonAmount="data.current.average_session_ms" :previousAmount="data.previous.average_session_ms" />
         </div>
         <div class="mb-4">
           <AnalyticsCardSlot name="Voice Sessions">
