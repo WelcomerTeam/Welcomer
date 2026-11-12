@@ -15,7 +15,7 @@
       <p>This experience is best used on a desktop with a mouse or trackpad. Some features may not work as expected on mobile devices.</p>
       <p>To get started, select an action from the toolbar at the bottom of the canvas. You can add text, images, and shapes to your welcome image. Click on objects to select and customize them using the sidebar on the right.</p>
 
-      <p class="mt-4">Use the + and - keys to zoom in and out, and scroll using the mouse wheel or holding down middle-click.</p>
+      <p class="mt-4">Use + and - or Ctrl/Cmd + and - to zoom, Ctrl/Cmd + scroll to zoom, and scroll or middle-click to pan.</p>
       <p>When selecting a layer, you can move it by dragging, resize it using the handles, and rotate it using the rotation control. To remove the layer press Delete or Backspace and use Page Up and Page Down to change the layer order.</p>
 
       <h2 class="mt-8 text-xl font-semibold leading-tight text-center">Lets Get Started!</h2>
@@ -662,86 +662,8 @@ export default {
     window.addEventListener('resize', this.fitCanvas);
     window.addEventListener('orientationchange', this.fitCanvas);
     window.addEventListener('load', this.fitCanvas);
-
-    window.addEventListener('keydown', (e) => {
-      // do nothing if anything is focused
-      if (document.activeElement && document.activeElement.tagName !== "BODY") return;
-
-      if (this.selectedObject == -1) {
-        let incr = e.shiftKey ? 16 : 4;
-        switch (e.key) {
-          case "+":
-          case "=": this.zoom = Math.min(2.0, this.zoom + 0.1); break;
-          case "-":
-          case "_": this.zoom = Math.max(0.1, this.zoom - 0.1); break;
-          case "ArrowLeft": this.x += incr; break;
-          case "ArrowRight": this.x -= incr; break;
-          case "ArrowUp": this.y += incr; break;
-          case "ArrowDown": this.y -= incr; break;
-        }
-      } else {
-        let obj = this.image_config.layers[this.selectedObject];
-        if (!obj) return;
-
-        let incr = e.shiftKey ? 8 : 1;
-
-        switch (e.key) {
-          case "ArrowLeft": obj.position[0] -= incr; break;
-          case "ArrowRight": obj.position[0] += incr; break;
-          case "ArrowUp": obj.position[1] -= incr; break;
-          case "ArrowDown": obj.position[1] += incr; break;
-          case "Delete":
-          case "Backspace": {
-            this.image_config.layers.splice(this.selectedObject, 1);
-            this.selectedObject = -1;
-            break;
-          }
-          case "PageUp": {
-            // Move layer up
-            if (this.selectedObject > 0) {
-              const temp = this.image_config.layers[this.selectedObject];
-              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject - 1];
-              this.image_config.layers[this.selectedObject - 1] = temp;
-              this.selectedObject--;
-            }
-            break;
-          }
-          case "PageDown": {
-            // Move layer down
-            if (this.selectedObject < this.image_config.layers.length - 1) {
-              const temp = this.image_config.layers[this.selectedObject];
-              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject + 1];
-              this.image_config.layers[this.selectedObject + 1] = temp;
-              this.selectedObject++;
-            }
-            break;
-          }
-        }
-      }
-    });
-
-    window.addEventListener('wheel', (e) => {
-      // check cursor is over the builder-canvas
-      const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
-
-      // check cursor is inside canvas area
-      if (e.clientX < canvasRect.left || e.clientX > canvasRect.right || e.clientY < canvasRect.top || e.clientY > canvasRect.bottom) return;
-
-      if (e.ctrlKey || e.metaKey) {
-        // apply fixed zoom behaviour
-        e.preventDefault();
-
-        if (e.deltaY < 0) {
-          this.zoom = Math.min(2.0, this.zoom + 0.1);
-        } else {
-          this.zoom = Math.max(0.1, this.zoom - 0.1);
-        }
-      } else {
-        // apply inverse of wheel delta
-        this.x -= e.deltaX;
-        this.y -= e.deltaY;
-      }
-    });
+    window.addEventListener('keydown', this.handleBuilderKeydown);
+    this.$el.addEventListener('wheel', this.handleBuilderWheel, { passive: false });
 
     // Middle‑mouse drag to pan
     let isMiddleDown = false;
@@ -815,7 +737,110 @@ export default {
     window.addEventListener('mouseup', onMouseUp);
   },
 
+  beforeUnmount() {
+    window.removeEventListener('resize', this.fitCanvas);
+    window.removeEventListener('orientationchange', this.fitCanvas);
+    window.removeEventListener('load', this.fitCanvas);
+    window.removeEventListener('keydown', this.handleBuilderKeydown);
+    this.$el.removeEventListener('wheel', this.handleBuilderWheel);
+  },
+
   methods: {
+    handleBuilderKeydown(event) {
+      if (document.activeElement && document.activeElement.tagName !== "BODY") return;
+
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case "+":
+          case "=":
+            event.preventDefault();
+            this.zoom = Math.min(2.0, this.zoom + 0.1);
+            return;
+          case "-":
+          case "_":
+            event.preventDefault();
+            this.zoom = Math.max(0.1, this.zoom - 0.1);
+            return;
+          case "0":
+            event.preventDefault();
+            this.zoom = this.defaultZoom;
+            return;
+        }
+      }
+
+      if (this.selectedObject == -1) {
+        let incr = event.shiftKey ? 16 : 4;
+        switch (event.key) {
+          case "+":
+          case "=": this.zoom = Math.min(2.0, this.zoom + 0.1); break;
+          case "-":
+          case "_": this.zoom = Math.max(0.1, this.zoom - 0.1); break;
+          case "ArrowLeft": this.x += incr; break;
+          case "ArrowRight": this.x -= incr; break;
+          case "ArrowUp": this.y += incr; break;
+          case "ArrowDown": this.y -= incr; break;
+        }
+      } else {
+        let obj = this.image_config.layers[this.selectedObject];
+        if (!obj) return;
+
+        let incr = event.shiftKey ? 8 : 1;
+
+        switch (event.key) {
+          case "ArrowLeft": obj.position[0] -= incr; break;
+          case "ArrowRight": obj.position[0] += incr; break;
+          case "ArrowUp": obj.position[1] -= incr; break;
+          case "ArrowDown": obj.position[1] += incr; break;
+          case "Delete":
+          case "Backspace": {
+            this.image_config.layers.splice(this.selectedObject, 1);
+            this.selectedObject = -1;
+            break;
+          }
+          case "PageUp": {
+            if (this.selectedObject > 0) {
+              const temp = this.image_config.layers[this.selectedObject];
+              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject - 1];
+              this.image_config.layers[this.selectedObject - 1] = temp;
+              this.selectedObject--;
+            }
+            break;
+          }
+          case "PageDown": {
+            if (this.selectedObject < this.image_config.layers.length - 1) {
+              const temp = this.image_config.layers[this.selectedObject];
+              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject + 1];
+              this.image_config.layers[this.selectedObject + 1] = temp;
+              this.selectedObject++;
+            }
+            break;
+          }
+        }
+      }
+    },
+
+    handleBuilderWheel(event) {
+      const canvas = this.$el.querySelector('.builder-canvas');
+      if (!canvas) return;
+
+      const canvasRect = canvas.getBoundingClientRect();
+      if (event.clientX < canvasRect.left || event.clientX > canvasRect.right ||
+          event.clientY < canvasRect.top || event.clientY > canvasRect.bottom) return;
+
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+
+        if (event.deltaY < 0) {
+          this.zoom = Math.min(2.0, this.zoom + 0.1);
+        } else if (event.deltaY > 0) {
+          this.zoom = Math.max(0.1, this.zoom - 0.1);
+        }
+      } else {
+        this.x -= event.deltaX;
+        this.y -= event.deltaY;
+      }
+    },
+
     onCanvasMouseDown(event) {
       // handles drawing new layers. users can click which will create a 100x100 layer,
       // or click and drag to create a custom sized layer.
