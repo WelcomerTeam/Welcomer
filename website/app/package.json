@@ -43,7 +43,7 @@
     "sass": "^1.66.1",
     "simple-markdown": "^0.7.3",
     "thumbhash": "^0.1.1",
-    "unicode-emoji-json": "^0.4.0",
+    "unicode-emoji-json": "^0.9.0",
     "volar-service-vetur": "^0.0.30",
     "vue": "^3.3.4",
     "vue-chartjs": "^5.3.4",

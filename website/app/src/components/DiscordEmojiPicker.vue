@@ -21,7 +21,8 @@
         <div class="flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ group.label }}</div>
         <div class="flex flex-wrap gap-2 justify-center" role="list">
           <button v-for="emoji in group.items" :key="emoji.key" type="button" @click="selectEmoji(emoji)" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-secondary-light">
-            <img :src="emoji.url" :alt="emoji.name" :title="emoji.name" loading="lazy" class="max-h-7 w-7" @error="handleImageError" />
+            <img v-if="!failedImageKeys.has(emoji.key)" :src="emoji.url" :alt="emoji.name" :title="emoji.name" loading="lazy" class="max-h-7 w-7" @error="handleImageError($event, emoji)" />
+            <span v-else-if="!emoji.isCustom" class="text-2xl leading-none" :title="emoji.name" aria-hidden="true">{{ emoji.emoji }}</span>
             <span class="sr-only">{{ emoji.name }}</span>
           </button>
         </div>
@@ -69,7 +70,8 @@ export default {
 		const loading = ref(true);
 		const allEmojis = ref([]);
 		const fuse = ref(null);
-		const groupOrder = Object.keys(emojiDataByGroup);
+		const failedImageKeys = ref(new Set());
+		const groupOrder = emojiDataByGroup.map((group) => group.name);
 
 		const toTwemojiCode = (emojiChar) => Array.from(emojiChar)
 		.map((part) => part.codePointAt(0))
@@ -77,8 +79,9 @@ export default {
 		.join("-");
 
 		const baseEmojis = [];
-		groupOrder.forEach((groupName) => {
-			const emojis = emojiDataByGroup[groupName] || [];
+		emojiDataByGroup.forEach((emojiGroup) => {
+			const groupName = emojiGroup.name;
+			const emojis = emojiGroup.emojis || [];
 
 			emojis.forEach((emoji, index) => {
 				const code = toTwemojiCode(emoji.emoji);
@@ -186,17 +189,22 @@ export default {
 			emit("select", payload);
 		};
 
-		const handleImageError = (event) => {
-			// Hide the button if the emoji image fails to load
-			const button = event.target.closest('button');
-			if (button) {
-				button.style.display = 'none';
+		const handleImageError = (event, emoji) => {
+			if (emoji.isCustom) {
+				const button = event.target.closest("button");
+				if (button) {
+					button.style.display = "none";
+				}
+				return;
 			}
+
+			failedImageKeys.value.add(emoji.key);
 		};
 
 		return {
 			searchTerm,
 			loading,
+			failedImageKeys,
 			displayedGroups,
 			selectEmoji,
 			handleImageError,

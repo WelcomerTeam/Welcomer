@@ -12,6 +12,7 @@ import (
 	sandwich "github.com/WelcomerTeam/Sandwich-Daemon/proto"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core/database"
+	"github.com/forPelevin/gomoji"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
@@ -899,31 +900,8 @@ func isValidEmoji(emoji string) bool {
 		return true
 	}
 
-	for _, rune := range emoji {
-		switch {
-		// emoji blocks
-		case rune >= 0x1F600 && rune <= 0x1F64F:
-		case rune >= 0x1F300 && rune <= 0x1F5FF:
-		case rune >= 0x1F680 && rune <= 0x1F6FF:
-		case rune >= 0x1F900 && rune <= 0x1F9FF:
-		case rune >= 0x1FA70 && rune <= 0x1FAFF:
-		case rune >= 0x1F1E6 && rune <= 0x1F1FF:
-		case rune >= 0x2600 && rune <= 0x26FF:
-		case rune >= 0x2700 && rune <= 0x27BF:
-
-		// emoji modifiers
-		case rune >= 0x1F3FB && rune <= 0x1F3FF: // skin tones
-
-		// joiners / selectors
-		case rune == 0x200D: // ZWJ
-		case rune == 0xFE0F: // variation selector
-
-		default:
-			return false
-		}
-	}
-
-	return len(emoji) > 0
+	_, err := gomoji.GetInfo(emoji)
+	return err == nil
 }
 
 // Validate reaction role settings.
