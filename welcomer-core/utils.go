@@ -41,7 +41,9 @@ const (
 	UserAgent = "WelcomerService (https://github.com/WelcomerTeam/Welcomer)"
 )
 
-var uuidRegex = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+var uuidRegex = regexp.MustCompile(
+	"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+)
 
 func CompareStrings(query string, targets ...string) bool {
 	query = norm.NFKD.String(query)
@@ -102,7 +104,10 @@ func Atoi(s string) (int64, error) {
 // RetryWithFallback will attempt to run a function. If the function fails, it will run a fallback function.
 // predictate is a function that will determine if the error is retryable and is optional.
 // When the fallback function succeeds, the original function will be called again.
-func RetryWithFallback(function, fallbackFunction func() error, predictate func(error) bool) (err error) {
+func RetryWithFallback(
+	function, fallbackFunction func() error,
+	predictate func(error) bool,
+) (err error) {
 	err = function()
 	if err != nil && (predictate == nil || predictate(err)) {
 		err = fallbackFunction()
@@ -291,7 +296,9 @@ func IsValidImageProfileBorderType(value string) bool {
 }
 
 func IsValidURLWithFormatting(url string) (*url.URL, bool) {
-	if strings.Contains(url, "{{User.Avatar}}") || strings.Contains(url, "{{Guild.Icon}}") || strings.Contains(url, "{{Guild.Splash}}") || strings.Contains(url, "{{Guild.Banner}}") {
+	if strings.Contains(url, "{{User.Avatar}}") || strings.Contains(url, "{{Guild.Icon}}") ||
+		strings.Contains(url, "{{Guild.Splash}}") ||
+		strings.Contains(url, "{{Guild.Banner}}") {
 		return nil, true
 	}
 
@@ -328,7 +335,10 @@ func IsValidHostname(host string) bool {
 
 	// Check each IP to see if it is an internal IP
 	for _, ip := range ips {
-		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsInterfaceLocalMulticast() || ip.IsUnspecified() {
+		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() ||
+			ip.IsLinkLocalMulticast() ||
+			ip.IsInterfaceLocalMulticast() ||
+			ip.IsUnspecified() {
 			Logger.Warn().Msgf("Hostname %s resolved to internal IP %s", host, ip.String())
 
 			return false
@@ -373,7 +383,10 @@ func ParseColour(str, defaultValue string) (*color.RGBA, error) {
 				var err error
 
 				if len(values) >= 4 {
-					alphaFloat, err = strconv.ParseFloat(strings.TrimSpace(values[3]), int64BitSize) // 0.1
+					alphaFloat, err = strconv.ParseFloat(
+						strings.TrimSpace(values[3]),
+						int64BitSize,
+					) // 0.1
 				} else {
 					alphaFloat = 1
 				}
@@ -390,9 +403,21 @@ func ParseColour(str, defaultValue string) (*color.RGBA, error) {
 					}
 
 					// We can assume these values are ints due to our regex only allowing numerical values.
-					colourR, _ := strconv.ParseInt(strings.TrimSpace(values[0]), int64Base, int64BitSize)
-					colourG, _ := strconv.ParseInt(strings.TrimSpace(values[1]), int64Base, int64BitSize)
-					colourB, _ := strconv.ParseInt(strings.TrimSpace(values[2]), int64Base, int64BitSize)
+					colourR, _ := strconv.ParseInt(
+						strings.TrimSpace(values[0]),
+						int64Base,
+						int64BitSize,
+					)
+					colourG, _ := strconv.ParseInt(
+						strings.TrimSpace(values[1]),
+						int64Base,
+						int64BitSize,
+					)
+					colourB, _ := strconv.ParseInt(
+						strings.TrimSpace(values[2]),
+						int64Base,
+						int64BitSize,
+					)
 
 					if colourR > 255 || colourR < 0 {
 						return nil, ErrInvalidColour
@@ -406,7 +431,12 @@ func ParseColour(str, defaultValue string) (*color.RGBA, error) {
 						return nil, ErrInvalidColour
 					}
 
-					return &color.RGBA{uint8(colourR), uint8(colourG), uint8(colourB), alphaInt}, nil
+					return &color.RGBA{
+						uint8(colourR),
+						uint8(colourG),
+						uint8(colourB),
+						alphaInt,
+					}, nil
 				}
 			}
 		} else {
@@ -422,9 +452,21 @@ func ParseColour(str, defaultValue string) (*color.RGBA, error) {
 				}
 
 				// We can assume these values are ints due to our regex only allowing numerical values.
-				colourR, _ := strconv.ParseInt(strings.TrimSpace(values[0]), int64Base, int64BitSize)
-				colourG, _ := strconv.ParseInt(strings.TrimSpace(values[1]), int64Base, int64BitSize)
-				colourB, _ := strconv.ParseInt(strings.TrimSpace(values[2]), int64Base, int64BitSize)
+				colourR, _ := strconv.ParseInt(
+					strings.TrimSpace(values[0]),
+					int64Base,
+					int64BitSize,
+				)
+				colourG, _ := strconv.ParseInt(
+					strings.TrimSpace(values[1]),
+					int64Base,
+					int64BitSize,
+				)
+				colourB, _ := strconv.ParseInt(
+					strings.TrimSpace(values[2]),
+					int64Base,
+					int64BitSize,
+				)
 
 				if colourR > 255 || colourR < 0 {
 					return nil, ErrInvalidColour
@@ -497,7 +539,8 @@ func IsMessageParamsEmpty(m discord.MessageParams) bool {
 	}
 
 	for _, embed := range m.Embeds {
-		if embed.Title != "" || embed.Description != "" || embed.URL != "" || len(embed.Fields) > 0 {
+		if embed.Title != "" || embed.Description != "" || embed.URL != "" ||
+			len(embed.Fields) > 0 {
 			return false
 		}
 
@@ -596,7 +639,11 @@ func IfElseFunc[T any](condition bool, trueFunc T, falseValue func() T) T {
 	return falseValue()
 }
 
-func SendWebhookMessage(ctx context.Context, webhookURL string, message discord.WebhookMessageParams) error {
+func SendWebhookMessage(
+	ctx context.Context,
+	webhookURL string,
+	message discord.WebhookMessageParams,
+) error {
 	body, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -822,7 +869,9 @@ func FormatNumber(value int64, locale database.NumberLocale) string {
 	return p.Sprintf("%d", value)
 }
 
-func WebhookMessageParamsToMessageParams(params discord.WebhookMessageParams) discord.MessageParams {
+func WebhookMessageParamsToMessageParams(
+	params discord.WebhookMessageParams,
+) discord.MessageParams {
 	return discord.MessageParams{
 		PayloadJSON:     params.PayloadJSON,
 		Content:         params.Content,
@@ -836,7 +885,10 @@ func WebhookMessageParamsToMessageParams(params discord.WebhookMessageParams) di
 	}
 }
 
-func WebhookMessageParamsToInteractionCallbackData(params discord.WebhookMessageParams, flags uint32) *discord.InteractionCallbackData {
+func WebhookMessageParamsToInteractionCallbackData(
+	params discord.WebhookMessageParams,
+	flags uint32,
+) *discord.InteractionCallbackData {
 	return &discord.InteractionCallbackData{
 		Content:         params.Content,
 		Embeds:          params.Embeds,
@@ -854,7 +906,10 @@ var (
 	userMentionRegex = regexp.MustCompile(`<@!?(\d+)>`)
 )
 
-func InferAllowedMentions(message string, userID *discord.Snowflake) *discord.MessageAllowedMentions {
+func InferAllowedMentions(
+	message string,
+	userID *discord.Snowflake,
+) *discord.MessageAllowedMentions {
 	// If the message contains @everyone or @here, allow all mentions.
 	if strings.Contains(message, "@everyone") || strings.Contains(message, "@here") {
 		return nil

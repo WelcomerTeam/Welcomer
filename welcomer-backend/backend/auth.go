@@ -13,6 +13,8 @@ import (
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2"
 )
 
@@ -76,7 +78,11 @@ func userHasElevation(guildID discord.Snowflake, user SessionUser) bool {
 	return guild.IsOwner || guild.HasElevation
 }
 
-func checkToken(ctx context.Context, config *oauth2.Config, token oauth2.Token) (*oauth2.Token, bool, error) {
+func checkToken(
+	ctx context.Context,
+	config *oauth2.Config,
+	token oauth2.Token,
+) (*oauth2.Token, bool, error) {
 	source := config.TokenSource(ctx, &token)
 
 	newToken, err := source.Token()
@@ -129,6 +135,10 @@ func checkOAuthAuthorization(ctx *gin.Context) error {
 		}
 	}
 
+	trace.SpanFromContext(ctx.Request.Context()).SetAttributes(
+		attribute.String("discord.user.id", fmt.Sprint(user.ID)),
+	)
+
 	return nil
 }
 
@@ -164,6 +174,9 @@ func requireGuildIDKey(ctx *gin.Context, handler gin.HandlerFunc) {
 
 	guildID := discord.Snowflake(guildIDInt)
 	ctx.Set(GuildIDKey, guildID)
+	trace.SpanFromContext(ctx.Request.Context()).SetAttributes(
+		attribute.String("discord.guild.id", fmt.Sprint(guildID)),
+	)
 
 	handler(ctx)
 }

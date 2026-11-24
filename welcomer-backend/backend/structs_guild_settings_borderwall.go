@@ -17,7 +17,9 @@ type GuildSettingsBorderwall struct {
 	ModerationCheckupStatus ModerationCheckupStatus `json:"moderation_checkup_status"`
 }
 
-func GuildSettingsBorderwallSettingsToPartial(borderwall database.GetBorderwallGuildSettingsRow) *GuildSettingsBorderwall {
+func GuildSettingsBorderwallSettingsToPartial(
+	borderwall database.GetBorderwallGuildSettingsRow,
+) *GuildSettingsBorderwall {
 	partial := &GuildSettingsBorderwall{
 		ToggleEnabled:   borderwall.ToggleEnabled,
 		ToggleSendDm:    borderwall.ToggleSendDm,
@@ -52,7 +54,10 @@ func GuildSettingsBorderwallSettingsToPartial(borderwall database.GetBorderwallG
 	return partial
 }
 
-func PartialToGuildSettingsBorderwallSettings(guildID int64, guildSettings *GuildSettingsBorderwall) *database.CreateOrUpdateBorderwallGuildSettingsParams {
+func PartialToGuildSettingsBorderwallSettings(
+	guildID int64,
+	guildSettings *GuildSettingsBorderwall,
+) *database.CreateOrUpdateBorderwallGuildSettingsParams {
 	return &database.CreateOrUpdateBorderwallGuildSettingsParams{
 		GuildID:               guildID,
 		ToggleEnabled:         guildSettings.ToggleEnabled,

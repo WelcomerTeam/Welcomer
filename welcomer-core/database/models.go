@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-
 	"github.com/jackc/pgtype"
 )
 
@@ -79,6 +78,15 @@ type EasterEggs struct {
 	ClaimedEgg    string    `json:"claimed_egg"`
 	CreatedAt     time.Time `json:"created_at"`
 	WmUserID      string    `json:"wm_user_id"`
+}
+
+type GuildAnalyticsBenchmarks struct {
+	MemberCountBucket int16           `json:"member_count_bucket"`
+	MetricKey         string          `json:"metric_key"`
+	BenchmarkValue    sql.NullFloat64 `json:"benchmark_value"`
+	SampleCount       int32           `json:"sample_count"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+	Statistic         string          `json:"statistic"`
 }
 
 type GuildFeatures struct {

@@ -66,7 +66,10 @@ func writeDecodeBlock(assetsFile *os.File, imageFiles map[string][]string) {
 	_, _ = fmt.Fprint(assetsFile, "func mustDecodeBytes(n string, src []byte) image.Image {\n")
 	_, _ = fmt.Fprint(assetsFile, "	res, _, err := image.Decode(bytes.NewBuffer(src))\n")
 	_, _ = fmt.Fprint(assetsFile, "	if err != nil {\n")
-	_, _ = fmt.Fprint(assetsFile, "		panic(fmt.Sprintf(\"image.Decode(%s): %v\", n, err.Error()))\n")
+	_, _ = fmt.Fprint(
+		assetsFile,
+		"		panic(fmt.Sprintf(\"image.Decode(%s): %v\", n, err.Error()))\n",
+	)
 	_, _ = fmt.Fprint(assetsFile, "	}\n\n")
 	_, _ = fmt.Fprint(assetsFile, "	return res\n")
 	_, _ = fmt.Fprint(assetsFile, "}\n\n")
@@ -77,8 +80,18 @@ func writeEmbedStatements(assetsFile *os.File, imageFiles map[string][]string) {
 		for _, file := range files {
 			fileName, folderName := standardizeFileName(file)
 			_, _ = fmt.Fprintf(assetsFile, "//go:embed %s\n", file)
-			_, _ = fmt.Fprintf(assetsFile, "var %sImageBytes []byte\n", removeInvalidCharacters(folderName+fileName))
-			_, _ = fmt.Fprintf(assetsFile, "var %sImage = mustDecodeBytes(\"%sImage\", %sImageBytes)\n\n", removeInvalidCharacters(folderName+fileName), folderName+fileName, removeInvalidCharacters(folderName+fileName))
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"var %sImageBytes []byte\n",
+				removeInvalidCharacters(folderName+fileName),
+			)
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"var %sImage = mustDecodeBytes(\"%sImage\", %sImageBytes)\n\n",
+				removeInvalidCharacters(folderName+fileName),
+				folderName+fileName,
+				removeInvalidCharacters(folderName+fileName),
+			)
 		}
 		fmt.Fprintf(assetsFile, "\n")
 	}
@@ -89,7 +102,12 @@ func writeMapStatements(assetsFile *os.File, imageFiles map[string][]string) {
 		_, _ = fmt.Fprintf(assetsFile, "var %s = map[string]image.Image{\n", folderName)
 		for _, file := range files {
 			fileName, folderName := standardizeFileName(file)
-			_, _ = fmt.Fprintf(assetsFile, "    \"%s\": %sImage,\n", strings.ToLower(fileName), removeInvalidCharacters(folderName+fileName))
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"    \"%s\": %sImage,\n",
+				strings.ToLower(fileName),
+				removeInvalidCharacters(folderName+fileName),
+			)
 		}
 		fmt.Fprintf(assetsFile, "}\n\n")
 	}

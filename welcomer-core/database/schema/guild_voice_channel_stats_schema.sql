@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS guild_voice_channel_stats (
 ) PARTITION BY RANGE (start_ts);
 
 CREATE INDEX IF NOT EXISTS guild_voice_channel_stats_guild_id ON guild_voice_channel_stats (guild_id);
+CREATE INDEX IF NOT EXISTS guild_voice_channel_stats_guild_start_user ON guild_voice_channel_stats (guild_id, start_ts, user_id);

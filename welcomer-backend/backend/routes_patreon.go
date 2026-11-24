@@ -162,14 +162,27 @@ func getPatreonCallback(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed")
 
-				err = core.OnPatreonTierChanged_Fallback(ctx, databasePatreonUser, newPatreonUser, err)
+				err = core.OnPatreonTierChanged_Fallback(
+					ctx,
+					databasePatreonUser,
+					newPatreonUser,
+					err,
+				)
 				if err != nil {
-					welcomer.Logger.Warn().Err(err).Msg("Failed to trigger patreon tier changed fallback")
+					welcomer.Logger.Warn().
+						Err(err).
+						Msg("Failed to trigger patreon tier changed fallback")
 				}
 			}
 		}
 
-		ctx.Data(http.StatusOK, "text/html", []byte("Your patreon account has been linked. You may now close this window.<script>setTimeout(function(){window.close()},3000)</script>"))
+		ctx.Data(
+			http.StatusOK,
+			"text/html",
+			[]byte(
+				"Your patreon account has been linked. You may now close this window.<script>setTimeout(function(){window.close()},3000)</script>",
+			),
+		)
 	})
 }
 
@@ -193,7 +206,10 @@ func deletePatreonLink(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to get patreon user")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -205,7 +221,10 @@ func deletePatreonLink(ctx *gin.Context) {
 		if err != nil {
 			welcomer.Logger.Warn().Err(err).Msg("Failed to delete patreon user")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}

@@ -27,9 +27,15 @@ func getGuildSettingsFreeRoles(ctx *gin.Context) {
 						Roles:         welcomer.DefaultFreeRoles.Roles,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild freeroles settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild freeroles settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -77,14 +83,24 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 
 			freeroles := PartialToGuildSettingsFreeRolesSettings(int64(guildID), partial)
 
-			databaseFreeRolesGuildSettings := database.CreateOrUpdateFreeRolesGuildSettingsParams(*freeroles)
+			databaseFreeRolesGuildSettings := database.CreateOrUpdateFreeRolesGuildSettingsParams(
+				*freeroles,
+			)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *freeroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild freerole settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *freeroles).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild freerole settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(ctx, databaseFreeRolesGuildSettings, user.ID)
+					_, err = welcomer.CreateOrUpdateFreeRolesGuildSettingsWithAudit(
+						ctx,
+						databaseFreeRolesGuildSettings,
+						user.ID,
+					)
 
 					return err
 				},
@@ -94,9 +110,15 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild freeroles settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild freeroles settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -109,7 +131,6 @@ func setGuildSettingsFreeRoles(ctx *gin.Context) {
 // Validates freerole settings.
 func doValidateFreeRoles(guildSettings *GuildSettingsFreeRoles) error {
 	// TODO: validate freeroles
-
 	return nil
 }
 

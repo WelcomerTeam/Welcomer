@@ -24,7 +24,10 @@ import (
 func GetGuildCustomBotCount(ctx context.Context, guildID discord.Snowflake) (int, error) {
 	customBots, err := welcomer.Queries.GetCustomBotsByGuildId(ctx, int64(guildID))
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bots")
+		welcomer.Logger.Warn().
+			Err(err).
+			Int64("guild_id", int64(guildID)).
+			Msg("Failed to get custom bots")
 
 		return 0, fmt.Errorf("failed to get custom bots for guild %d: %w", guildID, err)
 	}
@@ -40,18 +43,30 @@ func getGuildCustomBots(ctx *gin.Context) {
 
 			customBots, err := welcomer.Queries.GetCustomBotsByGuildId(ctx, int64(guildID))
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bots")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get custom bots")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			bots := make([]GuildCustomBot, 0)
 
-			applicationsPb, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich_protobuf.ApplicationIdentifier{})
+			applicationsPb, err := welcomer.SandwichClient.FetchApplication(
+				ctx,
+				&sandwich_protobuf.ApplicationIdentifier{},
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch applications for custom bots")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to fetch applications for custom bots")
 			}
 
 			applications := applicationsPb.GetApplications()
@@ -129,7 +144,10 @@ func postGuildCustomBot(ctx *gin.Context) {
 				if !welcomer.IsValidPublicKey(payload.PublicKey) {
 					welcomer.Logger.Warn().Msg("Invalid public key format")
 
-					ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("publicKey"), nil))
+					ctx.JSON(
+						http.StatusBadRequest,
+						NewBaseResponse(NewInvalidParameterError("publicKey"), nil),
+					)
 
 					return
 				}
@@ -139,25 +157,43 @@ func postGuildCustomBot(ctx *gin.Context) {
 				if !welcomer.IsValidDiscordToken(payload.Token) {
 					welcomer.Logger.Warn().Msg("Invalid Discord token format")
 
-					ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("token"), nil))
+					ctx.JSON(
+						http.StatusBadRequest,
+						NewBaseResponse(NewInvalidParameterError("token"), nil),
+					)
 
 					return
 				}
 
-				currentUser, err = discord.GetCurrentUser(ctx, discord.NewSession("Bot "+payload.Token, welcomer.RESTInterface))
+				currentUser, err = discord.GetCurrentUser(
+					ctx,
+					discord.NewSession("Bot "+payload.Token, welcomer.RESTInterface),
+				)
 				if err != nil {
-					welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Msg("Failed to fetch current user")
+					welcomer.Logger.Error().
+						Err(err).
+						Str("botID", customBotUUID.String()).
+						Msg("Failed to fetch current user")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
 
 				encryptedToken, err = welcomer.EncryptBotToken(payload.Token, customBotUUID)
 				if err != nil {
-					welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Msg("Failed to encrypt bot token")
+					welcomer.Logger.Error().
+						Err(err).
+						Str("botID", customBotUUID.String()).
+						Msg("Failed to encrypt bot token")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -169,26 +205,42 @@ func postGuildCustomBot(ctx *gin.Context) {
 			if botID != "" {
 				customBotUUID, err = uuid.FromString(botID)
 				if err != nil {
-					ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
+					ctx.JSON(
+						http.StatusBadRequest,
+						NewBaseResponse(NewInvalidParameterError("botID"), nil),
+					)
 
 					return
 				}
 
-				existingCustomBotPtr, err := welcomer.Queries.GetCustomBotById(ctx, database.GetCustomBotByIdParams{
-					CustomBotUuid: customBotUUID,
-					GuildID:       int64(guildID),
-				})
+				existingCustomBotPtr, err := welcomer.Queries.GetCustomBotById(
+					ctx,
+					database.GetCustomBotByIdParams{
+						CustomBotUuid: customBotUUID,
+						GuildID:       int64(guildID),
+					},
+				)
 
 				if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-					welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+					welcomer.Logger.Warn().
+						Err(err).
+						Str("botID", customBotUUID.String()).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get custom bot")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
 
 				if errors.Is(err, pgx.ErrNoRows) {
-					welcomer.Logger.Warn().Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Custom bot not found")
+					welcomer.Logger.Warn().
+						Str("botID", customBotUUID.String()).
+						Int64("guild_id", int64(guildID)).
+						Msg("Custom bot not found")
 
 					ctx.JSON(http.StatusNotFound, NewBaseResponse(nil, nil))
 
@@ -199,15 +251,23 @@ func postGuildCustomBot(ctx *gin.Context) {
 			} else {
 				customBotCount, err := GetGuildCustomBotCount(ctx, guildID)
 				if err != nil {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot count")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get custom bot count")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
 
 				if customBotCount >= welcomer.GetGuildCustomBotLimit(ctx, guildID) {
-					welcomer.Logger.Warn().Int64("guild_id", int64(guildID)).Msg("Custom bot limit reached")
+					welcomer.Logger.Warn().
+						Int64("guild_id", int64(guildID)).
+						Msg("Custom bot limit reached")
 
 					ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrCustomBotLimitReached, nil))
 
@@ -227,9 +287,15 @@ func postGuildCustomBot(ctx *gin.Context) {
 					Environment:       welcomer.GetCustomBotEnvironmentType(),
 				}, currentUser.ID)
 				if err != nil {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create custom bot")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to create custom bot")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -239,26 +305,39 @@ func postGuildCustomBot(ctx *gin.Context) {
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to update integration public keys")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			if payload.Token != "" {
-				_, err = welcomer.Queries.UpdateCustomBotToken(ctx, database.UpdateCustomBotTokenParams{
-					CustomBotUuid:     customBotUUID,
-					PublicKey:         payload.PublicKey,
-					Token:             encryptedToken,
-					IsActive:          true,
-					ApplicationID:     int64(currentUser.ID),
-					ApplicationName:   welcomer.GetUserDisplayName(currentUser),
-					ApplicationAvatar: currentUser.Avatar,
-					Environment:       welcomer.GetCustomBotEnvironmentType(),
-				})
+				_, err = welcomer.Queries.UpdateCustomBotToken(
+					ctx,
+					database.UpdateCustomBotTokenParams{
+						CustomBotUuid:     customBotUUID,
+						PublicKey:         payload.PublicKey,
+						Token:             encryptedToken,
+						IsActive:          true,
+						ApplicationID:     int64(currentUser.ID),
+						ApplicationName:   welcomer.GetUserDisplayName(currentUser),
+						ApplicationAvatar: currentUser.Avatar,
+						Environment:       welcomer.GetCustomBotEnvironmentType(),
+					},
+				)
 				if err != nil {
-					welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update custom bot")
+					welcomer.Logger.Warn().
+						Err(err).
+						Str("botID", customBotUUID.String()).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to update custom bot")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -273,9 +352,16 @@ func postGuildCustomBot(ctx *gin.Context) {
 					Environment:       welcomer.GetCustomBotEnvironmentType(),
 				}, currentUser.ID, guildID)
 				if err != nil {
-					welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update custom bot")
+					welcomer.Logger.Warn().
+						Err(err).
+						Str("botID", customBotUUID.String()).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to update custom bot")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -303,7 +389,10 @@ func deleteGuildCustomBot(ctx *gin.Context) {
 
 			customBotUUID, err := uuid.FromString(botID)
 			if err != nil {
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewInvalidParameterError("botID"), nil),
+				)
 
 				return
 			}
@@ -314,27 +403,48 @@ func deleteGuildCustomBot(ctx *gin.Context) {
 			})
 
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+				welcomer.Logger.Warn().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get custom bot")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			err = welcomer.StopCustomBot(ctx, customBotUUID, true)
 			if err != nil && err.Error() != "application not found" {
-				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to stop custom bot")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to stop custom bot")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			_, err = welcomer.Queries.DeleteCustomBot(ctx, customBotUUID)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to delete custom bot")
+				welcomer.Logger.Warn().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to delete custom bot")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -366,7 +476,10 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 
 			customBotUUID, err := uuid.FromString(botID)
 			if err != nil {
-				ctx.JSON(http.StatusBadRequest, NewBaseResponse(NewInvalidParameterError("botID"), nil))
+				ctx.JSON(
+					http.StatusBadRequest,
+					NewBaseResponse(NewInvalidParameterError("botID"), nil),
+				)
 
 				return
 			}
@@ -377,27 +490,47 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 			})
 
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+				welcomer.Logger.Warn().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get custom bot")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			customBot, err := welcomer.Queries.GetCustomBotByIdWithToken(ctx, database.GetCustomBotByIdWithTokenParams{
-				CustomBotUuid: customBotUUID,
-				GuildID:       int64(guildID),
-			})
+			customBot, err := welcomer.Queries.GetCustomBotByIdWithToken(
+				ctx,
+				database.GetCustomBotByIdWithTokenParams{
+					CustomBotUuid: customBotUUID,
+					GuildID:       int64(guildID),
+				},
+			)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get custom bot")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			if customBot == nil {
-				welcomer.Logger.Error().Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Custom bot not found")
+				welcomer.Logger.Error().
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Custom bot not found")
 
 				ctx.JSON(http.StatusNotFound, NewBaseResponse(nil, nil))
 
@@ -405,7 +538,10 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 			}
 
 			if customBot.Token == "" {
-				welcomer.Logger.Error().Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Custom bot token is empty")
+				welcomer.Logger.Error().
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Custom bot token is empty")
 
 				ctx.JSON(http.StatusBadRequest, NewBaseResponse(ErrInvalidToken, nil))
 
@@ -414,27 +550,52 @@ func postGuildCustomBotStart(ctx *gin.Context) {
 
 			decryptedBotToken, err := welcomer.DecryptBotToken(customBot.Token, customBotUUID)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to decrypt custom bot token")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to decrypt custom bot token")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
-			err = UpdateInteractionCommands(ctx, decryptedBotToken, discord.Snowflake(customBot.ApplicationID))
+			err = UpdateInteractionCommands(
+				ctx,
+				decryptedBotToken,
+				discord.Snowflake(customBot.ApplicationID),
+			)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to update interaction commands")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to update interaction commands")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			err = welcomer.StartCustomBot(ctx, customBotUUID, decryptedBotToken, guildID, true)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to start custom bot")
+				welcomer.Logger.Error().
+					Err(err).
+					Str("botID", customBotUUID.String()).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to start custom bot")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -471,18 +632,32 @@ func postGuildCustomBotStop(ctx *gin.Context) {
 		})
 
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			welcomer.Logger.Warn().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to get custom bot")
+			welcomer.Logger.Warn().
+				Err(err).
+				Str("botID", customBotUUID.String()).
+				Int64("guild_id", int64(guildID)).
+				Msg("Failed to get custom bot")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
 
 		err = welcomer.StopCustomBot(ctx, customBotUUID, true)
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Str("botID", customBotUUID.String()).Int64("guild_id", int64(guildID)).Msg("Failed to stop custom bot")
+			welcomer.Logger.Error().
+				Err(err).
+				Str("botID", customBotUUID.String()).
+				Int64("guild_id", int64(guildID)).
+				Msg("Failed to stop custom bot")
 
-			ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+			ctx.JSON(
+				http.StatusInternalServerError,
+				NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+			)
 
 			return
 		}
@@ -502,7 +677,11 @@ func registerGuildCustomBotRoutes(g *gin.Engine) {
 	g.POST("/api/guild/:guildID/custom-bots/:botID/stop", postGuildCustomBotStop)
 }
 
-func UpdateInteractionCommands(ctx context.Context, token string, applicationID discord.Snowflake) error {
+func UpdateInteractionCommands(
+	ctx context.Context,
+	token string,
+	applicationID discord.Snowflake,
+) error {
 	body := struct {
 		Token         string            `json:"token"`
 		ApplicationID discord.Snowflake `json:"application_id"`
@@ -515,7 +694,12 @@ func UpdateInteractionCommands(ctx context.Context, token string, applicationID 
 		return fmt.Errorf("failed to encode request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, os.Getenv("WELCOMER_INTEGRATIONS_ADDRESS")+"/internal/sync-commands", bodyBuffer)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		os.Getenv("WELCOMER_INTEGRATIONS_ADDRESS")+"/internal/sync-commands",
+		bodyBuffer,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to update integration commands")
 
@@ -533,18 +717,28 @@ func UpdateInteractionCommands(ctx context.Context, token string, applicationID 
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
-		welcomer.Logger.Error().Str("status", resp.Status).Str("body", string(body)).Msg("Failed to update integration commands")
+		welcomer.Logger.Error().
+			Str("status", resp.Status).
+			Str("body", string(body)).
+			Msg("Failed to update integration commands")
 
 		return fmt.Errorf("failed to update integration commands: %s", string(body))
 	}
 
-	welcomer.Logger.Info().Str("application_id", applicationID.String()).Msg("Successfully updated integration commands")
+	welcomer.Logger.Info().
+		Str("application_id", applicationID.String()).
+		Msg("Successfully updated integration commands")
 
 	return nil
 }
 
 func UpdateIntegrationPublicKeys(ctx context.Context) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, os.Getenv("WELCOMER_INTEGRATIONS_ADDRESS")+"/internal/fetch-public-keys", nil)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		os.Getenv("WELCOMER_INTEGRATIONS_ADDRESS")+"/internal/fetch-public-keys",
+		nil,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).Msg("Failed to update integration public keys")
 
@@ -562,7 +756,10 @@ func UpdateIntegrationPublicKeys(ctx context.Context) error {
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
-		welcomer.Logger.Error().Str("status", resp.Status).Str("body", string(body)).Msg("Failed to update integration public keys")
+		welcomer.Logger.Error().
+			Str("status", resp.Status).
+			Str("body", string(body)).
+			Msg("Failed to update integration public keys")
 
 		return fmt.Errorf("failed to update integration public keys: %s", string(body))
 	}

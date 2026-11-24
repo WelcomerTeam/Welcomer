@@ -19,9 +19,16 @@ func getGuild(ctx *gin.Context) {
 		requireMutualGuild(ctx, func(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
-			welcomerPresence, discordGuild, guildMembers, err := hasWelcomerPresence(ctx, guildID, true)
+			welcomerPresence, discordGuild, guildMembers, err := hasWelcomerPresence(
+				ctx,
+				guildID,
+				true,
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to check welcomer presence")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to check welcomer presence")
 			}
 
 			if !welcomerPresence {
@@ -36,11 +43,17 @@ func getGuild(ctx *gin.Context) {
 
 			grpcContext := ctx
 
-			channelsPb, err := welcomer.SandwichClient.FetchGuildChannel(grpcContext, &sandwich_protobuf.FetchGuildChannelRequest{
-				GuildId: int64(guildID),
-			})
+			channelsPb, err := welcomer.SandwichClient.FetchGuildChannel(
+				grpcContext,
+				&sandwich_protobuf.FetchGuildChannelRequest{
+					GuildId: int64(guildID),
+				},
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild channels")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to fetch guild channels")
 			}
 
 			channels := make([]discord.Channel, 0, len(channelsPb.GetChannels()))
@@ -52,11 +65,17 @@ func getGuild(ctx *gin.Context) {
 				return channels[i].Position < channels[j].Position
 			})
 
-			rolesPb, err := welcomer.SandwichClient.FetchGuildRole(grpcContext, &sandwich_protobuf.FetchGuildRoleRequest{
-				GuildId: int64(guildID),
-			})
+			rolesPb, err := welcomer.SandwichClient.FetchGuildRole(
+				grpcContext,
+				&sandwich_protobuf.FetchGuildRoleRequest{
+					GuildId: int64(guildID),
+				},
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild roles")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to fetch guild roles")
 			}
 
 			roles := make([]discord.Role, 0, len(rolesPb.GetRoles()))
@@ -68,11 +87,17 @@ func getGuild(ctx *gin.Context) {
 				return roles[i].Position < roles[j].Position
 			})
 
-			emojisPb, err := welcomer.SandwichClient.FetchGuildEmoji(grpcContext, &sandwich_protobuf.FetchGuildEmojiRequest{
-				GuildId: int64(guildID),
-			})
+			emojisPb, err := welcomer.SandwichClient.FetchGuildEmoji(
+				grpcContext,
+				&sandwich_protobuf.FetchGuildEmojiRequest{
+					GuildId: int64(guildID),
+				},
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to fetch guild emojis")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to fetch guild emojis")
 			}
 
 			emojis := make([]discord.Emoji, 0, len(emojisPb.GetEmojis()))
@@ -89,9 +114,15 @@ func getGuild(ctx *gin.Context) {
 			discordGuild.Roles = roles
 			discordGuild.Emojis = emojis
 
-			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(ctx, discordGuild.ID)
+			hasWelcomerPro, hasCustomBackgrounds, features, err := welcomer.CheckGuildMemberships(
+				ctx,
+				discordGuild.ID,
+			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting welcomer membership")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int("guildID", int(discordGuild.ID)).
+					Msg("Exception getting welcomer membership")
 			}
 
 			guildConfig, err := welcomer.Queries.GetGuild(ctx, int64(discordGuild.ID))
@@ -106,9 +137,15 @@ func getGuild(ctx *gin.Context) {
 						SiteAllowInvites: welcomer.DefaultGuild.SiteAllowInvites,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int("guildID", int(discordGuild.ID)).Msg("Exception getting guild settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int("guildID", int(discordGuild.ID)).
+						Msg("Exception getting guild settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}

@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { ViteSSG } from "vite-ssg";
 
 import VueLazyload from "vue3-lazyload";
 
@@ -19,6 +19,8 @@ library.add(faDiscord, faPatreon, faPaypal, faUnsplash, faYoutube);
 
 import {
   faArrowsRotate as fasArrowsRotate,
+  faArrowTrendDown as fasArrowTrendDown,
+  faArrowTrendUp as fasArrowTrendUp,
   faAt as fasAt,
   faBook as fasBook,
   faBoxesPacking as fasBoxesPacking,
@@ -41,6 +43,7 @@ import {
   faHashtag as fasHashtag,
   faHeart as fasHeart,
   faHeartPulse as fasHeartPulse,
+  faHouseBlank as fasHouseBlank,
   faImage as fasImage,
   faImages as fasImages,
   faInfo as fasInfo,
@@ -87,6 +90,7 @@ import {
   faDoorClosed as farDoorClosed,
   faGift as farGift,
   faHeart as farHeart,
+  faHouseBlank as farHouseBlank,
   faListCheck as farListCheck,
   faListOl as farListOl,
   faMicrophoneLines as farMicrophoneLines,
@@ -107,12 +111,14 @@ import {
 import {
   faPersonDigging as fadPersonDigging
 } from "@fortawesome/pro-duotone-svg-icons";
-import store from "./store";
-import router from "./router";
+import { createAppStore } from "./store";
+import { routes, scrollBehavior } from "./router";
 import App from "./App.vue";
 
 library.add(
   fasArrowsRotate,
+  fasArrowTrendDown,
+  fasArrowTrendUp,
   fasAt,
   fasBook,
   fasBoxesPacking,
@@ -135,6 +141,7 @@ library.add(
   fasHashtag,
   fasHeart,
   fasHeartPulse,
+  fasHouseBlank,
   fasImage,
   fasImages,
   fasInfo,
@@ -180,6 +187,7 @@ library.add(
   farDoorClosed,
   farGift,
   farHeart,
+  farHouseBlank,
   farListCheck,
   farListOl,
   farMicrophoneLines,
@@ -199,13 +207,35 @@ library.add(
   falBadgeCheck,
 );
 
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual'
-}
+export const createApp = ViteSSG(
+  App,
+  { routes, scrollBehavior },
+  ({ app, isClient }) => {
+    const store = createAppStore();
 
-createApp(App)
-  .component("font-awesome-icon", FontAwesomeIcon)
-  .use(VueLazyload)
-  .use(store)
-  .use(router)
-  .mount("#app");
+    if (isClient) {
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+
+      // Pages that are not pre-rendered (e.g. the dashboard) are served the
+      // pre-rendered home page as a fallback, so discard that markup rather
+      // than hydrating it with a different route.
+      const container = document.getElementById("app");
+      const normalize = (path) => path.replace(/(.)\/+$/, "$1");
+      if (
+        container &&
+        normalize(container.dataset.ssgPath || "") !==
+          normalize(window.location.pathname)
+      ) {
+        container.innerHTML = "";
+      }
+    }
+
+    app
+      .component("font-awesome-icon", FontAwesomeIcon)
+      .use(VueLazyload)
+      .use(store);
+  },
+  { hydration: true },
+);

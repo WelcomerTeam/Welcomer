@@ -40,7 +40,7 @@
         </div>
       </div>
       <div class="dashboard-content">
-        <div class="grid grid-cols-1 gap-5 mt-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 mt-2 lg:grid-cols-3">
           <!-- Card -->
           <Card name="Current Server Members" icon="user-group" :amount="$store.getters.getCurrentSelectedGuild?.member_count" />
           <Card name="Text Channels" icon="user-group"

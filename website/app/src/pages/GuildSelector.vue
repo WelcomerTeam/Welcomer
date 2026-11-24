@@ -90,6 +90,7 @@
 
 <script>
 import { ChevronRightIcon, PlusIcon } from "@heroicons/vue/outline";
+import { useStore } from "vuex";
 
 import FormValue from "@/components/dashboard/FormValue.vue";
 import Footer from "@/components/Footer.vue";
@@ -98,11 +99,11 @@ import {
   OpenBotInvite,
   PrimaryBotId
 } from "@/constants";
-import store from "@/store/index";
 
 export default {
   components: { FormValue, ChevronRightIcon, LoadingIcon, PlusIcon, Footer },
   setup() {
+    const store = useStore();
     store.dispatch("fetchGuilds");
   },
   methods: {
@@ -112,7 +113,6 @@ export default {
 
     setSelectedGuild(guild) {
       if (guild.has_welcomer) {
-        this.$store.commit("setSelectedGuild", guild.id);
         this.$router.push({
           name: "dashboard.guild.overview",
           params: {

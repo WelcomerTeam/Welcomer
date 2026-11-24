@@ -28,14 +28,30 @@ const (
 
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
-	sandwichGRPCHost := flag.String("grpcAddress", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
-	sandwichProducerName := flag.String("producerName", os.Getenv("SANDWICH_PRODUCER_NAME"), "Sandwich producer identifier name")
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup.")
+	sandwichGRPCHost := flag.String(
+		"grpcAddress",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
+	sandwichProducerName := flag.String(
+		"producerName",
+		os.Getenv("SANDWICH_PRODUCER_NAME"),
+		"Sandwich producer identifier name",
+	)
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup.",
+	)
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 	stanAddress := flag.String("stanAddress", os.Getenv("STAN_ADDRESS"), "NATs streaming Address")
 	stanChannel := flag.String("stanChannel", os.Getenv("STAN_CHANNEL"), "NATs streaming Channel")
-	jetstreamClientName := flag.String("jetstreamClientName", "welcomer-gateway", "NATs client name")
+	jetstreamClientName := flag.String(
+		"jetstreamClientName",
+		"welcomer-gateway",
+		"NATs client name",
+	)
 	redisHost := flag.String("redisHost", os.Getenv("REDIS_HOST"), "Redis host")
 	dryRun := flag.Bool("dryRun", false, "When true, will close after setting up the app")
 
@@ -51,16 +67,21 @@ func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)
 
 	welcomer.SetupRedisClient(*redisHost)
-	welcomer.SetupDedupeProvider(welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()))
+	welcomer.SetupDedupeProvider(
+		welcomer.NewRedisDedupeProvider(welcomer.RedisClient, slog.Default()),
+	)
 
 	eventsChannel := make(chan []byte, 1024)
 
@@ -75,7 +96,9 @@ func main() {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Msg("Failed to setup jetstream consumer. Retrying...")
+				welcomer.Logger.Warn().
+					Err(err).
+					Msg("Failed to setup jetstream consumer. Retrying...")
 
 				time.Sleep(time.Second)
 
@@ -97,7 +120,9 @@ func main() {
 					eventsChannel <- msg.Data()
 				}
 			}, jetstream.ConsumeErrHandler(func(consumeCtx jetstream.ConsumeContext, err error) {
-				welcomer.Logger.Warn().Err(err).Msg("Error consuming jetstream message. Attempting to reconnect...")
+				welcomer.Logger.Warn().
+					Err(err).
+					Msg("Error consuming jetstream message. Attempting to reconnect...")
 				consumeCtx.Drain()
 			}))
 			if err != nil {

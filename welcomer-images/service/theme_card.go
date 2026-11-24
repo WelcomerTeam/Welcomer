@@ -11,7 +11,10 @@ import (
 
 var cardThemeSize = image.Rect(0, 0, 964, 320)
 
-func CreateBadgeImage(is *ImageService, args GenerateImageArguments) (resp *GenerateThemeResponse, err error) {
+func CreateBadgeImage(
+	is *ImageService,
+	args GenerateImageArguments,
+) (resp *GenerateThemeResponse, err error) {
 	imageSize := cardThemeSize
 	padding := image.Point{32, 32}
 	overlaySize := image.Rect(0, 0, 900, 256)

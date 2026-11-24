@@ -35,14 +35,38 @@ func main() {
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	webhookUrl := flag.String("webhookUrl", os.Getenv("JOB_NOTIFY_WEBHOOK_URL"), "Webhook URL for logging")
+	webhookUrl := flag.String(
+		"webhookUrl",
+		os.Getenv("JOB_NOTIFY_WEBHOOK_URL"),
+		"Webhook URL for logging",
+	)
 
-	modCoreUrl := flag.String("modCoreUrl", os.Getenv("MOD_CORE_URL"), "URL for the moderation core service")
+	modCoreUrl := flag.String(
+		"modCoreUrl",
+		os.Getenv("MOD_CORE_URL"),
+		"URL for the moderation core service",
+	)
 
-	modCoreMaximumChangeScore := flag.Float64("maxChangeScore", 0.6, "Values above threshold for change will be blocked for moderation rules")
-	modCoreMinimumSafeScore := flag.Float64("minSafeScore", -1, "Values below threshold for safe score will be blocked for moderation rules")
-	modCoreMaximumQuestionableScore := flag.Float64("maxQuestionableScore", 0.9, "Values above threshold for questionable score will be blocked for moderation rules")
-	modCoreMaximumExplicitScore := flag.Float64("maxExplicitScore", 0.6, "Values above threshold for explicit score will be blocked for moderation rules")
+	modCoreMaximumChangeScore := flag.Float64(
+		"maxChangeScore",
+		0.6,
+		"Values above threshold for change will be blocked for moderation rules",
+	)
+	modCoreMinimumSafeScore := flag.Float64(
+		"minSafeScore",
+		-1,
+		"Values below threshold for safe score will be blocked for moderation rules",
+	)
+	modCoreMaximumQuestionableScore := flag.Float64(
+		"maxQuestionableScore",
+		0.9,
+		"Values above threshold for questionable score will be blocked for moderation rules",
+	)
+	modCoreMaximumExplicitScore := flag.Float64(
+		"maxExplicitScore",
+		0.6,
+		"Values above threshold for explicit score will be blocked for moderation rules",
+	)
 	modCoreMaximumInvites := flag.Int("maxInvites", 3, "Maximum invites for moderation rules")
 	modCoreMaximumUrls := flag.Int("maxUrls", -1, "Maximum URLs for moderation rules")
 
@@ -160,7 +184,9 @@ func entrypoint(ctx context.Context, webhookUrl, modCoreUrl string, modCoreRules
 
 		body, err := json.Marshal(ModerationCoreRequest{Texts: chunk})
 		if err != nil {
-			welcomer.Logger.Error().Err(err).Msg("Failed to marshal request body for moderation core")
+			welcomer.Logger.Error().
+				Err(err).
+				Msg("Failed to marshal request body for moderation core")
 
 			panic(err)
 		}
@@ -176,7 +202,10 @@ func entrypoint(ctx context.Context, webhookUrl, modCoreUrl string, modCoreRules
 			panic(err)
 		}
 
-		welcomer.Logger.Info().Int("status", req.StatusCode).Dur("elapsed", time.Now().Sub(start)).Msg("Received response from moderation core")
+		welcomer.Logger.Info().
+			Int("status", req.StatusCode).
+			Dur("elapsed", time.Now().Sub(start)).
+			Msg("Received response from moderation core")
 
 		defer req.Body.Close()
 
@@ -204,35 +233,45 @@ func entrypoint(ctx context.Context, webhookUrl, modCoreUrl string, modCoreRules
 				Bool("is_blocked", blocked).
 				Msg("Updating moderation checkup")
 
-			err = welcomer.Queries.UpdateModerationCheckup(ctx, database.UpdateModerationCheckupParams{
-				CheckupUuid:   queue.CheckupQueueUuid,
-				Dom:           marshalList(result.URLs),
-				Inv:           marshalList(result.Invites),
-				ScoreChange:   sql.NullFloat64{Float64: result.ChangeScore, Valid: true},
-				ScoreSafe:     sql.NullFloat64{Float64: result.SafeScore, Valid: true},
-				ScoreQuestion: sql.NullFloat64{Float64: result.QuestionableScore, Valid: true},
-				ScoreExplicit: sql.NullFloat64{Float64: result.ExplicitScore, Valid: true},
-				IsBlocked:     sql.NullBool{Bool: blocked, Valid: true},
-			})
+			err = welcomer.Queries.UpdateModerationCheckup(
+				ctx,
+				database.UpdateModerationCheckupParams{
+					CheckupUuid:   queue.CheckupQueueUuid,
+					Dom:           marshalList(result.URLs),
+					Inv:           marshalList(result.Invites),
+					ScoreChange:   sql.NullFloat64{Float64: result.ChangeScore, Valid: true},
+					ScoreSafe:     sql.NullFloat64{Float64: result.SafeScore, Valid: true},
+					ScoreQuestion: sql.NullFloat64{Float64: result.QuestionableScore, Valid: true},
+					ScoreExplicit: sql.NullFloat64{Float64: result.ExplicitScore, Valid: true},
+					IsBlocked:     sql.NullBool{Bool: blocked, Valid: true},
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).Msg("Failed to update moderation checkup")
 			}
 
 			err = welcomer.Queries.RemoveFromModerationCheckupQueue(ctx, queue.CheckupQueueUuid)
 			if err != nil {
-				welcomer.Logger.Error().Err(err).Msg("Failed to remove from moderation checkup queue")
+				welcomer.Logger.Error().
+					Err(err).
+					Msg("Failed to remove from moderation checkup queue")
 			}
 		}
 	}
 }
 
-func isBlocked(dataType database.AuditType, result ModerationCoreResponseItems, rules ModerationRules) bool {
+func isBlocked(
+	dataType database.AuditType,
+	result ModerationCoreResponseItems,
+	rules ModerationRules,
+) bool {
 	if dataType != database.AuditTypeGuildSettingsRules {
 		if rules.MinimumSafeScore != -1 && result.SafeScore < rules.MinimumSafeScore {
 			return true
 		}
 
-		if rules.MaximumQuestionableScore != -1 && result.QuestionableScore > rules.MaximumQuestionableScore {
+		if rules.MaximumQuestionableScore != -1 &&
+			result.QuestionableScore > rules.MaximumQuestionableScore {
 			return true
 		}
 

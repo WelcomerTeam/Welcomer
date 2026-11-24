@@ -80,7 +80,12 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				return nil, err
 			}
 
-			message, err := discord.GetChannelMessage(ctx, session, *interaction.ChannelID, discord.Snowflake(messageIDInt))
+			message, err := discord.GetChannelMessage(
+				ctx,
+				session,
+				*interaction.ChannelID,
+				discord.Snowflake(messageIDInt),
+			)
 			if err != nil {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -100,16 +105,21 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 				}, nil
 			}
 
-			err = interaction.SendResponse(ctx, session, discord.InteractionCallbackTypeChannelMessageSource, &discord.InteractionCallbackData{
-				Files: []discord.File{
-					{
-						Name:        "message.json",
-						ContentType: "application/json",
-						Reader:      bytes.NewBuffer(messageJSON),
+			err = interaction.SendResponse(
+				ctx,
+				session,
+				discord.InteractionCallbackTypeChannelMessageSource,
+				&discord.InteractionCallbackData{
+					Files: []discord.File{
+						{
+							Name:        "message.json",
+							ContentType: "application/json",
+							Reader:      bytes.NewBuffer(messageJSON),
+						},
 					},
+					Flags: uint32(discord.MessageFlagEphemeral),
 				},
-				Flags: uint32(discord.MessageFlagEphemeral),
-			})
+			)
 			if err != nil {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
@@ -195,36 +205,40 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member.User == nil || member.User.ID.IsNil() {
-					member = *interaction.Member
-				}
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					member := subway.MustGetArgument(ctx, "user").MustMember()
+					if member.User == nil || member.User.ID.IsNil() {
+						member = *interaction.Member
+					}
 
-				// GuildID may be missing, fill it in.
-				member.GuildID = interaction.GuildID
+					// GuildID may be missing, fill it in.
+					member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(member)
-				if err != nil {
-					return nil, err
-				}
+					data, err := json.Marshal(member)
+					if err != nil {
+						return nil, err
+					}
 
-				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Identifier: welcomer.GetManagerNameFromContext(ctx),
-					Type:       discord.DiscordEventGuildMemberAdd,
-					Data:       data,
-				})
-				if err != nil {
-					return nil, err
-				}
+					_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+						Identifier: welcomer.GetManagerNameFromContext(ctx),
+						Type:       discord.DiscordEventGuildMemberAdd,
+						Data:       data,
+					})
+					if err != nil {
+						return nil, err
+					}
 
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -247,39 +261,43 @@ func (cog *DebugCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member.User == nil || member.User.ID.IsNil() {
-					member = *interaction.Member
-				}
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					member := subway.MustGetArgument(ctx, "user").MustMember()
+					if member.User == nil || member.User.ID.IsNil() {
+						member = *interaction.Member
+					}
 
-				// GuildID may be missing, fill it in.
-				member.GuildID = interaction.GuildID
+					// GuildID may be missing, fill it in.
+					member.GuildID = interaction.GuildID
 
-				data, err := json.Marshal(discord.GuildMemberRemove{
-					User:    *member.User,
-					GuildID: *member.GuildID,
-				})
-				if err != nil {
-					return nil, err
-				}
+					data, err := json.Marshal(discord.GuildMemberRemove{
+						User:    *member.User,
+						GuildID: *member.GuildID,
+					})
+					if err != nil {
+						return nil, err
+					}
 
-				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Identifier: welcomer.GetManagerNameFromContext(ctx),
-					Type:       discord.DiscordEventGuildMemberRemove,
-					Data:       data,
-				})
-				if err != nil {
-					return nil, err
-				}
+					_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+						Identifier: welcomer.GetManagerNameFromContext(ctx),
+						Type:       discord.DiscordEventGuildMemberRemove,
+						Data:       data,
+					})
+					if err != nil {
+						return nil, err
+					}
 
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed("Event relayed", welcomer.EmbedColourSuccess),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 

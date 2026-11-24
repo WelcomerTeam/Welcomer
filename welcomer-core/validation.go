@@ -7,7 +7,9 @@ const (
 	MaxRuleLength = 250
 )
 
-var regexDiscordToken = regexp.MustCompile(`^[A-Za-z0-9_\-]{24,28}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,38}$`)
+var regexDiscordToken = regexp.MustCompile(
+	`^[A-Za-z0-9_\-]{24,28}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,38}$`,
+)
 
 func IsValidPublicKey(publicKey string) bool {
 	// Public key should be a 64-character hexadecimal string

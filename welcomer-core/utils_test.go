@@ -100,7 +100,13 @@ func TestFormatNumber(t *testing.T) {
 
 			got := FormatNumber(test.args.value, test.args.locale)
 			if got != test.expected {
-				t.Errorf("FormatNumber(%d, %v) = %q, want %q", test.args.value, test.args.locale, got, test.expected)
+				t.Errorf(
+					"FormatNumber(%d, %v) = %q, want %q",
+					test.args.value,
+					test.args.locale,
+					got,
+					test.expected,
+				)
 			}
 		})
 	}
@@ -126,7 +132,12 @@ func TestDurationToSeconds(t *testing.T) {
 
 			secondsDuration := SecondsToDurationString(seconds)
 			if secondsDuration != test {
-				t.Errorf("SecondsToDurationString(%d) = %q, want %q", seconds, secondsDuration, test)
+				t.Errorf(
+					"SecondsToDurationString(%d) = %q, want %q",
+					seconds,
+					secondsDuration,
+					test,
+				)
 			}
 		})
 	}

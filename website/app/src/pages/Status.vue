@@ -12,11 +12,11 @@
       <div class="bg-white text-neutral-900 pb-32">
         <div class="hero-preview">
           <div class="px-4 mx-auto max-w-7xl sm:px-6">
-            <div v-if="this.isDataError">
+            <div v-if="isDataError">
               <div class="mb-4">Data Error</div>
-              <button @click="this.fetchStatus">Retry</button>
+              <button @click="fetchStatus">Retry</button>
             </div>
-            <div v-else-if="!this.isDataFetched" class="flex py-5 w-full justify-center">
+            <div v-else-if="!isDataFetched" class="flex py-5 w-full justify-center">
               <LoadingIcon />
             </div>
             <div v-else v-for="manager in status" :key="manager.id">

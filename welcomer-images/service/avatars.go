@@ -39,7 +39,10 @@ func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (imag
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, avatarURL, nil)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to create new request for avatar")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("url", avatarURL).
+			Msg("Failed to create new request for avatar")
 
 		return nil, err
 	}
@@ -48,7 +51,10 @@ func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (imag
 
 	resp, err := is.Client.Do(req)
 	if err != nil || resp == nil {
-		welcomer.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("url", avatarURL).
+			Msg("Failed to fetch profile picture for avatar")
 
 		return nil, err
 	}
@@ -56,7 +62,11 @@ func (is *ImageService) FetchAvatar(ctx context.Context, avatarURL string) (imag
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
-		welcomer.Logger.Error().Err(err).Int("status", resp.StatusCode).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
+		welcomer.Logger.Error().
+			Err(err).
+			Int("status", resp.StatusCode).
+			Str("url", avatarURL).
+			Msg("Failed to fetch profile picture for avatar")
 
 		return nil, ErrAvatarFetchFailed
 	}
@@ -91,7 +101,10 @@ func hasImageTransparentBorder(image image.Image, w, h int) (bool, int) {
 
 // applyAvatarEffects applies masking and resizing to the avatar.
 // Outputs an image.Image with same dimension as src image.
-func applyAvatarEffects(avatar image.Image, generateImageOptions GenerateImageOptions) (im image.Image, err error) {
+func applyAvatarEffects(
+	avatar image.Image,
+	generateImageOptions GenerateImageOptions,
+) (im image.Image, err error) {
 	bounds := avatar.Bounds()
 	width := bounds.Dx()
 	height := bounds.Dy()
@@ -176,7 +189,13 @@ func roundImage(im image.Image, radius float64) image.Image {
 
 	radius = math.Max(0, math.Min(radius, float64(height)/2))
 	context := gg.NewContext(width, height)
-	context.DrawRoundedRectangle(offset, offset, float64(width)-offset, float64(height)-offset, radius)
+	context.DrawRoundedRectangle(
+		offset,
+		offset,
+		float64(width)-offset,
+		float64(height)-offset,
+		radius,
+	)
 	context.Clip()
 	context.DrawImage(im, 0, 0)
 

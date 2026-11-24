@@ -11,8 +11,12 @@ import (
 )
 
 var (
-	WelcomerProDiscordSKU               = discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID")))
-	WelcomerCustomBackgroundsDiscordSKU = discord.Snowflake(TryParseInt(os.Getenv("WELCOMER_CUSTOM_BACKGROUNDS_DISCORD_SKU_ID")))
+	WelcomerProDiscordSKU = discord.Snowflake(
+		TryParseInt(os.Getenv("WELCOMER_PRO_DISCORD_SKU_ID")),
+	)
+	WelcomerCustomBackgroundsDiscordSKU = discord.Snowflake(
+		TryParseInt(os.Getenv("WELCOMER_CUSTOM_BACKGROUNDS_DISCORD_SKU_ID")),
+	)
 )
 
 func getSKUNameFromID(skuID discord.Snowflake) string {
@@ -85,7 +89,17 @@ func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitleme
 		endsAt = sql.NullTime{Valid: true, Time: startsAt.Time.AddDate(0, 1, 7)}
 	}
 
-	println("HandleDiscordEntitlement", entitlement.ID, entitlement.SkuID, startsAt.Time.String(), endsAt.Time.String(), returnSnowflakeIfNotNull(entitlement.UserID).String(), returnSnowflakeIfNotNull(entitlement.GuildID).String(), entitlement.Consumed, entitlement.Deleted)
+	println(
+		"HandleDiscordEntitlement",
+		entitlement.ID,
+		entitlement.SkuID,
+		startsAt.Time.String(),
+		endsAt.Time.String(),
+		returnSnowflakeIfNotNull(entitlement.UserID).String(),
+		returnSnowflakeIfNotNull(entitlement.GuildID).String(),
+		entitlement.Consumed,
+		entitlement.Deleted,
+	)
 
 	var guildName string
 
@@ -204,7 +218,15 @@ func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitleme
 			Str("entitlement_id", entitlement.ID.String()).
 			Msg("no discord transactions found, creating one")
 
-		discordTxs, err = CreateTransactionForUser(ctx, *entitlement.UserID, database.PlatformTypeDiscord, database.TransactionStatusCompleted, entitlement.ID.String(), "", "")
+		discordTxs, err = CreateTransactionForUser(
+			ctx,
+			*entitlement.UserID,
+			database.PlatformTypeDiscord,
+			database.TransactionStatusCompleted,
+			entitlement.ID.String(),
+			"",
+			"",
+		)
 		if err != nil {
 			Logger.Error().Err(err).
 				Str("entitlement_id", entitlement.ID.String()).
@@ -215,19 +237,22 @@ func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitleme
 	}
 
 	// Update discord subscription entity.
-	_, err = Queries.CreateOrUpdateDiscordSubscription(ctx, database.CreateOrUpdateDiscordSubscriptionParams{
-		SubscriptionID:  entitlement.ID.String(),
-		UserID:          int64(*entitlement.UserID),
-		GiftCodeFlags:   giftCodeFlags,
-		GuildID:         guildID,
-		StartsAt:        startsAt,
-		EndsAt:          endsAt,
-		SkuID:           int64(entitlement.SkuID),
-		ApplicationID:   int64(entitlement.ApplicationID),
-		EntitlementType: int64(entitlement.Type),
-		Deleted:         entitlement.Deleted,
-		Consumed:        entitlement.Consumed,
-	})
+	_, err = Queries.CreateOrUpdateDiscordSubscription(
+		ctx,
+		database.CreateOrUpdateDiscordSubscriptionParams{
+			SubscriptionID:  entitlement.ID.String(),
+			UserID:          int64(*entitlement.UserID),
+			GiftCodeFlags:   giftCodeFlags,
+			GuildID:         guildID,
+			StartsAt:        startsAt,
+			EndsAt:          endsAt,
+			SkuID:           int64(entitlement.SkuID),
+			ApplicationID:   int64(entitlement.ApplicationID),
+			EntitlementType: int64(entitlement.Type),
+			Deleted:         entitlement.Deleted,
+			Consumed:        entitlement.Consumed,
+		},
+	)
 	if err != nil {
 		Logger.Error().Err(err).
 			Str("entitlement_id", entitlement.ID.String()).
@@ -245,7 +270,11 @@ func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitleme
 		return err
 	}
 
-	discordMemberships := make([]*database.GetUserMembershipsByTransactionIDRow, 0, len(memberships))
+	discordMemberships := make(
+		[]*database.GetUserMembershipsByTransactionIDRow,
+		0,
+		len(memberships),
+	)
 
 	for _, membership := range memberships {
 		if database.PlatformType(membership.PlatformType) == database.PlatformTypeDiscord &&
@@ -274,7 +303,14 @@ func HandleDiscordEntitlement(ctx context.Context, entitlement discord.Entitleme
 		// Add memberships.
 
 		for i := len(discordMemberships); i < quantity; i++ {
-			err = CreateMembershipForUser(ctx, *entitlement.UserID, discordTxs.TransactionUuid, membershipType, endsAt.Time, entitlement.GuildID)
+			err = CreateMembershipForUser(
+				ctx,
+				*entitlement.UserID,
+				discordTxs.TransactionUuid,
+				membershipType,
+				endsAt.Time,
+				entitlement.GuildID,
+			)
 			if err != nil {
 				Logger.Error().Err(err).
 					Int64("user_id", int64(*entitlement.UserID)).

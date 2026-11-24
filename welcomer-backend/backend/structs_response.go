@@ -7,9 +7,9 @@ import "errors"
 //nolint:requiredcheck
 type BaseResponse struct {
 	Ok    bool   `json:"ok"`
-	Code  int    `json:"code,omitempty" requiredcheck:"ignore"`
+	Code  int    `json:"code,omitempty"  requiredcheck:"ignore"`
 	Error string `json:"error,omitempty" requiredcheck:"ignore"`
-	Data  any    `json:"data,omitempty" requiredcheck:"ignore"`
+	Data  any    `json:"data,omitempty"  requiredcheck:"ignore"`
 }
 
 func NewBaseResponse(err error, data any) BaseResponse {

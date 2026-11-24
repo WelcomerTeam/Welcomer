@@ -71,14 +71,17 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 
 		err = welcomer.RetryWithFallback(
 			func() error {
-				usage, err = welcomer.Queries.CreateCommandUsage(ctx, database.CreateCommandUsageParams{
-					GuildID:         guildID,
-					UserID:          userID,
-					ChannelID:       channelID,
-					Command:         interactionCommandName,
-					Errored:         interactionError != nil,
-					ExecutionTimeMs: time.Since(interaction.ID.Time()).Milliseconds(),
-				})
+				usage, err = welcomer.Queries.CreateCommandUsage(
+					ctx,
+					database.CreateCommandUsageParams{
+						GuildID:         guildID,
+						UserID:          userID,
+						ChannelID:       channelID,
+						Command:         interactionCommandName,
+						Errored:         interactionError != nil,
+						ExecutionTimeMs: time.Since(interaction.ID.Time()).Milliseconds(),
+					},
+				)
 
 				return err
 			},
@@ -99,11 +102,17 @@ func NewWelcomer(ctx context.Context, options subway.SubwayOptions) *subway.Subw
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.Queries.CreateCommandError(ctx, database.CreateCommandErrorParams{
-						CommandUuid: usage.CommandUuid,
-						Trace:       interactionError.Error(),
-						Data:        pgtype.JSONB{Bytes: interactionJSON, Status: pgtype.Present},
-					})
+					_, err = welcomer.Queries.CreateCommandError(
+						ctx,
+						database.CreateCommandErrorParams{
+							CommandUuid: usage.CommandUuid,
+							Trace:       interactionError.Error(),
+							Data: pgtype.JSONB{
+								Bytes:  interactionJSON,
+								Status: pgtype.Present,
+							},
+						},
+					)
 
 					return err
 				},

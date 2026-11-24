@@ -8,7 +8,11 @@ import (
 )
 
 // Returns all valid user memberships based on a guild ID.
-func (q *Queries) GetValidUserMembershipsByGuildID(ctx context.Context, guildID discord.Snowflake, time time.Time) ([]*GetUserMembershipsByGuildIDRow, error) {
+func (q *Queries) GetValidUserMembershipsByGuildID(
+	ctx context.Context,
+	guildID discord.Snowflake,
+	time time.Time,
+) ([]*GetUserMembershipsByGuildIDRow, error) {
 	userMemberships, err := q.GetUserMembershipsByGuildID(ctx, int64(guildID))
 	if err != nil {
 		return []*GetUserMembershipsByGuildIDRow{}, err

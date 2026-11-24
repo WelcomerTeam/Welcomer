@@ -26,9 +26,15 @@ func getGuildSettingsAutoRoles(ctx *gin.Context) {
 						Roles:         welcomer.DefaultAutoroles.Roles,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild autoroles settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild autoroles settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -76,14 +82,24 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 
 			autoroles := PartialToGuildSettingsAutoRolesSettings(int64(guildID), partial)
 
-			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(*autoroles)
+			databaseAutoRolesGuildSettings := database.CreateOrUpdateAutoRolesGuildSettingsParams(
+				*autoroles,
+			)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *autoroles).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild autoroles settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *autoroles).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild autoroles settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(ctx, databaseAutoRolesGuildSettings, discord.Snowflake(user.ID))
+					_, err = welcomer.CreateOrUpdateAutoRolesGuildSettingsWithAudit(
+						ctx,
+						databaseAutoRolesGuildSettings,
+						discord.Snowflake(user.ID),
+					)
 
 					return err
 				},
@@ -93,9 +109,15 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild autoroles settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild autoroles settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -108,7 +130,6 @@ func setGuildSettingsAutoRoles(ctx *gin.Context) {
 // Validates autorole settings.
 func doValidateAutoRoles(guildSettings *GuildSettingsAutoRoles) error {
 	// TODO: validate autoroles
-
 	return nil
 }
 

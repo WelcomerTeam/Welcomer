@@ -15,7 +15,11 @@ func includeActionRow(messageParams discord.MessageParams) discord.MessageParams
 	return messageParams
 }
 
-func IncludeSentByButton(messageParams discord.MessageParams, guildID discord.Snowflake, guildName string) discord.MessageParams {
+func IncludeSentByButton(
+	messageParams discord.MessageParams,
+	guildID discord.Snowflake,
+	guildName string,
+) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
 	message := "Sent by " + guildName
@@ -69,7 +73,10 @@ func IncludeScamsButton(messageParams discord.MessageParams) discord.MessagePara
 	return messageParams
 }
 
-func IncludeBorderwallVerifyButton(messageParams discord.MessageParams, borderwallLink string) discord.MessageParams {
+func IncludeBorderwallVerifyButton(
+	messageParams discord.MessageParams,
+	borderwallLink string,
+) discord.MessageParams {
 	messageParams = includeActionRow(messageParams)
 
 	messageParams.Components[0].Components = append(

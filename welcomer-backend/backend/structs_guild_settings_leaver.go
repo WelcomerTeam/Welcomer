@@ -13,7 +13,9 @@ type GuildSettingsLeaver struct {
 	LeaverMessageLifetime    int32   `json:"leaver_message_lifetime"`
 }
 
-func GuildSettingsLeaverSettingsToPartial(leaver database.GuildSettingsLeaver) *GuildSettingsLeaver {
+func GuildSettingsLeaverSettingsToPartial(
+	leaver database.GuildSettingsLeaver,
+) *GuildSettingsLeaver {
 	partial := &GuildSettingsLeaver{
 		ToggleEnabled:            leaver.ToggleEnabled,
 		Channel:                  welcomer.Int64ToStringPointer(leaver.Channel),
@@ -25,7 +27,10 @@ func GuildSettingsLeaverSettingsToPartial(leaver database.GuildSettingsLeaver) *
 	return partial
 }
 
-func PartialToGuildSettingsLeaverSettings(guildID int64, guildSettings *GuildSettingsLeaver) *database.GuildSettingsLeaver {
+func PartialToGuildSettingsLeaverSettings(
+	guildID int64,
+	guildSettings *GuildSettingsLeaver,
+) *database.GuildSettingsLeaver {
 	return &database.GuildSettingsLeaver{
 		GuildID:                  guildID,
 		ToggleEnabled:            guildSettings.ToggleEnabled,

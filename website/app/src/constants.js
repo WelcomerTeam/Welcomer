@@ -17,7 +17,7 @@ export const PlatformTypePaypalSubscription = "paypal_subscription";
 export const PlatformTypeDiscord = "discord";
 
 export const GetBotInvite = (bot_id, guild_id) => {
-    return `https://discord.com/oauth2/authorize?client_id=${bot_id}&scope=bot%20applications.commands&permissions=${BotPermissions}${guild_id ? '&guild_id='+guild_id : ''}`
+    return `https://discord.com/oauth2/authorize?client_id=${bot_id}&scope=bot%20applications.commands&permissions=${BotPermissions}${guild_id ? '&guild_id=' + guild_id : ''}`
 }
 
 export const OpenBotInvite = (bot_id, guild_id, callback) => {
@@ -31,8 +31,8 @@ export const OpenPatreonLink = (callback) => {
 export const TryOpenURLInPopup = (url, callback) => {
     const padding = 64
 
-    const width = Math.min(550, window.outerWidth-(padding*2));
-    const height = Math.min(800, window.outerHeight-(padding*2));
+    const width = Math.min(550, window.outerWidth - (padding * 2));
+    const height = Math.min(800, window.outerHeight - (padding * 2));
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
@@ -94,12 +94,12 @@ export const NavigationFeatures = [
         description: "Allow users to make temporary voice channels in your server",
         icon: "microphone-lines",
     },
-    // {
-    //     name: "Guild Analytics",
-    //     href: "/features#analytics",
-    //     description: "View information about your server such as user joins",
-    //     icon: "chart-line",
-    // },
+    {
+        name: "Guild Analytics",
+        href: "/features#analytics",
+        description: "View information about your server such as user joins",
+        icon: "chart-line",
+    },
     {
         name: "Borderwall",
         href: "/features#borderwall",

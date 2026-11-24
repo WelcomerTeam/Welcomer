@@ -27,7 +27,10 @@ func GuildSettingsTempChannelsSettingsToPartial(
 	return partial
 }
 
-func PartialToGuildSettingsTempChannelsSettings(guildID int64, guildSettings *GuildSettingsTempChannels) *database.GuildSettingsTempchannels {
+func PartialToGuildSettingsTempChannelsSettings(
+	guildID int64,
+	guildSettings *GuildSettingsTempChannels,
+) *database.GuildSettingsTempchannels {
 	return &database.GuildSettingsTempchannels{
 		GuildID:          guildID,
 		ToggleEnabled:    guildSettings.ToggleEnabled,

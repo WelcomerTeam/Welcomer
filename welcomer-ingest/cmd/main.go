@@ -23,16 +23,23 @@ const (
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupSandwichClient()
 	welcomer.SetupDatabase(ctx, *postgresURL)

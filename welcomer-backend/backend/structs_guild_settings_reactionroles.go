@@ -10,7 +10,9 @@ type GuildSettingsReactionRoles struct {
 	ReactionRoles []welcomer.GuildSettingsReactionRole `json:"reaction_roles"`
 }
 
-func GuildSettingsReactionRolesSettingsToPartial(reactionRoles []*database.GuildSettingsReactionRoles) *GuildSettingsReactionRoles {
+func GuildSettingsReactionRolesSettingsToPartial(
+	reactionRoles []*database.GuildSettingsReactionRoles,
+) *GuildSettingsReactionRoles {
 	partial := &GuildSettingsReactionRoles{
 		ReactionRoles: make([]welcomer.GuildSettingsReactionRole, len(reactionRoles)),
 	}
@@ -22,17 +24,27 @@ func GuildSettingsReactionRolesSettingsToPartial(reactionRoles []*database.Guild
 	return partial
 }
 
-func PartialToGuildSettingsReactionRolesSettings(guildID int64, guildSettings *GuildSettingsReactionRoles) []database.CreateOrUpdateReactionRoleSettingParams {
-	reactionRoles := make([]database.CreateOrUpdateReactionRoleSettingParams, len(guildSettings.ReactionRoles))
+func PartialToGuildSettingsReactionRolesSettings(
+	guildID int64,
+	guildSettings *GuildSettingsReactionRoles,
+) []database.CreateOrUpdateReactionRoleSettingParams {
+	reactionRoles := make(
+		[]database.CreateOrUpdateReactionRoleSettingParams,
+		len(guildSettings.ReactionRoles),
+	)
 
 	for i, reactionRole := range guildSettings.ReactionRoles {
-		reactionRoles[i] = database.CreateOrUpdateReactionRoleSettingParams(PartialToGuildSettingsReactionRole(guildID, &reactionRole))
+		reactionRoles[i] = database.CreateOrUpdateReactionRoleSettingParams(
+			PartialToGuildSettingsReactionRole(guildID, &reactionRole),
+		)
 	}
 
 	return reactionRoles
 }
 
-func GuildSettingsReactionRoleToPartial(reactionRole *database.GuildSettingsReactionRoles) welcomer.GuildSettingsReactionRole {
+func GuildSettingsReactionRoleToPartial(
+	reactionRole *database.GuildSettingsReactionRoles,
+) welcomer.GuildSettingsReactionRole {
 	return welcomer.GuildSettingsReactionRole{
 		ReactionRoleID:  reactionRole.ReactionRoleID,
 		Enabled:         reactionRole.ToggleEnabled,
@@ -41,11 +53,16 @@ func GuildSettingsReactionRoleToPartial(reactionRole *database.GuildSettingsReac
 		IsSystemMessage: reactionRole.IsSystemMessage,
 		Message:         welcomer.JSONBToString(reactionRole.SystemMessageFormat),
 		Type:            welcomer.ReactionRoleType(reactionRole.ReactionRoleType),
-		Roles:           welcomer.UnmarshalReactionRolesJSON(welcomer.JSONBToBytes(reactionRole.Roles)),
+		Roles: welcomer.UnmarshalReactionRolesJSON(
+			welcomer.JSONBToBytes(reactionRole.Roles),
+		),
 	}
 }
 
-func PartialToGuildSettingsReactionRole(guildID int64, reactionRole *welcomer.GuildSettingsReactionRole) database.GuildSettingsReactionRoles {
+func PartialToGuildSettingsReactionRole(
+	guildID int64,
+	reactionRole *welcomer.GuildSettingsReactionRole,
+) database.GuildSettingsReactionRoles {
 	return database.GuildSettingsReactionRoles{
 		GuildID:             guildID,
 		ReactionRoleID:      reactionRole.ReactionRoleID,
@@ -55,6 +72,8 @@ func PartialToGuildSettingsReactionRole(guildID int64, reactionRole *welcomer.Gu
 		IsSystemMessage:     reactionRole.IsSystemMessage,
 		SystemMessageFormat: welcomer.StringToJSONB(reactionRole.Message),
 		ReactionRoleType:    int32(reactionRole.Type),
-		Roles:               welcomer.BytesToJSONB(welcomer.MarshalReactionRolesJSON(reactionRole.Roles)),
+		Roles: welcomer.BytesToJSONB(
+			welcomer.MarshalReactionRolesJSON(reactionRole.Roles),
+		),
 	}
 }

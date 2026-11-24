@@ -80,7 +80,12 @@ func (r *DiscordEmojiRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegist
 	reg.Register(KindDiscordEmoji, r.render)
 }
 
-func (r *DiscordEmojiRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *DiscordEmojiRenderer) render(
+	w util.BufWriter,
+	source []byte,
+	node ast.Node,
+	entering bool,
+) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
 	}
@@ -95,7 +100,13 @@ func (r *DiscordEmojiRenderer) render(w util.BufWriter, source []byte, node ast.
 		class += " emoji-animated"
 	}
 
-	fmt.Fprintf(w, `<img class="%s" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/%s.%s">`, class, n.ID, ext)
+	fmt.Fprintf(
+		w,
+		`<img class="%s" style="object-fit: contain; width: 1.375em; height: 1.375em; vertical-align: bottom; display: inline;" src="https://cdn.discordapp.com/emojis/%s.%s">`,
+		class,
+		n.ID,
+		ext,
+	)
 
 	return ast.WalkSkipChildren, nil
 }
@@ -115,7 +126,12 @@ func (r *EmphasisRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 	reg.Register(ast.KindEmphasis, r.render)
 }
 
-func (r *EmphasisRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *EmphasisRenderer) render(
+	w util.BufWriter,
+	source []byte,
+	node ast.Node,
+	entering bool,
+) (ast.WalkStatus, error) {
 	n := node.(*ast.Emphasis)
 
 	// Detect delimiter type by checking the source bytes

@@ -66,7 +66,10 @@ type GenerateImageOptions struct {
 	ProfileBorderCurve welcomer.ImageProfileBorderType
 }
 
-func (is *ImageService) GenerateImage(ctx context.Context, imageOptions GenerateImageOptions) ([]byte, welcomer.ImageFileType, *welcomer.Timing, error) {
+func (is *ImageService) GenerateImage(
+	ctx context.Context,
+	imageOptions GenerateImageOptions,
+) ([]byte, welcomer.ImageFileType, *welcomer.Timing, error) {
 	theme, ok := themes[imageOptions.Theme]
 	if !ok {
 		theme = themes[welcomer.ImageThemeDefault]
@@ -96,9 +99,17 @@ func (is *ImageService) GenerateImage(ctx context.Context, imageOptions Generate
 
 	timing.Track("fetchAvatar")
 
-	background, err := is.FetchBackground(imageOptions.Background, imageOptions.AllowAnimated, avatar, themeSize)
+	background, err := is.FetchBackground(
+		imageOptions.Background,
+		imageOptions.AllowAnimated,
+		avatar,
+		themeSize,
+	)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Str("background", imageOptions.Background).Msg("Failed to fetch background")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("background", imageOptions.Background).
+			Msg("Failed to fetch background")
 
 		background = FullImage{Frames: []image.Image{backgroundsDefaultImage}}
 	}

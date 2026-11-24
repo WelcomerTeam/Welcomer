@@ -17,6 +17,7 @@ type Querier interface {
 	AddGiveawayEntry(ctx context.Context, arg AddGiveawayEntryParams) (uuid.UUID, error)
 	AddGuildFeature(ctx context.Context, arg AddGuildFeatureParams) error
 	AddPollEntry(ctx context.Context, arg AddPollEntryParams) (uuid.UUID, error)
+	AggregateMessageCounts(ctx context.Context, arg AggregateMessageCountsParams) ([]*AggregateMessageCountsRow, error)
 	ClearInteractionCommands(ctx context.Context, applicationID int64) (int64, error)
 	CountGiveawayEntries(ctx context.Context, giveawayUuid uuid.UUID) (int32, error)
 	CountPollEntriesByUniqueUsers(ctx context.Context, pollUuid uuid.UUID) (*CountPollEntriesByUniqueUsersRow, error)
@@ -78,6 +79,7 @@ type Querier interface {
 	DeleteAndGetGuildVoiceChannelOpenSession(ctx context.Context, arg DeleteAndGetGuildVoiceChannelOpenSessionParams) (*GuildVoiceChannelOpenSessions, error)
 	DeleteAndGetGuildVoiceChannelOpenSessionsBefore(ctx context.Context, lastSeenTs time.Time) ([]*GuildVoiceChannelOpenSessions, error)
 	DeleteCustomBot(ctx context.Context, customBotUuid uuid.UUID) (int64, error)
+	DeleteGuildAnalyticsBenchmarks(ctx context.Context) error
 	DeleteGuildInvites(ctx context.Context, arg DeleteGuildInvitesParams) (int64, error)
 	DeletePatreonUser(ctx context.Context, arg DeletePatreonUserParams) (int64, error)
 	DeleteReactionRoleSettings(ctx context.Context, arg DeleteReactionRoleSettingsParams) (int64, error)
@@ -86,7 +88,10 @@ type Querier interface {
 	DeleteWelcomerImage(ctx context.Context, imageUuid uuid.UUID) (int64, error)
 	DisableReactionRoleSettingByMessageId(ctx context.Context, arg DisableReactionRoleSettingByMessageIdParams) (int64, error)
 	FetchModerationCheckupQueue(ctx context.Context, limit int32) ([]*ModerationCheckupQueue, error)
+	// Returns the average daily, weekly and monthly active user counts for a guild within a specified date range.
+	GetActiveUserCounts(ctx context.Context, arg GetActiveUserCountsParams) (*GetActiveUserCountsRow, error)
 	GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error)
+	GetAllPaypalSubscriptions(ctx context.Context) ([]*PaypalSubscriptions, error)
 	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GetBorderwallGuildSettingsRow, error)
 	GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUID) (*BorderwallRequests, error)
@@ -114,13 +119,46 @@ type Querier interface {
 	GetGiveawayFromMessageID(ctx context.Context, arg GetGiveawayFromMessageIDParams) (*GuildGiveaways, error)
 	GetGiveawayWinners(ctx context.Context, giveawayUuid uuid.UUID) ([]*GuildGiveawaysWinners, error)
 	GetGuild(ctx context.Context, guildID int64) (*Guilds, error)
+	GetGuildAnalyticsBenchmarkBucket(ctx context.Context, memberCountBucket int16) ([]*GetGuildAnalyticsBenchmarkBucketRow, error)
+	// Restricts benchmark candidates to guilds with recent analytics events before per-bucket sampling.
+	GetGuildAnalyticsBenchmarkGuilds(ctx context.Context, arg GetGuildAnalyticsBenchmarkGuildsParams) ([]*GetGuildAnalyticsBenchmarkGuildsRow, error)
+	// Returns per-guild messaging and voice totals for the fixed, complete UTC activity week.
+	GetGuildAnalyticsBenchmarkInputs(ctx context.Context, arg GetGuildAnalyticsBenchmarkInputsParams) ([]*GetGuildAnalyticsBenchmarkInputsRow, error)
+	// Cohort members receive the same 30-day observation window for both retention and onboarding.
+	// First-message timing uses the hourly min_ts aggregate, not raw message events.
+	GetGuildAnalyticsBenchmarkJoinMetrics(ctx context.Context, arg GetGuildAnalyticsBenchmarkJoinMetricsParams) (*GetGuildAnalyticsBenchmarkJoinMetricsRow, error)
 	GetGuildAuditLogs(ctx context.Context, guildID sql.NullInt64) ([]*GetGuildAuditLogsRow, error)
+	GetGuildBorderwallActivity(ctx context.Context, arg GetGuildBorderwallActivityParams) ([]*GetGuildBorderwallActivityRow, error)
+	GetGuildBorderwallCountries(ctx context.Context, arg GetGuildBorderwallCountriesParams) ([]*GetGuildBorderwallCountriesRow, error)
+	GetGuildBorderwallDevices(ctx context.Context, arg GetGuildBorderwallDevicesParams) ([]*GetGuildBorderwallDevicesRow, error)
+	GetGuildBorderwallSummary(ctx context.Context, arg GetGuildBorderwallSummaryParams) (*GetGuildBorderwallSummaryRow, error)
 	GetGuildFeatures(ctx context.Context, guildID int64) ([]string, error)
 	GetGuildInvite(ctx context.Context, arg GetGuildInviteParams) (*GuildInvites, error)
+	GetGuildInviteActivity(ctx context.Context, arg GetGuildInviteActivityParams) ([]*GetGuildInviteActivityRow, error)
+	GetGuildInviteJoinCounts(ctx context.Context, arg GetGuildInviteJoinCountsParams) ([]*GetGuildInviteJoinCountsRow, error)
 	GetGuildInvites(ctx context.Context, guildID int64) ([]*GuildInvites, error)
+	GetGuildMemberJoins(ctx context.Context, arg GetGuildMemberJoinsParams) ([]*GetGuildMemberJoinsRow, error)
+	// Counts unique members who joined in the selected range and whether they had left by its end.
+	GetGuildMemberRetention(ctx context.Context, arg GetGuildMemberRetentionParams) (*GetGuildMemberRetentionRow, error)
+	// Returns, for members who joined within [date_to - 1 year, date_to], how many months ago they
+	// joined (X axis) and how many months ago they left (Y axis), 0 being the current month.
+	// Members who have not left are included with a NULL left_months_ago.
+	GetGuildMemberRetentionMatrix(ctx context.Context, arg GetGuildMemberRetentionMatrixParams) ([]*GetGuildMemberRetentionMatrixRow, error)
+	GetGuildMessageActivity(ctx context.Context, arg GetGuildMessageActivityParams) ([]*GetGuildMessageActivityRow, error)
+	GetGuildMessageAuthors(ctx context.Context, arg GetGuildMessageAuthorsParams) ([]*GetGuildMessageAuthorsRow, error)
+	GetGuildMessageChannels(ctx context.Context, arg GetGuildMessageChannelsParams) ([]*GetGuildMessageChannelsRow, error)
+	GetGuildMessageContributors(ctx context.Context, arg GetGuildMessageContributorsParams) ([]*GetGuildMessageContributorsRow, error)
+	GetGuildMessageHeatmap(ctx context.Context, arg GetGuildMessageHeatmapParams) ([]*GetGuildMessageHeatmapRow, error)
+	GetGuildMessageSummary(ctx context.Context, arg GetGuildMessageSummaryParams) (*GetGuildMessageSummaryRow, error)
+	GetGuildRoleActivity(ctx context.Context, arg GetGuildRoleActivityParams) ([]*GetGuildRoleActivityRow, error)
+	GetGuildTimeToFirstMessage(ctx context.Context, arg GetGuildTimeToFirstMessageParams) (*GetGuildTimeToFirstMessageRow, error)
+	GetGuildVoiceActivity(ctx context.Context, arg GetGuildVoiceActivityParams) ([]*GetGuildVoiceActivityRow, error)
+	GetGuildVoiceAuthors(ctx context.Context, arg GetGuildVoiceAuthorsParams) ([]*GetGuildVoiceAuthorsRow, error)
+	GetGuildVoiceSummary(ctx context.Context, arg GetGuildVoiceSummaryParams) (*GetGuildVoiceSummaryRow, error)
 	GetInteractionCommand(ctx context.Context, arg GetInteractionCommandParams) (*InteractionCommands, error)
 	GetJobCheckpointByName(ctx context.Context, jobName string) (*JobCheckpoints, error)
 	GetLeaverGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsLeaver, error)
+	GetLeftGuildMemberDaysOnServer(ctx context.Context, arg GetLeftGuildMemberDaysOnServerParams) ([]*GetLeftGuildMemberDaysOnServerRow, error)
 	GetMinimalWelcomerBuilderArtifactByGuildId(ctx context.Context, guildID int64) ([]*GetMinimalWelcomerBuilderArtifactByGuildIdRow, error)
 	GetPatreonUser(ctx context.Context, patreonUserID int64) (*PatreonUsers, error)
 	GetPatreonUsers(ctx context.Context) ([]*PatreonUsers, error)
@@ -140,6 +178,8 @@ type Querier interface {
 	GetRulesGuildSettings(ctx context.Context, guildID int64) (*GetRulesGuildSettingsRow, error)
 	GetScienceEvent(ctx context.Context, eventUuid uuid.UUID) (*ScienceEvents, error)
 	GetScienceGuildEvent(ctx context.Context, guildEventUuid uuid.UUID) (*ScienceGuildEvents, error)
+	GetScienceGuildEventsForGuild(ctx context.Context, arg GetScienceGuildEventsForGuildParams) ([]*GetScienceGuildEventsForGuildRow, error)
+	GetScienceGuildEventsForGuildGroupedByPeriod(ctx context.Context, arg GetScienceGuildEventsForGuildGroupedByPeriodParams) ([]*GetScienceGuildEventsForGuildGroupedByPeriodRow, error)
 	GetScienceGuildJoinLeaveEventForUser(ctx context.Context, arg GetScienceGuildJoinLeaveEventForUserParams) (*GetScienceGuildJoinLeaveEventForUserRow, error)
 	GetTempChannelsGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTempchannels, error)
 	GetTimeRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsTimeroles, error)
@@ -172,6 +212,7 @@ type Querier interface {
 	SetGiveawayEnded(ctx context.Context, arg SetGiveawayEndedParams) (*GuildGiveaways, error)
 	SetGuildMemberCount(ctx context.Context, arg SetGuildMemberCountParams) (int64, error)
 	SetPollEnded(ctx context.Context, arg SetPollEndedParams) (*GuildPolls, error)
+	SumScienceGuildEventsForGuild(ctx context.Context, arg SumScienceGuildEventsForGuildParams) (int32, error)
 	UpdateAutoRolesGuildSettings(ctx context.Context, arg UpdateAutoRolesGuildSettingsParams) (int64, error)
 	UpdateBorderwallGuildSettings(ctx context.Context, arg UpdateBorderwallGuildSettingsParams) (int64, error)
 	UpdateBorderwallRequest(ctx context.Context, arg UpdateBorderwallRequestParams) (int64, error)
@@ -188,6 +229,7 @@ type Querier interface {
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
 	UpdateModerationCheckup(ctx context.Context, arg UpdateModerationCheckupParams) error
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
+	UpdatePaypalSubscriptionLastBilledAt(ctx context.Context, arg UpdatePaypalSubscriptionLastBilledAtParams) (int64, error)
 	UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildPolls, error)
 	UpdatePollMessage(ctx context.Context, arg UpdatePollMessageParams) (*GuildPolls, error)
 	UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (int64, error)
@@ -202,7 +244,9 @@ type Querier interface {
 	UpdateWelcomerImagesGuildSettings(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsParams) (int64, error)
 	UpdateWelcomerImagesGuildSettingsCustomBuilder(ctx context.Context, arg UpdateWelcomerImagesGuildSettingsCustomBuilderParams) (*GuildSettingsWelcomerImages, error)
 	UpdateWelcomerTextGuildSettings(ctx context.Context, arg UpdateWelcomerTextGuildSettingsParams) (int64, error)
+	UpsertGuildAnalyticsBenchmark(ctx context.Context, arg UpsertGuildAnalyticsBenchmarkParams) error
 	UpsertJobCheckpoint(ctx context.Context, arg UpsertJobCheckpointParams) error
+	UpsertMessageCounts(ctx context.Context, arg UpsertMessageCountsParams) error
 }
 
 var _ Querier = (*Queries)(nil)

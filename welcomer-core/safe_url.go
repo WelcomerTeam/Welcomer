@@ -39,7 +39,10 @@ var reservedIPv4Nets = []net.IPNet{
 	ipv4Net(240, 0, 0, 0, 4),     // Reserved (includes broadcast / 255.255.255.255)
 }
 
-var globalUnicastIPv6Net = net.IPNet{IP: net.IP{0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Mask: net.CIDRMask(3, 128)}
+var globalUnicastIPv6Net = net.IPNet{
+	IP:   net.IP{0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	Mask: net.CIDRMask(3, 128),
+}
 
 func isIPv6GlobalUnicast(address net.IP) bool {
 	return globalUnicastIPv6Net.Contains(address)

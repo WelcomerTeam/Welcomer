@@ -43,7 +43,11 @@ type FetchGuildCountsRow struct {
 	MemberCount int32 `json:"member_count"`
 }
 
-func fetchGuildCounts(ctx context.Context, db *pgx.Conn, lastGuildID int64) ([]FetchGuildCountsRow, error) {
+func fetchGuildCounts(
+	ctx context.Context,
+	db *pgx.Conn,
+	lastGuildID int64,
+) ([]FetchGuildCountsRow, error) {
 	rows, err := db.Query(ctx, FETCH_GUILD_COUNTS, lastGuildID)
 	if err != nil {
 		return nil, err
@@ -75,9 +79,12 @@ func main() {
 	defer cancel()
 
 	welcomer.SetupDatabase(ctx, *postgresURL)
-	welcomer.SetupGRPCConnection(os.Getenv("SANDWICH_GRPC_HOST"),
+	welcomer.SetupGRPCConnection(
+		os.Getenv("SANDWICH_GRPC_HOST"),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 
 	welcomer.SetupLogger(os.Getenv("LOGGING_LEVEL"))
@@ -121,7 +128,14 @@ func main() {
 				MemberCount: guildCount.MemberCount,
 			})
 			if err != nil {
-				panic(fmt.Sprintf("SetGuildMemberCount(%d, %d): %v", guildCount.GuildID, guildCount.MemberCount, err))
+				panic(
+					fmt.Sprintf(
+						"SetGuildMemberCount(%d, %d): %v",
+						guildCount.GuildID,
+						guildCount.MemberCount,
+						err,
+					),
+				)
 			}
 
 			lastGuildID = guildCount.GuildID

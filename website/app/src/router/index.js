@@ -1,13 +1,8 @@
-import { createWebHistory, createRouter } from "vue-router";
-
-import Dashboard from "@/pages/Dashboard.vue";
-import Home from "@/pages/Home.vue";
-
-const routes = [
+export const routes = [
   {
     path: "/",
     name: "home",
-    component: Home,
+    component: () => import("@/pages/Home.vue"),
   },
   {
     path: "/premium",
@@ -72,7 +67,7 @@ const routes = [
   {
     path: "/dashboard",
     name: "dashboard",
-    component: Dashboard,
+    component: () => import("@/pages/Dashboard.vue"),
     children: [
       {
         path: "",
@@ -87,6 +82,11 @@ const routes = [
             name: "dashboard.guild.overview",
             path: "",
             component: () => import("@/pages/dashboard/Home.vue"),
+          },
+          {
+            name: "dashboard.guild.analytics",
+            path: "analytics",
+            component: () => import("@/pages/dashboard/Analytics.vue"),
           },
           {
             name: "dashboard.guild.memberships",
@@ -182,22 +182,10 @@ const routes = [
   },
 ];
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    }
-
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'auto'
-      })
-    }, 0);
+export function scrollBehavior(to, from, savedPosition) {
+  if (savedPosition) {
+    return savedPosition
   }
-});
 
-export default router;
+  return { top: 0, left: 0, behavior: 'auto' }
+}

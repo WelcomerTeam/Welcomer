@@ -39,7 +39,10 @@ func (f *MultiFace) Close() error {
 	return e
 }
 
-func (f *MultiFace) Glyph(dot fixed.Point26_6, r rune) (dr image.Rectangle, mask image.Image, maskp image.Point, advance fixed.Int26_6, ok bool) {
+func (f *MultiFace) Glyph(
+	dot fixed.Point26_6,
+	r rune,
+) (dr image.Rectangle, mask image.Image, maskp image.Point, advance fixed.Int26_6, ok bool) {
 	var b sfnt.Buffer
 
 	for i := range f.entries {
@@ -62,7 +65,9 @@ func (f *MultiFace) Glyph(dot fixed.Point26_6, r rune) (dr image.Rectangle, mask
 	return
 }
 
-func (f *MultiFace) GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.Int26_6, ok bool) {
+func (f *MultiFace) GlyphBounds(
+	r rune,
+) (bounds fixed.Rectangle26_6, advance fixed.Int26_6, ok bool) {
 	var b sfnt.Buffer
 
 	for i := range f.entries {

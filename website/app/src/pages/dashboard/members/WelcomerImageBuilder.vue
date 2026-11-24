@@ -1,7 +1,6 @@
 <!-- TODO:
 
 - drag for layers
-- enhancement: snap for vertical or horizontal alignments
 - enhancement: 1:1 aspect ratio when drawing shapes
 -->
 <template>
@@ -15,7 +14,7 @@
       <p>This experience is best used on a desktop with a mouse or trackpad. Some features may not work as expected on mobile devices.</p>
       <p>To get started, select an action from the toolbar at the bottom of the canvas. You can add text, images, and shapes to your welcome image. Click on objects to select and customize them using the sidebar on the right.</p>
 
-      <p class="mt-4">Use the + and - keys to zoom in and out, and scroll using the mouse wheel or holding down middle-click.</p>
+      <p class="mt-4">Use + and - or Ctrl/Cmd + and - to zoom, Ctrl/Cmd + scroll to zoom, and scroll or middle-click to pan.</p>
       <p>When selecting a layer, you can move it by dragging, resize it using the handles, and rotate it using the rotation control. To remove the layer press Delete or Backspace and use Page Up and Page Down to change the layer order.</p>
 
       <h2 class="mt-8 text-xl font-semibold leading-tight text-center">Lets Get Started!</h2>
@@ -57,7 +56,7 @@
       </button>
     </div>
     <div v-else-if="!isDataFetched" class="w-full h-dvh flex items-center justify-center">
-      <LoadingIcon :isLight="true" />
+      <LoadingIcon />
     </div>
     <div v-else class="builder-portal">
       <div class="builder-canvas">
@@ -126,7 +125,7 @@
           </div>
           <img v-else-if="isPreviewFetched" :src="previewDataUrl" class="w-full h-full" />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <LoadingIcon :isLight="true" />
+            <LoadingIcon />
           </div>
         </div>
         <div v-else :class="[selectedAction == 0 ? '' : 'cursor-crosshair', 'canvas']" @mousedown="onCanvasMouseDown" :style="getCanvasStyle(x, y)">
@@ -142,22 +141,34 @@
                 :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
 
               <div v-if="hoveredObject == index || selectedObject == index"
-                   class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0)">
+                   class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0, index, $event)">
                 <div v-if="selectedObject == index"
                      class="absolute -left-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(1)"></div>
+                     @mousedown="onGrabStart(1, index, $event)"></div>
                 <div v-if="selectedObject == index"
                      class="absolute -right-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(2)"></div>
+                     @mousedown="onGrabStart(2, index, $event)"></div>
                 <div v-if="selectedObject == index"
                      class="absolute -left-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(3)"></div>
+                     @mousedown="onGrabStart(3, index, $event)"></div>
                 <div v-if="selectedObject == index"
                      class="absolute -right-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(4)"></div>
+                     @mousedown="onGrabStart(4, index, $event)"></div>
               </div>
             </div>
           </div>
+          <div
+            v-if="snapGuides.vertical !== null"
+            class="absolute top-0 bottom-0 w-px bg-primary pointer-events-none z-50"
+            :style="{ left: `${snapGuides.vertical}px` }"
+            aria-hidden="true"
+          ></div>
+          <div
+            v-if="snapGuides.horizontal !== null"
+            class="absolute left-0 right-0 h-px bg-primary pointer-events-none z-50"
+            :style="{ top: `${snapGuides.horizontal}px` }"
+            aria-hidden="true"
+          ></div>
         </div>
       </div>
       <div class="builder-sidebar">
@@ -191,10 +202,10 @@
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Layout</span>
             <div class="grid grid-cols-2 gap-2" v-if="image_config.dimensions">
-              <InputCalculator :min="getMinimumWidth()" max="2000" type="number" v-model="image_config.dimensions[0]">
+              <InputCalculator :min="getMinimumWidth()" max="2000" :defaultValue="800" type="number" v-model="image_config.dimensions[0]">
                 Width
               </InputCalculator>
-              <InputCalculator :min="getMinimumHeight()" max="2000" type="number" v-model="image_config.dimensions[1]">
+              <InputCalculator :min="getMinimumHeight()" max="2000" :defaultValue="600" type="number" v-model="image_config.dimensions[1]">
                 Height
               </InputCalculator>
             </div>
@@ -242,9 +253,7 @@
 
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Debug</span>
-            <code>
-              {{ image_config }}
-            </code>
+            <textarea class="w-full h-32 p-2 border rounded bg-transparent" :value="JSON.stringify(image_config, null, 2)" v-on:blur="image_config = JSON.parse($event.target.value)"></textarea>
           </div>
         </div>
 
@@ -339,11 +348,11 @@
                   </ListboxOptions>
                 </div>
               </Listbox>
-              <InputCalculator type="number" min="8" v-model="image_config.layers[selectedObject].typography.font_size">
+              <InputCalculator type="number" min="8" :defaultValue="24" v-model="image_config.layers[selectedObject].typography.font_size">
               </InputCalculator>
-              <InputCalculator type="number" min="0.1" step="0.1"
+              <InputCalculator type="number" min="0.1" step="0.1" :defaultValue="1.2"
                                v-model="image_config.layers[selectedObject].typography.line_height">Line Height</InputCalculator>
-              <InputCalculator type="number" step="0.1"
+              <InputCalculator type="number" step="0.1" :defaultValue="0"
                                v-model="image_config.layers[selectedObject].typography.letter_spacing">Letter Spacing</InputCalculator>
             </div>
             <span class="block text-neutral-500 text-xs font-medium mt-2">Alignment</span>
@@ -466,15 +475,13 @@
               </div>
             </Listbox>
             <div class="mt-2">
-              <InputCalculator type="number" min="0" max="32" v-model="image_config.layers[selectedObject].stroke.width">
+              <InputCalculator type="number" min="0" max="32" :defaultValue="8" v-model="image_config.layers[selectedObject].stroke.width">
               </InputCalculator>
             </div>
           </div>
           <div class="p-4">
             <span class="font-semibold text-sm mb-2 block">Debug</span>
-            <code>
-              {{ image_config.layers[selectedObject] }}
-            </code>
+            <textarea class="w-full h-32 p-2 border rounded bg-transparent" :value="JSON.stringify(image_config.layers[selectedObject], null, 2)" v-on:blur="image_config.layers[selectedObject] = JSON.parse($event.target.value)"></textarea>
           </div>
         </div>
       </div>
@@ -511,9 +518,6 @@ body {
 <script>
 import { ref } from "vue";
 
-import store from "@/store/index";
-import dashboardAPI from "@/api/dashboard";
-
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
 
@@ -523,8 +527,8 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
-import { useRoute } from "vue-router";
 
+import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
 import { doRequest } from "@/api/routes";
 import AutocompleteInput from "@/components/AutocompleteInput.vue";
@@ -535,7 +539,9 @@ import UnsavedChanges from "@/components/dashboard/UnsavedChanges.vue";
 import VirtualFontSelector from "@/components/dashboard/VirtualFontSelector.vue";
 import LoadingIcon from "@/components/LoadingIcon.vue";
 import Popup from "@/components/Popup.vue";
+import useGuildRoute from "@/composables/useGuildRoute";
 import fonts from "@/fonts.json";
+import { getCanvasSnapTargets, getSnappedPosition } from "@/utils/canvasSnapping";
 import {
   getErrorToast,
   getSuccessToast,
@@ -565,9 +571,6 @@ export default {
     ListboxOptions,
   },
   watch: {
-    "$route.params.guildID"(to) {
-      store.commit("setSelectedGuild", to);
-    },
     "image_config.stroke.width"(newValue, oldValue) {
       if (newValue !== oldValue) {
         this.fitCanvas();
@@ -589,21 +592,7 @@ export default {
     },
   },
   setup() {
-    store.watch(
-      () => store.getters.getSelectedGuildID,
-      () => {
-        if (store.getters.getSelectedGuildID !== undefined) {
-          store.dispatch("fillGuild");
-        }
-      }
-    );
-
-    const route = useRoute();
-
-    let guildID = route.params.guildID;
-    if (guildID !== undefined) {
-      store.commit("setSelectedGuild", guildID);
-    }
+    useGuildRoute();
 
     let isDataFetched = ref(false);
     let isDataError = ref(false);
@@ -639,6 +628,8 @@ export default {
     let selectedObject = ref(-1);
     let hoveredObject = ref(-1);
     let selectedGrab = ref(-1);
+    let snapGuides = ref({ vertical: null, horizontal: null });
+    let grabStart = ref(null);
 
     return {
       config,
@@ -663,6 +654,7 @@ export default {
       fonts,
 
       selectedAction, selectedObject, hoveredObject, selectedGrab,
+      snapGuides, grabStart,
 
       CustomWelcomerImageLayerTypeText, CustomWelcomerImageLayerTypeImage, CustomWelcomerImageLayerTypeShapeRectangle, CustomWelcomerImageLayerTypeShapeCircle,
 
@@ -685,92 +677,19 @@ export default {
     window.addEventListener('resize', this.fitCanvas);
     window.addEventListener('orientationchange', this.fitCanvas);
     window.addEventListener('load', this.fitCanvas);
-
-    window.addEventListener('keydown', (e) => {
-      // do nothing if anything is focused
-      if (document.activeElement && document.activeElement.tagName !== "BODY") return;
-
-      if (this.selectedObject == -1) {
-        let incr = e.shiftKey ? 16 : 4;
-        switch (e.key) {
-          case "+":
-          case "=": this.zoom = Math.min(2.0, this.zoom + 0.1); break;
-          case "-":
-          case "_": this.zoom = Math.max(0.1, this.zoom - 0.1); break;
-          case "ArrowLeft": this.x += incr; break;
-          case "ArrowRight": this.x -= incr; break;
-          case "ArrowUp": this.y += incr; break;
-          case "ArrowDown": this.y -= incr; break;
-        }
-      } else {
-        let obj = this.image_config.layers[this.selectedObject];
-        if (!obj) return;
-
-        let incr = e.shiftKey ? 8 : 1;
-
-        switch (e.key) {
-          case "ArrowLeft": obj.position[0] -= incr; break;
-          case "ArrowRight": obj.position[0] += incr; break;
-          case "ArrowUp": obj.position[1] -= incr; break;
-          case "ArrowDown": obj.position[1] += incr; break;
-          case "Delete":
-          case "Backspace": {
-            this.image_config.layers.splice(this.selectedObject, 1);
-            this.selectedObject = -1;
-            break;
-          }
-          case "PageUp": {
-            // Move layer up
-            if (this.selectedObject > 0) {
-              const temp = this.image_config.layers[this.selectedObject];
-              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject - 1];
-              this.image_config.layers[this.selectedObject - 1] = temp;
-              this.selectedObject--;
-            }
-            break;
-          }
-          case "PageDown": {
-            // Move layer down
-            if (this.selectedObject < this.image_config.layers.length - 1) {
-              const temp = this.image_config.layers[this.selectedObject];
-              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject + 1];
-              this.image_config.layers[this.selectedObject + 1] = temp;
-              this.selectedObject++;
-            }
-            break;
-          }
-        }
-      }
-    });
-
-    window.addEventListener('wheel', (e) => {
-      // check cursor is over the builder-canvas
-      const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
-
-      // check cursor is inside canvas area
-      if (e.clientX < canvasRect.left || e.clientX > canvasRect.right || e.clientY < canvasRect.top || e.clientY > canvasRect.bottom) return;
-
-      if (e.ctrlKey || e.metaKey) {
-        // apply fixed zoom behaviour
-        e.preventDefault();
-
-        if (e.deltaY < 0) {
-          this.zoom = Math.min(2.0, this.zoom + 0.1);
-        } else {
-          this.zoom = Math.max(0.1, this.zoom - 0.1);
-        }
-      } else {
-        // apply inverse of wheel delta
-        this.x -= e.deltaX;
-        this.y -= e.deltaY;
-      }
-    });
+    window.addEventListener('keydown', this.handleBuilderKeydown);
+    this.$el.addEventListener('wheel', this.handleBuilderWheel, { passive: false });
 
     // Middle‑mouse drag to pan
     let isMiddleDown = false;
     let lastMouse = { x: 0, y: 0 };
 
     const onMouseDown = (e) => {
+      if (e.button === 0) {
+        lastMouse.x = e.clientX;
+        lastMouse.y = e.clientY;
+      }
+
       if (e.button == 0 && this.selectedAction == 0) {
         // check mouse is inside canvas area
         const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
@@ -823,7 +742,13 @@ export default {
         this.x += dx;
         this.y += dy;
       } else {
-        this.onGrabMove(dx, dy, e.shiftKey)
+        const dragX = this.selectedGrab === 0 && this.grabStart
+          ? e.clientX - this.grabStart.pointerX
+          : dx;
+        const dragY = this.selectedGrab === 0 && this.grabStart
+          ? e.clientY - this.grabStart.pointerY
+          : dy;
+        this.onGrabMove(dragX, dragY, e.shiftKey)
       }
     };
 
@@ -838,7 +763,110 @@ export default {
     window.addEventListener('mouseup', onMouseUp);
   },
 
+  beforeUnmount() {
+    window.removeEventListener('resize', this.fitCanvas);
+    window.removeEventListener('orientationchange', this.fitCanvas);
+    window.removeEventListener('load', this.fitCanvas);
+    window.removeEventListener('keydown', this.handleBuilderKeydown);
+    this.$el.removeEventListener('wheel', this.handleBuilderWheel);
+  },
+
   methods: {
+    handleBuilderKeydown(event) {
+      if (document.activeElement && document.activeElement.tagName !== "BODY") return;
+
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case "+":
+          case "=":
+            event.preventDefault();
+            this.zoom = Math.min(2.0, this.zoom + 0.1);
+            return;
+          case "-":
+          case "_":
+            event.preventDefault();
+            this.zoom = Math.max(0.1, this.zoom - 0.1);
+            return;
+          case "0":
+            event.preventDefault();
+            this.zoom = this.defaultZoom;
+            return;
+        }
+      }
+
+      if (this.selectedObject == -1) {
+        let incr = event.shiftKey ? 16 : 4;
+        switch (event.key) {
+          case "+":
+          case "=": this.zoom = Math.min(2.0, this.zoom + 0.1); break;
+          case "-":
+          case "_": this.zoom = Math.max(0.1, this.zoom - 0.1); break;
+          case "ArrowLeft": this.x += incr; break;
+          case "ArrowRight": this.x -= incr; break;
+          case "ArrowUp": this.y += incr; break;
+          case "ArrowDown": this.y -= incr; break;
+        }
+      } else {
+        let obj = this.image_config.layers[this.selectedObject];
+        if (!obj) return;
+
+        let incr = event.shiftKey ? 8 : 1;
+
+        switch (event.key) {
+          case "ArrowLeft": obj.position[0] -= incr; break;
+          case "ArrowRight": obj.position[0] += incr; break;
+          case "ArrowUp": obj.position[1] -= incr; break;
+          case "ArrowDown": obj.position[1] += incr; break;
+          case "Delete":
+          case "Backspace": {
+            this.image_config.layers.splice(this.selectedObject, 1);
+            this.selectedObject = -1;
+            break;
+          }
+          case "PageUp": {
+            if (this.selectedObject > 0) {
+              const temp = this.image_config.layers[this.selectedObject];
+              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject - 1];
+              this.image_config.layers[this.selectedObject - 1] = temp;
+              this.selectedObject--;
+            }
+            break;
+          }
+          case "PageDown": {
+            if (this.selectedObject < this.image_config.layers.length - 1) {
+              const temp = this.image_config.layers[this.selectedObject];
+              this.image_config.layers[this.selectedObject] = this.image_config.layers[this.selectedObject + 1];
+              this.image_config.layers[this.selectedObject + 1] = temp;
+              this.selectedObject++;
+            }
+            break;
+          }
+        }
+      }
+    },
+
+    handleBuilderWheel(event) {
+      const canvas = this.$el.querySelector('.builder-canvas');
+      if (!canvas) return;
+
+      const canvasRect = canvas.getBoundingClientRect();
+      if (event.clientX < canvasRect.left || event.clientX > canvasRect.right ||
+          event.clientY < canvasRect.top || event.clientY > canvasRect.bottom) return;
+
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+
+        if (event.deltaY < 0) {
+          this.zoom = Math.min(2.0, this.zoom + 0.1);
+        } else if (event.deltaY > 0) {
+          this.zoom = Math.max(0.1, this.zoom - 0.1);
+        }
+      } else {
+        this.x -= event.deltaX;
+        this.y -= event.deltaY;
+      }
+    },
+
     onCanvasMouseDown(event) {
       // handles drawing new layers. users can click which will create a 100x100 layer,
       // or click and drag to create a custom sized layer.
@@ -1052,11 +1080,11 @@ you are the {{Ordinal(Guild.Members)}} member!`;
     },
 
     marked(text, embed) {
-      return marked(text, embed);
+      return marked(text, embed, false, this.$store);
     },
 
     formatText(text) {
-      return formatText(text);
+      return formatText(text, this.$store);
     },
 
     rgbaToHex(color) {
@@ -1303,9 +1331,18 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       this.hoveredObject = -1;
     },
 
-    onGrabStart(index) {
+    onGrabStart(index, objectIndex, event) {
       if (this.selectedGrab > -1) return; // already grabbing
 
+      this.onLayerClick(objectIndex);
+      const obj = this.image_config.layers[objectIndex];
+      if (!obj) return;
+
+      this.grabStart = {
+        pointerX: event.clientX,
+        pointerY: event.clientY,
+        position: [...obj.position],
+      };
       document.body.style.cursor = 'grabbing';
       this.selectedGrab = index;
     },
@@ -1313,6 +1350,8 @@ you are the {{Ordinal(Guild.Members)}} member!`;
     onGrabEnd() {
       document.body.style.cursor = 'default';
       this.selectedGrab = -1;
+      this.snapGuides = { vertical: null, horizontal: null };
+      this.grabStart = null;
     },
 
     onGrabMove(x, y, shiftKey) {
@@ -1326,10 +1365,37 @@ you are the {{Ordinal(Guild.Members)}} member!`;
 
       if (obj.dimensions[0] < minWidth && obj.dimensions[1] < minHeight) return;
 
+      this.snapGuides = { vertical: null, horizontal: null };
+
       switch (this.selectedGrab) {
         case 0: // nothing, move entire object
-          obj.position[0] += x * (1 / this.zoom);
-          obj.position[1] += y * (1 / this.zoom);
+          {
+            const tolerance = 8 / this.zoom;
+            const targetsX = this.getSnapTargets(0, this.selectedObject);
+            const targetsY = this.getSnapTargets(1, this.selectedObject);
+            const startPosition = this.grabStart?.position || obj.position;
+            const preferredAnchorX = x > 0 ? "end" : x < 0 ? "start" : null;
+            const preferredAnchorY = y > 0 ? "end" : y < 0 ? "start" : null;
+            const snappedX = getSnappedPosition(
+              startPosition[0] + x / this.zoom,
+              obj.dimensions[0],
+              targetsX,
+              tolerance,
+              preferredAnchorX
+            );
+            const snappedY = getSnappedPosition(
+              startPosition[1] + y / this.zoom,
+              obj.dimensions[1],
+              targetsY,
+              tolerance,
+              preferredAnchorY
+            );
+
+            obj.position[0] = snappedX.position;
+            obj.position[1] = snappedY.position;
+            this.snapGuides.vertical = snappedX.guide;
+            this.snapGuides.horizontal = snappedY.guide;
+          }
           break;
         case 1: // top-left
           obj.position[0] += x * (1 / this.zoom);
@@ -1365,6 +1431,18 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       if (shiftKey) {
         obj.dimensions[1] = obj.dimensions[0];
       }
+    },
+
+    getSnapTargets(coordinate, objectIndex) {
+      const canvasSize = this.image_config.dimensions?.[coordinate] || 0;
+      const borderWidth = this.image_config.stroke?.width || 0;
+      return getCanvasSnapTargets(
+        canvasSize,
+        borderWidth,
+        this.image_config.layers,
+        objectIndex,
+        coordinate
+      );
     },
 
     normalizeBorderRadius(value) {

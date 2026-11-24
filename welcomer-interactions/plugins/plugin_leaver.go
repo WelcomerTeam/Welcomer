@@ -76,78 +76,91 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				member := subway.MustGetArgument(ctx, "user").MustMember()
-				if member.User == nil || member.User.ID.IsNil() {
-					member = *interaction.Member
-				}
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					member := subway.MustGetArgument(ctx, "user").MustMember()
+					if member.User == nil || member.User.ID.IsNil() {
+						member = *interaction.Member
+					}
 
-				// Fetch guild settings.
+					// Fetch guild settings.
 
-				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsLeaver = &database.GuildSettingsLeaver{
-							GuildID:                  int64(*interaction.GuildID),
-							ToggleEnabled:            welcomer.DefaultLeaver.ToggleEnabled,
-							Channel:                  welcomer.DefaultLeaver.Channel,
-							MessageFormat:            welcomer.DefaultLeaver.MessageFormat,
-							AutoDeleteLeaverMessages: welcomer.DefaultLeaver.AutoDeleteLeaverMessages,
-							LeaverMessageLifetime:    welcomer.DefaultLeaver.LeaverMessageLifetime,
+					guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsLeaver = &database.GuildSettingsLeaver{
+								GuildID:                  int64(*interaction.GuildID),
+								ToggleEnabled:            welcomer.DefaultLeaver.ToggleEnabled,
+								Channel:                  welcomer.DefaultLeaver.Channel,
+								MessageFormat:            welcomer.DefaultLeaver.MessageFormat,
+								AutoDeleteLeaverMessages: welcomer.DefaultLeaver.AutoDeleteLeaverMessages,
+								LeaverMessageLifetime:    welcomer.DefaultLeaver.LeaverMessageLifetime,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get leaver guild settings")
+
+							return nil, err
 						}
-					} else {
-						welcomer.Logger.Error().Err(err).
-							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get leaver guild settings")
+					}
 
+					// If no modules are enabled, let the user know.
+					if !guildSettingsLeaver.ToggleEnabled {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"Leaver is not enabled. Please use `/leaver enable`",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					// If text or images are enabled, but no channel is set, let the user know.
+					if !guildSettingsLeaver.ToggleEnabled && guildSettingsLeaver.Channel == 0 {
+						return &discord.InteractionResponse{
+							Type: discord.InteractionCallbackTypeChannelMessageSource,
+							Data: &discord.InteractionCallbackData{
+								Embeds: welcomer.NewEmbed(
+									"No channel is set. Please use `/leaver channel`",
+									welcomer.EmbedColourError,
+								),
+								Flags: uint32(discord.MessageFlagEphemeral),
+							},
+						}, nil
+					}
+
+					data, err := json.Marshal(core.CustomEventInvokeLeaverStructure{
+						Interaction: &interaction,
+						User:        *member.User,
+						GuildID:     *interaction.GuildID,
+					})
+					if err != nil {
 						return nil, err
 					}
-				}
 
-				// If no modules are enabled, let the user know.
-				if !guildSettingsLeaver.ToggleEnabled {
+					_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
+						Identifier: welcomer.GetManagerNameFromContext(ctx),
+						Type:       core.CustomEventInvokeLeaver,
+						Data:       data,
+					})
+					if err != nil {
+						return nil, err
+					}
+
 					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("Leaver is not enabled. Please use `/leaver enable`", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
+						Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
 					}, nil
-				}
-
-				// If text or images are enabled, but no channel is set, let the user know.
-				if !guildSettingsLeaver.ToggleEnabled && guildSettingsLeaver.Channel == 0 {
-					return &discord.InteractionResponse{
-						Type: discord.InteractionCallbackTypeChannelMessageSource,
-						Data: &discord.InteractionCallbackData{
-							Embeds: welcomer.NewEmbed("No channel is set. Please use `/leaver channel`", welcomer.EmbedColourError),
-							Flags:  uint32(discord.MessageFlagEphemeral),
-						},
-					}, nil
-				}
-
-				data, err := json.Marshal(core.CustomEventInvokeLeaverStructure{
-					Interaction: &interaction,
-					User:        *member.User,
-					GuildID:     *interaction.GuildID,
-				})
-				if err != nil {
-					return nil, err
-				}
-
-				_, err = sub.SandwichClient.RelayMessage(ctx, &sandwich.RelayMessageRequest{
-					Identifier: welcomer.GetManagerNameFromContext(ctx),
-					Type:       core.CustomEventInvokeLeaver,
-					Data:       data,
-				})
-				if err != nil {
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
-				}, nil
-			})
+				},
+			)
 		},
 	})
 
@@ -161,58 +174,75 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsLeaver = &database.GuildSettingsLeaver{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
-							Channel:       welcomer.DefaultLeaver.Channel,
-							MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsLeaver = &database.GuildSettingsLeaver{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
+								Channel:       welcomer.DefaultLeaver.Channel,
+								MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get leaver guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsLeaver.ToggleEnabled = true
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateLeaverGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
+									Channel:       guildSettingsLeaver.Channel,
+									MessageFormat: guildSettingsLeaver.MessageFormat,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get leaver guild settings")
+							Msg("Failed to update leaver guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsLeaver.ToggleEnabled = true
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
-							Channel:       guildSettingsLeaver.Channel,
-							MessageFormat: guildSettingsLeaver.MessageFormat,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update leaver guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Enabled leaver direct messages.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Enabled leaver direct messages.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -226,58 +256,75 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsLeaver = &database.GuildSettingsLeaver{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
-							Channel:       welcomer.DefaultLeaver.Channel,
-							MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsLeaver = &database.GuildSettingsLeaver{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
+								Channel:       welcomer.DefaultLeaver.Channel,
+								MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get leaver guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsLeaver.ToggleEnabled = false
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateLeaverGuildSettingsParams{
+									GuildID:       int64(*interaction.GuildID),
+									ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
+									Channel:       guildSettingsLeaver.Channel,
+									MessageFormat: guildSettingsLeaver.MessageFormat,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get leaver guild settings")
+							Msg("Failed to update leaver guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsLeaver.ToggleEnabled = false
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: guildSettingsLeaver.ToggleEnabled,
-							Channel:       guildSettingsLeaver.Channel,
-							MessageFormat: guildSettingsLeaver.MessageFormat,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update leaver guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Disabled leaver direct messages.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Disabled leaver direct messages.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -291,19 +338,26 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: []discord.Embed{
-							{
-								Description: fmt.Sprintf("Configure your leaver message on our dashboard [**here**](%s).", welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()+"/leaver"),
-								Color:       welcomer.EmbedColourInfo,
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: []discord.Embed{
+								{
+									Description: fmt.Sprintf(
+										"Configure your leaver message on our dashboard [**here**](%s).",
+										welcomer.WebsiteURL+"/dashboard/"+interaction.GuildID.String()+"/leaver",
+									),
+									Color: welcomer.EmbedColourInfo,
+								},
 							},
 						},
-					},
-				}, nil
-			})
+					}, nil
+				},
+			)
 		},
 	})
 
@@ -326,62 +380,79 @@ func (w *LeaverCog) RegisterCog(sub *subway.Subway) error {
 		DefaultMemberPermission: new(discord.Int64(welcomer.PermissionElevated)),
 
 		Handler: func(ctx context.Context, sub *subway.Subway, interaction discord.Interaction) (*discord.InteractionResponse, error) {
-			return welcomer.RequireGuildElevation(sub, interaction, func() (*discord.InteractionResponse, error) {
-				channel := subway.MustGetArgument(ctx, "channel").MustChannel()
+			return welcomer.RequireGuildElevation(
+				sub,
+				interaction,
+				func() (*discord.InteractionResponse, error) {
+					channel := subway.MustGetArgument(ctx, "channel").MustChannel()
 
-				guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(ctx, int64(*interaction.GuildID))
-				if err != nil {
-					if errors.Is(err, pgx.ErrNoRows) {
-						guildSettingsLeaver = &database.GuildSettingsLeaver{
-							GuildID:       int64(*interaction.GuildID),
-							ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
-							Channel:       welcomer.DefaultLeaver.Channel,
-							MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+					guildSettingsLeaver, err := welcomer.Queries.GetLeaverGuildSettings(
+						ctx,
+						int64(*interaction.GuildID),
+					)
+					if err != nil {
+						if errors.Is(err, pgx.ErrNoRows) {
+							guildSettingsLeaver = &database.GuildSettingsLeaver{
+								GuildID:       int64(*interaction.GuildID),
+								ToggleEnabled: welcomer.DefaultLeaver.ToggleEnabled,
+								Channel:       welcomer.DefaultLeaver.Channel,
+								MessageFormat: welcomer.DefaultLeaver.MessageFormat,
+							}
+						} else {
+							welcomer.Logger.Error().Err(err).
+								Int64("guild_id", int64(*interaction.GuildID)).
+								Msg("Failed to get leaver guild settings")
+
+							return nil, err
 						}
-					} else {
+					}
+
+					guildSettingsLeaver.Channel = int64(channel.ID)
+
+					err = welcomer.RetryWithFallback(
+						func() error {
+							_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(
+								ctx,
+								database.CreateOrUpdateLeaverGuildSettingsParams{
+									GuildID:                  int64(*interaction.GuildID),
+									ToggleEnabled:            guildSettingsLeaver.ToggleEnabled,
+									Channel:                  guildSettingsLeaver.Channel,
+									MessageFormat:            guildSettingsLeaver.MessageFormat,
+									AutoDeleteLeaverMessages: guildSettingsLeaver.AutoDeleteLeaverMessages,
+									LeaverMessageLifetime:    guildSettingsLeaver.LeaverMessageLifetime,
+								},
+								interaction.GetUser().ID,
+							)
+
+							return err
+						},
+						func() error {
+							return welcomer.EnsureGuild(
+								ctx,
+								discord.Snowflake(*interaction.GuildID),
+							)
+						},
+						nil,
+					)
+					if err != nil {
 						welcomer.Logger.Error().Err(err).
 							Int64("guild_id", int64(*interaction.GuildID)).
-							Msg("Failed to get leaver guild settings")
+							Msg("Failed to update leaver guild settings")
 
 						return nil, err
 					}
-				}
 
-				guildSettingsLeaver.Channel = int64(channel.ID)
-
-				err = welcomer.RetryWithFallback(
-					func() error {
-						_, err = welcomer.CreateOrUpdateLeaverGuildSettingsWithAudit(ctx, database.CreateOrUpdateLeaverGuildSettingsParams{
-							GuildID:                  int64(*interaction.GuildID),
-							ToggleEnabled:            guildSettingsLeaver.ToggleEnabled,
-							Channel:                  guildSettingsLeaver.Channel,
-							MessageFormat:            guildSettingsLeaver.MessageFormat,
-							AutoDeleteLeaverMessages: guildSettingsLeaver.AutoDeleteLeaverMessages,
-							LeaverMessageLifetime:    guildSettingsLeaver.LeaverMessageLifetime,
-						}, interaction.GetUser().ID)
-
-						return err
-					},
-					func() error {
-						return welcomer.EnsureGuild(ctx, discord.Snowflake(*interaction.GuildID))
-					},
-					nil,
-				)
-				if err != nil {
-					welcomer.Logger.Error().Err(err).
-						Int64("guild_id", int64(*interaction.GuildID)).
-						Msg("Failed to update leaver guild settings")
-
-					return nil, err
-				}
-
-				return &discord.InteractionResponse{
-					Type: discord.InteractionCallbackTypeChannelMessageSource,
-					Data: &discord.InteractionCallbackData{
-						Embeds: welcomer.NewEmbed("Set leaver channel to: <#"+channel.ID.String()+">.", welcomer.EmbedColourSuccess),
-					},
-				}, nil
-			})
+					return &discord.InteractionResponse{
+						Type: discord.InteractionCallbackTypeChannelMessageSource,
+						Data: &discord.InteractionCallbackData{
+							Embeds: welcomer.NewEmbed(
+								"Set leaver channel to: <#"+channel.ID.String()+">.",
+								welcomer.EmbedColourSuccess,
+							),
+						},
+					}, nil
+				},
+			)
 		},
 	})
 

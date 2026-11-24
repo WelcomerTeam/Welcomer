@@ -278,10 +278,6 @@
 </style>
 
 <script>
-import LoadingIcon from "@/components/LoadingIcon.vue";
-
-
-
 import { ref } from "vue";
 
 import {
@@ -300,13 +296,13 @@ import {
 import { XIcon } from "@heroicons/vue/outline";
 import { CheckIcon, SelectorIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 
-import DiscordEmbed from "@/components/DiscordEmbed.vue";
-
 import { ColorPicker } from "vue-color-kit";
 import "vue-color-kit/dist/vue-color-kit.css";
 import parse from "parse-css-color";
 
 import backgrounds from "@/backgrounds.json";
+import DiscordEmbed from "@/components/DiscordEmbed.vue";
+import LoadingIcon from "@/components/LoadingIcon.vue";
 
 const tabs = [
   { name: "Welcomer", value: 1, enabled: true },

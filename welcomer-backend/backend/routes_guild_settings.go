@@ -36,9 +36,15 @@ func getGuildSettingsSettings(ctx *gin.Context) {
 						NumberLocale:     welcomer.DefaultGuild.NumberLocale,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild settings settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -89,13 +95,23 @@ func setGuildSettingsSettings(ctx *gin.Context) {
 			databaseGuildSettings := *settings
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *settings).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild settings settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *settings).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild settings settings")
 
 			_, err = welcomer.UpdateGuildWithAudit(ctx, databaseGuildSettings, user.ID)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to update guild settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -126,16 +142,26 @@ func updateGuildSettingsMemberCount(ctx *gin.Context) {
 			guildID := tryGetGuildID(ctx)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Int32("member_count", partial.Value).Int64("user_id", int64(user.ID)).Msg("Updating guild member count")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Int32("member_count", partial.Value).
+				Int64("user_id", int64(user.ID)).
+				Msg("Updating guild member count")
 
 			_, err = welcomer.Queries.SetGuildMemberCount(ctx, database.SetGuildMemberCountParams{
 				GuildID:     int64(guildID),
 				MemberCount: partial.Value,
 			})
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to update guild member count")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to update guild member count")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -156,19 +182,34 @@ func exportGuildSettingsAuditLogs(ctx *gin.Context) {
 				Valid: true,
 			})
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild settings audit logs")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to get guild settings audit logs")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
 
 			ctx.Header("Content-Type", "text/csv")
-			ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"audit_logs_%d_%s.csv\"", guildID, time.Now().Format("2006-01-02_15-04-05")))
+			ctx.Header(
+				"Content-Disposition",
+				fmt.Sprintf(
+					"attachment; filename=\"audit_logs_%d_%s.csv\"",
+					guildID,
+					time.Now().Format("2006-01-02_15-04-05"),
+				),
+			)
 
 			writer := csv.NewWriter(ctx.Writer)
 
-			_ = writer.Write([]string{"created_at", "user_id", "audit_type", "changes", "custom_id"})
+			_ = writer.Write(
+				[]string{"created_at", "user_id", "audit_type", "changes", "custom_id"},
+			)
 
 			for _, row := range rows {
 				_ = writer.Write([]string{
@@ -183,9 +224,15 @@ func exportGuildSettingsAuditLogs(ctx *gin.Context) {
 			writer.Flush()
 
 			if err := writer.Error(); err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to write guild settings audit logs to csv")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to write guild settings audit logs to csv")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}
@@ -198,7 +245,6 @@ func exportGuildSettingsAuditLogs(ctx *gin.Context) {
 // Validates settings.
 func doValidateSettings(guildSettings *GuildSettingsSettings) error {
 	// TODO: validate settings
-
 	if _, err := database.ParseNumberLocale(guildSettings.NumberLocale); err != nil {
 		return NewInvalidParameterError("number_locale")
 	}

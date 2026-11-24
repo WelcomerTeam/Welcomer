@@ -36,6 +36,10 @@ type GuildScienceTimeRoleGiven struct {
 	RoleID discord.Snowflake `json:"role_id"`
 }
 
+type GuildScienceRoleGiven struct {
+	RoleID discord.Snowflake `json:"role_id"`
+}
+
 type GuildScienceBorderwallChallenge struct {
 	HasMessage bool `json:"has_message,omitempty"`
 	HasDM      bool `json:"has_dm,omitempty"`

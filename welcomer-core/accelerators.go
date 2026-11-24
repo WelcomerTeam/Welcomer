@@ -26,10 +26,16 @@ func FetchGuild(ctx context.Context, guildID discord.Snowflake) (*discord.Guild,
 	return nil, ErrMissingGuild
 }
 
-func FetchGuildChannels(ctx context.Context, guildID discord.Snowflake) ([]*discord.Channel, error) {
-	channels, err := SandwichClient.FetchGuildChannel(ctx, &sandwich_protobuf.FetchGuildChannelRequest{
-		GuildId: int64(guildID),
-	})
+func FetchGuildChannels(
+	ctx context.Context,
+	guildID discord.Snowflake,
+) ([]*discord.Channel, error) {
+	channels, err := SandwichClient.FetchGuildChannel(
+		ctx,
+		&sandwich_protobuf.FetchGuildChannelRequest{
+			GuildId: int64(guildID),
+		},
+	)
 	if err != nil {
 		Logger.Error().Err(err).
 			Int64("guild_id", int64(guildID)).
@@ -61,7 +67,11 @@ func FetchUser(ctx context.Context, userID discord.Snowflake) (*discord.User, er
 	return nil, ErrMissingUser
 }
 
-func FetchUserWithDiscordFallback(ctx context.Context, session *discord.Session, userID discord.Snowflake) (*discord.User, error) {
+func FetchUserWithDiscordFallback(
+	ctx context.Context,
+	session *discord.Session,
+	userID discord.Snowflake,
+) (*discord.User, error) {
 	user, err := FetchUser(ctx, userID)
 	if err == nil {
 		return user, nil

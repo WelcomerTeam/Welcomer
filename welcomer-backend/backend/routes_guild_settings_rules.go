@@ -27,9 +27,15 @@ func getGuildSettingsRules(ctx *gin.Context) {
 						Rules:            welcomer.DefaultRules.Rules,
 					}
 				} else {
-					welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to get guild rules settings")
+					welcomer.Logger.Warn().
+						Err(err).
+						Int64("guild_id", int64(guildID)).
+						Msg("Failed to get guild rules settings")
 
-					ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+					ctx.JSON(
+						http.StatusInternalServerError,
+						NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+					)
 
 					return
 				}
@@ -80,11 +86,19 @@ func setGuildSettingsRules(ctx *gin.Context) {
 			databaseRulesGuildSettings := database.CreateOrUpdateRulesGuildSettingsParams(*rules)
 
 			user := tryGetUser(ctx)
-			welcomer.Logger.Info().Int64("guild_id", int64(guildID)).Interface("obj", *rules).Int64("user_id", int64(user.ID)).Msg("Creating or updating guild rule settings")
+			welcomer.Logger.Info().
+				Int64("guild_id", int64(guildID)).
+				Interface("obj", *rules).
+				Int64("user_id", int64(user.ID)).
+				Msg("Creating or updating guild rule settings")
 
 			err = welcomer.RetryWithFallback(
 				func() error {
-					_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(ctx, databaseRulesGuildSettings, user.ID)
+					_, err = welcomer.CreateOrUpdateRulesGuildSettingsWithAudit(
+						ctx,
+						databaseRulesGuildSettings,
+						user.ID,
+					)
 
 					return err
 				},
@@ -94,9 +108,15 @@ func setGuildSettingsRules(ctx *gin.Context) {
 				nil,
 			)
 			if err != nil {
-				welcomer.Logger.Warn().Err(err).Int64("guild_id", int64(guildID)).Msg("Failed to create or update guild rules settings")
+				welcomer.Logger.Warn().
+					Err(err).
+					Int64("guild_id", int64(guildID)).
+					Msg("Failed to create or update guild rules settings")
 
-				ctx.JSON(http.StatusInternalServerError, NewBaseResponse(NewGenericErrorWithLineNumber(), nil))
+				ctx.JSON(
+					http.StatusInternalServerError,
+					NewBaseResponse(NewGenericErrorWithLineNumber(), nil),
+				)
 
 				return
 			}

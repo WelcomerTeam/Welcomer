@@ -64,7 +64,10 @@ func writeDecodeBlock(assetsFile *os.File, fontFiles map[string][]string) {
 	_, _ = fmt.Fprint(assetsFile, "func mustDecodeFont(n string, src []byte) *sfnt.Font {\n")
 	_, _ = fmt.Fprint(assetsFile, "	res, err := opentype.Parse(src)\n")
 	_, _ = fmt.Fprint(assetsFile, "	if err != nil {\n")
-	_, _ = fmt.Fprint(assetsFile, "		panic(fmt.Sprintf(\"opentype.Parse(%s): %v\", n, err.Error()))\n")
+	_, _ = fmt.Fprint(
+		assetsFile,
+		"		panic(fmt.Sprintf(\"opentype.Parse(%s): %v\", n, err.Error()))\n",
+	)
 	_, _ = fmt.Fprint(assetsFile, "	}\n\n")
 	_, _ = fmt.Fprint(assetsFile, "	return res\n")
 	_, _ = fmt.Fprint(assetsFile, "}\n")
@@ -75,9 +78,22 @@ func writeEmbedStatements(assetsFile *os.File, fontFiles map[string][]string) {
 		for _, file := range files {
 			fileName, folderName := standardizeFileName(file)
 			_, _ = fmt.Fprintf(assetsFile, "//go:embed %s\n", file)
-			_, _ = fmt.Fprintf(assetsFile, "var %sFontBytes []byte\n", removeInvalidCharacters(folderName+fileName))
-			_, _ = fmt.Fprintf(assetsFile, "var %sFont = &Font{\n", removeInvalidCharacters(folderName+fileName))
-			_, _ = fmt.Fprintf(assetsFile, "	Font: mustDecodeFont(\"%sFont\", %sFontBytes),\n", folderName+fileName, removeInvalidCharacters(folderName+fileName))
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"var %sFontBytes []byte\n",
+				removeInvalidCharacters(folderName+fileName),
+			)
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"var %sFont = &Font{\n",
+				removeInvalidCharacters(folderName+fileName),
+			)
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"	Font: mustDecodeFont(\"%sFont\", %sFontBytes),\n",
+				folderName+fileName,
+				removeInvalidCharacters(folderName+fileName),
+			)
 			_, _ = fmt.Fprintf(assetsFile, "}\n\n")
 		}
 		fmt.Fprintf(assetsFile, "\n")
@@ -89,7 +105,12 @@ func writeMapStatements(assetsFile *os.File, fontFiles map[string][]string) {
 		_, _ = fmt.Fprintf(assetsFile, "var %s = map[string]*Font{\n", folderName)
 		for _, file := range files {
 			fileName, folderName := standardizeFileName(file)
-			_, _ = fmt.Fprintf(assetsFile, "    \"%s\": %sFont,\n", strings.ToLower(fileName), removeInvalidCharacters(folderName+fileName))
+			_, _ = fmt.Fprintf(
+				assetsFile,
+				"    \"%s\": %sFont,\n",
+				strings.ToLower(fileName),
+				removeInvalidCharacters(folderName+fileName),
+			)
 		}
 		fmt.Fprintf(assetsFile, "}\n\n")
 	}

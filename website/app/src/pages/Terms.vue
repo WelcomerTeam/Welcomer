@@ -148,14 +148,14 @@
         </p>
         <h2 id="acceptable-use">Acceptable Use and Fair Use</h2>
         <p>
-        You agree to use the Service only for lawful purposes and in accordance with these Terms.
+          You agree to use the Service only for lawful purposes and in accordance with these Terms.
         </p>
         <p>
-        You must not use the Service, or permit others to use the Service on Your behalf, to:
+          You must not use the Service, or permit others to use the Service on Your behalf, to:
         </p>
 
         <p>
-        You must not use the Service, or permit others to use the Service on Your behalf, to:
+          You must not use the Service, or permit others to use the Service on Your behalf, to:
         </p>
         <ul>
           <li>send, distribute, or facilitate spam, unsolicited messages, or excessive automated messaging;</li>
@@ -169,7 +169,7 @@
         </ul>
 
         <p>
-        The Company reserves the right to determine, in its sole but reasonable discretion, whether any use of the Service violates these Terms or is otherwise abusive or harmful.
+          The Company reserves the right to determine, in its sole but reasonable discretion, whether any use of the Service violates these Terms or is otherwise abusive or harmful.
         </p>
         <p>
           We may suspend, limit, or terminate access to the Service immediately if We reasonably believe that Your use violates this section or creates legal, operational, reputational, or security risks for the Company, Discord, or other users.

@@ -104,17 +104,33 @@ var PublicKeyHandlerInstance = NewPublicKeyHandler()
 func main() {
 	loggingLevel := flag.String("level", os.Getenv("LOGGING_LEVEL"), "Logging level")
 
-	sandwichGRPCHost := flag.String("sandwichGRPCHost", os.Getenv("SANDWICH_GRPC_HOST"), "GRPC Address for the Sandwich Daemon service")
+	sandwichGRPCHost := flag.String(
+		"sandwichGRPCHost",
+		os.Getenv("SANDWICH_GRPC_HOST"),
+		"GRPC Address for the Sandwich Daemon service",
+	)
 
-	proxyAddress := flag.String("proxyAddress", os.Getenv("PROXY_ADDRESS"), "Address to proxy requests through. This can be 'https://discord.com', if one is not setup")
+	proxyAddress := flag.String(
+		"proxyAddress",
+		os.Getenv("PROXY_ADDRESS"),
+		"Address to proxy requests through. This can be 'https://discord.com', if one is not setup",
+	)
 
 	proxyDebug := flag.Bool("proxyDebug", false, "Enable debugging requests to the proxy")
 
-	prometheusAddress := flag.String("prometheusAddress", os.Getenv("INTERACTIONS_PROMETHEUS_ADDRESS"), "Prometheus address")
+	prometheusAddress := flag.String(
+		"prometheusAddress",
+		os.Getenv("INTERACTIONS_PROMETHEUS_ADDRESS"),
+		"Prometheus address",
+	)
 
 	postgresURL := flag.String("postgresURL", os.Getenv("POSTGRES_URL"), "Postgres connection URL")
 
-	publicKeys := flag.String("publicKey", os.Getenv("INTERACTIONS_PUBLIC_KEY"), "Public key(s) for signature validation. Comma delimited.")
+	publicKeys := flag.String(
+		"publicKey",
+		os.Getenv("INTERACTIONS_PUBLIC_KEY"),
+		"Public key(s) for signature validation. Comma delimited.",
+	)
 
 	flag.Parse()
 
@@ -126,9 +142,12 @@ func main() {
 	restInterface.SetDebug(*proxyDebug)
 
 	welcomer.SetupLogger(*loggingLevel)
-	welcomer.SetupGRPCConnection(*sandwichGRPCHost,
+	welcomer.SetupGRPCConnection(
+		*sandwichGRPCHost,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*1024)), // Set max message size to 1GB
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+		), // Set max message size to 1GB
 	)
 	welcomer.SetupRESTInterface(restInterface)
 	welcomer.SetupSandwichClient()
@@ -164,9 +183,18 @@ func main() {
 	applicationCommands := app.Commands.MapApplicationCommands()
 
 	for _, application := range configuration.Applications {
-		currentUser, err := discord.GetCurrentUser(ctx, discord.NewSession("Bot "+application.BotToken, restInterface))
+		currentUser, err := discord.GetCurrentUser(
+			ctx,
+			discord.NewSession("Bot "+application.BotToken, restInterface),
+		)
 		if err != nil {
-			slog.Error("Failed to get current user", "application", application.DisplayName, "error", err)
+			slog.Error(
+				"Failed to get current user",
+				"application",
+				application.DisplayName,
+				"error",
+				err,
+			)
 			continue
 		}
 
@@ -174,42 +202,89 @@ func main() {
 
 		now := time.Now()
 
-		applicationCommands, err := discord.BulkOverwriteGlobalApplicationCommands(ctx, session, currentUser.ID, applicationCommands)
+		applicationCommands, err := discord.BulkOverwriteGlobalApplicationCommands(
+			ctx,
+			session,
+			currentUser.ID,
+			applicationCommands,
+		)
 		if err != nil {
-			slog.Error("Failed to sync commands", "applicationID", currentUser.ID, "application", application.DisplayName, "error", err)
+			slog.Error(
+				"Failed to sync commands",
+				"applicationID",
+				currentUser.ID,
+				"application",
+				application.DisplayName,
+				"error",
+				err,
+			)
 			continue
 		}
 
-		slog.Info("Successfully synced commands", "applicationID", currentUser.ID, "application", application.DisplayName)
+		slog.Info(
+			"Successfully synced commands",
+			"applicationID",
+			currentUser.ID,
+			"application",
+			application.DisplayName,
+		)
 
 		_, err = welcomer.Queries.ClearInteractionCommands(ctx, int64(currentUser.ID))
 		if err != nil {
-			slog.Error("Failed to clear interaction commands", "applicationID", currentUser.ID, "application", application.DisplayName, "error", err)
+			slog.Error(
+				"Failed to clear interaction commands",
+				"applicationID",
+				currentUser.ID,
+				"application",
+				application.DisplayName,
+				"error",
+				err,
+			)
 		}
 
 		manyInteractionCommands := make([]database.CreateManyInteractionCommandsParams, 0)
 
 		for _, command := range applicationCommands {
-			manyInteractionCommands = append(manyInteractionCommands, database.CreateManyInteractionCommandsParams{
-				ApplicationID: int64(currentUser.ID),
-				Command:       command.Name,
-				InteractionID: int64(*command.ID),
-				CreatedAt:     now,
-			})
+			manyInteractionCommands = append(
+				manyInteractionCommands,
+				database.CreateManyInteractionCommandsParams{
+					ApplicationID: int64(currentUser.ID),
+					Command:       command.Name,
+					InteractionID: int64(*command.ID),
+					CreatedAt:     now,
+				},
+			)
 		}
 
 		_, err = welcomer.Queries.CreateManyInteractionCommands(ctx, manyInteractionCommands)
 		if err != nil {
-			slog.Error("Failed to create many interaction commands", "applicationID", currentUser.ID, "application", application.DisplayName, "error", err)
+			slog.Error(
+				"Failed to create many interaction commands",
+				"applicationID",
+				currentUser.ID,
+				"application",
+				application.DisplayName,
+				"error",
+				err,
+			)
 			continue
 		}
 
-		slog.Info("Successfully created interaction commands", "applicationID", currentUser.ID, "application", application.DisplayName)
+		slog.Info(
+			"Successfully created interaction commands",
+			"applicationID",
+			currentUser.ID,
+			"application",
+			application.DisplayName,
+		)
 	}
 }
 
 func FetchPublicKeys(ctx context.Context) error {
-	customBots, err := welcomer.Queries.GetAllCustomBotsWithToken(ctx, welcomer.GetCustomBotEnvironmentType())
+	customBots, err := welcomer.Queries.GetAllCustomBotsWithToken(
+		ctx,
+		welcomer.GetCustomBotEnvironmentType(),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to fetch custom bots: %w", err)
 	}
@@ -217,12 +292,20 @@ func FetchPublicKeys(ctx context.Context) error {
 	for _, bot := range customBots {
 		if bot.PublicKey != "" {
 			if welcomer.IsValidPublicKey(bot.PublicKey) {
-				err = PublicKeyHandlerInstance.SetPublicKey(welcomer.GetCustomBotKey(bot.CustomBotUuid), bot.PublicKey)
+				err = PublicKeyHandlerInstance.SetPublicKey(
+					welcomer.GetCustomBotKey(bot.CustomBotUuid),
+					bot.PublicKey,
+				)
 				if err != nil {
-					welcomer.Logger.Error().Err(err).Str("applicationName", bot.ApplicationName).Msg("Failed to set public key for custom bot")
+					welcomer.Logger.Error().
+						Err(err).
+						Str("applicationName", bot.ApplicationName).
+						Msg("Failed to set public key for custom bot")
 				}
 			} else {
-				welcomer.Logger.Warn().Str("publicKey", bot.PublicKey).Msg("Invalid public key format for custom bot")
+				welcomer.Logger.Warn().
+					Str("publicKey", bot.PublicKey).
+					Msg("Invalid public key format for custom bot")
 			}
 		}
 	}

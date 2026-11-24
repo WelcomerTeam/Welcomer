@@ -73,19 +73,35 @@ var assetsBrokeImageImage = mustDecodeBytes("assetsBrokeImageImage", assetsBroke
 
 //go:embed assets/default_avatar.png
 var assetsDefaultAvatarImageBytes []byte
-var assetsDefaultAvatarImage = mustDecodeBytes("assetsDefaultAvatarImage", assetsDefaultAvatarImageBytes)
+
+var assetsDefaultAvatarImage = mustDecodeBytes(
+	"assetsDefaultAvatarImage",
+	assetsDefaultAvatarImageBytes,
+)
 
 //go:embed backgrounds/aesthetics.png
 var backgroundsAestheticsImageBytes []byte
-var backgroundsAestheticsImage = mustDecodeBytes("backgroundsAestheticsImage", backgroundsAestheticsImageBytes)
+
+var backgroundsAestheticsImage = mustDecodeBytes(
+	"backgroundsAestheticsImage",
+	backgroundsAestheticsImageBytes,
+)
 
 //go:embed backgrounds/afterwork.png
 var backgroundsAfterworkImageBytes []byte
-var backgroundsAfterworkImage = mustDecodeBytes("backgroundsAfterworkImage", backgroundsAfterworkImageBytes)
+
+var backgroundsAfterworkImage = mustDecodeBytes(
+	"backgroundsAfterworkImage",
+	backgroundsAfterworkImageBytes,
+)
 
 //go:embed backgrounds/airship.png
 var backgroundsAirshipImageBytes []byte
-var backgroundsAirshipImage = mustDecodeBytes("backgroundsAirshipImage", backgroundsAirshipImageBytes)
+
+var backgroundsAirshipImage = mustDecodeBytes(
+	"backgroundsAirshipImage",
+	backgroundsAirshipImageBytes,
+)
 
 //go:embed backgrounds/alone.png
 var backgroundsAloneImageBytes []byte
@@ -101,15 +117,27 @@ var backgroundsCloudsImage = mustDecodeBytes("backgroundsCloudsImage", backgroun
 
 //go:embed backgrounds/collision.png
 var backgroundsCollisionImageBytes []byte
-var backgroundsCollisionImage = mustDecodeBytes("backgroundsCollisionImage", backgroundsCollisionImageBytes)
+
+var backgroundsCollisionImage = mustDecodeBytes(
+	"backgroundsCollisionImage",
+	backgroundsCollisionImageBytes,
+)
 
 //go:embed backgrounds/cybergeek.png
 var backgroundsCybergeekImageBytes []byte
-var backgroundsCybergeekImage = mustDecodeBytes("backgroundsCybergeekImage", backgroundsCybergeekImageBytes)
+
+var backgroundsCybergeekImage = mustDecodeBytes(
+	"backgroundsCybergeekImage",
+	backgroundsCybergeekImageBytes,
+)
 
 //go:embed backgrounds/default.png
 var backgroundsDefaultImageBytes []byte
-var backgroundsDefaultImage = mustDecodeBytes("backgroundsDefaultImage", backgroundsDefaultImageBytes)
+
+var backgroundsDefaultImage = mustDecodeBytes(
+	"backgroundsDefaultImage",
+	backgroundsDefaultImageBytes,
+)
 
 //go:embed backgrounds/fall.png
 var backgroundsFallImageBytes []byte
@@ -129,15 +157,27 @@ var backgroundsLodgeImage = mustDecodeBytes("backgroundsLodgeImage", backgrounds
 
 //go:embed backgrounds/meteorshower.png
 var backgroundsMeteorshowerImageBytes []byte
-var backgroundsMeteorshowerImage = mustDecodeBytes("backgroundsMeteorshowerImage", backgroundsMeteorshowerImageBytes)
+
+var backgroundsMeteorshowerImage = mustDecodeBytes(
+	"backgroundsMeteorshowerImage",
+	backgroundsMeteorshowerImageBytes,
+)
 
 //go:embed backgrounds/midnightride.png
 var backgroundsMidnightrideImageBytes []byte
-var backgroundsMidnightrideImage = mustDecodeBytes("backgroundsMidnightrideImage", backgroundsMidnightrideImageBytes)
+
+var backgroundsMidnightrideImage = mustDecodeBytes(
+	"backgroundsMidnightrideImage",
+	backgroundsMidnightrideImageBytes,
+)
 
 //go:embed backgrounds/mountains.png
 var backgroundsMountainsImageBytes []byte
-var backgroundsMountainsImage = mustDecodeBytes("backgroundsMountainsImage", backgroundsMountainsImageBytes)
+
+var backgroundsMountainsImage = mustDecodeBytes(
+	"backgroundsMountainsImage",
+	backgroundsMountainsImageBytes,
+)
 
 //go:embed backgrounds/neko.png
 var backgroundsNekoImageBytes []byte
@@ -145,7 +185,11 @@ var backgroundsNekoImage = mustDecodeBytes("backgroundsNekoImage", backgroundsNe
 
 //go:embed backgrounds/nightview.png
 var backgroundsNightviewImageBytes []byte
-var backgroundsNightviewImage = mustDecodeBytes("backgroundsNightviewImage", backgroundsNightviewImageBytes)
+
+var backgroundsNightviewImage = mustDecodeBytes(
+	"backgroundsNightviewImage",
+	backgroundsNightviewImageBytes,
+)
 
 //go:embed backgrounds/paint.png
 var backgroundsPaintImageBytes []byte
@@ -161,7 +205,11 @@ var backgroundsPikaImage = mustDecodeBytes("backgroundsPikaImage", backgroundsPi
 
 //go:embed backgrounds/rainbow.png
 var backgroundsRainbowImageBytes []byte
-var backgroundsRainbowImage = mustDecodeBytes("backgroundsRainbowImage", backgroundsRainbowImageBytes)
+
+var backgroundsRainbowImage = mustDecodeBytes(
+	"backgroundsRainbowImage",
+	backgroundsRainbowImageBytes,
+)
 
 //go:embed backgrounds/rem.png
 var backgroundsRemImageBytes []byte
@@ -169,7 +217,11 @@ var backgroundsRemImage = mustDecodeBytes("backgroundsRemImage", backgroundsRemI
 
 //go:embed backgrounds/ribbons.png
 var backgroundsRibbonsImageBytes []byte
-var backgroundsRibbonsImage = mustDecodeBytes("backgroundsRibbonsImage", backgroundsRibbonsImageBytes)
+
+var backgroundsRibbonsImage = mustDecodeBytes(
+	"backgroundsRibbonsImage",
+	backgroundsRibbonsImageBytes,
+)
 
 //go:embed backgrounds/riot.png
 var backgroundsRiotImageBytes []byte
@@ -177,7 +229,11 @@ var backgroundsRiotImage = mustDecodeBytes("backgroundsRiotImage", backgroundsRi
 
 //go:embed backgrounds/riversource.png
 var backgroundsRiversourceImageBytes []byte
-var backgroundsRiversourceImage = mustDecodeBytes("backgroundsRiversourceImage", backgroundsRiversourceImageBytes)
+
+var backgroundsRiversourceImage = mustDecodeBytes(
+	"backgroundsRiversourceImage",
+	backgroundsRiversourceImageBytes,
+)
 
 //go:embed backgrounds/sea.png
 var backgroundsSeaImageBytes []byte
@@ -189,7 +245,11 @@ var backgroundsShardsImage = mustDecodeBytes("backgroundsShardsImage", backgroun
 
 //go:embed backgrounds/solarglare.png
 var backgroundsSolarglareImageBytes []byte
-var backgroundsSolarglareImage = mustDecodeBytes("backgroundsSolarglareImage", backgroundsSolarglareImageBytes)
+
+var backgroundsSolarglareImage = mustDecodeBytes(
+	"backgroundsSolarglareImage",
+	backgroundsSolarglareImageBytes,
+)
 
 //go:embed backgrounds/spots.png
 var backgroundsSpotsImageBytes []byte
@@ -197,7 +257,11 @@ var backgroundsSpotsImage = mustDecodeBytes("backgroundsSpotsImage", backgrounds
 
 //go:embed backgrounds/squares.png
 var backgroundsSquaresImageBytes []byte
-var backgroundsSquaresImage = mustDecodeBytes("backgroundsSquaresImage", backgroundsSquaresImageBytes)
+
+var backgroundsSquaresImage = mustDecodeBytes(
+	"backgroundsSquaresImage",
+	backgroundsSquaresImageBytes,
+)
 
 //go:embed backgrounds/stacks.png
 var backgroundsStacksImageBytes []byte
@@ -213,7 +277,11 @@ var backgroundsSunImage = mustDecodeBytes("backgroundsSunImage", backgroundsSunI
 
 //go:embed backgrounds/sunrise.png
 var backgroundsSunriseImageBytes []byte
-var backgroundsSunriseImage = mustDecodeBytes("backgroundsSunriseImage", backgroundsSunriseImageBytes)
+
+var backgroundsSunriseImage = mustDecodeBytes(
+	"backgroundsSunriseImage",
+	backgroundsSunriseImageBytes,
+)
 
 //go:embed backgrounds/sunset.png
 var backgroundsSunsetImageBytes []byte
@@ -237,11 +305,19 @@ var backgroundsUtopiaImage = mustDecodeBytes("backgroundsUtopiaImage", backgroun
 
 //go:embed backgrounds/vampire.png
 var backgroundsVampireImageBytes []byte
-var backgroundsVampireImage = mustDecodeBytes("backgroundsVampireImage", backgroundsVampireImageBytes)
+
+var backgroundsVampireImage = mustDecodeBytes(
+	"backgroundsVampireImage",
+	backgroundsVampireImageBytes,
+)
 
 //go:embed backgrounds/vectors.png
 var backgroundsVectorsImageBytes []byte
-var backgroundsVectorsImage = mustDecodeBytes("backgroundsVectorsImage", backgroundsVectorsImageBytes)
+
+var backgroundsVectorsImage = mustDecodeBytes(
+	"backgroundsVectorsImage",
+	backgroundsVectorsImageBytes,
+)
 
 //go:embed backgrounds/wood.png
 var backgroundsWoodImageBytes []byte

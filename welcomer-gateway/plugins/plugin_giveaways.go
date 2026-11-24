@@ -47,33 +47,46 @@ func (g *GiveawayCog) GetEventHandlers() *sandwich.Handlers {
 func (g *GiveawayCog) RegisterCog(bot *sandwich.Bot) error {
 	// Register giveaway end handler.
 
-	g.EventHandler.RegisterEventHandler(core.CustomEventInvokeEndGiveaway, func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
-		var invokeGiveawayEndPayload core.CustomEventInvokeEndGiveawayStructure
-		if err := eventCtx.DecodeContent(payload, &invokeGiveawayEndPayload); err != nil {
-			return fmt.Errorf("failed to unmarshal payload: %w", err)
-		}
-
-		eventCtx.Guild = sandwich.NewGuild(invokeGiveawayEndPayload.GuildID)
-
-		eventCtx.EventHandler.EventsMu.RLock()
-		defer eventCtx.EventHandler.EventsMu.RUnlock()
-
-		for _, event := range eventCtx.EventHandler.Events {
-			if f, ok := event.(welcomer.OnInvokeEndGiveawayFuncType); ok {
-				return eventCtx.Handlers.WrapFuncType(eventCtx, f(eventCtx, invokeGiveawayEndPayload))
+	g.EventHandler.RegisterEventHandler(
+		core.CustomEventInvokeEndGiveaway,
+		func(eventCtx *sandwich.EventContext, payload sandwich_daemon.ProducedPayload) error {
+			var invokeGiveawayEndPayload core.CustomEventInvokeEndGiveawayStructure
+			if err := eventCtx.DecodeContent(payload, &invokeGiveawayEndPayload); err != nil {
+				return fmt.Errorf("failed to unmarshal payload: %w", err)
 			}
-		}
 
-		return nil
-	})
+			eventCtx.Guild = sandwich.NewGuild(invokeGiveawayEndPayload.GuildID)
+
+			eventCtx.EventHandler.EventsMu.RLock()
+			defer eventCtx.EventHandler.EventsMu.RUnlock()
+
+			for _, event := range eventCtx.EventHandler.Events {
+				if f, ok := event.(welcomer.OnInvokeEndGiveawayFuncType); ok {
+					return eventCtx.Handlers.WrapFuncType(
+						eventCtx,
+						f(eventCtx, invokeGiveawayEndPayload),
+					)
+				}
+			}
+
+			return nil
+		},
+	)
 
 	// Call OnInvokeEndGiveaway when CustomEventInvokeEndGiveaway is triggered.
-	g.EventHandler.RegisterEvent(core.CustomEventInvokeEndGiveaway, nil, (welcomer.OnInvokeEndGiveawayFuncType)(g.OnInvokeEndGiveaway))
+	g.EventHandler.RegisterEvent(
+		core.CustomEventInvokeEndGiveaway,
+		nil,
+		(welcomer.OnInvokeEndGiveawayFuncType)(g.OnInvokeEndGiveaway),
+	)
 
 	return nil
 }
 
-func (g *GiveawayCog) OnInvokeEndGiveaway(eventCtx *sandwich.EventContext, event core.CustomEventInvokeEndGiveawayStructure) error {
+func (g *GiveawayCog) OnInvokeEndGiveaway(
+	eventCtx *sandwich.EventContext,
+	event core.CustomEventInvokeEndGiveawayStructure,
+) error {
 	welcomer.Logger.Info().
 		Str("giveaway_uuid", event.GiveawayUUID.String()).
 		Msg("Received giveaway end event, processing giveaway end")
@@ -120,7 +133,10 @@ func secureRandomInt(n int64) (int64, error) {
 	return r.Int64(), nil
 }
 
-func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *database.GuildGiveaways) error {
+func (g *GiveawayCog) EndGiveaway(
+	eventCtx *sandwich.EventContext,
+	giveaway *database.GuildGiveaways,
+) error {
 	if giveaway.HasEnded {
 		welcomer.Logger.Error().
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -133,10 +149,13 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 	var err error
 
-	giveaway, err = welcomer.Queries.SetGiveawayEnded(eventCtx.Context, database.SetGiveawayEndedParams{
-		GiveawayUuid: giveaway.GiveawayUuid,
-		HasEnded:     true,
-	})
+	giveaway, err = welcomer.Queries.SetGiveawayEnded(
+		eventCtx.Context,
+		database.SetGiveawayEndedParams{
+			GiveawayUuid: giveaway.GiveawayUuid,
+			HasEnded:     true,
+		},
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -153,10 +172,13 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 				Msg("An error occurred during giveaway end processing, unsetting giveaway as ended")
 
-			giveaway, err = welcomer.Queries.SetGiveawayEnded(eventCtx.Context, database.SetGiveawayEndedParams{
-				GiveawayUuid: giveaway.GiveawayUuid,
-				HasEnded:     false,
-			})
+			giveaway, err = welcomer.Queries.SetGiveawayEnded(
+				eventCtx.Context,
+				database.SetGiveawayEndedParams{
+					GiveawayUuid: giveaway.GiveawayUuid,
+					HasEnded:     false,
+				},
+			)
 			if err != nil {
 				welcomer.Logger.Error().Err(err).
 					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -168,9 +190,12 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 	prizes := welcomer.UnmarshalGiveawayPrizeJSON(giveaway.GiveawayPrizes.Bytes)
 
-	_, err = welcomer.SandwichClient.RequestGuildChunk(eventCtx.Context, &pb.RequestGuildChunkRequest{
-		GuildId: giveaway.GuildID,
-	})
+	_, err = welcomer.SandwichClient.RequestGuildChunk(
+		eventCtx.Context,
+		&pb.RequestGuildChunkRequest{
+			GuildId: giveaway.GuildID,
+		},
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -201,10 +226,13 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 		return err
 	}
 
-	members, err := welcomer.SandwichClient.FetchGuildMember(eventCtx.Context, &pb.FetchGuildMemberRequest{
-		GuildId: giveaway.GuildID,
-		UserIds: entries,
-	})
+	members, err := welcomer.SandwichClient.FetchGuildMember(
+		eventCtx.Context,
+		&pb.FetchGuildMemberRequest{
+			GuildId: giveaway.GuildID,
+			UserIds: entries,
+		},
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -215,7 +243,10 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 	entries = make([]int64, 0)
 
-	existingWinners, err := welcomer.Queries.GetGiveawayWinners(eventCtx.Context, giveaway.GiveawayUuid)
+	existingWinners, err := welcomer.Queries.GetGiveawayWinners(
+		eventCtx.Context,
+		giveaway.GiveawayUuid,
+	)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
 			Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -272,12 +303,15 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 			winnerID := entries[randomIndex]
 
-			if _, err = welcomer.Queries.CreateGiveawayWinner(eventCtx.Context, database.CreateGiveawayWinnerParams{
-				GiveawayUuid: giveaway.GiveawayUuid,
-				UserID:       winnerID,
-				Prize:        prize.Title,
-				MessageID:    0,
-			}); err != nil {
+			if _, err = welcomer.Queries.CreateGiveawayWinner(
+				eventCtx.Context,
+				database.CreateGiveawayWinnerParams{
+					GiveawayUuid: giveaway.GiveawayUuid,
+					UserID:       winnerID,
+					Prize:        prize.Title,
+					MessageID:    0,
+				},
+			); err != nil {
 				welcomer.Logger.Error().Err(err).
 					Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 					Int64("winner_id", winnerID).
@@ -306,9 +340,13 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 	if giveaway.AnnounceWinners {
 		for _, winner := range winners {
-			if slices.ContainsFunc(existingWinners, func(value *database.GuildGiveawaysWinners) bool {
-				return value.UserID == winner.UserID && value.Prize == winner.Prize && value.MessageID != 0
-			}) {
+			if slices.ContainsFunc(
+				existingWinners,
+				func(value *database.GuildGiveawaysWinners) bool {
+					return value.UserID == winner.UserID && value.Prize == winner.Prize &&
+						value.MessageID != 0
+				},
+			) {
 				// Winner has already been announced, skip announcing again.
 				continue
 			}
@@ -320,7 +358,11 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 				Msg("Giveaway winner selected")
 
 			message, err := channel.Send(eventCtx.Context, eventCtx.Session, discord.MessageParams{
-				Content: fmt.Sprintf("Congratulations <@%d>, you won **%s**", winner.UserID, winner.Prize),
+				Content: fmt.Sprintf(
+					"Congratulations <@%d>, you won **%s**",
+					winner.UserID,
+					winner.Prize,
+				),
 				MessageReference: &discord.MessageReference{
 					ID:              new(discord.Snowflake(giveaway.MessageID)),
 					ChannelID:       new(discord.Snowflake(giveaway.ChannelID)),
@@ -336,10 +378,13 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 
 				err = nil
 			} else {
-				_, err = welcomer.Queries.UpdateGiveawayWinnerMessageID(eventCtx.Context, database.UpdateGiveawayWinnerMessageIDParams{
-					GiveawayWinnerUuid: winner.GiveawayWinnerUuid,
-					MessageID:          int64(message.ID),
-				})
+				_, err = welcomer.Queries.UpdateGiveawayWinnerMessageID(
+					eventCtx.Context,
+					database.UpdateGiveawayWinnerMessageIDParams{
+						GiveawayWinnerUuid: winner.GiveawayWinnerUuid,
+						MessageID:          int64(message.ID),
+					},
+				)
 				if err != nil {
 					welcomer.Logger.Error().Err(err).
 						Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
@@ -353,9 +398,15 @@ func (g *GiveawayCog) EndGiveaway(eventCtx *sandwich.EventContext, giveaway *dat
 		}
 	}
 
-	msg, err := discord.GetChannelMessage(eventCtx.Context, eventCtx.Session, discord.Snowflake(giveaway.ChannelID), discord.Snowflake(giveaway.MessageID))
+	msg, err := discord.GetChannelMessage(
+		eventCtx.Context,
+		eventCtx.Session,
+		discord.Snowflake(giveaway.ChannelID),
+		discord.Snowflake(giveaway.MessageID),
+	)
 	if err != nil {
-		if strings.Contains(err.Error(), "404 Not Found") || strings.Contains(err.Error(), "403 Forbidden") {
+		if strings.Contains(err.Error(), "404 Not Found") ||
+			strings.Contains(err.Error(), "403 Forbidden") {
 			welcomer.Logger.Warn().
 				Str("giveaway_uuid", giveaway.GiveawayUuid.String()).
 				Msg("Giveaway message not found, skipping disabling buttons for giveaway end")

@@ -62,7 +62,13 @@ type GuildSettingsWelcomerCustomBuilder struct {
 	References        map[string]string `json:"references"`
 }
 
-func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcomer, text database.GetWelcomerTextGuildSettingsRow, images database.GuildSettingsWelcomerImages, dms database.GetWelcomerDMsGuildSettingsRow, custom *GuildSettingsWelcomerCustom) *GuildSettingsWelcomer {
+func GuildSettingsWelcomerSettingsToPartial(
+	config database.GuildSettingsWelcomer,
+	text database.GetWelcomerTextGuildSettingsRow,
+	images database.GuildSettingsWelcomerImages,
+	dms database.GetWelcomerDMsGuildSettingsRow,
+	custom *GuildSettingsWelcomerCustom,
+) *GuildSettingsWelcomer {
 	partial := &GuildSettingsWelcomer{
 		Config: &GuildSettingsWelcomerConfig{
 			AutoDeleteWelcomeMessages:        config.AutoDeleteWelcomeMessages,
@@ -88,20 +94,21 @@ func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcome
 			),
 		},
 		Images: &GuildSettingsWelcomerImages{
-			ToggleEnabled:          images.ToggleEnabled,
-			ToggleImageBorder:      images.ToggleImageBorder,
-			ToggleShowAvatar:       images.ToggleShowAvatar,
-			BackgroundName:         images.BackgroundName,
-			ColourText:             images.ColourText,
-			ColourTextBorder:       images.ColourTextBorder,
-			ColourImageBorder:      images.ColourImageBorder,
-			ColourProfileBorder:    images.ColourProfileBorder,
-			ImageAlignment:         welcomer.ImageAlignment(images.ImageAlignment).String(),
-			ImageTheme:             welcomer.ImageTheme(images.ImageTheme).String(),
-			ImageMessage:           images.ImageMessage,
-			ImageProfileBorderType: welcomer.ImageProfileBorderType(images.ImageProfileBorderType).String(),
-			UseCustomBuilder:       images.UseCustomBuilder,
-			CustomBuilderData:      welcomer.JSONBToString(images.CustomBuilderData),
+			ToggleEnabled:       images.ToggleEnabled,
+			ToggleImageBorder:   images.ToggleImageBorder,
+			ToggleShowAvatar:    images.ToggleShowAvatar,
+			BackgroundName:      images.BackgroundName,
+			ColourText:          images.ColourText,
+			ColourTextBorder:    images.ColourTextBorder,
+			ColourImageBorder:   images.ColourImageBorder,
+			ColourProfileBorder: images.ColourProfileBorder,
+			ImageAlignment:      welcomer.ImageAlignment(images.ImageAlignment).String(),
+			ImageTheme:          welcomer.ImageTheme(images.ImageTheme).String(),
+			ImageMessage:        images.ImageMessage,
+			ImageProfileBorderType: welcomer.ImageProfileBorderType(images.ImageProfileBorderType).
+				String(),
+			UseCustomBuilder:  images.UseCustomBuilder,
+			CustomBuilderData: welcomer.JSONBToString(images.CustomBuilderData),
 		},
 		DMs: &GuildSettingsWelcomerDms{
 			ToggleEnabled:       dms.ToggleEnabled,
@@ -128,7 +135,10 @@ func GuildSettingsWelcomerSettingsToPartial(config database.GuildSettingsWelcome
 	return partial
 }
 
-func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildSettingsWelcomer) (*database.GuildSettingsWelcomer, *database.GuildSettingsWelcomerText, *database.GuildSettingsWelcomerImages, *database.GuildSettingsWelcomerDms) {
+func PartialToGuildSettingsWelcomerSettings(
+	guildID int64,
+	guildSettings *GuildSettingsWelcomer,
+) (*database.GuildSettingsWelcomer, *database.GuildSettingsWelcomerText, *database.GuildSettingsWelcomerImages, *database.GuildSettingsWelcomerDms) {
 	return &database.GuildSettingsWelcomer{
 			GuildID:                          guildID,
 			AutoDeleteWelcomeMessages:        guildSettings.Config.AutoDeleteWelcomeMessages,
@@ -141,21 +151,23 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 			Channel:       welcomer.StringPointerToInt64(guildSettings.Text.Channel),
 			MessageFormat: welcomer.StringToJSONB(guildSettings.Text.MessageFormat),
 		}, &database.GuildSettingsWelcomerImages{
-			GuildID:                guildID,
-			ToggleEnabled:          guildSettings.Images.ToggleEnabled,
-			ToggleImageBorder:      guildSettings.Images.ToggleImageBorder,
-			ToggleShowAvatar:       guildSettings.Images.ToggleShowAvatar,
-			BackgroundName:         guildSettings.Images.BackgroundName,
-			ColourText:             guildSettings.Images.ColourText,
-			ColourTextBorder:       guildSettings.Images.ColourTextBorder,
-			ColourImageBorder:      guildSettings.Images.ColourImageBorder,
-			ColourProfileBorder:    guildSettings.Images.ColourProfileBorder,
-			ImageAlignment:         int32(ParseImageAlignment(guildSettings.Images.ImageAlignment)),
-			ImageTheme:             int32(ParseImageTheme(guildSettings.Images.ImageTheme)),
-			ImageMessage:           guildSettings.Images.ImageMessage,
-			ImageProfileBorderType: int32(ParseImageProfileBorderType(guildSettings.Images.ImageProfileBorderType)),
-			UseCustomBuilder:       guildSettings.Images.UseCustomBuilder,
-			CustomBuilderData:      welcomer.StringToJSONB(guildSettings.Images.CustomBuilderData),
+			GuildID:             guildID,
+			ToggleEnabled:       guildSettings.Images.ToggleEnabled,
+			ToggleImageBorder:   guildSettings.Images.ToggleImageBorder,
+			ToggleShowAvatar:    guildSettings.Images.ToggleShowAvatar,
+			BackgroundName:      guildSettings.Images.BackgroundName,
+			ColourText:          guildSettings.Images.ColourText,
+			ColourTextBorder:    guildSettings.Images.ColourTextBorder,
+			ColourImageBorder:   guildSettings.Images.ColourImageBorder,
+			ColourProfileBorder: guildSettings.Images.ColourProfileBorder,
+			ImageAlignment:      int32(ParseImageAlignment(guildSettings.Images.ImageAlignment)),
+			ImageTheme:          int32(ParseImageTheme(guildSettings.Images.ImageTheme)),
+			ImageMessage:        guildSettings.Images.ImageMessage,
+			ImageProfileBorderType: int32(
+				ParseImageProfileBorderType(guildSettings.Images.ImageProfileBorderType),
+			),
+			UseCustomBuilder:  guildSettings.Images.UseCustomBuilder,
+			CustomBuilderData: welcomer.StringToJSONB(guildSettings.Images.CustomBuilderData),
 		}, &database.GuildSettingsWelcomerDms{
 			GuildID:             guildID,
 			ToggleEnabled:       guildSettings.DMs.ToggleEnabled,
@@ -165,7 +177,10 @@ func PartialToGuildSettingsWelcomerSettings(guildID int64, guildSettings *GuildS
 		}
 }
 
-func GuildSettingsWelcomerSettingsToPartialCustomBuilderDataOnly(images database.GuildSettingsWelcomerImages, references map[string]string) GuildSettingsWelcomerCustomBuilder {
+func GuildSettingsWelcomerSettingsToPartialCustomBuilderDataOnly(
+	images database.GuildSettingsWelcomerImages,
+	references map[string]string,
+) GuildSettingsWelcomerCustomBuilder {
 	return GuildSettingsWelcomerCustomBuilder{
 		UseCustomBuilder:  images.UseCustomBuilder,
 		CustomBuilderData: welcomer.JSONBToString(images.CustomBuilderData),

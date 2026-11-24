@@ -20,13 +20,12 @@
 import { ref } from "vue";
 
 import { MenuAlt1Icon } from "@heroicons/vue/outline";
-import { useRoute } from "vue-router";
 
 import Header from "@/components/dashboard/Header.vue";
 import Toast from "@/components/dashboard/Toast.vue";
 import HoistHeading from "@/components/hoist/HoistHeading.vue";
 import Popups from "@/components/Popups.vue";
-import store from "@/store/index";
+import useGuildRoute from "@/composables/useGuildRoute";
 
 
 export default {
@@ -37,37 +36,16 @@ export default {
     Popups,
     Toast,
   },
-  watch: {
-    "$route.params.guildID"(to) {
-      store.commit("setSelectedGuild", to);
-    },
-  },
   methods: {
     closeSidebar() {
       this.sidebarOpen = false;
     },
   },
   setup() {
-    store.watch(
-      () => store.getters.getSelectedGuildID,
-      () => {
-        if (store.getters.getSelectedGuildID !== undefined) {
-          store.dispatch("fillGuild");
-        }
-      }
-    );
-
-    const route = useRoute();
-
-    let guildID = route.params.guildID;
-    if (guildID !== undefined) {
-      store.commit("setSelectedGuild", guildID);
-    }
-
-    let sidebarOpen = ref(false);
+    useGuildRoute();
 
     return {
-      sidebarOpen,
+      sidebarOpen: ref(false),
     };
   },
 };

@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website-dev/assets/backgrounds/ && vite build --mode development --watch --outDir /home/rock/Welcomer-Devops/data/nginx/website-dev --emptyOutDir false",
-    "build": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website/assets/backgrounds/ && vite build --mode production --outDir /home/rock/Welcomer-Devops/data/nginx/website"
+    "dev:ssg": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website-dev/assets/backgrounds/ && WEBSITE_OUT_DIR=/home/rock/Welcomer-Devops/data/nginx/website-dev vite-ssg build --mode development",
+    "build": "python3 setup-backgrounds.py ../../welcomer-images/service/backgrounds /home/rock/Welcomer-Devops/data/nginx/website/assets/backgrounds/ && WEBSITE_OUT_DIR=/home/rock/Welcomer-Devops/data/nginx/website vite-ssg build --mode production",
+    "lint": "eslint src test --max-warnings=0",
+    "test": "node --test"
   },
   "dependencies": {
     "@adapttive/vue-markdown": "git+https://github.com/adapttive/vue-markdown.git",
@@ -42,9 +45,10 @@
     "sass": "^1.66.1",
     "simple-markdown": "^0.7.3",
     "thumbhash": "^0.1.1",
-    "unicode-emoji-json": "^0.4.0",
+    "unicode-emoji-json": "^0.9.0",
     "volar-service-vetur": "^0.0.30",
     "vue": "^3.3.4",
+    "vue-chartjs": "^5.3.4",
     "vue-color-kit": "^1.0.6",
     "vue-markdown": "git+https://github.com/miaolz123/vue-markdown.git",
     "vue-router": "^4.2.4",
@@ -60,6 +64,7 @@
     "@vue/compiler-sfc": "^3.3.4",
     "autoprefixer": "^10.4.15",
     "baseline-browser-mapping": "^2.9.19",
+    "beasties": "^0.3.5",
     "eslint": "^9.39.2",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.32.0",
@@ -69,7 +74,16 @@
     "rollup-plugin-analyzer": "^4.0.0",
     "tailwindcss": "^3.3.3",
     "vite": "^7.1.11",
+    "vite-ssg": "^28.3.0",
     "vue-eslint-parser": "^10.2.0",
     "webpack-bundle-analyzer": "^4.9.1"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "vue-demi@0.13.11": true,
+    "core-js@2.6.12": true,
+    "esbuild@0.28.2": true,
+    "highlight.js@9.18.5": true,
+    "yarn@1.22.22": true
   }
 }

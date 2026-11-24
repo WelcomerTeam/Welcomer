@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	discord "github.com/WelcomerTeam/Discord/discord"
 	"github.com/WelcomerTeam/Welcomer/welcomer-core"
+	"github.com/WelcomerTeam/Welcomer/welcomer-core/telemetry"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-contrib/sessions"
@@ -84,9 +86,16 @@ func NewBackend(options Options) (*Backend, error) {
 	}
 
 	b := &Backend{
-		Options:           options,
-		PrometheusHandler: gin_prometheus.NewPrometheus("gin"),
-		IPChecker:         welcomer.NewLRUIPChecker(1024),
+		Options: options,
+		PrometheusHandler: gin_prometheus.NewWithConfig(gin_prometheus.Config{
+			Subsystem: "prometheus",
+		}),
+		IPChecker: welcomer.NewLRUIPChecker(1024),
+	}
+
+	// Update the Prometheus handler to use the full path as the label value for the request count metric.
+	b.PrometheusHandler.ReqCntURLLabelMappingFn = func(c *gin.Context) string {
+		return c.FullPath()
 	}
 
 	// Setup Discord OAuth2
@@ -117,7 +126,11 @@ func NewBackend(options Options) (*Backend, error) {
 	for keyPairString := range keyPairStrings {
 		byteSlice, err := hex.DecodeString(keyPairString)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse keyPairString %s to hex: %w", keyPairString, err)
+			return nil, fmt.Errorf(
+				"failed to parse keyPairString %s to hex: %w",
+				keyPairString,
+				err,
+			)
 		}
 
 		keyPairs = append(keyPairs, byteSlice)
@@ -140,7 +153,11 @@ func NewBackend(options Options) (*Backend, error) {
 
 	b.Store = store
 
-	paypalClient, err := paypal.NewClient(options.PaypalClientID, options.PaypalClientSecret, welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox))
+	paypalClient, err := paypal.NewClient(
+		options.PaypalClientID,
+		options.PaypalClientSecret,
+		welcomer.If(options.PaypalIsLive, paypal.APIBaseLive, paypal.APIBaseSandBox),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create paypal client: %w", err)
 	}
@@ -156,8 +173,9 @@ func NewBackend(options Options) (*Backend, error) {
 }
 
 // Open sets up any services and starts the web server.
-func (b *Backend) Open() error {
+func (b *Backend) Open(ctx context.Context) error {
 	b.StartTime = time.Now()
+
 	welcomer.Logger.Info().Msgf("Starting backend. Version %s", VERSION)
 
 	// Setup Prometheus
@@ -165,7 +183,7 @@ func (b *Backend) Open() error {
 
 	welcomer.Logger.Info().Msgf("Serving http at %s", b.Options.Host)
 
-	err := b.Route.Run(b.Options.Host)
+	err := telemetry.Serve(ctx, &http.Server{Addr: b.Options.Host, Handler: b.Route.Handler()})
 	if err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}
@@ -176,7 +194,6 @@ func (b *Backend) Open() error {
 // Close gracefully closes the backend.
 func (b *Backend) Close() error {
 	// TODO
-
 	return nil
 }
 
@@ -193,10 +210,12 @@ func (b *Backend) SetupPrometheus() error {
 // PrepareGin prepares gin routes and middleware.
 func (b *Backend) PrepareGin() *gin.Engine {
 	router := gin.New()
+	router.ContextWithFallback = telemetry.Enabled()
 	router.TrustedPlatform = gin.PlatformCloudflare
 
 	_ = router.SetTrustedProxies(nil)
 
+	router.Use(traceRequests())
 	router.Use(logger.SetLogger())
 	router.Use(b.PrometheusHandler.HandlerFunc())
 	router.Use(limits.RequestSizeLimiter(RequestSizeLimit))
@@ -206,6 +225,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	router.Use(gin.Recovery())
 
 	registerExampleRoutes(router)
+	registerDiscordEmbedRoute(router)
 
 	registerMetaRoutes(router)
 
@@ -232,6 +252,7 @@ func (b *Backend) PrepareGin() *gin.Engine {
 	registerGuildSettingsWelcomerRoutes(router)
 	registerGuildCustomBotRoutes(router)
 	registerGuildSettingsReactionRolesRoutes(router)
+	registerGuildAnalyticsRoutes(router)
 
 	return router
 }

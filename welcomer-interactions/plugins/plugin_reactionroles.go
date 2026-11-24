@@ -52,6 +52,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 				if len(interaction.Data.Values) == 0 {
 					return nil, nil
 				}
+
 				customID = interaction.Data.Values[0]
 			default:
 				return nil, nil
@@ -80,10 +81,13 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 				return nil, err
 			}
 
-			reactionRole, err := welcomer.Queries.GetReactionRoleSettingById(ctx, database.GetReactionRoleSettingByIdParams{
-				ReactionRoleID: reactionRoleUUID,
-				GuildID:        int64(*interaction.GuildID),
-			})
+			reactionRole, err := welcomer.Queries.GetReactionRoleSettingById(
+				ctx,
+				database.GetReactionRoleSettingByIdParams{
+					ReactionRoleID: reactionRoleUUID,
+					GuildID:        int64(*interaction.GuildID),
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -101,11 +105,15 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 					},
 				}, nil
 			}
+
 			reactionRoleSettings := welcomer.UnmarshalReactionRolesJSON(reactionRole.Roles.Bytes)
 
-			if found := slices.ContainsFunc(reactionRoleSettings, func(setting core.ReactionRoleOption) bool {
-				return setting.RoleID == discord.Snowflake(roleID)
-			}); !found {
+			if found := slices.ContainsFunc(
+				reactionRoleSettings,
+				func(setting core.ReactionRoleOption) bool {
+					return setting.RoleID == discord.Snowflake(roleID)
+				},
+			); !found {
 				return &discord.InteractionResponse{
 					Type: discord.InteractionCallbackTypeChannelMessageSource,
 					Data: &discord.InteractionCallbackData{
@@ -140,6 +148,7 @@ func (r *ReactionRolesCog) RegisterCog(sub *subway.Subway) error {
 			if err != nil {
 				return nil, err
 			}
+
 			return &discord.InteractionResponse{
 				Type: discord.InteractionCallbackTypeDeferredChannelMessageSource,
 				Data: &discord.InteractionCallbackData{

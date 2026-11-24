@@ -2,7 +2,8 @@
 ./build-gateway.sh
 ./build-headless-shell.sh
 ./build-images-next.sh
-./build-images-proxy.sh
 ./build-images.sh
 ./build-interactions.sh
+./build-moderation-queue.sh
 ./build-sandwich.sh
+./build-website.sh

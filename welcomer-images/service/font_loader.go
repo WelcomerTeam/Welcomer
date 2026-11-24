@@ -42,7 +42,10 @@ func (is *ImageService) CreateFontPack(font string, size float64) *MultiFace {
 	for fontName := range fallback {
 		f, fo, err = is.FetchFont(fontName, size)
 		if err != nil {
-			welcomer.Logger.Warn().Err(err).Str("font", fontName).Msg("Failed to fetch fallback font in font pack")
+			welcomer.Logger.Warn().
+				Err(err).
+				Str("font", fontName).
+				Msg("Failed to fetch fallback font in font pack")
 		} else {
 			face.AddTrueTypeFace(*f.Face, fo.Font)
 		}

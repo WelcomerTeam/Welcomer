@@ -189,10 +189,6 @@
 </style>
 
 <script>
-import LoadingIcon from "@/components/LoadingIcon.vue";
-
-
-
 import { ref } from "vue";
 
 import {
@@ -218,6 +214,7 @@ import parse from "parse-css-color";
 import dashboardAPI from "@/api/dashboard";
 import endpoints from "@/api/endpoints";
 import backgrounds from "@/backgrounds.json";
+import LoadingIcon from "@/components/LoadingIcon.vue";
 import {
   getErrorToast,
   getSuccessToast,

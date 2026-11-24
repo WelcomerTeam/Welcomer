@@ -24,3 +24,6 @@ overrides:
     db_type: "bigint"
   - go_type: "github.com/gofrs/uuid.UUID"
     db_type: "uuid"
+  - go_type: "github.com/gofrs/uuid.NullUUID"
+    db_type: "uuid"
+    nullable: true

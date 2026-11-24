@@ -1,0 +1,14 @@
+# robots.txt for https://welcomer.gg (RFC 9309)
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /login
+Disallow: /logout
+Disallow: /callback
+Disallow: /patreon_link
+Disallow: /patreon_callback
+Disallow: /borderwall/
+
+Sitemap: https://welcomer.gg/sitemap.xml

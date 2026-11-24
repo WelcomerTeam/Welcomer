@@ -28,9 +28,12 @@ func getBotID(ctx context.Context) (discord.Snowflake, error) {
 	managerName := welcomer.DefaultManagerName
 
 	// Fetch bot application
-	applications, err := welcomer.SandwichClient.FetchApplication(ctx, &sandwich.ApplicationIdentifier{
-		ApplicationIdentifier: managerName,
-	})
+	applications, err := welcomer.SandwichClient.FetchApplication(
+		ctx,
+		&sandwich.ApplicationIdentifier{
+			ApplicationIdentifier: managerName,
+		},
+	)
 	if err != nil || len(applications.GetApplications()) == 0 {
 		welcomer.Logger.Error().Err(err).
 			Str("manager_name", managerName).
@@ -51,7 +54,10 @@ func getBotID(ctx context.Context) (discord.Snowflake, error) {
 	return botID, nil
 }
 
-func getPartial(ctx context.Context, botID, guildID discord.Snowflake) (GuildSettingsCustomisation, error) {
+func getPartial(
+	ctx context.Context,
+	botID, guildID discord.Snowflake,
+) (GuildSettingsCustomisation, error) {
 	member, err := discord.GetGuildMember(ctx, backend.BotSession, guildID, botID)
 	if err != nil {
 		welcomer.Logger.Error().Err(err).
@@ -264,11 +270,27 @@ func setGuildSettingsCustomisation(ctx *gin.Context) {
 			}
 
 			welcomer.AuditChange(ctx, guildID, userID, GuildSettingsCustomisationAudit{
-				Nickname: welcomer.IfElseFunc(oldPartial.Nickname == nil, "", func() string { return *oldPartial.Nickname }),
-				Bio:      welcomer.IfElseFunc(oldPartial.Bio == nil, "", func() string { return *oldPartial.Bio }),
+				Nickname: welcomer.IfElseFunc(
+					oldPartial.Nickname == nil,
+					"",
+					func() string { return *oldPartial.Nickname },
+				),
+				Bio: welcomer.IfElseFunc(
+					oldPartial.Bio == nil,
+					"",
+					func() string { return *oldPartial.Bio },
+				),
 			}, GuildSettingsCustomisationAudit{
-				Nickname: welcomer.IfElseFunc(partial.Nickname == nil, "", func() string { return *partial.Nickname }),
-				Bio:      welcomer.IfElseFunc(partial.Bio == nil, "", func() string { return *partial.Bio }),
+				Nickname: welcomer.IfElseFunc(
+					partial.Nickname == nil,
+					"",
+					func() string { return *partial.Nickname },
+				),
+				Bio: welcomer.IfElseFunc(
+					partial.Bio == nil,
+					"",
+					func() string { return *partial.Bio },
+				),
 			}, database.AuditTypeBotCustomisation, "")
 
 			if partial.Bio != nil {

@@ -40,7 +40,10 @@ func (s Styling) Build(builder *strings.Builder) {
 	}
 }
 
-func (is *ImageService) getCanvasStyle(ctx *ImageGenerationContext, customImage welcomer.CustomWelcomerImage) Styling {
+func (is *ImageService) getCanvasStyle(
+	ctx *ImageGenerationContext,
+	customImage welcomer.CustomWelcomerImage,
+) Styling {
 	styling := Styling{}
 
 	if len(customImage.Dimensions) == 2 {
@@ -56,14 +59,26 @@ func (is *ImageService) getCanvasStyle(ctx *ImageGenerationContext, customImage 
 		styling.Add("height", welcomer.Itoa(int64(customImage.Dimensions[1]))+"px")
 	}
 
-	styling.Add("background", is.getFillAsCSS(ctx, customImage.Fill, "transparent")+" center / cover no-repeat")
+	styling.Add(
+		"background",
+		is.getFillAsCSS(ctx, customImage.Fill, "transparent")+" center / cover no-repeat",
+	)
 	styling.Add("background-origin", "border-box")
 	styling.Add("box-sizing", "border-box")
 	styling.Add("overflow", "visible")
 	styling.Add("position", "relative")
 
 	if customImage.Stroke != nil && customImage.Stroke.Width > 0 {
-		styling.Add("border", welcomer.Itoa(int64(customImage.Stroke.Width))+"px solid "+is.getFillAsCSS(ctx, customImage.Stroke.Color, "#000000"))
+		styling.Add(
+			"border",
+			welcomer.Itoa(
+				int64(customImage.Stroke.Width),
+			)+"px solid "+is.getFillAsCSS(
+				ctx,
+				customImage.Stroke.Color,
+				"#000000",
+			),
+		)
 	}
 
 	return styling
@@ -101,7 +116,12 @@ func getObjectStyleBase(layer welcomer.CustomWelcomerImageLayer, layer_count, in
 	return styling
 }
 
-func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcomer.CustomWelcomerImageLayer, layer_count, index int, formattedValue string) Styling {
+func (is *ImageService) getObjectStyle(
+	ctx *ImageGenerationContext,
+	layer welcomer.CustomWelcomerImageLayer,
+	layer_count, index int,
+	formattedValue string,
+) Styling {
 	styling := getObjectStyleBase(layer, layer_count, index)
 
 	styling.Add("z-index", "0")
@@ -124,7 +144,16 @@ func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcom
 		styling.Add("background", "transparent")
 		styling.Add("color", is.getFillAsCSS(ctx, layer.Fill, "inherit"))
 	} else if layer.Type == welcomer.CustomWelcomerImageLayerTypeImage {
-		styling.Add("background", "url("+html.EscapeString(formattedValue)+") center / 100% no-repeat, "+is.getFillAsCSS(ctx, layer.Fill, "transparent"))
+		styling.Add(
+			"background",
+			"url("+html.EscapeString(
+				formattedValue,
+			)+") center / 100% no-repeat, "+is.getFillAsCSS(
+				ctx,
+				layer.Fill,
+				"transparent",
+			),
+		)
 		styling.Add("background-clip", "padding-box")
 		styling.Add("color", "inherit")
 	} else {
@@ -152,11 +181,20 @@ func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcom
 			}
 
 			if layer.Typography.LetterSpacing != 0 {
-				styling.Add("letter-spacing", welcomer.Itoa(int64(layer.Typography.LetterSpacing))+"px")
+				styling.Add(
+					"letter-spacing",
+					welcomer.Itoa(int64(layer.Typography.LetterSpacing))+"px",
+				)
 			}
 
 			if layer.Stroke.Width != 0 {
-				styling.Add("text-shadow", generateTextShadow(layer.Stroke.Width, is.getFillAsCSS(ctx, layer.Stroke.Color, "#000000")))
+				styling.Add(
+					"text-shadow",
+					generateTextShadow(
+						layer.Stroke.Width,
+						is.getFillAsCSS(ctx, layer.Stroke.Color, "#000000"),
+					),
+				)
 			}
 
 			styling.Add("justify-content", string(layer.Typography.HorizontalAlignment))
@@ -167,14 +205,26 @@ func (is *ImageService) getObjectStyle(ctx *ImageGenerationContext, layer welcom
 		styling.Add("white-space", "pre-wrap")
 	} else {
 		if layer.Stroke.Width > 0 {
-			styling.Add("border", welcomer.Itoa(int64(layer.Stroke.Width))+"px solid "+is.getFillAsCSS(ctx, layer.Stroke.Color, "#000000"))
+			styling.Add(
+				"border",
+				welcomer.Itoa(
+					int64(layer.Stroke.Width),
+				)+"px solid "+is.getFillAsCSS(
+					ctx,
+					layer.Stroke.Color,
+					"#000000",
+				),
+			)
 		}
 	}
 
 	return styling
 }
 
-func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, defaultValue string) string {
+func (is *ImageService) getFillAsCSS(
+	ctx *ImageGenerationContext,
+	value, defaultValue string,
+) string {
 	if len(value) == 0 {
 		return defaultValue
 	}
@@ -196,7 +246,10 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 
 	if value == "solid:profile" {
 		if ctx.User.Avatar != "" {
-			if src, err := is.fetchImageFromURL(ctx.Context, welcomer.GetUserAvatar(&ctx.User)); err == nil {
+			if src, err := is.fetchImageFromURL(
+				ctx.Context,
+				welcomer.GetUserAvatar(&ctx.User),
+			); err == nil {
 				return getImageLumainceAsHex(src)
 			}
 		}
@@ -206,7 +259,9 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 
 	// Validate ref value is a valid UUID
 	if len(value) >= 4 && value[:4] == "ref:" && welcomer.IsValidUUID(value[4:]) {
-		return "url(https://www.welcomer.gg/api/guild/" + ctx.Guild.ID.String() + "/welcomer/artifact/" + url.QueryEscape(value[4:]) + ")"
+		return "url(https://www.welcomer.gg/api/guild/" + ctx.Guild.ID.String() + "/welcomer/artifact/" + url.QueryEscape(
+			value[4:],
+		) + ")"
 	}
 
 	if _, ok := backgrounds[value]; ok {
@@ -216,7 +271,10 @@ func (is *ImageService) getFillAsCSS(ctx *ImageGenerationContext, value, default
 	return defaultValue
 }
 
-func (is *ImageService) fetchImageFromURL(ctx context.Context, avatarURL string) (image.Image, error) {
+func (is *ImageService) fetchImageFromURL(
+	ctx context.Context,
+	avatarURL string,
+) (image.Image, error) {
 	parsedURL, isValidURL := welcomer.IsValidURL(avatarURL)
 	if parsedURL == nil || !isValidURL {
 		return nil, welcomer.ErrInvalidURL
@@ -224,14 +282,20 @@ func (is *ImageService) fetchImageFromURL(ctx context.Context, avatarURL string)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, avatarURL, nil)
 	if err != nil {
-		welcomer.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to create new request for avatar")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("url", avatarURL).
+			Msg("Failed to create new request for avatar")
 
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	resp, err := is.Client.Do(req)
 	if err != nil || resp == nil {
-		welcomer.Logger.Error().Err(err).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
+		welcomer.Logger.Error().
+			Err(err).
+			Str("url", avatarURL).
+			Msg("Failed to fetch profile picture for avatar")
 
 		return nil, fmt.Errorf("failed to fetch image: %w", err)
 	}
@@ -239,7 +303,11 @@ func (is *ImageService) fetchImageFromURL(ctx context.Context, avatarURL string)
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
-		welcomer.Logger.Error().Err(err).Int("status", resp.StatusCode).Str("url", avatarURL).Msg("Failed to fetch profile picture for avatar")
+		welcomer.Logger.Error().
+			Err(err).
+			Int("status", resp.StatusCode).
+			Str("url", avatarURL).
+			Msg("Failed to fetch profile picture for avatar")
 
 		return nil, fmt.Errorf("failed to fetch image, status code %d", resp.StatusCode)
 	}

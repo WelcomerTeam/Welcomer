@@ -41,7 +41,10 @@ type ImageServiceOptions struct {
 }
 
 // NewImageService creates the service and initializes it.
-func NewImageService(ctx context.Context, options ImageServiceOptions) (is *ImageService, err error) {
+func NewImageService(
+	ctx context.Context,
+	options ImageServiceOptions,
+) (is *ImageService, err error) {
 	is = &ImageService{
 		ctx:     ctx,
 		Options: options,
@@ -74,7 +77,10 @@ func (is *ImageService) setupHTTP() error {
 
 	err := router.Run(is.Options.Host)
 	if err != nil {
-		welcomer.Logger.Panic().Err(err).Str("host", is.Options.Host).Msg("Failed to serve gRPC server")
+		welcomer.Logger.Panic().
+			Err(err).
+			Str("host", is.Options.Host).
+			Msg("Failed to serve gRPC server")
 
 		return fmt.Errorf("failed to serve grpc: %w", err)
 	}
@@ -97,7 +103,10 @@ func (is *ImageService) setupPrometheus() error {
 
 	err := http.ListenAndServe(is.Options.PrometheusAddress, nil)
 	if err != nil {
-		welcomer.Logger.Panic().Str("host", is.Options.PrometheusAddress).Err(err).Msg("Failed to serve prometheus server")
+		welcomer.Logger.Panic().
+			Str("host", is.Options.PrometheusAddress).
+			Err(err).
+			Msg("Failed to serve prometheus server")
 
 		return fmt.Errorf("failed to serve prometheus: %w", err)
 	}

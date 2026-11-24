@@ -1141,11 +1141,11 @@ export default {
   },
   methods: {
     formatText(text) {
-      return formatText(text);
+      return formatText(text, this.$store);
     },
 
     marked(text, embed) {
-        return marked(text, embed);
+        return marked(text, embed, false, this.$store);
     },
 
     rgbIntToRGB(rgbInt, defaultValue) {

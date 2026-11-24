@@ -2,6 +2,8 @@ import vue from "@vitejs/plugin-vue";
 import analyze from "rollup-plugin-analyzer";
 import { defineConfig } from "vite";
 
+import { prerenderedRoutes } from "./src/router/prerendered.js";
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
@@ -21,7 +23,21 @@ export default defineConfig({
       },
     },
   },
+  ssr: {
+    // Bundle Font Awesome so the icon library populated in main.js is the same
+    // instance vue-fontawesome reads from during pre-rendering.
+    noExternal: [/^@fortawesome\//],
+  },
+  ssgOptions: {
+    dirStyle: "flat",
+    includedRoutes: () => prerenderedRoutes,
+    // Tag the root container with the route it was rendered for, so the
+    // client can skip hydration when this HTML is served as an SPA fallback.
+    onPageRendered: (route, html) =>
+      html.replace('<div id="app"', `<div id="app" data-ssg-path="${route}"`),
+  },
   build: {
+    outDir: process.env.WEBSITE_OUT_DIR || "dist",
     rollupOptions: {
       plugins: [analyze({ limit: 10 })],
       output: {

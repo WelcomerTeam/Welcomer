@@ -50,10 +50,18 @@ func urlContainsPathEscape(endpoint string) (bool, error) {
 		return false, fmt.Errorf("failed to unescape url: %w", err)
 	}
 
-	return strings.Contains(escapedURL, "/../") || strings.Contains(escapedURL, "/./") || strings.HasSuffix(escapedURL, "/..") || strings.HasSuffix(escapedURL, "/."), nil
+	return strings.Contains(escapedURL, "/../") || strings.Contains(escapedURL, "/./") ||
+		strings.HasSuffix(escapedURL, "/..") ||
+		strings.HasSuffix(escapedURL, "/."), nil
 }
 
-func (tl *TwilightProxy) Fetch(ctx context.Context, session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header) ([]byte, error) {
+func (tl *TwilightProxy) Fetch(
+	ctx context.Context,
+	session *discord.Session,
+	method, endpoint, contentType string,
+	body []byte,
+	headers http.Header,
+) ([]byte, error) {
 	if escaped, err := urlContainsPathEscape(endpoint); err != nil {
 		return nil, fmt.Errorf("urlContainsPathEscape(%s): %w", endpoint, err)
 	} else if escaped {
@@ -107,9 +115,23 @@ func (tl *TwilightProxy) Fetch(ctx context.Context, session *discord.Session, me
 
 	if tl.Debug {
 		if contentType != "application/json" || headers.Get("Content-Disposition") != "" {
-			println(method, req.URL.String(), resp.StatusCode, contentType, hex.EncodeToString(body), string(response))
+			println(
+				method,
+				req.URL.String(),
+				resp.StatusCode,
+				contentType,
+				hex.EncodeToString(body),
+				string(response),
+			)
 		} else {
-			println(method, req.URL.String(), resp.StatusCode, contentType, string(body), string(response))
+			println(
+				method,
+				req.URL.String(),
+				resp.StatusCode,
+				contentType,
+				string(body),
+				string(response),
+			)
 		}
 	}
 
@@ -126,7 +148,14 @@ func (tl *TwilightProxy) Fetch(ctx context.Context, session *discord.Session, me
 	return response, nil
 }
 
-func (tl *TwilightProxy) FetchBJ(ctx context.Context, session *discord.Session, method, endpoint, contentType string, body []byte, headers http.Header, response any) error {
+func (tl *TwilightProxy) FetchBJ(
+	ctx context.Context,
+	session *discord.Session,
+	method, endpoint, contentType string,
+	body []byte,
+	headers http.Header,
+	response any,
+) error {
 	resp, err := tl.Fetch(ctx, session, method, endpoint, contentType, body, headers)
 	if err != nil {
 		return err
@@ -142,7 +171,14 @@ func (tl *TwilightProxy) FetchBJ(ctx context.Context, session *discord.Session, 
 	return nil
 }
 
-func (tl *TwilightProxy) FetchJJ(ctx context.Context, session *discord.Session, method, endpoint string, payload any, headers http.Header, response any) error {
+func (tl *TwilightProxy) FetchJJ(
+	ctx context.Context,
+	session *discord.Session,
+	method, endpoint string,
+	payload any,
+	headers http.Header,
+	response any,
+) error {
 	var body []byte
 	var err error
 
