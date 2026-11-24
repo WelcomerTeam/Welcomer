@@ -117,8 +117,13 @@ func main() {
 	)
 	addJob(
 		"aggregate-guild-analytics-benchmarks",
-		"2       1 * * 0",
+		"0       1 * * 0",
 		"cd /home/rock/Welcomer/jobs && go run aggregate-guild-analytics-benchmarks.go",
+	)
+	addJob(
+		"check-paypal-memberships",
+		"0        0 * * 0",
+		"cd /home/rock/Welcomer/jobs && go run check-paypal-memberships.go",
 	)
 
 	c.Start()
