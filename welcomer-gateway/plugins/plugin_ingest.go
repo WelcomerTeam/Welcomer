@@ -52,6 +52,10 @@ func (c *IngestCog) RegisterCog(bot *sandwich.Bot) error {
 				"IngestCog.OnMessageCreate",
 			)
 
+			if message.Author.Bot {
+				return nil
+			}
+
 			if message.GuildID == nil {
 				return nil
 			}
