@@ -37,7 +37,7 @@ func main() {
 
 	webhookUrl := flag.String(
 		"webhookUrl",
-		os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"),
+		os.Getenv("JOB_WEBHOOK_URL"),
 		"Webhook URL for logging",
 	)
 

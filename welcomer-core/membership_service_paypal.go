@@ -131,6 +131,35 @@ func HandlePaypalSale(ctx context.Context, paypalSale PaypalSale) error {
 		return nil
 	}
 
+	if paypalSale.CreateTime.IsZero() {
+		Logger.Warn().
+			Str("sale_id", paypalSale.ID).
+			Str("subscription_id", paypalSale.BillingAgreementID).
+			Msg("PayPal sale is missing create time; unable to update last billed time")
+	} else {
+		rowsAffected, err := Queries.UpdatePaypalSubscriptionLastBilledAt(
+			ctx,
+			database.UpdatePaypalSubscriptionLastBilledAtParams{
+				SubscriptionID: paypalSale.BillingAgreementID,
+				LastBilledAt:   paypalSale.CreateTime,
+			},
+		)
+		if err != nil {
+			Logger.Error().Err(err).
+				Str("sale_id", paypalSale.ID).
+				Str("subscription_id", paypalSale.BillingAgreementID).
+				Msg("Failed to update PayPal subscription last billed time")
+
+			return err
+		}
+		if rowsAffected == 0 {
+			Logger.Warn().
+				Str("sale_id", paypalSale.ID).
+				Str("subscription_id", paypalSale.BillingAgreementID).
+				Msg("No PayPal subscription found to update last billed time")
+		}
+	}
+
 	membershipExpiration := time.Now().AddDate(0, 1, 7)
 
 	for _, membership := range paypalMemberships {

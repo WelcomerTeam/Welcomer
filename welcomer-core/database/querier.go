@@ -91,6 +91,7 @@ type Querier interface {
 	// Returns the average daily, weekly and monthly active user counts for a guild within a specified date range.
 	GetActiveUserCounts(ctx context.Context, arg GetActiveUserCountsParams) (*GetActiveUserCountsRow, error)
 	GetAllCustomBotsWithToken(ctx context.Context, environment string) ([]*CustomBots, error)
+	GetAllPaypalSubscriptions(ctx context.Context) ([]*PaypalSubscriptions, error)
 	GetAutoRolesGuildSettings(ctx context.Context, guildID int64) (*GuildSettingsAutoroles, error)
 	GetBorderwallGuildSettings(ctx context.Context, guildID int64) (*GetBorderwallGuildSettingsRow, error)
 	GetBorderwallRequest(ctx context.Context, requestUuid uuid.UUID) (*BorderwallRequests, error)
@@ -228,6 +229,7 @@ type Querier interface {
 	UpdateLeaverGuildSettings(ctx context.Context, arg UpdateLeaverGuildSettingsParams) (int64, error)
 	UpdateModerationCheckup(ctx context.Context, arg UpdateModerationCheckupParams) error
 	UpdatePatreonUser(ctx context.Context, arg UpdatePatreonUserParams) (int64, error)
+	UpdatePaypalSubscriptionLastBilledAt(ctx context.Context, arg UpdatePaypalSubscriptionLastBilledAtParams) (int64, error)
 	UpdatePoll(ctx context.Context, arg UpdatePollParams) (*GuildPolls, error)
 	UpdatePollMessage(ctx context.Context, arg UpdatePollMessageParams) (*GuildPolls, error)
 	UpdateReactionRoleSettingMessageId(ctx context.Context, arg UpdateReactionRoleSettingMessageIdParams) (int64, error)

@@ -64,6 +64,44 @@ func (q *Queries) CreateOrUpdatePaypalSubscription(ctx context.Context, arg Crea
 	return &i, err
 }
 
+const GetAllPaypalSubscriptions = `-- name: GetAllPaypalSubscriptions :many
+SELECT
+    subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, next_billing_at, subscription_status, plan_id, quantity
+FROM
+    paypal_subscriptions
+`
+
+func (q *Queries) GetAllPaypalSubscriptions(ctx context.Context) ([]*PaypalSubscriptions, error) {
+	rows, err := q.db.Query(ctx, GetAllPaypalSubscriptions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*PaypalSubscriptions{}
+	for rows.Next() {
+		var i PaypalSubscriptions
+		if err := rows.Scan(
+			&i.SubscriptionID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.PayerID,
+			&i.LastBilledAt,
+			&i.NextBillingAt,
+			&i.SubscriptionStatus,
+			&i.PlanID,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetPaypalSubscriptionBySubscriptionID = `-- name: GetPaypalSubscriptionBySubscriptionID :one
 SELECT
     subscription_id, created_at, updated_at, user_id, payer_id, last_billed_at, next_billing_at, subscription_status, plan_id, quantity
@@ -129,4 +167,27 @@ func (q *Queries) GetPaypalSubscriptionsByUserID(ctx context.Context, userID int
 		return nil, err
 	}
 	return items, nil
+}
+
+const UpdatePaypalSubscriptionLastBilledAt = `-- name: UpdatePaypalSubscriptionLastBilledAt :execrows
+UPDATE
+    paypal_subscriptions
+SET
+    last_billed_at = GREATEST(last_billed_at, $2),
+    updated_at = now()
+WHERE
+    subscription_id = $1
+`
+
+type UpdatePaypalSubscriptionLastBilledAtParams struct {
+	SubscriptionID string    `json:"subscription_id"`
+	LastBilledAt   time.Time `json:"last_billed_at"`
+}
+
+func (q *Queries) UpdatePaypalSubscriptionLastBilledAt(ctx context.Context, arg UpdatePaypalSubscriptionLastBilledAtParams) (int64, error) {
+	result, err := q.db.Exec(ctx, UpdatePaypalSubscriptionLastBilledAt, arg.SubscriptionID, arg.LastBilledAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

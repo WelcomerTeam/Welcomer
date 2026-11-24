@@ -41,7 +41,7 @@ func main() {
 
 	webhookUrl := flag.String(
 		"webhookUrl",
-		os.Getenv("JOB_CLEANUP_CUSTOM_BOTS_WEBHOOK_URL"),
+		os.Getenv("JOB_WEBHOOK_URL"),
 		"Webhook URL for logging",
 	)
 

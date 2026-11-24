@@ -22,7 +22,7 @@ func main() {
 
 	webhookUrl := flag.String(
 		"webhookUrl",
-		os.Getenv("JOB_NOTIFY_EXPIRED_WEBHOOK_URL"),
+		os.Getenv("JOB_WEBHOOK_URL"),
 		"Webhook URL for logging",
 	)
 
@@ -39,7 +39,7 @@ func main() {
 				Content: "<@143090142360371200>",
 				Embeds: []discord.Embed{
 					{
-						Title:       "Process Queue",
+						Title:       "Create Partitions Job",
 						Description: fmt.Sprintf("Recovered from panic: %v", r),
 						Color:       int32(16760839),
 						Timestamp:   new(time.Now()),

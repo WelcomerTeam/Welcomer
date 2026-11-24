@@ -21,10 +21,25 @@ FROM
 WHERE
     user_id = $1;
 
+-- name: GetAllPaypalSubscriptions :many
+SELECT
+    *
+FROM
+    paypal_subscriptions;
+
 -- name: GetPaypalSubscriptionBySubscriptionID :one
 SELECT
     *
 FROM
     paypal_subscriptions
+WHERE
+    subscription_id = $1;
+
+-- name: UpdatePaypalSubscriptionLastBilledAt :execrows
+UPDATE
+    paypal_subscriptions
+SET
+    last_billed_at = GREATEST(last_billed_at, $2),
+    updated_at = now()
 WHERE
     subscription_id = $1;
