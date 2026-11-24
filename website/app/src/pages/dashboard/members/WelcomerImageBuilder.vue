@@ -1,7 +1,6 @@
 <!-- TODO:
 
 - drag for layers
-- enhancement: snap for vertical or horizontal alignments
 - enhancement: 1:1 aspect ratio when drawing shapes
 -->
 <template>
@@ -142,22 +141,34 @@
                 :style="getObjectStyle(obj, index)" class="pointer-events-none"></div>
 
               <div v-if="hoveredObject == index || selectedObject == index"
-                   class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0)">
+                   class="outline outline-[#0078D7] outline-2 w-full h-full" @mousedown="onGrabStart(0, index, $event)">
                 <div v-if="selectedObject == index"
                      class="absolute -left-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(1)"></div>
+                     @mousedown="onGrabStart(1, index, $event)"></div>
                 <div v-if="selectedObject == index"
                      class="absolute -right-[11px] -top-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(2)"></div>
+                     @mousedown="onGrabStart(2, index, $event)"></div>
                 <div v-if="selectedObject == index"
                      class="absolute -left-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(3)"></div>
+                     @mousedown="onGrabStart(3, index, $event)"></div>
                 <div v-if="selectedObject == index"
                      class="absolute -right-[11px] -bottom-[11px] w-2 h-2 m-2 bg-white border-2 border-[#0078D7] cursor-grab"
-                     @mousedown="onGrabStart(4)"></div>
+                     @mousedown="onGrabStart(4, index, $event)"></div>
               </div>
             </div>
           </div>
+          <div
+            v-if="snapGuides.vertical !== null"
+            class="absolute top-0 bottom-0 w-px bg-primary pointer-events-none z-50"
+            :style="{ left: `${snapGuides.vertical}px` }"
+            aria-hidden="true"
+          ></div>
+          <div
+            v-if="snapGuides.horizontal !== null"
+            class="absolute left-0 right-0 h-px bg-primary pointer-events-none z-50"
+            :style="{ top: `${snapGuides.horizontal}px` }"
+            aria-hidden="true"
+          ></div>
         </div>
       </div>
       <div class="builder-sidebar">
@@ -530,6 +541,7 @@ import LoadingIcon from "@/components/LoadingIcon.vue";
 import Popup from "@/components/Popup.vue";
 import useGuildRoute from "@/composables/useGuildRoute";
 import fonts from "@/fonts.json";
+import { getCanvasSnapTargets, getSnappedPosition } from "@/utils/canvasSnapping";
 import {
   getErrorToast,
   getSuccessToast,
@@ -616,6 +628,8 @@ export default {
     let selectedObject = ref(-1);
     let hoveredObject = ref(-1);
     let selectedGrab = ref(-1);
+    let snapGuides = ref({ vertical: null, horizontal: null });
+    let grabStart = ref(null);
 
     return {
       config,
@@ -640,6 +654,7 @@ export default {
       fonts,
 
       selectedAction, selectedObject, hoveredObject, selectedGrab,
+      snapGuides, grabStart,
 
       CustomWelcomerImageLayerTypeText, CustomWelcomerImageLayerTypeImage, CustomWelcomerImageLayerTypeShapeRectangle, CustomWelcomerImageLayerTypeShapeCircle,
 
@@ -670,6 +685,11 @@ export default {
     let lastMouse = { x: 0, y: 0 };
 
     const onMouseDown = (e) => {
+      if (e.button === 0) {
+        lastMouse.x = e.clientX;
+        lastMouse.y = e.clientY;
+      }
+
       if (e.button == 0 && this.selectedAction == 0) {
         // check mouse is inside canvas area
         const canvasRect = this.$el.querySelector('.builder-canvas').getBoundingClientRect();
@@ -722,7 +742,13 @@ export default {
         this.x += dx;
         this.y += dy;
       } else {
-        this.onGrabMove(dx, dy, e.shiftKey)
+        const dragX = this.selectedGrab === 0 && this.grabStart
+          ? e.clientX - this.grabStart.pointerX
+          : dx;
+        const dragY = this.selectedGrab === 0 && this.grabStart
+          ? e.clientY - this.grabStart.pointerY
+          : dy;
+        this.onGrabMove(dragX, dragY, e.shiftKey)
       }
     };
 
@@ -1305,9 +1331,18 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       this.hoveredObject = -1;
     },
 
-    onGrabStart(index) {
+    onGrabStart(index, objectIndex, event) {
       if (this.selectedGrab > -1) return; // already grabbing
 
+      this.onLayerClick(objectIndex);
+      const obj = this.image_config.layers[objectIndex];
+      if (!obj) return;
+
+      this.grabStart = {
+        pointerX: event.clientX,
+        pointerY: event.clientY,
+        position: [...obj.position],
+      };
       document.body.style.cursor = 'grabbing';
       this.selectedGrab = index;
     },
@@ -1315,6 +1350,8 @@ you are the {{Ordinal(Guild.Members)}} member!`;
     onGrabEnd() {
       document.body.style.cursor = 'default';
       this.selectedGrab = -1;
+      this.snapGuides = { vertical: null, horizontal: null };
+      this.grabStart = null;
     },
 
     onGrabMove(x, y, shiftKey) {
@@ -1328,10 +1365,37 @@ you are the {{Ordinal(Guild.Members)}} member!`;
 
       if (obj.dimensions[0] < minWidth && obj.dimensions[1] < minHeight) return;
 
+      this.snapGuides = { vertical: null, horizontal: null };
+
       switch (this.selectedGrab) {
         case 0: // nothing, move entire object
-          obj.position[0] += x * (1 / this.zoom);
-          obj.position[1] += y * (1 / this.zoom);
+          {
+            const tolerance = 8 / this.zoom;
+            const targetsX = this.getSnapTargets(0, this.selectedObject);
+            const targetsY = this.getSnapTargets(1, this.selectedObject);
+            const startPosition = this.grabStart?.position || obj.position;
+            const preferredAnchorX = x > 0 ? "end" : x < 0 ? "start" : null;
+            const preferredAnchorY = y > 0 ? "end" : y < 0 ? "start" : null;
+            const snappedX = getSnappedPosition(
+              startPosition[0] + x / this.zoom,
+              obj.dimensions[0],
+              targetsX,
+              tolerance,
+              preferredAnchorX
+            );
+            const snappedY = getSnappedPosition(
+              startPosition[1] + y / this.zoom,
+              obj.dimensions[1],
+              targetsY,
+              tolerance,
+              preferredAnchorY
+            );
+
+            obj.position[0] = snappedX.position;
+            obj.position[1] = snappedY.position;
+            this.snapGuides.vertical = snappedX.guide;
+            this.snapGuides.horizontal = snappedY.guide;
+          }
           break;
         case 1: // top-left
           obj.position[0] += x * (1 / this.zoom);
@@ -1367,6 +1431,18 @@ you are the {{Ordinal(Guild.Members)}} member!`;
       if (shiftKey) {
         obj.dimensions[1] = obj.dimensions[0];
       }
+    },
+
+    getSnapTargets(coordinate, objectIndex) {
+      const canvasSize = this.image_config.dimensions?.[coordinate] || 0;
+      const borderWidth = this.image_config.stroke?.width || 0;
+      return getCanvasSnapTargets(
+        canvasSize,
+        borderWidth,
+        this.image_config.layers,
+        objectIndex,
+        coordinate
+      );
     },
 
     normalizeBorderRadius(value) {
